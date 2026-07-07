@@ -1,0 +1,22 @@
+# Godot generated files
+.godot/
+.import/
+
+# Exported builds
+export/
+exports/
+build/
+builds/
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Godot C# / Mono
+.mono/
