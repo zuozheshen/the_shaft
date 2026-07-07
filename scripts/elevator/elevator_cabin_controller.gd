@@ -25,9 +25,11 @@ var current_direction: int = FacingDirection.FRONT
 @onready var facing_object_label: Label = %FacingObjectLabel
 @onready var interaction_hint_label: Label = %InteractionHintLabel
 @onready var console_interface: ConsoleInterface = %ConsoleInterface
+@onready var demo_flow_manager: DemoFlowManager = get_node_or_null("../DemoFlowManager") as DemoFlowManager
 
 
 func _ready() -> void:
+	console_interface.set_demo_flow_manager(demo_flow_manager)
 	console_interface.return_requested.connect(_exit_console)
 	_update_cabin_text()
 
@@ -64,6 +66,7 @@ func _interact_with_facing_object() -> void:
 		return
 
 	console_interface.show_console(
+		DIRECTION_NAMES[current_direction],
 		FACING_OBJECTS[current_direction],
 		CONSOLE_DESCRIPTIONS[current_direction]
 	)

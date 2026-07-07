@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://dwgr21xrksmb4"]
 
-[ext_resource type="Script" path="res://scripts/ui/console_interface.gd" id="1_console"]
+[ext_resource type="Script" uid="uid://dfohd0vych4js" path="res://scripts/ui/console_interface.gd" id="1_console"]
 
-[node name="ConsoleInterface" type="Control"]
+[node name="ConsoleInterface" type="Control" unique_id=1275362082]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,37 +11,95 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_console")
 
-[node name="ConsoleLayout" type="VBoxContainer" parent="."]
+[node name="ConsoleLayout" type="VBoxContainer" parent="." unique_id=829493771]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -240.0
-offset_top = -90.0
-offset_right = 240.0
-offset_bottom = 90.0
+offset_left = -320.0
+offset_top = -260.0
+offset_right = 320.0
+offset_bottom = 260.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="ConsoleNameLabel" type="Label" parent="ConsoleLayout"]
+[node name="TitleLabel" type="Label" parent="ConsoleLayout" unique_id=151397601]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
-text = "操作台"
+text = "主调度台"
 horizontal_alignment = 1
 
-[node name="ConsoleDescriptionLabel" type="Label" parent="ConsoleLayout"]
+[node name="DescriptionLabel" type="Label" parent="ConsoleLayout" unique_id=218676583]
 unique_name_in_owner = true
 layout_mode = 2
-text = "操作台说明"
+text = "这里以后显示派单、路线建议和门控。"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="ReturnButton" type="Button" parent="ConsoleLayout"]
+[node name="DispatchPanel" type="VBoxContainer" parent="ConsoleLayout" unique_id=1696309809]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="StateLabel" type="Label" parent="ConsoleLayout/DispatchPanel" unique_id=2035689632]
+unique_name_in_owner = true
+layout_mode = 2
+text = "当前状态：BOOT"
+horizontal_alignment = 1
+
+[node name="DispatchInfoLabel" type="Label" parent="ConsoleLayout/DispatchPanel" unique_id=866594260]
+layout_mode = 2
+text = "派单信息：暂无派单"
+horizontal_alignment = 1
+
+[node name="RouteSuggestionLabel" type="Label" parent="ConsoleLayout/DispatchPanel" unique_id=1613910380]
+layout_mode = 2
+text = "路线建议：暂无路线建议"
+horizontal_alignment = 1
+
+[node name="DoorControlPanel" type="HBoxContainer" parent="ConsoleLayout" unique_id=1551982481]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="OpenDoorButton" type="Button" parent="ConsoleLayout/DoorControlPanel" unique_id=1527697160]
+unique_name_in_owner = true
+layout_mode = 2
+text = "开门"
+
+[node name="DelayDoorButton" type="Button" parent="ConsoleLayout/DoorControlPanel" unique_id=2075897253]
+unique_name_in_owner = true
+layout_mode = 2
+text = "延迟关门"
+
+[node name="CloseDoorButton" type="Button" parent="ConsoleLayout/DoorControlPanel" unique_id=449642112]
+unique_name_in_owner = true
+layout_mode = 2
+text = "关门"
+
+[node name="FlowControlPanel" type="HBoxContainer" parent="ConsoleLayout" unique_id=656409819]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 1
+
+[node name="AdvanceStateButton" type="Button" parent="ConsoleLayout/FlowControlPanel" unique_id=2080890075]
+unique_name_in_owner = true
+layout_mode = 2
+text = "推进状态"
+
+[node name="SystemHintLabel" type="Label" parent="ConsoleLayout" unique_id=173280688]
+unique_name_in_owner = true
+layout_mode = 2
+text = "等待派单输入……"
+horizontal_alignment = 1
+
+[node name="ReturnButton" type="Button" parent="ConsoleLayout" unique_id=923884291]
 unique_name_in_owner = true
 layout_mode = 2
 text = "返回（S / Esc）"

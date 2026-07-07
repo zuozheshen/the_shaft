@@ -1,4 +1,8 @@
 extends Node
+class_name DemoFlowManager
+
+
+signal state_changed(new_state_name: String)
 
 
 enum DemoState {
@@ -43,7 +47,12 @@ func advance_state() -> void:
 			return
 
 	print_current_state()
+	state_changed.emit(get_current_state_name())
+
+
+func get_current_state_name() -> String:
+	return str(DemoState.keys()[current_state])
 
 
 func print_current_state() -> void:
-	print("Current demo state: ", DemoState.keys()[current_state])
+	print("Current demo state: ", get_current_state_name())
