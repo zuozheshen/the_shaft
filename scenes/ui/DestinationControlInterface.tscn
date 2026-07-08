@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://wet3ybwny70j"]
+[gd_scene format=3 uid="uid://wet3ybwny70j"]
 
-[ext_resource type="Script" path="res://scripts/ui/destination_control_interface.gd" id="1_destination"]
+[ext_resource type="Script" uid="uid://bhu77e73xe6d8" path="res://scripts/ui/destination_control_interface.gd" id="1_destination"]
 
 [node name="DestinationControlInterface" type="Control" unique_id=1185287254]
 layout_mode = 3
@@ -68,6 +68,10 @@ layout_mode = 2
 layout_mode = 2
 text = "验证地址"
 
+[node name="OpenFloorBookButton" type="Button" parent="RootMargin/DestinationLayout" unique_id=777911491]
+layout_mode = 2
+text = "查看楼层索引书"
+
 [node name="DestinationStatusPanel" type="PanelContainer" parent="RootMargin/DestinationLayout" unique_id=897540669]
 layout_mode = 2
 
@@ -94,3 +98,75 @@ text = "提交目标"
 [node name="ReturnButton" type="Button" parent="RootMargin/DestinationLayout" unique_id=1438800514]
 layout_mode = 2
 text = "返回操作间"
+
+[node name="FloorBookPage" type="MarginContainer" parent="." unique_id=1786567350]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="FloorBookLayout" type="VBoxContainer" parent="FloorBookPage" unique_id=110520594]
+layout_mode = 2
+
+[node name="FloorBookTitleLabel" type="Label" parent="FloorBookPage/FloorBookLayout" unique_id=406543802]
+layout_mode = 2
+text = "楼层索引书 / FLOOR DIRECTORY"
+
+[node name="FloorBookPageLabel" type="Label" parent="FloorBookPage/FloorBookLayout" unique_id=371550192]
+layout_mode = 2
+text = "第 1 / 7 页"
+
+[node name="FloorBookContentPanel" type="PanelContainer" parent="FloorBookPage/FloorBookLayout" unique_id=1334000488]
+layout_mode = 2
+
+[node name="FloorBookContentMargin" type="MarginContainer" parent="FloorBookPage/FloorBookLayout/FloorBookContentPanel"]
+layout_mode = 2
+
+[node name="FloorBookContentLayout" type="VBoxContainer" parent="FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin" unique_id=330402233]
+layout_mode = 2
+
+[node name="FloorBookNumberLabel" type="Label" parent="FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin/FloorBookContentLayout" unique_id=1955527249]
+layout_mode = 2
+text = "楼层编号：900"
+
+[node name="FloorBookIntroLabel" type="Label" parent="FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin/FloorBookContentLayout" unique_id=200543924]
+layout_mode = 2
+text = "楼层介绍：派单记录中的目标层，常用于标准人员交接与登记确认。"
+autowrap_mode = 2
+
+[node name="FloorBookFunctionLabel" type="Label" parent="FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin/FloorBookContentLayout" unique_id=1828901087]
+layout_mode = 2
+text = "主要功能：登记、交接、身份复核、短暂停留。"
+autowrap_mode = 2
+
+[node name="FloorBookHistoryLabel" type="Label" parent="FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin/FloorBookContentLayout" unique_id=450495817]
+layout_mode = 2
+text = "维修历史：该层曾在多次垂直调度异常后作为稳定参照层使用。"
+autowrap_mode = 2
+
+[node name="FloorBookNoteLabel" type="Label" parent="FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin/FloorBookContentLayout" unique_id=1247754343]
+layout_mode = 2
+text = "备注：纸质索引内容可能滞后于建筑当前状态。"
+autowrap_mode = 2
+
+[node name="FloorBookButtonPanel" type="HBoxContainer" parent="FloorBookPage/FloorBookLayout" unique_id=404332579]
+layout_mode = 2
+
+[node name="PrevBookPageButton" type="Button" parent="FloorBookPage/FloorBookLayout/FloorBookButtonPanel" unique_id=2059916662]
+layout_mode = 2
+text = "上一页"
+
+[node name="NextBookPageButton" type="Button" parent="FloorBookPage/FloorBookLayout/FloorBookButtonPanel" unique_id=657518038]
+layout_mode = 2
+text = "下一页"
+
+[node name="FillCurrentFloorButton" type="Button" parent="FloorBookPage/FloorBookLayout/FloorBookButtonPanel" unique_id=329004767]
+layout_mode = 2
+text = "填写此楼层"
+
+[node name="CloseFloorBookButton" type="Button" parent="FloorBookPage/FloorBookLayout/FloorBookButtonPanel" unique_id=1344327406]
+layout_mode = 2
+text = "合上索引书"
