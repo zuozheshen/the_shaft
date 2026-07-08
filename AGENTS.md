@@ -183,10 +183,21 @@ Do not create new top-level folders unless the current issue requires it.
 - Avoid clever one-liners.
 - Avoid deeply nested logic.
 - Use comments for intent, not for obvious syntax.
+- Use concise Chinese comments for important logic so beginner Godot developers can understand the code.
 - Keep functions short when possible.
 - Prefer simple state machines for demo flow.
 - Print useful debug information for early prototype tasks.
 - Do not introduce complex architecture before the demo needs it.
+
+## Chinese Comment Rules
+
+- All important code should retain an appropriate amount of Chinese comments.
+- Chinese comments should help Godot beginners understand the project structure and logic.
+- State machines, input handling, signal connections, UI node references, data structures, and key route, passenger, and log logic should have brief Chinese comments.
+- Comments should explain what the logic is responsible for and why it is implemented that way.
+- Do not comment every line.
+- Do not translate obvious code into Chinese.
+- Keep comments concise; do not turn them into lengthy design documents.
 
 ## Data-Driven Passenger Rules
 

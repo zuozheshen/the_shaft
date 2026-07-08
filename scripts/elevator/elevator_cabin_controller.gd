@@ -1,6 +1,7 @@
 extends Control
 
 
+# 四个方向按顺时针排列，便于 Q / E 使用循环索引完成转向。
 enum FacingDirection {
 	FRONT,
 	RIGHT,
@@ -20,6 +21,7 @@ const CONSOLE_DESCRIPTIONS: Dictionary = {
 
 var current_direction: int = FacingDirection.FRONT
 
+# 使用场景中的唯一节点名取得界面引用，集中声明便于新手看清控制器依赖。
 @onready var cabin_view: Control = %CabinView
 @onready var direction_label: Label = %DirectionLabel
 @onready var facing_object_label: Label = %FacingObjectLabel
@@ -29,15 +31,18 @@ var current_direction: int = FacingDirection.FRONT
 
 
 func _ready() -> void:
+	# 控制器负责把流程管理器交给操作台，并监听操作台发出的退出请求。
 	console_interface.set_demo_flow_manager(demo_flow_manager)
 	console_interface.return_requested.connect(_exit_console)
 	_update_cabin_text()
 
 
 func _input(event: InputEvent) -> void:
+	# 操作台打开后由 ConsoleInterface 接管 S / Esc 等输入，避免舱内操作同时触发。
 	if console_interface.visible:
 		return
 
+	# Q / E 左右转向；W 或 ui_accept（Enter / Space）检查当前面对的操作台。
 	if _is_key_pressed(event, KEY_Q):
 		_rotate_left()
 	elif _is_key_pressed(event, KEY_E):
@@ -51,6 +56,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _rotate_left() -> void:
+	# wrapi 让方向在 FRONT、LEFT、BACK、RIGHT 之间首尾循环。
 	current_direction = wrapi(current_direction - 1, 0, FacingDirection.size())
 	_update_cabin_text()
 
@@ -61,10 +67,12 @@ func _rotate_right() -> void:
 
 
 func _interact_with_facing_object() -> void:
+	# BACK 只有舱壁，没有可进入的操作台，因此只更新提示文字。
 	if current_direction == FacingDirection.BACK:
 		interaction_hint_label.text = "后方没有可用操作台。"
 		return
 
+	# FRONT、LEFT、RIGHT 共用一个界面，由方向对应的数据决定显示哪类操作台。
 	console_interface.show_console(
 		DIRECTION_NAMES[current_direction],
 		FACING_OBJECTS[current_direction],
@@ -74,12 +82,14 @@ func _interact_with_facing_object() -> void:
 
 
 func _exit_console() -> void:
+	# 收到返回请求后恢复舱内视图，玩家可以继续转向或进入其他操作台。
 	console_interface.hide()
 	cabin_view.show()
 	_update_cabin_text()
 
 
 func _update_cabin_text() -> void:
+	# 每次转向或退出操作台后同步朝向、对象和可用操作提示。
 	direction_label.text = "当前朝向：%s" % DIRECTION_NAMES[current_direction]
 	facing_object_label.text = "当前面对：%s" % FACING_OBJECTS[current_direction]
 	if current_direction == FacingDirection.BACK:
