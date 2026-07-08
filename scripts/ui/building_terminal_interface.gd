@@ -19,7 +19,7 @@ const STATUS_CONTENT: String = """稳定度：62%
 继续复核乘客自述。
 必要时查看 TRANSCRIPT 与 SYSTEM LOG。"""
 
-const RECORD_CONTENT: String = """乘客记录
+const FALLBACK_RECORD_CONTENT: String = """乘客记录
 
 姓名：M. ROWAN
 登记状态：UNREGISTERED
@@ -134,16 +134,57 @@ func _initialize_terminal_text() -> void:
 func _show_status_tab() -> void:
 	# STATUS 只显示最近一次对话选项携带的建筑提示，不计算真实稳定度或风险。
 	var status_hint: String = "暂无前台通话。"
+	var submitted_destination: String = ""
 	if demo_flow_manager != null:
 		status_hint = demo_flow_manager.get_current_building_status_hint()
+		submitted_destination = demo_flow_manager.get_submitted_destination()
+	var submitted_text: String = submitted_destination \
+		if not submitted_destination.is_empty() else "暂无"
 	_set_content(
-		STATUS_CONTENT + "\n\n当前复核提示：\n" + status_hint,
+		STATUS_CONTENT
+		+ "\n\n当前已提交目标：" + submitted_text
+		+ "\n\n当前复核提示：\n" + status_hint,
 		"选择一个终端页签查看建筑记录。"
 	)
 
 
 func _show_record_tab() -> void:
-	_set_content(RECORD_CONTENT, "乘客记录为当前复核会话的占位数据。")
+	_set_content(_build_record_content(), "乘客记录来自当前复核案例。")
+
+
+func _build_record_content() -> String:
+	# RECORD 从 current_case 生成；流程管理器缺失时才退回旧占位文本。
+	if demo_flow_manager == null:
+		return FALLBACK_RECORD_CONTENT
+
+	var passenger_record: Dictionary = demo_flow_manager.get_passenger_record()
+	if passenger_record.is_empty():
+		return FALLBACK_RECORD_CONTENT
+
+	var record_lines := PackedStringArray([
+		"乘客记录",
+		"",
+		"姓名：%s" % passenger_record.get("name", demo_flow_manager.get_passenger_name()),
+		"登记状态：%s" % passenger_record.get("registration_status", "UNKNOWN"),
+		"风险标记：%s" % passenger_record.get("risk_tag", "UNKNOWN"),
+		"当前派单：%s" % demo_flow_manager.get_dispatch_text(),
+		"平均停留：%s" % passenger_record.get("average_stay", "UNKNOWN"),
+		"",
+		"近期路线：",
+	])
+	var recent_routes: Array = passenger_record.get("recent_routes", [])
+	for route in recent_routes:
+		record_lines.append(str(route))
+
+	record_lines.append("")
+	record_lines.append("备注：")
+	record_lines.append(str(passenger_record.get("note", "暂无备注。")))
+
+	var submitted_destination: String = demo_flow_manager.get_submitted_destination()
+	if not submitted_destination.is_empty():
+		record_lines.append("")
+		record_lines.append("当前已提交目标：%s" % submitted_destination)
+	return "\n".join(record_lines)
 
 
 func _show_transcript_tab() -> void:

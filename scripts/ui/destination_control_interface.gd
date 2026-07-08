@@ -12,52 +12,52 @@ const RECOMMENDED_DESTINATIONS: Array[String] = ["900", "742", "612"]
 const FLOOR_DATABASE: Dictionary = {
 	"900": {
 		"description": "派单记录目标层。",
-		"relevance": "94%",
-		"access": "可前往",
+		"relation": "94%",
+		"access_eval": "可前往",
 		"stability": "基本稳定",
-		"hint": "该楼层与当前派单高度一致。",
+		"message": "该楼层与当前派单高度一致。",
 	},
 	"742": {
 		"description": "系统推荐的中继目标层。",
-		"relevance": "78%",
-		"access": "可前往",
+		"relation": "78%",
+		"access_eval": "可前往",
 		"stability": "轻微波动",
-		"hint": "该楼层与当前派单存在关联，但不是派单记录目标。",
+		"message": "该楼层与当前派单存在关联，但不是派单记录目标。",
 	},
 	"612": {
 		"description": "当前派单起始相关层。",
-		"relevance": "63%",
-		"access": "可前往",
+		"relation": "63%",
+		"access_eval": "可前往",
 		"stability": "稳定",
-		"hint": "该楼层仍与当前派单相关，适合暂时复核。",
+		"message": "该楼层仍与当前派单相关，适合暂时复核。",
 	},
 	"004": {
 		"description": "低层服务区。",
-		"relevance": "37%",
-		"access": "可前往",
+		"relation": "37%",
+		"access_eval": "可前往",
 		"stability": "中度波动",
-		"hint": "该楼层不在系统推荐中，但可能满足乘客的特殊需求。",
+		"message": "该楼层不在系统推荐中，但可能满足乘客的特殊需求。",
 	},
 	"387": {
 		"description": "旧记录存放层。",
-		"relevance": "29%",
-		"access": "可前往",
+		"relation": "29%",
+		"access_eval": "可前往",
 		"stability": "轻微波动",
-		"hint": "该楼层与当前派单存在弱关联，建议谨慎提交。",
+		"message": "该楼层与当前派单存在弱关联，建议谨慎提交。",
 	},
 	"392": {
 		"description": "普通通行层。",
-		"relevance": "0%",
-		"access": "可前往",
+		"relation": "0%",
+		"access_eval": "可前往",
 		"stability": "稳定",
-		"hint": "该楼层与当前派单无关联，但建筑允许前往。",
+		"message": "该楼层与当前派单无关联，但建筑允许前往。",
 	},
 	"547": {
 		"description": "普通办公层。",
-		"relevance": "0%",
-		"access": "可前往",
+		"relation": "0%",
+		"access_eval": "可前往",
 		"stability": "基本稳定",
-		"hint": "该楼层与当前派单无关联，稳定度未见明显变化。",
+		"message": "该楼层与当前派单无关联，稳定度未见明显变化。",
 	},
 }
 
@@ -163,6 +163,9 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 	demo_flow_manager = flow_manager
 	if demo_flow_manager == null:
 		push_warning("DestinationControlInterface: DemoFlowManager is not connected.")
+		return
+	# 子节点 ready 后才注入共享流程，因此这里再次刷新案例相关文字。
+	_initialize_destination_text()
 
 
 func show_destination_console() -> void:
@@ -239,21 +242,38 @@ func _connect_button(button: Button, callback: Callable) -> void:
 
 
 func _initialize_destination_text() -> void:
+	var recommended_destinations: Array = _get_recommended_destinations()
+	var dispatch_from: String = "612"
+	var dispatch_to: String = "900"
+	if demo_flow_manager != null:
+		dispatch_from = demo_flow_manager.get_dispatch_from()
+		dispatch_to = demo_flow_manager.get_dispatch_to()
+	var recommendation_labels := PackedStringArray()
+	for destination in recommended_destinations:
+		recommendation_labels.append(str(destination))
+	var recommendation_text: String = " / ".join(recommendation_labels)
 	_set_label_text(title_label, "目标楼层控制台 / DESTINATION CONSOLE")
 	_set_label_text(
 		dispatch_summary_label,
-		"当前派单：612 → 900\n系统推荐目标：900 / 742 / 612\n当前状态：等待目标确认"
+		"当前派单：%s → %s\n系统推荐目标：%s\n当前状态：等待目标确认" % [
+			dispatch_from,
+			dispatch_to,
+			recommendation_text,
+		]
 	)
 	_set_label_text(recommended_title_label, "系统推荐楼层：")
 
 	for button_index in recommended_destination_buttons.size():
-		if button_index < RECOMMENDED_DESTINATIONS.size():
-			recommended_destination_buttons[button_index].text = RECOMMENDED_DESTINATIONS[button_index]
+		if button_index < recommended_destinations.size():
+			recommended_destination_buttons[button_index].text = str(
+				recommended_destinations[button_index]
+			)
 
 	if manual_destination_line_edit != null:
-		manual_destination_line_edit.text = "900"
+		manual_destination_line_edit.text = str(recommended_destinations[0]) \
+			if not recommended_destinations.is_empty() else ""
 	_set_button_text(verify_destination_button, "验证地址")
-	_set_label_text(destination_status_label, _build_unverified_status())
+	_set_label_text(destination_status_label, _build_unverified_status(_get_current_destination()))
 	_set_label_text(
 		destination_feedback_label,
 		"请选择推荐楼层，或手动输入目标楼层。"
@@ -289,27 +309,29 @@ func _close_floor_book() -> void:
 
 
 func _change_floor_book_page(direction: int) -> void:
-	if FLOOR_BOOK_ENTRIES.is_empty():
+	var floor_book_entries: Array = _get_floor_book_entries()
+	if floor_book_entries.is_empty():
 		push_warning("DestinationControlInterface: Floor book has no entries.")
 		return
 	# 纸质书翻页仅改变浏览页码，不写入 LEFT 的 SYSTEM LOG。
 	current_book_page_index = wrapi(
 		current_book_page_index + direction,
 		0,
-		FLOOR_BOOK_ENTRIES.size()
+		floor_book_entries.size()
 	)
 	_update_floor_book_display()
 
 
 func _fill_current_floor() -> void:
-	if FLOOR_BOOK_ENTRIES.is_empty():
+	var floor_book_entries: Array = _get_floor_book_entries()
+	if floor_book_entries.is_empty():
 		push_warning("DestinationControlInterface: Cannot fill from an empty floor book.")
 		return
 	if manual_destination_line_edit == null:
 		return
 
 	# 楼层编号直接作为字符串填写，004 等编号不会被转换为整数。
-	var entry: Dictionary = FLOOR_BOOK_ENTRIES[current_book_page_index]
+	var entry: Dictionary = floor_book_entries[current_book_page_index]
 	var floor_number: String = entry["number"]
 	manual_destination_line_edit.text = floor_number
 	_set_floor_book_visibility(false)
@@ -330,14 +352,15 @@ func _set_floor_book_visibility(book_is_open: bool) -> void:
 
 
 func _update_floor_book_display() -> void:
-	if FLOOR_BOOK_ENTRIES.is_empty():
+	var floor_book_entries: Array = _get_floor_book_entries()
+	if floor_book_entries.is_empty():
 		push_warning("DestinationControlInterface: Floor book has no entries to display.")
 		return
 
-	var entry: Dictionary = FLOOR_BOOK_ENTRIES[current_book_page_index]
+	var entry: Dictionary = floor_book_entries[current_book_page_index]
 	_set_label_text(
 		floor_book_page_label,
-		"第 %d / %d 页" % [current_book_page_index + 1, FLOOR_BOOK_ENTRIES.size()]
+		"第 %d / %d 页" % [current_book_page_index + 1, floor_book_entries.size()]
 	)
 	_set_label_text(floor_book_number_label, "楼层编号：%s" % entry["number"])
 	_set_label_text(floor_book_intro_label, "楼层介绍：%s" % entry["intro"])
@@ -347,13 +370,14 @@ func _update_floor_book_display() -> void:
 
 
 func _select_recommended_destination(button_index: int) -> void:
-	if button_index < 0 or button_index >= RECOMMENDED_DESTINATIONS.size():
+	var recommended_destinations: Array = _get_recommended_destinations()
+	if button_index < 0 or button_index >= recommended_destinations.size():
 		push_warning("DestinationControlInterface: Invalid recommendation slot.")
 		return
 	if manual_destination_line_edit == null:
 		return
 
-	var destination: String = RECOMMENDED_DESTINATIONS[button_index]
+	var destination: String = str(recommended_destinations[button_index])
 	manual_destination_line_edit.text = destination
 	_set_label_text(
 		destination_feedback_label,
@@ -371,7 +395,8 @@ func _verify_destination() -> void:
 
 	verified_destination = destination
 	is_destination_verified = true
-	is_destination_recognized = FLOOR_DATABASE.has(destination)
+	var floor_database: Dictionary = _get_floor_database()
+	is_destination_recognized = floor_database.has(destination)
 
 	if not is_destination_recognized:
 		_set_label_text(destination_status_label, _build_unrecognized_status(destination))
@@ -379,15 +404,15 @@ func _verify_destination() -> void:
 		_append_operation("目标验证：%s / 无法识别 / 无法前往" % destination)
 		return
 
-	var floor_data: Dictionary = FLOOR_DATABASE[destination]
+	var floor_data: Dictionary = floor_database[destination]
 	_set_label_text(destination_status_label, _build_recognized_status(destination, floor_data))
 	_set_label_text(destination_feedback_label, "目标已验证：%s。" % destination)
 	_append_operation(
 		"目标验证：%s / %s / 稳定度%s / 关联度%s" % [
 			destination,
-			floor_data["access"],
+			floor_data["access_eval"],
 			floor_data["stability"],
-			floor_data["relevance"],
+			floor_data["relation"],
 		]
 	)
 
@@ -413,15 +438,18 @@ func _submit_destination() -> void:
 		_append_operation("目标提交失败：%s / 无法识别" % destination)
 		return
 
-	var floor_data: Dictionary = FLOOR_DATABASE[destination]
+	var floor_database: Dictionary = _get_floor_database()
+	var floor_data: Dictionary = floor_database[destination]
 	_set_label_text(
 		destination_feedback_label,
 		"目标已提交：%s\n通行评估：%s\n稳定度：%s\n电梯将前往该目标。" % [
 			destination,
-			floor_data["access"],
+			floor_data["access_eval"],
 			floor_data["stability"],
 		]
 	)
+	if demo_flow_manager != null:
+		demo_flow_manager.set_submitted_destination(destination)
 	_append_operation("目标提交：%s" % destination)
 
 
@@ -432,16 +460,16 @@ func _get_current_destination() -> String:
 	return manual_destination_line_edit.text.strip_edges()
 
 
-func _build_unverified_status() -> String:
+func _build_unverified_status(destination: String) -> String:
 	return """目标确认状态：未验证
-当前目标：900
+当前目标：%s
 楼层说明：等待验证
 与当前派单的关联度：待评估
 通行评估：等待验证
 稳定度：待评估
 
 系统提示：
-请选择系统推荐楼层，或手动输入目标楼层后进行验证。"""
+请选择系统推荐楼层，或手动输入目标楼层后进行验证。""" % destination
 
 
 func _build_recognized_status(destination: String, floor_data: Dictionary) -> String:
@@ -456,11 +484,36 @@ func _build_recognized_status(destination: String, floor_data: Dictionary) -> St
 %s""" % [
 		destination,
 		floor_data["description"],
-		floor_data["relevance"],
-		floor_data["access"],
+		floor_data["relation"],
+		floor_data["access_eval"],
 		floor_data["stability"],
-		floor_data["hint"],
+		floor_data["message"],
 	]
+
+
+func _get_recommended_destinations() -> Array:
+	if demo_flow_manager != null:
+		var destinations: Array = demo_flow_manager.get_recommended_destinations()
+		if not destinations.is_empty():
+			return destinations
+	return RECOMMENDED_DESTINATIONS
+
+
+func _get_floor_database() -> Dictionary:
+	# 正常运行读取 current_case；常量只用于流程管理器缺失时防止场景崩溃。
+	if demo_flow_manager != null:
+		var case_floor_database: Dictionary = demo_flow_manager.get_floor_database()
+		if not case_floor_database.is_empty():
+			return case_floor_database
+	return FLOOR_DATABASE
+
+
+func _get_floor_book_entries() -> Array:
+	if demo_flow_manager != null:
+		var case_book_entries: Array = demo_flow_manager.get_floor_book_entries()
+		if not case_book_entries.is_empty():
+			return case_book_entries
+	return FLOOR_BOOK_ENTRIES
 
 
 func _build_unrecognized_status(destination: String) -> String:

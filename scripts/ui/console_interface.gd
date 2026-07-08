@@ -20,7 +20,7 @@ const CAMERA_FEEDS: Array[Dictionary] = [
 	},
 ]
 
-# 临时对话节点；后续会由正式乘客数据替换。
+# 场景缺少流程管理器时使用的对话 fallback；正常运行从 current_case 读取。
 const DIALOGUE_NODES: Array = [
 	[
 		{
@@ -195,6 +195,7 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 	if not demo_flow_manager.state_changed.is_connected(_update_state_label):
 		demo_flow_manager.state_changed.connect(_update_state_label)
 	_update_state_label(demo_flow_manager.get_current_state_name())
+	_update_dialogue_buttons()
 
 
 func show_console(
@@ -276,7 +277,7 @@ func _toggle_microphone() -> void:
 
 	if mic_enabled and not dialogue_started and not dialogue_finished:
 		dialogue_started = true
-		current_passenger_line = "乘客：你是真人在听吗？我需要去下面。"
+		current_passenger_line = _get_initial_passenger_line()
 	_update_microphone_display()
 
 	if mic_enabled and current_camera_index != 0:
@@ -325,10 +326,11 @@ func _update_dialogue_visibility() -> void:
 
 
 func _update_dialogue_buttons() -> void:
-	if dialogue_finished or dialogue_node_index >= DIALOGUE_NODES.size():
+	var dialogue_nodes: Array = _get_dialogue_nodes()
+	if dialogue_finished or dialogue_node_index >= dialogue_nodes.size():
 		return
 
-	var current_node: Array = DIALOGUE_NODES[dialogue_node_index]
+	var current_node: Array = dialogue_nodes[dialogue_node_index]
 	for choice_index in dialogue_choice_buttons.size():
 		var choice_button := dialogue_choice_buttons[choice_index]
 		choice_button.visible = choice_index < current_node.size()
@@ -340,7 +342,10 @@ func _select_dialogue_choice(choice_index: int) -> void:
 	if not mic_enabled or current_camera_index != 0 or dialogue_finished:
 		return
 
-	var current_node: Array = DIALOGUE_NODES[dialogue_node_index]
+	var dialogue_nodes: Array = _get_dialogue_nodes()
+	if dialogue_node_index >= dialogue_nodes.size():
+		return
+	var current_node: Array = dialogue_nodes[dialogue_node_index]
 	if choice_index >= current_node.size():
 		return
 
@@ -354,7 +359,7 @@ func _select_dialogue_choice(choice_index: int) -> void:
 	_append_front_dialogue(operator_line, passenger_reply, status_hint)
 
 	dialogue_node_index += 1
-	if dialogue_node_index >= DIALOGUE_NODES.size():
+	if dialogue_node_index >= dialogue_nodes.size():
 		dialogue_finished = true
 		system_hint_label.text = "当前通话节点结束。请确认门控或查看其他控制台。"
 		_update_dialogue_visibility()
@@ -362,6 +367,23 @@ func _select_dialogue_choice(choice_index: int) -> void:
 
 	_update_dialogue_buttons()
 	system_hint_label.text = "乘客已回应。请选择下一句。"
+
+
+func _get_dialogue_nodes() -> Array:
+	# UI 只通过临时 getter 读取案例；未来改用 JSON Loader 时这里无需重写。
+	if demo_flow_manager != null:
+		var case_dialogue_nodes: Array = demo_flow_manager.get_dialogue_nodes()
+		if not case_dialogue_nodes.is_empty():
+			return case_dialogue_nodes
+	return DIALOGUE_NODES
+
+
+func _get_initial_passenger_line() -> String:
+	if demo_flow_manager != null:
+		var initial_line: String = demo_flow_manager.get_initial_passenger_line()
+		if not initial_line.is_empty():
+			return initial_line
+	return "乘客：你是真人在听吗？我需要去下面。"
 
 
 func _append_front_dialogue(

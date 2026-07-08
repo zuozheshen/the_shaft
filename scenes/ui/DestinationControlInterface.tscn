@@ -122,7 +122,7 @@ text = "第 1 / 7 页"
 [node name="FloorBookContentPanel" type="PanelContainer" parent="FloorBookPage/FloorBookLayout" unique_id=1334000488]
 layout_mode = 2
 
-[node name="FloorBookContentMargin" type="MarginContainer" parent="FloorBookPage/FloorBookLayout/FloorBookContentPanel"]
+[node name="FloorBookContentMargin" type="MarginContainer" parent="FloorBookPage/FloorBookLayout/FloorBookContentPanel" unique_id=1474501902]
 layout_mode = 2
 
 [node name="FloorBookContentLayout" type="VBoxContainer" parent="FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin" unique_id=330402233]
@@ -133,21 +133,25 @@ layout_mode = 2
 text = "楼层编号：900"
 
 [node name="FloorBookIntroLabel" type="Label" parent="FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin/FloorBookContentLayout" unique_id=200543924]
+custom_minimum_size = Vector2(600, 0)
 layout_mode = 2
 text = "楼层介绍：派单记录中的目标层，常用于标准人员交接与登记确认。"
 autowrap_mode = 2
 
 [node name="FloorBookFunctionLabel" type="Label" parent="FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin/FloorBookContentLayout" unique_id=1828901087]
+custom_minimum_size = Vector2(600, 0)
 layout_mode = 2
 text = "主要功能：登记、交接、身份复核、短暂停留。"
 autowrap_mode = 2
 
 [node name="FloorBookHistoryLabel" type="Label" parent="FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin/FloorBookContentLayout" unique_id=450495817]
+custom_minimum_size = Vector2(600, 0)
 layout_mode = 2
 text = "维修历史：该层曾在多次垂直调度异常后作为稳定参照层使用。"
 autowrap_mode = 2
 
 [node name="FloorBookNoteLabel" type="Label" parent="FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin/FloorBookContentLayout" unique_id=1247754343]
+custom_minimum_size = Vector2(600, 0)
 layout_mode = 2
 text = "备注：纸质索引内容可能滞后于建筑当前状态。"
 autowrap_mode = 2
