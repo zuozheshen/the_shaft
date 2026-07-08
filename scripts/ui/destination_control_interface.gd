@@ -170,6 +170,7 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 
 func show_destination_console() -> void:
 	# 每次进入 RIGHT 时先显示主控制台，但保留玩家上次填写的目标楼层。
+	_initialize_destination_text()
 	_set_floor_book_visibility(false)
 	show()
 	if manual_destination_line_edit != null:
@@ -253,18 +254,18 @@ func _initialize_destination_text() -> void:
 		recommendation_labels.append(str(destination))
 	var recommendation_text: String = " / ".join(recommendation_labels)
 	_set_label_text(title_label, "目标楼层控制台 / DESTINATION CONSOLE")
-	_set_label_text(
-		dispatch_summary_label,
-		"当前派单：%s → %s\n系统推荐目标：%s\n当前状态：等待目标确认" % [
-			dispatch_from,
-			dispatch_to,
-			recommendation_text,
-		]
-	)
+	var is_onboard: bool = demo_flow_manager != null and demo_flow_manager.is_passenger_onboard()
+	var summary: String = "当前派单：%s → %s\n系统推荐目标：%s\n当前状态：等待目标确认" % [dispatch_from, dispatch_to, recommendation_text]
+	if not is_onboard:
+		summary = "当前任务：前往 612 层接乘\n系统推荐目标：612\n当前状态：等待接乘确认"
+	_set_label_text(dispatch_summary_label, summary)
 	_set_label_text(recommended_title_label, "系统推荐楼层：")
 
 	for button_index in recommended_destination_buttons.size():
-		if button_index < recommended_destinations.size():
+		var has_recommendation: bool = button_index < recommended_destinations.size()
+		recommended_destination_buttons[button_index].visible = has_recommendation
+		recommended_destination_buttons[button_index].disabled = not has_recommendation
+		if has_recommendation:
 			recommended_destination_buttons[button_index].text = str(
 				recommended_destinations[button_index]
 			)
@@ -440,6 +441,20 @@ func _submit_destination() -> void:
 
 	var floor_database: Dictionary = _get_floor_database()
 	var floor_data: Dictionary = floor_database[destination]
+	var phase: String = demo_flow_manager.get_case_phase() \
+		if demo_flow_manager != null else "PASSENGER_ONBOARD"
+	if phase in ["WAITING_FOR_PICKUP", "ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE"]:
+		if destination != "612":
+			_set_label_text(destination_feedback_label, "当前任务是前往 612 层完成接乘。")
+			_append_operation("目标提交失败：%s / 尚未完成接乘" % destination)
+			return
+		if demo_flow_manager != null:
+			demo_flow_manager.set_submitted_destination("612")
+			demo_flow_manager.set_case_phase("ARRIVED_AT_PICKUP")
+			demo_flow_manager.set_building_status_hint("电梯已被指派至 612 层接乘点。建议使用门外摄像头确认乘客状态。", true)
+		_set_label_text(destination_feedback_label, "已前往接乘楼层：612。请回到主操作台，使用门外摄像头确认乘客。")
+		_append_operation("目标提交：612 / 接乘楼层")
+		return
 	_set_label_text(
 		destination_feedback_label,
 		"目标已提交：%s\n通行评估：%s\n稳定度：%s\n电梯将前往该目标。" % [
@@ -450,6 +465,9 @@ func _submit_destination() -> void:
 	)
 	if demo_flow_manager != null:
 		demo_flow_manager.set_submitted_destination(destination)
+		demo_flow_manager.set_case_phase("DESTINATION_CONFIRMED")
+		var feedback: Dictionary = demo_flow_manager.get_destination_feedback(destination)
+		demo_flow_manager.set_building_status_hint(str(feedback.get("status_hint", "目标已确认。")), true)
 	_append_operation("目标提交：%s" % destination)
 
 
@@ -493,7 +511,7 @@ func _build_recognized_status(destination: String, floor_data: Dictionary) -> St
 
 func _get_recommended_destinations() -> Array:
 	if demo_flow_manager != null:
-		var destinations: Array = demo_flow_manager.get_recommended_destinations()
+		var destinations: Array = demo_flow_manager.get_current_recommended_destinations()
 		if not destinations.is_empty():
 			return destinations
 	return RECOMMENDED_DESTINATIONS

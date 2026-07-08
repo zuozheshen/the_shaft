@@ -132,20 +132,17 @@ func _initialize_terminal_text() -> void:
 
 
 func _show_status_tab() -> void:
-	# STATUS 只显示最近一次对话选项携带的建筑提示，不计算真实稳定度或风险。
-	var status_hint: String = "暂无前台通话。"
+	# 打开 STATUS 即视为已读；完整提示仍保留在页面中。
+	var status_hint: String = "当前系统提示：\n612 层检测到待接乘客。\n建议前往 612 层完成接乘确认。\n\n当前任务：\n前往接乘楼层。"
 	var submitted_destination: String = ""
 	if demo_flow_manager != null:
 		status_hint = demo_flow_manager.get_current_building_status_hint()
 		submitted_destination = demo_flow_manager.get_submitted_destination()
-	var submitted_text: String = submitted_destination \
-		if not submitted_destination.is_empty() else "暂无"
-	_set_content(
-		STATUS_CONTENT
-		+ "\n\n当前已提交目标：" + submitted_text
-		+ "\n\n当前复核提示：\n" + status_hint,
-		"选择一个终端页签查看建筑记录。"
-	)
+		demo_flow_manager.clear_unread_building_status_hint()
+	var content: String = status_hint
+	if not submitted_destination.is_empty():
+		content += "\n\n当前已提交目标：%s" % submitted_destination
+	_set_content(content, "选择一个终端页签查看建筑记录。")
 
 
 func _show_record_tab() -> void:
@@ -165,6 +162,7 @@ func _build_record_content() -> String:
 		"乘客记录",
 		"",
 		"姓名：%s" % passenger_record.get("name", demo_flow_manager.get_passenger_name()),
+		"常用称呼：%s" % passenger_record.get("display_name", "罗文"),
 		"登记状态：%s" % passenger_record.get("registration_status", "UNKNOWN"),
 		"风险标记：%s" % passenger_record.get("risk_tag", "UNKNOWN"),
 		"当前派单：%s" % demo_flow_manager.get_dispatch_text(),
