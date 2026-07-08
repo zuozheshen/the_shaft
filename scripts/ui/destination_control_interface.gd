@@ -387,10 +387,12 @@ func _verify_destination() -> void:
 		return
 	var phase: String = demo_flow_manager.get_case_phase() \
 		if demo_flow_manager != null else "PASSENGER_ONBOARD"
-	if destination == "612" and phase in ["WAITING_FOR_PICKUP", "ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE", "BOARDING_WAIT_DOOR_CLOSE"]:
-		_set_label_text(destination_status_label, _build_pickup_status())
-		_set_label_text(destination_feedback_label, "接乘楼层已确认：612。可直接提交接乘任务。")
-		_append_operation("接乘楼层确认：612")
+	var pickup_floor: String = demo_flow_manager.get_pickup_floor() \
+		if demo_flow_manager != null else "612"
+	if destination == pickup_floor and phase in ["WAITING_FOR_PICKUP", "ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE", "BOARDING_WAIT_DOOR_CLOSE"]:
+		_set_label_text(destination_status_label, _build_pickup_status(pickup_floor))
+		_set_label_text(destination_feedback_label, "接乘楼层已确认：%s。可直接提交接乘任务。" % pickup_floor)
+		_append_operation("接乘楼层确认：%s" % pickup_floor)
 		return
 
 	var floor_data: Dictionary = floor_database[destination]
@@ -415,18 +417,22 @@ func _submit_destination() -> void:
 		return
 	var phase: String = demo_flow_manager.get_case_phase() \
 		if demo_flow_manager != null else "PASSENGER_ONBOARD"
-	# 612 是接乘任务，不是正式目标，因此无需先执行地址验证。
+	# 接乘楼层不是正式目标，因此无需先执行地址验证。
 	if phase in ["WAITING_FOR_PICKUP", "ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE", "BOARDING_WAIT_DOOR_CLOSE"]:
-		if destination != "612":
-			_set_label_text(destination_feedback_label, "当前任务是前往 612 层完成接乘。")
+		var pickup_floor: String = demo_flow_manager.get_pickup_floor() \
+			if demo_flow_manager != null else "612"
+		if destination != pickup_floor:
+			_set_label_text(destination_feedback_label, "当前任务是前往 %s 层完成接乘。" % pickup_floor)
 			_append_operation("目标提交失败：%s / 尚未完成接乘" % destination)
 			return
 		if demo_flow_manager != null:
-			demo_flow_manager.set_submitted_destination("612")
+			demo_flow_manager.set_submitted_destination(pickup_floor)
 			demo_flow_manager.set_case_phase("ARRIVED_AT_PICKUP")
-			demo_flow_manager.set_building_status_hint("电梯已被指派至 612 层接乘点。建议使用门外摄像头确认乘客状态。", true)
-		_set_label_text(destination_feedback_label, "已前往接乘楼层：612。请回到主操作台，使用门外摄像头确认乘客。")
-		_append_operation("目标提交：612 / 接乘楼层")
+			demo_flow_manager.set_building_status_hint(demo_flow_manager.get_pickup_arrival_status_hint(), true)
+			_set_label_text(destination_feedback_label, demo_flow_manager.get_pickup_arrival_feedback())
+		else:
+			_set_label_text(destination_feedback_label, "已前往接乘楼层：%s。" % pickup_floor)
+		_append_operation("目标提交：%s / 接乘楼层" % pickup_floor)
 		_update_dispatch_summary_label()
 		return
 
@@ -482,14 +488,14 @@ func _build_unverified_status(destination: String) -> String:
 请选择系统推荐楼层，或手动输入目标楼层后进行验证。""" % destination
 
 
-func _build_pickup_status() -> String:
+func _build_pickup_status(pickup_floor: String) -> String:
 	return """目标确认状态：接乘楼层
-当前目标：612
+当前目标：%s
 楼层说明：当前待接乘客所在楼层。
 通行评估：可前往
 
 系统提示：
-该楼层用于完成接乘确认。抵达后请使用门外摄像头联系乘客。"""
+该楼层用于完成接乘确认。抵达后请使用门外摄像头联系乘客。""" % pickup_floor
 
 
 func _build_recognized_status(destination: String, floor_data: Dictionary) -> String:
@@ -536,24 +542,14 @@ func _update_dispatch_summary_label() -> void:
 	for destination in recommendations:
 		recommendation_labels.append(str(destination))
 	var recommendation_text: String = " / ".join(recommendation_labels)
-	var passenger_name: String = "M. ROWAN"
-	var display_name: String = "罗文"
-	var phase: String = "WAITING_FOR_PICKUP"
-	var submitted_destination: String = ""
+	var passenger_label: String = "当前乘客"
+	var task_text: String = "当前任务：前往接乘楼层"
 	if demo_flow_manager != null:
-		passenger_name = demo_flow_manager.get_passenger_name()
-		display_name = demo_flow_manager.get_passenger_display_name()
-		phase = demo_flow_manager.get_case_phase()
-		submitted_destination = demo_flow_manager.get_submitted_destination()
-	var summary: String = "当前乘客：%s / %s\n当前任务：前往 612 层接乘\n系统推荐目标：%s" % [
-		passenger_name, display_name, recommendation_text,
+		passenger_label = demo_flow_manager.get_passenger_label()
+		task_text = demo_flow_manager.get_right_phase_task_text()
+	var summary: String = "当前乘客：%s\n%s\n系统推荐目标：%s" % [
+		passenger_label, task_text, recommendation_text,
 	]
-	if phase in ["PASSENGER_ONBOARD", "DESTINATION_CONFIRMED"]:
-		var current_target: String = submitted_destination \
-			if phase == "DESTINATION_CONFIRMED" and not submitted_destination.is_empty() else "暂无"
-		summary = "当前乘客：%s / %s\n系统推荐目标：%s\n当前目标：%s" % [
-			passenger_name, display_name, recommendation_text, current_target,
-		]
 	_set_label_text(dispatch_summary_label, summary)
 
 

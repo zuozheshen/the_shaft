@@ -295,24 +295,10 @@ func _update_camera_display() -> void:
 func _get_phase_camera_feed(camera_index: int) -> String:
 	if demo_flow_manager == null:
 		return str(CAMERA_FEEDS[camera_index]["feed"])
-	var phase: String = demo_flow_manager.get_case_phase()
-	if phase in ["BOARDING_WAIT_DOOR_CLOSE", "PASSENGER_ONBOARD", "DESTINATION_CONFIRMED"]:
-		return [
-			"画面占位：乘客站在舱内。她抱着一个旧饭盒，胸牌翻在外套里面。",
-			"画面占位：乘客舱地面区域。能看到一小段水痕和旧饭盒底部蹭出的拖痕。",
-			"画面占位：612 层门外切片。自动售卖机灯牌闪烁，等待区已空。",
-		][camera_index]
-	if phase in ["ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE"]:
-		return [
-			"画面占位：乘客舱内为空。等待乘客进入。",
-			"画面占位：乘客舱地面区域。暂无乘客进入痕迹。",
-			"画面占位：612 层门外三到五米切片。自动售卖机旁有一名等待乘客，手里提着旧饭盒。",
-		][camera_index]
-	return [
-		"画面占位：乘客舱内为空。等待接乘任务。",
-		"画面占位：乘客舱地面区域。暂无乘客进入痕迹。",
-		"画面占位：当前门外切片暂无待接乘客。请先前往接乘楼层。",
-	][camera_index]
+	return demo_flow_manager.get_camera_feed_for_phase(
+		demo_flow_manager.get_case_phase(),
+		camera_index
+	)
 
 
 func _toggle_microphone() -> void:
@@ -486,9 +472,9 @@ func _get_phase_passenger_line() -> String:
 		return _get_initial_passenger_line()
 	var phase: String = demo_flow_manager.get_case_phase()
 	if phase == "ARRIVED_AT_PICKUP":
-		return "门外音频链路已开启。"
+		return str(demo_flow_manager.get_pickup_data().get("outside_audio_idle", "门外音频链路已开启。"))
 	if phase == "BOARDING_WAIT_DOOR_CLOSE":
-		return "乘客：谢谢。门关上以后再说吧。"
+		return demo_flow_manager.get_after_open_line()
 	if phase in ["PASSENGER_ONBOARD", "DESTINATION_CONFIRMED"]:
 		var feedback := demo_flow_manager.get_destination_feedback(
 			demo_flow_manager.get_submitted_destination()
@@ -517,13 +503,16 @@ func _get_unavailable_dialogue_hint() -> String:
 func _handle_door_greeting(choice_index: int) -> void:
 	if choice_index != 0 or demo_flow_manager == null:
 		return
-	var reply := "乘客：……这是自动广播吗？如果有真人在听，麻烦开一下门。我在 612 等了很久。"
-	current_passenger_line = reply
-	demo_flow_manager.add_front_dialogue("你好。", reply)
+	var greeting: Dictionary = demo_flow_manager.get_pickup_greeting()
+	var operator_line: String = str(greeting.get("operator", "你好。"))
+	var passenger_reply: String = str(greeting.get("passenger", "乘客：……"))
+	var status_hint: String = str(greeting.get("status_hint", "门外乘客已回应。"))
+	current_passenger_line = passenger_reply
+	demo_flow_manager.add_front_dialogue(operator_line, passenger_reply)
 	demo_flow_manager.set_door_greeting_done(true)
 	demo_flow_manager.set_case_phase("DOOR_GREETING_DONE")
-	demo_flow_manager.set_building_status_hint("门外乘客已回应，并请求进入电梯。建议开启舱门完成接乘。", true)
-	system_hint_label.text = "门外乘客已回应。请开启舱门完成接乘。"
+	demo_flow_manager.set_building_status_hint(status_hint, true)
+	system_hint_label.text = str(greeting.get("system_hint", status_hint))
 	_update_microphone_display()
 	_update_dialogue_buttons()
 	_update_building_alert()
@@ -578,8 +567,8 @@ func _handle_open_door() -> void:
 		current_dialogue_node_id = "onboard_start"
 		dialogue_started = false
 		dialogue_finished = false
-		current_passenger_line = "乘客：谢谢。门关上以后再说吧。"
-		system_hint_label.text = "乘客已进入舱内。请关闭舱门后继续询问。"
+		current_passenger_line = demo_flow_manager.get_after_open_line()
+		system_hint_label.text = demo_flow_manager.get_after_open_hint()
 		_update_camera_display()
 		_update_dialogue_buttons()
 		_update_microphone_display()
@@ -597,9 +586,9 @@ func _handle_close_door() -> void:
 	demo_flow_manager.set_cabin_door_closed_after_boarding(true)
 	demo_flow_manager.set_case_phase("PASSENGER_ONBOARD")
 	_append_front_operation("乘客舱门已关闭")
-	current_passenger_line = "乘客：好了。现在能听见你了。"
-	system_hint_label.text = "舱门已关闭。请切换至主摄像头并开启麦克风继续询问。"
-	demo_flow_manager.set_building_status_hint("乘客已进入舱内，舱门已关闭。可以开始正式询问目标。", true)
+	current_passenger_line = demo_flow_manager.get_after_close_line()
+	system_hint_label.text = demo_flow_manager.get_after_close_hint()
+	demo_flow_manager.set_building_status_hint(demo_flow_manager.get_after_close_status_hint(), true)
 	_update_camera_display()
 	_update_dialogue_buttons()
 	_update_microphone_display()
@@ -660,33 +649,12 @@ func _update_dispatch_panel() -> void:
 	if demo_flow_manager == null:
 		return
 	var phase: String = demo_flow_manager.get_case_phase()
-	var passenger_text: String = "当前乘客：%s / %s" % [
-		demo_flow_manager.get_passenger_name(),
-		demo_flow_manager.get_passenger_display_name(),
-	]
-	var state_text: String = "当前状态：等待接乘"
-	var task_text: String = "当前任务：前往 612 层接乘"
-	match phase:
-		"ARRIVED_AT_PICKUP":
-			state_text = "当前状态：已抵达接乘点"
-			task_text = "当前任务：使用门外摄像头确认 612 层等待乘客"
-		"DOOR_GREETING_DONE":
-			state_text = "当前状态：门外乘客已回应"
-			task_text = "当前任务：开启舱门完成接乘"
-		"BOARDING_WAIT_DOOR_CLOSE":
-			state_text = "当前状态：乘客已进入，等待关门"
-			task_text = "当前任务：关闭舱门后继续询问"
-		"PASSENGER_ONBOARD":
-			state_text = "当前状态：舱内询问中"
-			task_text = "当前目标：暂无"
-		"DESTINATION_CONFIRMED":
-			state_text = "当前状态：目标已提交"
-			var submitted: String = demo_flow_manager.get_submitted_destination()
-			task_text = "当前目标：%s" % (submitted if not submitted.is_empty() else "暂无")
+	var passenger_text: String = "当前乘客：%s" % demo_flow_manager.get_passenger_label()
+	var phase_text: Dictionary = demo_flow_manager.get_front_phase_text(phase)
 	if state_label != null:
-		state_label.text = state_text
+		state_label.text = str(phase_text.get("state", ""))
 	if dispatch_info_label != null:
-		dispatch_info_label.text = passenger_text + "\n" + task_text
+		dispatch_info_label.text = passenger_text + "\n" + str(phase_text.get("task", ""))
 
 
 func _is_key_pressed(event: InputEvent, key: Key) -> bool:

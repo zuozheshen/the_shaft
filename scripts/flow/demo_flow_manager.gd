@@ -8,6 +8,7 @@ signal case_updated
 
 
 const MAX_FRONT_HISTORY_LINES: int = 20
+const SYSTEM_RECOMMENDATION_EXCLUSIONS: Array[String] = ["004", "387", "392", "547"]
 
 
 # DemoState 按演示流程顺序排列，用一个简单状态机串起完整体验。
@@ -193,6 +194,73 @@ func _ready() -> void:
 
 func _configure_issue_12_case() -> void:
 	# 第一位乘客暂用内置案例数据；后续由正式 CaseManager / JSON 替换。
+	current_case["pickup"] = {
+		"floor": "612",
+		"arrival_feedback": "已前往接乘楼层：612。请回到主操作台，使用门外摄像头确认乘客。",
+		"arrival_status_hint": "电梯已被指派至 612 层接乘点。建议使用门外摄像头确认乘客状态。",
+		"outside_audio_idle": "门外音频链路已开启。",
+		"greeting": {
+			"operator": "你好。",
+			"passenger": "乘客：……这是自动广播吗？如果有真人在听，麻烦开一下门。我在 612 等了很久。",
+			"status_hint": "门外乘客已回应，并请求进入电梯。建议开启舱门完成接乘。",
+			"system_hint": "门外乘客已回应。请开启舱门完成接乘。",
+		},
+		"after_open_line": "乘客：谢谢。门关上以后再说吧。",
+		"after_open_hint": "乘客已进入舱内。请关闭舱门后继续询问。",
+		"after_close_line": "乘客：好了。现在能听见你了。",
+		"after_close_hint": "舱门已关闭。请切换至主摄像头并开启麦克风继续询问。",
+		"after_close_status_hint": "乘客已进入舱内，舱门已关闭。可以开始正式询问目标。",
+	}
+	current_case["camera_feeds"] = {
+		"WAITING_FOR_PICKUP": [
+			"画面占位：乘客舱内为空。等待接乘任务。",
+			"画面占位：乘客舱地面区域。暂无乘客进入痕迹。",
+			"画面占位：当前门外切片暂无待接乘客。请先前往接乘楼层。",
+		],
+		"ARRIVED_AT_PICKUP": [
+			"画面占位：乘客舱内为空。等待乘客进入。",
+			"画面占位：乘客舱地面区域。暂无乘客进入痕迹。",
+			"画面占位：612 层门外三到五米切片。自动售卖机旁有一名等待乘客，手里提着旧饭盒。",
+		],
+		"DOOR_GREETING_DONE": [
+			"画面占位：乘客舱内为空。等待乘客进入。",
+			"画面占位：乘客舱地面区域。暂无乘客进入痕迹。",
+			"画面占位：612 层门外三到五米切片。等待乘客站在门外，正在等舱门开启。",
+		],
+		"BOARDING_WAIT_DOOR_CLOSE": [
+			"画面占位：乘客站在舱内。她抱着一个旧饭盒，胸牌翻在外套里面。",
+			"画面占位：乘客舱地面区域。能看到一小段水痕和旧饭盒底部蹭出的拖痕。",
+			"画面占位：612 层门外切片。自动售卖机灯牌闪烁，等待区已空。",
+		],
+		"PASSENGER_ONBOARD": [
+			"画面占位：乘客站在舱内。她抱着一个旧饭盒，胸牌翻在外套里面。",
+			"画面占位：乘客舱地面区域。能看到一小段水痕和旧饭盒底部蹭出的拖痕。",
+			"画面占位：612 层门外切片。自动售卖机灯牌闪烁，等待区已空。",
+		],
+		"DESTINATION_CONFIRMED": [
+			"画面占位：乘客站在舱内。她抱着一个旧饭盒，正在等待电梯执行目标。",
+			"画面占位：乘客舱地面区域。水痕停在乘客脚边，没有继续扩散。",
+			"画面占位：门外等待区已空。",
+		],
+	}
+	current_case["front_phase_texts"] = {
+		"WAITING_FOR_PICKUP": {"state": "当前状态：等待接乘", "task": "当前任务：前往 {pickup_floor} 层接乘"},
+		"ARRIVED_AT_PICKUP": {"state": "当前状态：已抵达接乘点", "task": "当前任务：使用门外摄像头确认 {pickup_floor} 层等待乘客"},
+		"DOOR_GREETING_DONE": {"state": "当前状态：门外乘客已回应", "task": "当前任务：开启舱门完成接乘"},
+		"BOARDING_WAIT_DOOR_CLOSE": {"state": "当前状态：乘客已进入，等待关门", "task": "当前任务：关闭舱门后继续询问"},
+		"PASSENGER_ONBOARD": {"state": "当前状态：舱内询问中", "task": "当前目标：{submitted_destination_or_none}"},
+		"DESTINATION_CONFIRMED": {"state": "当前状态：目标已提交", "task": "当前目标：{submitted_destination_or_none}"},
+	}
+	current_case["right_phase_texts"] = {
+		"PICKUP": {"task": "当前任务：前往 {pickup_floor} 层接乘"},
+		"ONBOARD": {"task": "当前目标：{submitted_destination_or_none}"},
+	}
+	current_case["recommended_destination_rules"] = {
+		"pickup_phases": ["WAITING_FOR_PICKUP", "ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE", "BOARDING_WAIT_DOOR_CLOSE"],
+		"pickup_recommendations": ["612"],
+		"default_onboard_recommendations": ["900"],
+		"summary_recommendations": ["900", "742"],
+	}
 	current_case["dialogue_tree"] = _build_dialogue_tree()
 	current_case["dialogue_fallbacks"] = {
 		"application_reason": "book_prompt_soft", "standard_target": "about_900",
@@ -219,7 +287,7 @@ func _configure_issue_12_case() -> void:
 		"392": {"passenger": "乘客：我不认识那层。你确定不是输错了吗？", "status_hint": "目标 392 已确认。该目标与当前乘客线索无直接关联。提示：可前往，但缺少案例依据。"},
 		"547": {"passenger": "乘客：办公层？我这身味道上去，可能会被请去走货梯。", "status_hint": "目标 547 已确认。该目标与当前乘客线索无直接关联。提示：可前往，但与当前派单和乘客自述关联较弱。"},
 	}
-	current_building_status_hint = "当前系统提示：\n612 层检测到待接乘客。\n建议前往 612 层完成接乘确认。\n\n当前任务：\n前往接乘楼层。"
+	current_building_status_hint = "当前系统提示：\n%s 层检测到待接乘客。\n建议前往 %s 层完成接乘确认。\n\n当前任务：\n前往接乘楼层。" % [get_pickup_floor(), get_pickup_floor()]
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -339,6 +407,93 @@ func get_passenger_display_name() -> String:
 	return str(current_case.get("passenger_display_name", "罗文"))
 
 
+func get_passenger_label() -> String:
+	var passenger_name: String = get_passenger_name()
+	var display_name: String = get_passenger_display_name()
+	return passenger_name if display_name.is_empty() else "%s / %s" % [passenger_name, display_name]
+
+
+func get_pickup_data() -> Dictionary:
+	return current_case.get("pickup", {}).duplicate(true)
+
+
+func get_pickup_floor() -> String:
+	var pickup: Dictionary = current_case.get("pickup", {})
+	return str(pickup.get("floor", current_case.get("pickup_floor", "")))
+
+
+func get_pickup_greeting() -> Dictionary:
+	var pickup: Dictionary = current_case.get("pickup", {})
+	return pickup.get("greeting", {}).duplicate(true)
+
+
+func get_pickup_arrival_feedback() -> String:
+	return str(current_case.get("pickup", {}).get("arrival_feedback", ""))
+
+
+func get_pickup_arrival_status_hint() -> String:
+	return str(current_case.get("pickup", {}).get("arrival_status_hint", ""))
+
+
+func get_after_open_line() -> String:
+	return str(current_case.get("pickup", {}).get("after_open_line", ""))
+
+
+func get_after_open_hint() -> String:
+	return str(current_case.get("pickup", {}).get("after_open_hint", ""))
+
+
+func get_after_close_line() -> String:
+	return str(current_case.get("pickup", {}).get("after_close_line", ""))
+
+
+func get_after_close_hint() -> String:
+	return str(current_case.get("pickup", {}).get("after_close_hint", ""))
+
+
+func get_after_close_status_hint() -> String:
+	return str(current_case.get("pickup", {}).get("after_close_status_hint", ""))
+
+
+func get_camera_feed_for_phase(phase: String, camera_index: int) -> String:
+	# 缺少阶段时回退到接乘初始画面；无效摄像头编号只返回空文本，避免数组越界。
+	var camera_feeds: Dictionary = current_case.get("camera_feeds", {})
+	var phase_feeds: Array = camera_feeds.get(phase, camera_feeds.get("WAITING_FOR_PICKUP", []))
+	if camera_index < 0 or camera_index >= phase_feeds.size():
+		return ""
+	return str(phase_feeds[camera_index])
+
+
+func get_front_phase_text(phase: String) -> Dictionary:
+	var phase_texts: Dictionary = current_case.get("front_phase_texts", {})
+	var text_data: Dictionary = phase_texts.get(phase, phase_texts.get("WAITING_FOR_PICKUP", {})).duplicate(true)
+	text_data["state"] = _format_case_text(str(text_data.get("state", "")))
+	text_data["task"] = _format_case_text(str(text_data.get("task", "")))
+	return text_data
+
+
+func get_right_phase_task_text() -> String:
+	var right_phase_texts: Dictionary = current_case.get("right_phase_texts", {})
+	var text_key: String = "ONBOARD" if get_case_phase() in ["PASSENGER_ONBOARD", "DESTINATION_CONFIRMED"] else "PICKUP"
+	var text_data: Dictionary = right_phase_texts.get(text_key, {})
+	return _format_case_text(str(text_data.get("task", "")))
+
+
+func _format_case_text(template: String) -> String:
+	# 集中替换案例占位符，UI 不需要知道接乘楼层或当前目标的具体值。
+	var submitted_destination: String = get_submitted_destination()
+	# 接乘楼层提交只代表电梯抵达起点，乘客登舱后尚未选择正式目标。
+	if get_case_phase() == "PASSENGER_ONBOARD" and submitted_destination == get_pickup_floor():
+		submitted_destination = ""
+	var destination_or_none: String = submitted_destination if not submitted_destination.is_empty() else "暂无"
+	var formatted_text: String = template.replace(
+		"{submitted_destination_or_none}", destination_or_none
+	)
+	formatted_text = formatted_text.replace("{submitted_destination}", submitted_destination)
+	formatted_text = formatted_text.replace("{pickup_floor}", get_pickup_floor())
+	return formatted_text
+
+
 func get_dispatch_from() -> String:
 	return str(current_case.get("dispatch_from", ""))
 
@@ -356,7 +511,10 @@ func get_recommended_destinations() -> Array:
 
 
 func get_initial_passenger_line() -> String:
-	return "乘客：你是真人在听，对吧？那我能不能不直接去 900？"
+	# 初始台词也从对话树根节点读取，更换案例时不需要修改访问接口。
+	var dialogue_tree: Dictionary = current_case.get("dialogue_tree", {})
+	var initial_node: Dictionary = dialogue_tree.get("onboard_start", {})
+	return str(initial_node.get("passenger_line", "乘客舱音频链路待机。"))
 
 
 func get_dialogue_nodes() -> Array:
@@ -438,13 +596,20 @@ func get_destination_feedback(destination: String) -> Dictionary:
 
 func get_current_recommended_destinations() -> Array:
 	var phase: String = get_case_phase()
-	if phase in ["WAITING_FOR_PICKUP", "ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE", "BOARDING_WAIT_DOOR_CLOSE"]:
-		return ["612"]
-
-	# 系统推荐与玩家手动发现严格分开：004 / 387 等隐藏楼层永不进入推荐按钮。
-	var candidates: Array[String] = ["900"]
-	if bool(current_case.get("case_summary_reached", false)):
-		candidates.append("742")
+	var rules: Dictionary = current_case.get("recommended_destination_rules", {})
+	var pickup_phases: Array = rules.get("pickup_phases", [])
+	var recommendation_key: String = "default_onboard_recommendations"
+	if phase in pickup_phases:
+		recommendation_key = "pickup_recommendations"
+	elif bool(current_case.get("case_summary_reached", false)):
+		recommendation_key = "summary_recommendations"
+	var configured_candidates: Array = rules.get(recommendation_key, [])
+	# 系统推荐与玩家手动发现严格分开，隐藏楼层只能由玩家自行填写。
+	var candidates: Array[String] = []
+	for destination in configured_candidates:
+		var floor_number: String = str(destination)
+		if floor_number not in SYSTEM_RECOMMENDATION_EXCLUSIONS:
+			candidates.append(floor_number)
 	return candidates
 
 
