@@ -139,11 +139,6 @@ layout_mode = 2
 text = "派单信息：暂无派单"
 horizontal_alignment = 1
 
-[node name="RouteSuggestionLabel" type="Label" parent="ConsoleLayout/DispatchPanel" unique_id=1613910380]
-layout_mode = 2
-text = "路线建议：暂无路线建议"
-horizontal_alignment = 1
-
 [node name="DoorControlPanel" type="HBoxContainer" parent="ConsoleLayout" unique_id=1551982481]
 unique_name_in_owner = true
 layout_mode = 2

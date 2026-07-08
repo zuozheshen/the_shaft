@@ -5,7 +5,7 @@ class_name DestinationControlInterface
 signal return_requested
 
 
-const RECOMMENDED_DESTINATIONS: Array[String] = ["900", "742", "612"]
+const RECOMMENDED_DESTINATIONS: Array[String] = ["612"]
 
 # Issue 9 的临时楼层数据库；后续会替换为正式楼层数据资源。
 # 楼层编号始终按字符串处理，确保 004 之类的编号不会丢失前导零。
@@ -33,10 +33,10 @@ const FLOOR_DATABASE: Dictionary = {
 	},
 	"004": {
 		"description": "低层服务区。",
-		"relation": "37%",
+		"relation": "48%",
 		"access_eval": "可前往",
-		"stability": "中度波动",
-		"message": "该楼层不在系统推荐中，但可能满足乘客的特殊需求。",
+		"stability": "中等波动",
+		"message": "该楼层不在系统推荐中，但与乘客描述的服务区、洗洁精味和旧暖柜线索相符。",
 	},
 	"387": {
 		"description": "旧记录存放层。",
@@ -244,31 +244,11 @@ func _connect_button(button: Button, callback: Callable) -> void:
 
 func _initialize_destination_text() -> void:
 	var recommended_destinations: Array = _get_recommended_destinations()
-	var dispatch_from: String = "612"
-	var dispatch_to: String = "900"
-	if demo_flow_manager != null:
-		dispatch_from = demo_flow_manager.get_dispatch_from()
-		dispatch_to = demo_flow_manager.get_dispatch_to()
-	var recommendation_labels := PackedStringArray()
-	for destination in recommended_destinations:
-		recommendation_labels.append(str(destination))
-	var recommendation_text: String = " / ".join(recommendation_labels)
 	_set_label_text(title_label, "目标楼层控制台 / DESTINATION CONSOLE")
-	var is_onboard: bool = demo_flow_manager != null and demo_flow_manager.is_passenger_onboard()
-	var summary: String = "当前派单：%s → %s\n系统推荐目标：%s\n当前状态：等待目标确认" % [dispatch_from, dispatch_to, recommendation_text]
-	if not is_onboard:
-		summary = "当前任务：前往 612 层接乘\n系统推荐目标：612\n当前状态：等待接乘确认"
-	_set_label_text(dispatch_summary_label, summary)
+	_update_dispatch_summary_label()
 	_set_label_text(recommended_title_label, "系统推荐楼层：")
 
-	for button_index in recommended_destination_buttons.size():
-		var has_recommendation: bool = button_index < recommended_destinations.size()
-		recommended_destination_buttons[button_index].visible = has_recommendation
-		recommended_destination_buttons[button_index].disabled = not has_recommendation
-		if has_recommendation:
-			recommended_destination_buttons[button_index].text = str(
-				recommended_destinations[button_index]
-			)
+	_update_recommended_destination_buttons()
 
 	if manual_destination_line_edit != null:
 		manual_destination_line_edit.text = str(recommended_destinations[0]) \
@@ -341,6 +321,7 @@ func _fill_current_floor() -> void:
 		"已从楼层索引书填写：%s。请验证地址。" % floor_number
 	)
 	_append_operation("从楼层索引书填写：%s" % floor_number)
+	# 纸质索引只帮助玩家填写；004 / 387 等隐藏楼层不会因此成为系统推荐。
 	if verify_destination_button != null:
 		verify_destination_button.grab_focus()
 
@@ -404,6 +385,13 @@ func _verify_destination() -> void:
 		_set_label_text(destination_feedback_label, "无法识别目标楼层：%s。" % destination)
 		_append_operation("目标验证：%s / 无法识别 / 无法前往" % destination)
 		return
+	var phase: String = demo_flow_manager.get_case_phase() \
+		if demo_flow_manager != null else "PASSENGER_ONBOARD"
+	if destination == "612" and phase in ["WAITING_FOR_PICKUP", "ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE", "BOARDING_WAIT_DOOR_CLOSE"]:
+		_set_label_text(destination_status_label, _build_pickup_status())
+		_set_label_text(destination_feedback_label, "接乘楼层已确认：612。可直接提交接乘任务。")
+		_append_operation("接乘楼层确认：612")
+		return
 
 	var floor_data: Dictionary = floor_database[destination]
 	_set_label_text(destination_status_label, _build_recognized_status(destination, floor_data))
@@ -416,6 +404,7 @@ func _verify_destination() -> void:
 			floor_data["relation"],
 		]
 	)
+	# 验证只决定能否提交，不改变系统愿意主动推荐的楼层。
 
 
 func _submit_destination() -> void:
@@ -423,6 +412,22 @@ func _submit_destination() -> void:
 	if destination.is_empty():
 		_set_label_text(destination_feedback_label, "请输入目标楼层。")
 		_append_operation("目标提交失败：空输入")
+		return
+	var phase: String = demo_flow_manager.get_case_phase() \
+		if demo_flow_manager != null else "PASSENGER_ONBOARD"
+	# 612 是接乘任务，不是正式目标，因此无需先执行地址验证。
+	if phase in ["WAITING_FOR_PICKUP", "ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE", "BOARDING_WAIT_DOOR_CLOSE"]:
+		if destination != "612":
+			_set_label_text(destination_feedback_label, "当前任务是前往 612 层完成接乘。")
+			_append_operation("目标提交失败：%s / 尚未完成接乘" % destination)
+			return
+		if demo_flow_manager != null:
+			demo_flow_manager.set_submitted_destination("612")
+			demo_flow_manager.set_case_phase("ARRIVED_AT_PICKUP")
+			demo_flow_manager.set_building_status_hint("电梯已被指派至 612 层接乘点。建议使用门外摄像头确认乘客状态。", true)
+		_set_label_text(destination_feedback_label, "已前往接乘楼层：612。请回到主操作台，使用门外摄像头确认乘客。")
+		_append_operation("目标提交：612 / 接乘楼层")
+		_update_dispatch_summary_label()
 		return
 
 	# 输入内容若在验证后被修改，必须重新验证当前字符串。
@@ -441,20 +446,6 @@ func _submit_destination() -> void:
 
 	var floor_database: Dictionary = _get_floor_database()
 	var floor_data: Dictionary = floor_database[destination]
-	var phase: String = demo_flow_manager.get_case_phase() \
-		if demo_flow_manager != null else "PASSENGER_ONBOARD"
-	if phase in ["WAITING_FOR_PICKUP", "ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE"]:
-		if destination != "612":
-			_set_label_text(destination_feedback_label, "当前任务是前往 612 层完成接乘。")
-			_append_operation("目标提交失败：%s / 尚未完成接乘" % destination)
-			return
-		if demo_flow_manager != null:
-			demo_flow_manager.set_submitted_destination("612")
-			demo_flow_manager.set_case_phase("ARRIVED_AT_PICKUP")
-			demo_flow_manager.set_building_status_hint("电梯已被指派至 612 层接乘点。建议使用门外摄像头确认乘客状态。", true)
-		_set_label_text(destination_feedback_label, "已前往接乘楼层：612。请回到主操作台，使用门外摄像头确认乘客。")
-		_append_operation("目标提交：612 / 接乘楼层")
-		return
 	_set_label_text(
 		destination_feedback_label,
 		"目标已提交：%s\n通行评估：%s\n稳定度：%s\n电梯将前往该目标。" % [
@@ -469,6 +460,7 @@ func _submit_destination() -> void:
 		var feedback: Dictionary = demo_flow_manager.get_destination_feedback(destination)
 		demo_flow_manager.set_building_status_hint(str(feedback.get("status_hint", "目标已确认。")), true)
 	_append_operation("目标提交：%s" % destination)
+	_update_dispatch_summary_label()
 
 
 func _get_current_destination() -> String:
@@ -488,6 +480,16 @@ func _build_unverified_status(destination: String) -> String:
 
 系统提示：
 请选择系统推荐楼层，或手动输入目标楼层后进行验证。""" % destination
+
+
+func _build_pickup_status() -> String:
+	return """目标确认状态：接乘楼层
+当前目标：612
+楼层说明：当前待接乘客所在楼层。
+通行评估：可前往
+
+系统提示：
+该楼层用于完成接乘确认。抵达后请使用门外摄像头联系乘客。"""
 
 
 func _build_recognized_status(destination: String, floor_data: Dictionary) -> String:
@@ -515,6 +517,44 @@ func _get_recommended_destinations() -> Array:
 		if not destinations.is_empty():
 			return destinations
 	return RECOMMENDED_DESTINATIONS
+
+
+func _update_recommended_destination_buttons() -> void:
+	# 三个槽位只显示系统推荐；手动验证或查书填写不会把隐藏楼层塞进这里。
+	var candidates: Array = _get_recommended_destinations()
+	for button_index in recommended_destination_buttons.size():
+		var has_candidate: bool = button_index < candidates.size() and button_index < 3
+		var button: Button = recommended_destination_buttons[button_index]
+		button.visible = has_candidate
+		button.disabled = not has_candidate
+		button.text = str(candidates[button_index]) if has_candidate else "—"
+
+
+func _update_dispatch_summary_label() -> void:
+	var recommendations: Array = _get_recommended_destinations()
+	var recommendation_labels := PackedStringArray()
+	for destination in recommendations:
+		recommendation_labels.append(str(destination))
+	var recommendation_text: String = " / ".join(recommendation_labels)
+	var passenger_name: String = "M. ROWAN"
+	var display_name: String = "罗文"
+	var phase: String = "WAITING_FOR_PICKUP"
+	var submitted_destination: String = ""
+	if demo_flow_manager != null:
+		passenger_name = demo_flow_manager.get_passenger_name()
+		display_name = demo_flow_manager.get_passenger_display_name()
+		phase = demo_flow_manager.get_case_phase()
+		submitted_destination = demo_flow_manager.get_submitted_destination()
+	var summary: String = "当前乘客：%s / %s\n当前任务：前往 612 层接乘\n系统推荐目标：%s" % [
+		passenger_name, display_name, recommendation_text,
+	]
+	if phase in ["PASSENGER_ONBOARD", "DESTINATION_CONFIRMED"]:
+		var current_target: String = submitted_destination \
+			if phase == "DESTINATION_CONFIRMED" and not submitted_destination.is_empty() else "暂无"
+		summary = "当前乘客：%s / %s\n系统推荐目标：%s\n当前目标：%s" % [
+			passenger_name, display_name, recommendation_text, current_target,
+		]
+	_set_label_text(dispatch_summary_label, summary)
 
 
 func _get_floor_database() -> Dictionary:

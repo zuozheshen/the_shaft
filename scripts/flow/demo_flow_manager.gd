@@ -38,6 +38,8 @@ var current_case: Dictionary = {
 	"passenger_onboard": false,
 	"door_greeting_done": false,
 	"pickup_completed": false,
+	"cabin_door_closed_after_boarding": false,
+	"case_summary_reached": false,
 	"submitted_destination": "",
 	"destination_feedback_shown": false,
 	"passenger_record": {
@@ -114,8 +116,8 @@ var current_case: Dictionary = {
 			"stability": "稳定", "message": "该楼层仍与当前派单相关，适合暂时复核。",
 		},
 		"004": {
-			"description": "低层服务区。", "relation": "37%", "access_eval": "可前往",
-			"stability": "中度波动", "message": "该楼层不在系统推荐中，但可能满足乘客的特殊需求。",
+			"description": "低层服务区。", "relation": "48%", "access_eval": "可前往",
+			"stability": "中等波动", "message": "该楼层不在系统推荐中，但与乘客描述的服务区、洗洁精味和旧暖柜线索相符。",
 		},
 		"387": {
 			"description": "旧记录存放层。", "relation": "29%", "access_eval": "可前往",
@@ -202,7 +204,7 @@ func _configure_issue_12_case() -> void:
 		"900": {"description": "居民事务柜台层。", "relation": "91%", "access_eval": "可前往", "stability": "基本稳定", "message": "该楼层是派单记录目标。适合标准登记与身份复核。"},
 		"742": {"description": "中继等待层。", "relation": "76%", "access_eval": "可前往", "stability": "稳定", "message": "该楼层适合临时等待与路线复核，但不能直接解决乘客登记问题。"},
 		"612": {"description": "接乘起始相关层。", "relation": "84%", "access_eval": "可前往", "stability": "稳定", "message": "该楼层为本单接乘来源。返回该层可维持流程安全。"},
-		"004": {"description": "低层服务区。", "relation": "68%", "access_eval": "可前往", "stability": "轻微波动", "message": "该楼层不在系统推荐中，但与乘客描述的服务区、洗洁精味和旧暖柜线索相符。"},
+		"004": {"description": "低层服务区。", "relation": "48%", "access_eval": "可前往", "stability": "中等波动", "message": "该楼层不在系统推荐中，但与乘客描述的服务区、洗洁精味和旧暖柜线索相符。"},
 		"387": {"description": "旧记录存放层。", "relation": "61%", "access_eval": "可前往", "stability": "轻微波动", "message": "该楼层与乘客提到的旧工牌、旧班表和纸质记录线索相符。"},
 		"392": {"description": "普通通行层。", "relation": "0%", "access_eval": "可前往", "stability": "稳定", "message": "该楼层与当前派单无关联，但建筑允许前往。"},
 		"547": {"description": "普通办公层。", "relation": "0%", "access_eval": "可前往", "stability": "基本稳定", "message": "该楼层与当前派单无关联，稳定度未见明显变化。"},
@@ -333,6 +335,10 @@ func get_passenger_name() -> String:
 	return str(current_case.get("passenger_name", ""))
 
 
+func get_passenger_display_name() -> String:
+	return str(current_case.get("passenger_display_name", "罗文"))
+
+
 func get_dispatch_from() -> String:
 	return str(current_case.get("dispatch_from", ""))
 
@@ -416,15 +422,36 @@ func set_pickup_completed(value: bool) -> void:
 	case_updated.emit()
 
 
+func is_cabin_door_closed_after_boarding() -> bool:
+	return bool(current_case.get("cabin_door_closed_after_boarding", false))
+
+
+func set_cabin_door_closed_after_boarding(value: bool) -> void:
+	current_case["cabin_door_closed_after_boarding"] = value
+	case_updated.emit()
+
+
 func get_destination_feedback(destination: String) -> Dictionary:
 	var feedbacks: Dictionary = current_case.get("destination_feedbacks", {})
 	return feedbacks.get(destination, {}).duplicate(true)
 
 
 func get_current_recommended_destinations() -> Array:
-	if get_case_phase() in ["PASSENGER_ONBOARD", "DESTINATION_CONFIRMED"]:
-		return ["900"]
-	return ["612"]
+	var phase: String = get_case_phase()
+	if phase in ["WAITING_FOR_PICKUP", "ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE", "BOARDING_WAIT_DOOR_CLOSE"]:
+		return ["612"]
+
+	# 系统推荐与玩家手动发现严格分开：004 / 387 等隐藏楼层永不进入推荐按钮。
+	var candidates: Array[String] = ["900"]
+	if bool(current_case.get("case_summary_reached", false)):
+		candidates.append("742")
+	return candidates
+
+
+func mark_case_summary_reached() -> void:
+	# 到达总结节点后，建筑才愿意把稳定的中继等待层 742 加入系统推荐。
+	current_case["case_summary_reached"] = true
+	case_updated.emit()
 
 
 func _choice(operator: String, passenger: String, next_node: String, hint: String = "") -> Dictionary:
