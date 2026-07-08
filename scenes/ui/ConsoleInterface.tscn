@@ -19,12 +19,12 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -320.0
-offset_top = -260.0
+offset_top = -310.0
 offset_right = 320.0
-offset_bottom = 260.0
+offset_bottom = 310.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 4
 alignment = 1
 
 [node name="TitleLabel" type="Label" parent="ConsoleLayout" unique_id=151397601]
@@ -40,6 +40,88 @@ layout_mode = 2
 text = "这里以后显示派单、路线建议和门控。"
 horizontal_alignment = 1
 autowrap_mode = 2
+
+[node name="PassengerMonitorPanel" type="PanelContainer" parent="ConsoleLayout" unique_id=1127543507]
+layout_mode = 2
+
+[node name="PassengerMonitorLayout" type="VBoxContainer" parent="ConsoleLayout/PassengerMonitorPanel" unique_id=929895958]
+layout_mode = 2
+
+[node name="MonitorTitleLabel" type="Label" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout" unique_id=1413759796]
+layout_mode = 2
+text = "乘客舱主监控 / PASSENGER CABIN FEED"
+
+[node name="CameraNameLabel" type="Label" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout" unique_id=780136419]
+layout_mode = 2
+text = "CAM 01｜主摄像头"
+
+[node name="MonitorScreenPanel" type="PanelContainer" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout" unique_id=491437425]
+layout_mode = 2
+
+[node name="MonitorScreenLayout" type="VBoxContainer" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel" unique_id=154939956]
+layout_mode = 2
+
+[node name="MonitorFeedLabel" type="Label" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel/MonitorScreenLayout" unique_id=2107693035]
+layout_mode = 2
+text = "画面占位：乘客站在舱内。面部、衣物、证件和说话状态等待接入。"
+
+[node name="PassengerSpeechLabel" type="Label" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel/MonitorScreenLayout" unique_id=1893869011]
+layout_mode = 2
+text = "乘客舱音频链路待机。"
+
+[node name="CameraControlPanel" type="HBoxContainer" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout" unique_id=991917607]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="PrevCameraButton" type="Button" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/CameraControlPanel" unique_id=262943396]
+layout_mode = 2
+text = "上一个摄像头"
+
+[node name="NextCameraButton" type="Button" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/CameraControlPanel" unique_id=2102578449]
+layout_mode = 2
+text = "下一个摄像头"
+
+[node name="IntercomPanel" type="PanelContainer" parent="ConsoleLayout" unique_id=923970757]
+layout_mode = 2
+
+[node name="IntercomLayout" type="HBoxContainer" parent="ConsoleLayout/IntercomPanel" unique_id=353494001]
+layout_mode = 2
+
+[node name="MicStatusLabel" type="Label" parent="ConsoleLayout/IntercomPanel/IntercomLayout" unique_id=1618547015]
+layout_mode = 2
+text = "麦克风：关闭"
+
+[node name="TalkButton" type="Button" parent="ConsoleLayout/IntercomPanel/IntercomLayout" unique_id=1790369420]
+layout_mode = 2
+text = "开启麦克风"
+
+[node name="DialogueChoicePanel" type="PanelContainer" parent="ConsoleLayout" unique_id=46969884]
+visible = false
+layout_mode = 2
+
+[node name="DialogueChoiceLayout" type="VBoxContainer" parent="ConsoleLayout/DialogueChoicePanel" unique_id=329187922]
+layout_mode = 2
+
+[node name="DialoguePromptLabel" type="Label" parent="ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout" unique_id=183330977]
+layout_mode = 2
+text = "选择对乘客的回应："
+
+[node name="DialogueChoiceButton1" type="Button" parent="ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout" unique_id=2143273934]
+layout_mode = 2
+text = "下面是哪一层？"
+
+[node name="DialogueChoiceButton2" type="Button" parent="ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout" unique_id=548388362]
+layout_mode = 2
+text = "你的申请记录显示目标是 900 层。"
+
+[node name="DialogueChoiceButton3" type="Button" parent="ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout" unique_id=1259269779]
+layout_mode = 2
+text = "你看起来不想去系统给你的地方。"
+
+[node name="DialogueChoiceButton4" type="Button" parent="ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout" unique_id=548381073]
+layout_mode = 2
+text = "先留在舱内，等我确认路线。"
 
 [node name="DispatchPanel" type="VBoxContainer" parent="ConsoleLayout" unique_id=1696309809]
 unique_name_in_owner = true
