@@ -93,7 +93,8 @@ func add_front_dialogue(
 
 
 func add_front_operation(operation_text: String) -> void:
-	# 玩家操作单独进入系统日志缓存，不混入完整对话内容。
+	# 当前是临时操作历史缓存：虽从 FRONT 事件开始，现在也接收 RIGHT 目标楼层操作。
+	# 这些记录只供 LEFT SYSTEM LOG 使用，后续会由 PassengerCase 或统一事件系统替换。
 	front_operation_history.append(operation_text)
 	if front_operation_history.size() > MAX_FRONT_HISTORY_LINES:
 		front_operation_history.pop_front()

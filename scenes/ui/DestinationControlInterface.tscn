@@ -1,0 +1,96 @@
+[gd_scene load_steps=2 format=3 uid="uid://wet3ybwny70j"]
+
+[ext_resource type="Script" path="res://scripts/ui/destination_control_interface.gd" id="1_destination"]
+
+[node name="DestinationControlInterface" type="Control" unique_id=1185287254]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_destination")
+
+[node name="RootMargin" type="MarginContainer" parent="." unique_id=1469181790]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DestinationLayout" type="VBoxContainer" parent="RootMargin" unique_id=836465931]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="RootMargin/DestinationLayout" unique_id=836071542]
+layout_mode = 2
+text = "目标楼层控制台 / DESTINATION CONSOLE"
+
+[node name="DispatchSummaryLabel" type="Label" parent="RootMargin/DestinationLayout" unique_id=146286753]
+layout_mode = 2
+text = "当前派单：612 → 900
+系统推荐目标：900 / 742 / 612
+当前状态：等待目标确认
+"
+
+[node name="RecommendedDestinationPanel" type="PanelContainer" parent="RootMargin/DestinationLayout" unique_id=677712943]
+layout_mode = 2
+
+[node name="RecommendedDestinationLayout" type="VBoxContainer" parent="RootMargin/DestinationLayout/RecommendedDestinationPanel" unique_id=2058513487]
+layout_mode = 2
+
+[node name="RecommendedTitleLabel" type="Label" parent="RootMargin/DestinationLayout/RecommendedDestinationPanel/RecommendedDestinationLayout" unique_id=973666618]
+layout_mode = 2
+text = "系统推荐楼层："
+
+[node name="RecommendedDestinationButton1" type="Button" parent="RootMargin/DestinationLayout/RecommendedDestinationPanel/RecommendedDestinationLayout" unique_id=475463531]
+layout_mode = 2
+text = "900"
+
+[node name="RecommendedDestinationButton2" type="Button" parent="RootMargin/DestinationLayout/RecommendedDestinationPanel/RecommendedDestinationLayout" unique_id=364650850]
+layout_mode = 2
+text = "742"
+
+[node name="RecommendedDestinationButton3" type="Button" parent="RootMargin/DestinationLayout/RecommendedDestinationPanel/RecommendedDestinationLayout" unique_id=1488497665]
+layout_mode = 2
+text = "612"
+
+[node name="ManualInputPanel" type="PanelContainer" parent="RootMargin/DestinationLayout" unique_id=143807259]
+layout_mode = 2
+
+[node name="ManualInputLayout" type="HBoxContainer" parent="RootMargin/DestinationLayout/ManualInputPanel" unique_id=1731649897]
+layout_mode = 2
+
+[node name="ManualDestinationLineEdit" type="LineEdit" parent="RootMargin/DestinationLayout/ManualInputPanel/ManualInputLayout" unique_id=1652575151]
+layout_mode = 2
+
+[node name="VerifyDestinationButton" type="Button" parent="RootMargin/DestinationLayout/ManualInputPanel/ManualInputLayout" unique_id=1448733039]
+layout_mode = 2
+text = "验证地址"
+
+[node name="DestinationStatusPanel" type="PanelContainer" parent="RootMargin/DestinationLayout" unique_id=897540669]
+layout_mode = 2
+
+[node name="DestinationStatusMargin" type="MarginContainer" parent="RootMargin/DestinationLayout/DestinationStatusPanel" unique_id=1406425467]
+layout_mode = 2
+
+[node name="DestinationStatusLabel" type="Label" parent="RootMargin/DestinationLayout/DestinationStatusPanel" unique_id=1479404367]
+layout_mode = 2
+text = "目标确认状态：未验证
+当前目标：900
+楼层说明：等待验证
+与当前派单的关联度：待评估
+通行评估：等待验证
+稳定度：待评估"
+
+[node name="DestinationFeedbackLabel" type="Label" parent="RootMargin/DestinationLayout" unique_id=1936292264]
+layout_mode = 2
+text = "请选择推荐楼层，或手动输入目标楼层。"
+
+[node name="SubmitDestinationButton" type="Button" parent="RootMargin/DestinationLayout" unique_id=1759764360]
+layout_mode = 2
+text = "提交目标"
+
+[node name="ReturnButton" type="Button" parent="RootMargin/DestinationLayout" unique_id=1438800514]
+layout_mode = 2
+text = "返回操作间"

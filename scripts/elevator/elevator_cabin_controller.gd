@@ -11,11 +11,11 @@ enum FacingDirection {
 
 
 const DIRECTION_NAMES: Array[String] = ["FRONT", "RIGHT", "BACK", "LEFT"]
-const FACING_OBJECTS: Array[String] = ["主调度台", "日志台", "后方舱壁", "建筑终端"]
+const FACING_OBJECTS: Array[String] = ["主调度台", "目标楼层控制台", "后方舱壁", "建筑终端"]
 
 const CONSOLE_DESCRIPTIONS: Dictionary = {
 	FacingDirection.FRONT: "这里以后显示派单、路线建议和门控。",
-	FacingDirection.RIGHT: "这里以后显示本次送达记录和日志选项。",
+	FacingDirection.RIGHT: "这里用于确认系统推荐或手动输入的目标楼层。",
 	FacingDirection.LEFT: "这里显示建筑判断、乘客记录、对话转写和系统日志。",
 }
 
@@ -28,6 +28,7 @@ var current_direction: int = FacingDirection.FRONT
 @onready var interaction_hint_label: Label = %InteractionHintLabel
 @onready var console_interface: ConsoleInterface = %ConsoleInterface
 @onready var building_terminal_interface: BuildingTerminalInterface = %BuildingTerminalInterface
+@onready var destination_control_interface: DestinationControlInterface = %DestinationControlInterface
 @onready var demo_flow_manager: DemoFlowManager = get_node_or_null("../DemoFlowManager") as DemoFlowManager
 
 
@@ -38,12 +39,16 @@ func _ready() -> void:
 	# LEFT 使用独立建筑终端，并沿用 FRONT 的返回流程恢复操作间。
 	building_terminal_interface.set_demo_flow_manager(demo_flow_manager)
 	building_terminal_interface.return_requested.connect(_exit_building_terminal)
+	# RIGHT 目标楼层控制台只负责目标确认，并沿用相同的返回操作间流程。
+	destination_control_interface.set_demo_flow_manager(demo_flow_manager)
+	destination_control_interface.return_requested.connect(_exit_destination_control)
 	_update_cabin_text()
 
 
 func _input(event: InputEvent) -> void:
 	# 操作台打开后由 ConsoleInterface 接管 S / Esc 等输入，避免舱内操作同时触发。
-	if console_interface.visible or building_terminal_interface.visible:
+	if console_interface.visible or building_terminal_interface.visible \
+			or destination_control_interface.visible:
 		return
 
 	# Q / E 左右转向；W 或 ui_accept（Enter / Space）检查当前面对的操作台。
@@ -76,9 +81,13 @@ func _interact_with_facing_object() -> void:
 		interaction_hint_label.text = "后方没有可用操作台。"
 		return
 
-	# LEFT 打开独立的系统复核终端；FRONT / RIGHT 保留原有 ConsoleInterface 行为。
+	# LEFT 打开系统复核终端，RIGHT 打开目标楼层控制台，FRONT 保留主仲裁台行为。
 	if current_direction == FacingDirection.LEFT:
 		building_terminal_interface.show_terminal()
+		cabin_view.hide()
+		return
+	if current_direction == FacingDirection.RIGHT:
+		destination_control_interface.show_destination_console()
 		cabin_view.hide()
 		return
 
@@ -99,6 +108,12 @@ func _exit_console() -> void:
 
 func _exit_building_terminal() -> void:
 	building_terminal_interface.hide()
+	cabin_view.show()
+	_update_cabin_text()
+
+
+func _exit_destination_control() -> void:
+	destination_control_interface.hide()
 	cabin_view.show()
 	_update_cabin_text()
 

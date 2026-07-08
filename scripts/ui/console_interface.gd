@@ -20,7 +20,7 @@ const CAMERA_FEEDS: Array[Dictionary] = [
 	},
 ]
 
-# 临时 RPG 对话节点；后续会由正式乘客数据替换，不在主仲裁台生成完整日志。
+# 临时对话节点；后续会由正式乘客数据替换。
 const DIALOGUE_NODES: Array = [
 	[
 		{
@@ -270,7 +270,7 @@ func _update_camera_display() -> void:
 
 
 func _toggle_microphone() -> void:
-	# 麦克风目前只是交互状态占位，不接入真实录音或语音输入。
+	# 麦克风目前只是交互状态占位，不接入真实录音。
 	mic_enabled = not mic_enabled
 	_append_front_operation("麦克风%s" % ("开启" if mic_enabled else "关闭"))
 

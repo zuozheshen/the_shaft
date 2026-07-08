@@ -169,7 +169,7 @@ func _show_system_log_tab() -> void:
 	var log_lines := PackedStringArray(["系统日志", ""])
 	for operation_text in operation_history:
 		log_lines.append("[SYS] %s" % operation_text)
-	_set_content("\n".join(log_lines), "已读取 FRONT 临时操作缓存。")
+	_set_content("\n".join(log_lines), "已读取 FRONT / RIGHT 临时操作缓存。")
 
 
 func _get_front_dialogue_history() -> Array[String]:
@@ -182,7 +182,8 @@ func _get_front_dialogue_history() -> Array[String]:
 
 
 func _get_front_operation_history() -> Array[String]:
-	# operation_history 专供 LEFT 的 SYSTEM LOG，后续会由 PassengerCase 替换。
+	# 当前缓存同时接收 FRONT 与 RIGHT 操作，只供 LEFT 的 SYSTEM LOG 读取。
+	# 这是早期桥接，后续会由 PassengerCase 或统一事件系统替换。
 	if demo_flow_manager == null:
 		push_warning("BuildingTerminalInterface: Cannot read operations without DemoFlowManager.")
 		var empty_history: Array[String] = []
