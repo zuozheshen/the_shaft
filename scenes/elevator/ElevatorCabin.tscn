@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/elevator/elevator_cabin_controller.gd" id="1_cabin"]
 [ext_resource type="PackedScene" path="res://scenes/ui/ConsoleInterface.tscn" id="2_console"]
+[ext_resource type="PackedScene" path="res://scenes/ui/BuildingTerminalInterface.tscn" id="3_terminal"]
 
 [node name="ElevatorCabin" type="Control"]
 layout_mode = 3
@@ -63,6 +64,11 @@ horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="ConsoleInterface" parent="." instance=ExtResource("2_console")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="BuildingTerminalInterface" parent="." instance=ExtResource("3_terminal")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1

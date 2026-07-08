@@ -6,6 +6,9 @@ class_name DemoFlowManager
 signal state_changed(new_state_name: String)
 
 
+const MAX_FRONT_HISTORY_LINES: int = 20
+
+
 # DemoState 按演示流程顺序排列，用一个简单状态机串起完整体验。
 enum DemoState {
 	BOOT,
@@ -19,6 +22,12 @@ enum DemoState {
 
 
 var current_state: DemoState = DemoState.BOOT
+
+# 三份状态是 FRONT 到 LEFT 的临时桥接，后续会由正式 PassengerCase 替换。
+# 对话历史只用于 TRANSCRIPT，操作历史只用于 SYSTEM LOG，提示只用于 STATUS。
+var front_dialogue_history: Array[String] = []
+var front_operation_history: Array[String] = []
+var current_building_status_hint: String = "暂无前台通话。"
 
 
 func _ready() -> void:
@@ -62,3 +71,47 @@ func get_current_state_name() -> String:
 
 func print_current_state() -> void:
 	print("Current demo state: ", get_current_state_name())
+
+
+func add_front_dialogue(
+		operator_text: String,
+		passenger_text: String,
+		status_hint: String
+) -> void:
+	# 一次选择写入成对台词，并把该选项的建筑判断交给 LEFT STATUS。
+	front_dialogue_history.append("操作员：%s" % operator_text)
+	var formatted_passenger_text: String = passenger_text
+	if not formatted_passenger_text.begins_with("乘客："):
+		formatted_passenger_text = "乘客：%s" % formatted_passenger_text
+	front_dialogue_history.append(formatted_passenger_text)
+	current_building_status_hint = status_hint
+
+	# 每次移除一整组问答，避免 20 行上限把操作员与乘客台词拆开。
+	while front_dialogue_history.size() > MAX_FRONT_HISTORY_LINES:
+		front_dialogue_history.pop_front()
+		front_dialogue_history.pop_front()
+
+
+func add_front_operation(operation_text: String) -> void:
+	# 玩家操作单独进入系统日志缓存，不混入完整对话内容。
+	front_operation_history.append(operation_text)
+	if front_operation_history.size() > MAX_FRONT_HISTORY_LINES:
+		front_operation_history.pop_front()
+
+
+func get_front_dialogue_history() -> Array[String]:
+	# 返回副本，避免 LEFT 界面意外改写共享对话缓存。
+	var history_copy: Array[String] = []
+	history_copy.assign(front_dialogue_history)
+	return history_copy
+
+
+func get_front_operation_history() -> Array[String]:
+	# 返回副本，避免 LEFT 界面意外改写共享操作缓存。
+	var history_copy: Array[String] = []
+	history_copy.assign(front_operation_history)
+	return history_copy
+
+
+func get_current_building_status_hint() -> String:
+	return current_building_status_hint

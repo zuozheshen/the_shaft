@@ -26,40 +26,47 @@ const DIALOGUE_NODES: Array = [
 		{
 			"operator": "下面是哪一层？",
 			"passenger": "乘客：我不知道编号。只是比这里更低。",
+			"status_hint": "目的地解析失败。乘客无法提供标准楼层编号，建议复核历史路线或保持门控关闭。",
 		},
 		{
 			"operator": "你的申请记录显示目标是 900 层。",
 			"passenger": "乘客：记录是旧的。那不是我要去的地方。",
+			"status_hint": "乘客自述与派单记录冲突。建筑建议查看 RECORD 页，确认近期路线重复情况。",
 		},
 		{
 			"operator": "你看起来不想去系统给你的地方。",
 			"passenger": "乘客：你们总是这么说，好像我要去哪里是我决定的。",
+			"status_hint": "检测到乘客对路线自主权存在抵触。建议降低询问强度，避免立即开门。",
 		},
 		{
 			"operator": "先留在舱内，等我确认路线。",
 			"passenger": "乘客：可以。但别让门开太久。那边会听见。",
+			"status_hint": "乘客对门外环境表现出回避。建议查看门外摄像头，并保持乘客舱隔离。",
 		},
 	],
 	[
 		{
 			"operator": "我会先保持门关闭。",
 			"passenger": "乘客：谢谢。至少现在不要开。",
+			"status_hint": "乘客明确请求维持隔离。建筑建议保持门控关闭，等待路线复核。",
 		},
 		{
 			"operator": "我需要查看地面摄像头。",
 			"passenger": "乘客：别看地上。那不是我的影子。",
+			"status_hint": "乘客主动提及影子异常。建议切换至地面摄像头，并标记现场证据。",
 		},
 		{
 			"operator": "门外是什么地方？",
 			"passenger": "乘客：我不确定。灯太稳了。",
+			"status_hint": "乘客描述门外灯候异常。建筑提示：过度稳定可能表示目标楼层状态不可信。",
 		},
 		{
 			"operator": "暂时结束通话。",
 			"passenger": "乘客：好。别把我写成异常。",
+			"status_hint": "乘客担心异常归档。建议谨慎填写后续记录，避免过早上报。",
 		},
 	],
 ]
-const MAX_FRONT_EVENT_HISTORY: int = 20
 
 
 # 这些引用对应操作台场景中的界面模块，统一声明便于看清显示与按钮依赖。
@@ -92,6 +99,7 @@ var dialogue_prompt_label: Label
 var dialogue_choice_buttons: Array[Button] = []
 
 var demo_flow_manager: DemoFlowManager
+var active_console_type: String = ""
 var current_camera_index: int = 0
 var mic_enabled: bool = false
 var dialogue_node_index: int = 0
@@ -99,13 +107,9 @@ var dialogue_started: bool = false
 var dialogue_finished: bool = false
 var current_passenger_line: String = "乘客舱音频链路待机。"
 
-# 供后续 LEFT 建筑终端读取对话转写和系统日志的临时缓存；本 Issue 不实现左侧终端。
-var front_event_history: Array[String] = []
-
-
 func _ready() -> void:
 	_cache_front_interaction_nodes()
-	# 主调度台的门控按钮只输出原型操作记录，三个按钮共用同一个处理函数。
+	# 三个门控按钮共用处理函数，同时把操作同步给 LEFT 的临时事件缓存。
 	open_door_button.pressed.connect(_print_door_action.bind("开门"))
 	delay_door_button.pressed.connect(_print_door_action.bind("延迟关门"))
 	close_door_button.pressed.connect(_print_door_action.bind("关门"))
@@ -200,6 +204,7 @@ func show_console(
 ) -> void:
 	# FRONT 是主调度台，需要显示调度、门控和流程按钮；其他方向只显示各自说明。
 	var is_main_dispatch_console: bool = console_type == "FRONT"
+	active_console_type = console_type
 	title_label.text = console_name
 	description_label.text = console_description
 	dispatch_panel.visible = is_main_dispatch_console
@@ -216,6 +221,7 @@ func show_console(
 
 	if is_main_dispatch_console and demo_flow_manager != null:
 		_update_state_label(demo_flow_manager.get_current_state_name())
+		_append_front_operation("进入 FRONT 主仲裁台")
 
 	show()
 	# 默认焦点跟随当前操作台类型，键盘玩家可直接继续操作或返回。
@@ -237,6 +243,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _request_return() -> void:
 	# 界面只发送退出意图，具体恢复舱内视图由外层控制器负责。
+	if active_console_type == "FRONT":
+		_append_front_operation("返回操作间")
 	return_requested.emit()
 
 
@@ -244,7 +252,7 @@ func _change_camera(direction: int) -> void:
 	# 三路摄像头只是主仲裁台的文字占位，不创建 Viewport 或真实渲染画面。
 	current_camera_index = posmod(current_camera_index + direction, CAMERA_FEEDS.size())
 	_update_camera_display()
-	_append_front_event("切换摄像头：%s" % CAMERA_FEEDS[current_camera_index]["name"])
+	_append_front_operation("摄像头切换：%s" % CAMERA_FEEDS[current_camera_index]["name"])
 
 	if mic_enabled and current_camera_index != 0:
 		system_hint_label.text = "非主摄像头仅用于观察。返回主摄像头继续通话。"
@@ -264,7 +272,7 @@ func _update_camera_display() -> void:
 func _toggle_microphone() -> void:
 	# 麦克风目前只是交互状态占位，不接入真实录音或语音输入。
 	mic_enabled = not mic_enabled
-	_append_front_event("麦克风%s" % ("开启" if mic_enabled else "关闭"))
+	_append_front_operation("麦克风%s" % ("开启" if mic_enabled else "关闭"))
 
 	if mic_enabled and not dialogue_started and not dialogue_finished:
 		dialogue_started = true
@@ -296,8 +304,24 @@ func _update_dialogue_visibility() -> void:
 
 	var is_front_visible: bool = passenger_monitor_panel != null \
 		and passenger_monitor_panel.visible
-	dialogue_choice_panel.visible = is_front_visible and mic_enabled \
-		and current_camera_index == 0 and not dialogue_finished
+	# 关闭麦克风时彻底隐藏对话区；开启后再根据摄像头和对话状态决定能否选择。
+	dialogue_choice_panel.visible = is_front_visible and mic_enabled
+	if not dialogue_choice_panel.visible:
+		return
+
+	var can_select_dialogue: bool = mic_enabled and current_camera_index == 0 \
+		and not dialogue_finished
+	for choice_button in dialogue_choice_buttons:
+		choice_button.disabled = not can_select_dialogue
+
+	if dialogue_prompt_label == null:
+		return
+	if dialogue_finished:
+		dialogue_prompt_label.text = "当前通话节点已结束。"
+	elif current_camera_index != 0:
+		dialogue_prompt_label.text = "返回 CAM 01｜主摄像头继续对话。"
+	else:
+		dialogue_prompt_label.text = "选择对乘客的回应："
 
 
 func _update_dialogue_buttons() -> void:
@@ -323,16 +347,15 @@ func _select_dialogue_choice(choice_index: int) -> void:
 	var selected_choice: Dictionary = current_node[choice_index]
 	var operator_line: String = selected_choice["operator"]
 	var passenger_reply: String = selected_choice["passenger"]
+	var status_hint: String = selected_choice["status_hint"]
 	current_passenger_line = passenger_reply
 	if passenger_speech_label != null:
 		passenger_speech_label.text = current_passenger_line
-	_append_front_event("操作员：%s" % operator_line)
-	_append_front_event(passenger_reply)
+	_append_front_dialogue(operator_line, passenger_reply, status_hint)
 
 	dialogue_node_index += 1
 	if dialogue_node_index >= DIALOGUE_NODES.size():
 		dialogue_finished = true
-		_append_front_event("当前通话节点结束")
 		system_hint_label.text = "当前通话节点结束。请确认门控或查看其他控制台。"
 		_update_dialogue_visibility()
 		return
@@ -341,14 +364,25 @@ func _select_dialogue_choice(choice_index: int) -> void:
 	system_hint_label.text = "乘客已回应。请选择下一句。"
 
 
-func _append_front_event(event_text: String) -> void:
-	front_event_history.append(event_text)
-	if front_event_history.size() > MAX_FRONT_EVENT_HISTORY:
-		front_event_history.pop_front()
+func _append_front_dialogue(
+		operator_text: String,
+		passenger_text: String,
+		status_hint: String
+) -> void:
+	# 对话与建筑提示走独立通道，不写入 LEFT 的 SYSTEM LOG。
+	if demo_flow_manager != null:
+		demo_flow_manager.add_front_dialogue(operator_text, passenger_text, status_hint)
+
+
+func _append_front_operation(operation_text: String) -> void:
+	# 麦克风、摄像头和门控属于玩家操作，只写入 LEFT 的 SYSTEM LOG。
+	if demo_flow_manager != null:
+		demo_flow_manager.add_front_operation(operation_text)
 
 
 func _print_door_action(action_name: String) -> void:
 	print("Door action: ", action_name)
+	_append_front_operation("门控：%s" % action_name)
 
 
 func _advance_state() -> void:
