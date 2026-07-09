@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://2mxpahaa3nm2"]
+[gd_scene format=3 uid="uid://2mxpahaa3nm2"]
 
-[ext_resource type="Script" path="res://scripts/ui/building_terminal_interface.gd" id="1_terminal"]
+[ext_resource type="Script" uid="uid://rs34jxwms0s7" path="res://scripts/ui/building_terminal_interface.gd" id="1_terminal"]
 
 [node name="BuildingTerminalInterface" type="Control" unique_id=217403649]
 layout_mode = 3

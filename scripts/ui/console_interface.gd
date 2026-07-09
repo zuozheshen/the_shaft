@@ -5,67 +5,10 @@ class_name ConsoleInterface
 signal return_requested
 
 
-const CAMERA_FEEDS: Array[Dictionary] = [
-	{
-		"name": "CAM 01｜主摄像头",
-		"feed": "画面占位：乘客站在舱内。面部、衣物、证件和说话状态等待接入。",
-	},
-	{
-		"name": "CAM 02｜地面摄像头",
-		"feed": "画面占位：地面区域。鞋印、液体、拖拽痕迹和第二组影子等待接入。",
-	},
-	{
-		"name": "CAM 03｜门外摄像头",
-		"feed": "画面占位：门外三到五米切片。楼层状态、等待者和异常痕迹等待接入。",
-	},
-]
-
-# 场景缺少流程管理器时使用的对话 fallback；正常运行从 current_case 读取。
-const DIALOGUE_NODES: Array = [
-	[
-		{
-			"operator": "下面是哪一层？",
-			"passenger": "乘客：我不知道编号。只是比这里更低。",
-			"status_hint": "目的地解析失败。乘客无法提供标准楼层编号，建议复核历史路线或保持门控关闭。",
-		},
-		{
-			"operator": "你的申请记录显示目标是 900 层。",
-			"passenger": "乘客：记录是旧的。那不是我要去的地方。",
-			"status_hint": "乘客自述与派单记录冲突。建筑建议查看 RECORD 页，确认近期路线重复情况。",
-		},
-		{
-			"operator": "你看起来不想去系统给你的地方。",
-			"passenger": "乘客：你们总是这么说，好像我要去哪里是我决定的。",
-			"status_hint": "检测到乘客对路线自主权存在抵触。建议降低询问强度，避免立即开门。",
-		},
-		{
-			"operator": "先留在舱内，等我确认路线。",
-			"passenger": "乘客：可以。但别让门开太久。那边会听见。",
-			"status_hint": "乘客对门外环境表现出回避。建议查看门外摄像头，并保持乘客舱隔离。",
-		},
-	],
-	[
-		{
-			"operator": "我会先保持门关闭。",
-			"passenger": "乘客：谢谢。至少现在不要开。",
-			"status_hint": "乘客明确请求维持隔离。建筑建议保持门控关闭，等待路线复核。",
-		},
-		{
-			"operator": "我需要查看地面摄像头。",
-			"passenger": "乘客：别看地上。那不是我的影子。",
-			"status_hint": "乘客主动提及影子异常。建议切换至地面摄像头，并标记现场证据。",
-		},
-		{
-			"operator": "门外是什么地方？",
-			"passenger": "乘客：我不确定。灯太稳了。",
-			"status_hint": "乘客描述门外灯候异常。建筑提示：过度稳定可能表示目标楼层状态不可信。",
-		},
-		{
-			"operator": "暂时结束通话。",
-			"passenger": "乘客：好。别把我写成异常。",
-			"status_hint": "乘客担心异常归档。建议谨慎填写后续记录，避免过早上报。",
-		},
-	],
+const CAMERA_NAMES: Array[String] = [
+	"CAM 01｜主摄像头",
+	"CAM 02｜地面摄像头",
+	"CAM 03｜门外摄像头",
 ]
 
 
@@ -76,10 +19,7 @@ const DIALOGUE_NODES: Array = [
 @onready var state_label: Label = %StateLabel
 @onready var door_control_panel: Control = %DoorControlPanel
 @onready var open_door_button: Button = %OpenDoorButton
-@onready var delay_door_button: Button = %DelayDoorButton
 @onready var close_door_button: Button = %CloseDoorButton
-@onready var flow_control_panel: Control = %FlowControlPanel
-@onready var advance_state_button: Button = %AdvanceStateButton
 @onready var system_hint_label: Label = %SystemHintLabel
 @onready var return_button: Button = %ReturnButton
 
@@ -114,16 +54,11 @@ func _ready() -> void:
 	_cache_front_interaction_nodes()
 	# 三个门控按钮共用处理函数，同时把操作同步给 LEFT 的临时事件缓存。
 	open_door_button.pressed.connect(_handle_open_door)
-	delay_door_button.pressed.connect(_print_door_action.bind("延迟关门"))
 	close_door_button.pressed.connect(_handle_close_door)
 	# 推进按钮调用流程管理器；返回按钮通过信号通知舱体控制器退出界面。
-	advance_state_button.pressed.connect(_advance_state)
 	return_button.pressed.connect(_request_return)
 	_connect_front_interaction_signals()
 	_initialize_front_interaction()
-	# 原型阶段暂不提供无实际用途的流程推进与延迟关门入口。
-	advance_state_button.visible = false
-	delay_door_button.visible = false
 
 
 func _cache_front_interaction_nodes() -> void:
@@ -204,13 +139,8 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 	demo_flow_manager = flow_manager
 	if demo_flow_manager == null:
 		return
-
-	# 监听状态变化后即时刷新文字，并防止重复连接同一个信号。
-	if not demo_flow_manager.state_changed.is_connected(_update_state_label):
-		demo_flow_manager.state_changed.connect(_update_state_label)
 	if not demo_flow_manager.case_updated.is_connected(_refresh_case_display):
 		demo_flow_manager.case_updated.connect(_refresh_case_display)
-	_update_state_label(demo_flow_manager.get_current_state_name())
 	_update_dialogue_buttons()
 	_refresh_case_display()
 
@@ -228,7 +158,6 @@ func show_console(
 		if is_main_dispatch_console else console_description
 	dispatch_panel.visible = is_main_dispatch_console
 	door_control_panel.visible = is_main_dispatch_console
-	flow_control_panel.visible = is_main_dispatch_console
 	system_hint_label.visible = is_main_dispatch_console
 	if passenger_monitor_panel != null:
 		passenger_monitor_panel.visible = is_main_dispatch_console
@@ -246,7 +175,7 @@ func show_console(
 	show()
 	# 默认焦点跟随当前操作台类型，键盘玩家可直接继续操作或返回。
 	if is_main_dispatch_console:
-		advance_state_button.grab_focus()
+		open_door_button.grab_focus()
 	else:
 		return_button.grab_focus()
 
@@ -270,9 +199,9 @@ func _request_return() -> void:
 
 func _change_camera(direction: int) -> void:
 	# 三路摄像头只是主仲裁台的文字占位，不创建 Viewport 或真实渲染画面。
-	current_camera_index = posmod(current_camera_index + direction, CAMERA_FEEDS.size())
+	current_camera_index = posmod(current_camera_index + direction, CAMERA_NAMES.size())
 	_update_camera_display()
-	_append_front_operation("摄像头切换：%s" % CAMERA_FEEDS[current_camera_index]["name"])
+	_append_front_operation("摄像头切换：%s" % CAMERA_NAMES[current_camera_index])
 
 	if mic_enabled and _can_talk_on_current_camera():
 		current_passenger_line = _get_phase_passenger_line()
@@ -280,25 +209,25 @@ func _change_camera(direction: int) -> void:
 	if mic_enabled and not _can_talk_on_current_camera():
 		system_hint_label.text = _get_unavailable_dialogue_hint()
 	else:
-		system_hint_label.text = "已切换至 %s。" % CAMERA_FEEDS[current_camera_index]["name"]
+		system_hint_label.text = "已切换至 %s。" % CAMERA_NAMES[current_camera_index]
 	_update_dialogue_visibility()
 
 
 func _update_camera_display() -> void:
-	var camera_feed: Dictionary = CAMERA_FEEDS[current_camera_index]
 	if camera_name_label != null:
-		camera_name_label.text = camera_feed["name"]
+		camera_name_label.text = CAMERA_NAMES[current_camera_index]
 	if monitor_feed_label != null:
 		monitor_feed_label.text = _get_phase_camera_feed(current_camera_index)
 
 
 func _get_phase_camera_feed(camera_index: int) -> String:
-	if demo_flow_manager == null:
-		return str(CAMERA_FEEDS[camera_index]["feed"])
-	return demo_flow_manager.get_camera_feed_for_phase(
-		demo_flow_manager.get_case_phase(),
-		camera_index
-	)
+	if demo_flow_manager != null:
+		return demo_flow_manager.get_camera_feed_for_phase(
+			demo_flow_manager.get_case_phase(),
+			camera_index
+		)
+
+	return "画面占位：摄像头文本未连接。"
 
 
 func _toggle_microphone() -> void:
@@ -411,29 +340,15 @@ func _select_dialogue_choice(choice_index: int) -> void:
 	_update_microphone_display()
 	_update_building_alert()
 
-
-func _get_dialogue_nodes() -> Array:
-	# UI 只通过临时 getter 读取案例；未来改用 JSON Loader 时这里无需重写。
-	if demo_flow_manager != null:
-		var case_dialogue_nodes: Array = demo_flow_manager.get_dialogue_nodes()
-		if not case_dialogue_nodes.is_empty():
-			return case_dialogue_nodes
-	return DIALOGUE_NODES
-
-
 func _get_dialogue_node(node_id: String) -> Dictionary:
 	if demo_flow_manager == null:
 		return {}
+
 	var tree: Dictionary = demo_flow_manager.get_dialogue_tree()
 	if tree.has(node_id):
 		return tree[node_id]
-	# 兼容旧案例的两层数组；正式 Rowan 案例始终优先使用 dialogue_tree。
-	if tree.is_empty():
-		var legacy_nodes: Array = _get_dialogue_nodes()
-		if not legacy_nodes.is_empty():
-			return {"passenger_line": _get_initial_passenger_line(), "choices": legacy_nodes[0]}
-	return tree.get("case_summary", tree.get("onboard_start", {}))
 
+	return tree.get("case_summary", tree.get("onboard_start", {}))
 
 func _resolve_dialogue_node_id(requested_id: String) -> String:
 	if demo_flow_manager == null:
@@ -629,20 +544,6 @@ func _update_building_alert() -> void:
 		and demo_flow_manager.has_unread_building_status_hint()
 	building_alert_label.text = "建筑终端：有新复核提示" if has_unread \
 		else "建筑终端：无新提示"
-
-
-func _advance_state() -> void:
-	# 流程管理器缺失时保留界面可运行，并用警告提示场景连接问题。
-	if demo_flow_manager == null:
-		push_warning("ConsoleInterface: DemoFlowManager is not connected.")
-		return
-
-	demo_flow_manager.advance_state()
-
-
-func _update_state_label(_new_state_name: String) -> void:
-	# 旧 DemoState 信号仍保留兼容，但 FRONT 主显示改由案例阶段驱动。
-	_update_dispatch_panel()
 
 
 func _update_dispatch_panel() -> void:

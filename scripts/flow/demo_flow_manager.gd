@@ -3,27 +3,12 @@ class_name DemoFlowManager
 
 
 # 状态变化后通知界面等监听者，避免其他节点反复查询流程状态。
-signal state_changed(new_state_name: String)
 signal case_updated
 
 
 const MAX_FRONT_HISTORY_LINES: int = 20
 const SYSTEM_RECOMMENDATION_EXCLUSIONS: Array[String] = ["004", "387", "392", "547"]
 
-
-# DemoState 按演示流程顺序排列，用一个简单状态机串起完整体验。
-enum DemoState {
-	BOOT,
-	WAITING_FOR_DISPATCH,
-	PASSENGER_BOARDING,
-	ROUTE_SELECTION,
-	ARRIVAL,
-	LOGGING,
-	CASE_COMPLETE,
-}
-
-
-var current_state: DemoState = DemoState.BOOT
 
 # 当前案例暂时以内置 GDScript 数据保存，后续会迁移到 data/cases/case_001.json。
 # UI 应通过下方 getter 读取，未来替换 CaseManager / PassengerCase / JSON Loader 时无需大改。
@@ -57,126 +42,6 @@ var current_case: Dictionary = {
 		],
 		"note": "该乘客近期路线重复率异常。\n多次抵达 900 外等待区后未完成柜台复核。\n服务区相关记录存在纸质缺口。",
 	},
-	"dialogue_nodes": [
-		[
-			{
-				"operator": "下面是哪一层？",
-				"passenger": "乘客：我不知道编号。只是比这里更低。",
-				"status_hint": "目的地解析失败。乘客无法提供标准楼层编号，建议复核历史路线或保持门控关闭。",
-			},
-			{
-				"operator": "你的申请记录显示目标是 900 层。",
-				"passenger": "乘客：记录是旧的。那不是我要去的地方。",
-				"status_hint": "乘客自述与派单记录冲突。建筑建议查看 RECORD 页，确认近期路线重复情况。",
-			},
-			{
-				"operator": "你看起来不想去系统给你的地方。",
-				"passenger": "乘客：你们总是这么说，好像我要去哪里是我决定的。",
-				"status_hint": "检测到乘客对路线自主权存在抵触。建议降低询问强度，避免立即开门。",
-			},
-			{
-				"operator": "先留在舱内，等我确认路线。",
-				"passenger": "乘客：可以。但别让门开太久。那边会听见。",
-				"status_hint": "乘客对门外环境表现出回避。建议查看门外摄像头，并保持乘客舱隔离。",
-			},
-		],
-		[
-			{
-				"operator": "我会先保持门关闭。",
-				"passenger": "乘客：谢谢。至少现在不要开。",
-				"status_hint": "乘客明确请求维持隔离。建筑建议保持门控关闭，等待路线复核。",
-			},
-			{
-				"operator": "我需要查看地面摄像头。",
-				"passenger": "乘客：别看地上。那不是我的影子。",
-				"status_hint": "乘客主动提及影子异常。建议切换至地面摄像头，并标记现场证据。",
-			},
-			{
-				"operator": "门外是什么地方？",
-				"passenger": "乘客：我不确定。灯太稳了。",
-				"status_hint": "乘客描述门外灯候异常。建筑提示：过度稳定可能表示目标楼层状态不可信。",
-			},
-			{
-				"operator": "暂时结束通话。",
-				"passenger": "乘客：好。别把我写成异常。",
-				"status_hint": "乘客担心异常归档。建议谨慎填写后续记录，避免过早上报。",
-			},
-		],
-	],
-	"floor_database": {
-		"900": {
-			"description": "派单记录目标层。", "relation": "94%", "access_eval": "可前往",
-			"stability": "基本稳定", "message": "该楼层与当前派单高度一致。",
-		},
-		"742": {
-			"description": "系统推荐的中继目标层。", "relation": "78%", "access_eval": "可前往",
-			"stability": "轻微波动", "message": "该楼层与当前派单存在关联，但不是派单记录目标。",
-		},
-		"612": {
-			"description": "当前派单起始相关层。", "relation": "63%", "access_eval": "可前往",
-			"stability": "稳定", "message": "该楼层仍与当前派单相关，适合暂时复核。",
-		},
-		"004": {
-			"description": "低层服务区。", "relation": "48%", "access_eval": "可前往",
-			"stability": "中等波动", "message": "该楼层不在系统推荐中，但与乘客描述的服务区、洗洁精味和旧暖柜线索相符。",
-		},
-		"387": {
-			"description": "旧记录存放层。", "relation": "29%", "access_eval": "可前往",
-			"stability": "轻微波动", "message": "该楼层与当前派单存在弱关联，建议谨慎提交。",
-		},
-		"392": {
-			"description": "普通通行层。", "relation": "0%", "access_eval": "可前往",
-			"stability": "稳定", "message": "该楼层与当前派单无关联，但建筑允许前往。",
-		},
-		"547": {
-			"description": "普通办公层。", "relation": "0%", "access_eval": "可前往",
-			"stability": "基本稳定", "message": "该楼层与当前派单无关联，稳定度未见明显变化。",
-		},
-	},
-	"floor_book_entries": [
-		{
-			"number": "900", "intro": "派单记录中的目标层，常用于标准人员交接与登记确认。",
-			"function": "登记、交接、身份复核、短暂停留。",
-			"history": "该层曾在多次垂直调度异常后作为稳定参照层使用。",
-			"note": "纸质索引内容可能滞后于建筑当前状态。",
-		},
-		{
-			"number": "742", "intro": "中继楼层，常见于长距离垂直调度中的临时停靠。",
-			"function": "中继等待、人员重新编号、短时路线复核。",
-			"history": "曾因照明频闪与广播延迟被短暂停用，后恢复为有限通行层。",
-			"note": "部分旧版索引将该层标为“等待层”。",
-		},
-		{
-			"number": "612", "intro": "当前派单起始相关层，靠近普通居住与服务混合区。",
-			"function": "居民登记、基础服务、短程派单生成。",
-			"history": "多次门控校准记录显示，该层门外等待区存在轻微延迟。",
-			"note": "该层记录常被用作派单起点参考。",
-		},
-		{
-			"number": "004", "intro": "低层服务区，位于旧维护系统附近。",
-			"function": "后勤转运、旧设备暂存、低层人员通行。",
-			"history": "早期曾作为备用疏散层使用，后被改为服务与维护混合区。",
-			"note": "纸质索引中对该层描述较少，部分信息可能缺失。",
-		},
-		{
-			"number": "387", "intro": "旧记录存放层，保留大量过期派单、登记与复核资料。",
-			"function": "纸质记录存储、过期档案转运、人工复查。",
-			"history": "该层曾发生多次归档编号错位，后改为低频访问区域。",
-			"note": "部分乘客记录可能仍指向该层的旧档案柜。",
-		},
-		{
-			"number": "392", "intro": "普通通行层，服务于常规办公与短时停留。",
-			"function": "办公、通行、临时等待。",
-			"history": "最近一次维护记录显示通风系统调整完成。",
-			"note": "未发现与当前派单直接相关的纸质标记。",
-		},
-		{
-			"number": "547", "intro": "普通办公层，主要供内部人员使用。",
-			"function": "办公、会议、文件处理。",
-			"history": "该层曾因楼层编号牌更换导致短期导航混乱。",
-			"note": "纸质索引中该层信息较完整，但缺少近期状态记录。",
-		},
-	],
 }
 
 # 三份状态是 FRONT 到 LEFT 的临时桥接，后续会由正式 PassengerCase 替换。
@@ -189,7 +54,6 @@ var has_unread_status_hint: bool = false
 
 func _ready() -> void:
 	_configure_issue_12_case()
-	print_current_state()
 
 
 func _configure_issue_12_case() -> void:
@@ -288,46 +152,6 @@ func _configure_issue_12_case() -> void:
 		"547": {"passenger": "乘客：办公层？我这身味道上去，可能会被请去走货梯。", "status_hint": "目标 547 已确认。该目标与当前乘客线索无直接关联。提示：可前往，但与当前派单和乘客自述关联较弱。"},
 	}
 	current_building_status_hint = "当前系统提示：\n%s 层检测到待接乘客。\n建议前往 %s 层完成接乘确认。\n\n当前任务：\n前往接乘楼层。" % [get_pickup_floor(), get_pickup_floor()]
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	# ui_accept 作为早期原型的快捷推进方式，已被界面处理的输入不会走到这里。
-	if event.is_action_pressed("ui_accept"):
-		advance_state()
-		get_viewport().set_input_as_handled()
-
-
-func advance_state() -> void:
-	# 每次只推进一个阶段，让按钮和快捷键共用同一套状态转换逻辑。
-	match current_state:
-		DemoState.BOOT:
-			current_state = DemoState.WAITING_FOR_DISPATCH
-		DemoState.WAITING_FOR_DISPATCH:
-			current_state = DemoState.PASSENGER_BOARDING
-		DemoState.PASSENGER_BOARDING:
-			current_state = DemoState.ROUTE_SELECTION
-		DemoState.ROUTE_SELECTION:
-			current_state = DemoState.ARRIVAL
-		DemoState.ARRIVAL:
-			current_state = DemoState.LOGGING
-		DemoState.LOGGING:
-			current_state = DemoState.CASE_COMPLETE
-		DemoState.CASE_COMPLETE:
-			# 完成状态是流程终点，继续操作不会重复发送状态变化。
-			return
-
-	print_current_state()
-	state_changed.emit(get_current_state_name())
-
-
-func get_current_state_name() -> String:
-	# 界面和调试输出使用可读名称，不需要了解枚举对应的整数值。
-	return str(DemoState.keys()[current_state])
-
-
-func print_current_state() -> void:
-	print("Current demo state: ", get_current_state_name())
-
 
 func add_front_dialogue(
 		operator_text: String,
@@ -692,7 +516,7 @@ func _build_dialogue_tree() -> Dictionary:
 		]),
 		"work_history": _node("乘客：我不算正式员工，也不算居民服务人员。哪里缺一点，就把我补进去一点。", [
 			_choice("所以记录很难归类你。", "乘客：对。系统不喜欢半个岗位。可人活着经常就是半个岗位、半顿饭、半张旧牌。", "case_summary", "乘客身份处于多种低优先级记录之间。建议不要只依据单一推荐目标判断。"),
-			_choice("你怕被归到临时支援？", "乘客：临时支援可以随时被替换。可我不是临时认识那些人的。", "unrecorded_help"),
+			_choice("你怕被归到临时支援？", "乘客：临时支援可以随时被替换。可我不是临时认识那些人的。", "case_summary"),
 			_choice("你需要我怎么做？", "乘客：别只把我送到最像答案的地方。让我先找一件能说明我的东西。", "case_summary"),
 			_choice("我明白了。", "乘客：你明白不明白都没关系。只要电梯真的停一次。", "case_summary"),
 		]),
