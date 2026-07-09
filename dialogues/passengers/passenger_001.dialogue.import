@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=15
+type="Resource"
+uid="uid://rscoqq78fqyj"
+path="res://.godot/imported/passenger_001.dialogue-78047f14d6023097ebc5746ee27bf546.tres"
+
+[deps]
+
+source_file="res://dialogues/passengers/passenger_001.dialogue"
+dest_files=["res://.godot/imported/passenger_001.dialogue-78047f14d6023097ebc5746ee27bf546.tres"]
+
+[params]
+
+defaults=true

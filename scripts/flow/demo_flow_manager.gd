@@ -50,6 +50,7 @@ var front_dialogue_history: Array[String] = []
 var front_operation_history: Array[String] = []
 var current_building_status_hint: String = "暂无前台通话。"
 var has_unread_status_hint: bool = false
+var runtime_recommended_destinations: Array[String] = []
 
 
 func _ready() -> void:
@@ -159,17 +160,41 @@ func add_front_dialogue(
 		status_hint: String = ""
 ) -> void:
 	# 普通问答只写入 TRANSCRIPT，关键选项才更新 LEFT STATUS。
+	add_front_transcript_operator(operator_text)
+	add_front_transcript_passenger(passenger_text)
+	if not status_hint.is_empty():
+		set_building_status_hint(status_hint, true)
+	_trim_front_dialogue_history()
+
+
+func add_front_transcript_operator(operator_text: String) -> void:
+	# 单行写入供 Dialogue Manager 接入使用；仍然只进入 TRANSCRIPT。
+	if operator_text.is_empty():
+		return
 	front_dialogue_history.append("操作员：%s" % operator_text)
+	_trim_front_dialogue_history()
+
+
+func add_front_transcript_passenger(passenger_text: String) -> void:
+	if passenger_text.is_empty():
+		return
 	var formatted_passenger_text: String = passenger_text
 	if not formatted_passenger_text.begins_with("乘客："):
 		formatted_passenger_text = "乘客：%s" % formatted_passenger_text
 	front_dialogue_history.append(formatted_passenger_text)
-	if not status_hint.is_empty():
-		set_building_status_hint(status_hint, true)
+	_trim_front_dialogue_history()
 
-	# 每次移除一整组问答，避免 20 行上限把操作员与乘客台词拆开。
+
+func add_front_transcript_note(note_text: String) -> void:
+	# 备注来自对话 mutation，用于复核通话，不属于玩家操作日志。
+	if note_text.is_empty():
+		return
+	front_dialogue_history.append("备注：%s" % note_text)
+	_trim_front_dialogue_history()
+
+
+func _trim_front_dialogue_history() -> void:
 	while front_dialogue_history.size() > MAX_FRONT_HISTORY_LINES:
-		front_dialogue_history.pop_front()
 		front_dialogue_history.pop_front()
 
 
@@ -434,7 +459,20 @@ func get_current_recommended_destinations() -> Array:
 		var floor_number: String = str(destination)
 		if floor_number not in SYSTEM_RECOMMENDATION_EXCLUSIONS:
 			candidates.append(floor_number)
+	for destination in runtime_recommended_destinations:
+		var floor_number: String = str(destination)
+		if floor_number not in candidates and floor_number not in SYSTEM_RECOMMENDATION_EXCLUSIONS:
+			candidates.append(floor_number)
 	return candidates
+
+
+func add_recommended_destination(destination: String) -> void:
+	# DM mutation 只追加本轮运行时推荐，不改写楼层数据库或纸质索引。
+	var floor_number: String = destination.strip_edges()
+	if floor_number.is_empty() or floor_number in runtime_recommended_destinations:
+		return
+	runtime_recommended_destinations.append(floor_number)
+	case_updated.emit()
 
 
 func mark_case_summary_reached() -> void:

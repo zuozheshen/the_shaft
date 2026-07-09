@@ -1,0 +1,15 @@
+~ start
+
+Passenger: 你是真人在听吗？
+- 是，我在听。
+    do status_hint("乘客确认操作员为人工口")
+    Passenger: 那我就把话说短一点。请别太快关门。
+    => END
+- 请按标准格式陈述目的地。
+    do unlock_floor("742")
+    Passenger: 记录上会说 900。但我需要先在 742 停一下。
+    => END
+- 我需要先核对记录。
+    do add_transcript_note("玩家选择先核对记录")
+    Passenger: 可以。记录里有些地方写得太整齐了。
+    => END

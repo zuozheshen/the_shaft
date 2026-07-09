@@ -525,6 +525,13 @@ func _get_recommended_destinations() -> Array:
 	return RECOMMENDED_DESTINATIONS
 
 
+func add_recommended_floor(floor_id: String) -> void:
+	# Dialogue Manager 只解锁一个临时推荐楼层；右侧控制台负责刷新可见按钮。
+	if demo_flow_manager != null:
+		demo_flow_manager.add_recommended_destination(floor_id)
+	_initialize_destination_text()
+
+
 func _update_recommended_destination_buttons() -> void:
 	# 三个槽位只显示系统推荐；手动验证或查书填写不会把隐藏楼层塞进这里。
 	var candidates: Array = _get_recommended_destinations()
