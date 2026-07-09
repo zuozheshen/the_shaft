@@ -4,6 +4,7 @@ class_name DemoFlowManager
 
 # 状态变化后通知界面等监听者，避免其他节点反复查询流程状态。
 signal case_updated
+signal destination_submitted(destination: String)
 
 
 const MAX_FRONT_HISTORY_LINES: int = 20
@@ -25,7 +26,6 @@ var current_case: Dictionary = {
 	"door_greeting_done": false,
 	"pickup_completed": false,
 	"cabin_door_closed_after_boarding": false,
-	"case_summary_reached": false,
 	"submitted_destination": "",
 	"destination_feedback_shown": false,
 	"passenger_record": {
@@ -64,47 +64,35 @@ func _configure_issue_12_case() -> void:
 		"arrival_feedback": "已前往接乘楼层：612。请回到主操作台，使用门外摄像头确认乘客。",
 		"arrival_status_hint": "电梯已被指派至 612 层接乘点。建议使用门外摄像头确认乘客状态。",
 		"outside_audio_idle": "门外音频链路已开启。",
-		"greeting": {
-			"operator": "你好。",
-			"passenger": "乘客：……这是自动广播吗？如果有真人在听，麻烦开一下门。我在 612 等了很久。",
-			"status_hint": "门外乘客已回应，并请求进入电梯。建议开启舱门完成接乘。",
-			"system_hint": "门外乘客已回应。请开启舱门完成接乘。",
-		},
 		"after_open_line": "乘客：谢谢。门关上以后再说吧。",
 		"after_open_hint": "乘客已进入舱内。请关闭舱门后继续询问。",
 		"after_close_line": "乘客：好了。现在能听见你了。",
-		"after_close_hint": "舱门已关闭。请切换至主摄像头并开启麦克风继续询问。",
+		"after_close_hint": "舱门已关闭。可以开启麦克风继续询问。",
 		"after_close_status_hint": "乘客已进入舱内，舱门已关闭。可以开始正式询问目标。",
 	}
 	current_case["camera_feeds"] = {
 		"WAITING_FOR_PICKUP": [
 			"画面占位：乘客舱内为空。等待接乘任务。",
-			"画面占位：乘客舱地面区域。暂无乘客进入痕迹。",
 			"画面占位：当前门外切片暂无待接乘客。请先前往接乘楼层。",
 		],
 		"ARRIVED_AT_PICKUP": [
 			"画面占位：乘客舱内为空。等待乘客进入。",
-			"画面占位：乘客舱地面区域。暂无乘客进入痕迹。",
 			"画面占位：612 层门外三到五米切片。自动售卖机旁有一名等待乘客，手里提着旧饭盒。",
 		],
 		"DOOR_GREETING_DONE": [
 			"画面占位：乘客舱内为空。等待乘客进入。",
-			"画面占位：乘客舱地面区域。暂无乘客进入痕迹。",
 			"画面占位：612 层门外三到五米切片。等待乘客站在门外，正在等舱门开启。",
 		],
 		"BOARDING_WAIT_DOOR_CLOSE": [
 			"画面占位：乘客站在舱内。她抱着一个旧饭盒，胸牌翻在外套里面。",
-			"画面占位：乘客舱地面区域。能看到一小段水痕和旧饭盒底部蹭出的拖痕。",
 			"画面占位：612 层门外切片。自动售卖机灯牌闪烁，等待区已空。",
 		],
 		"PASSENGER_ONBOARD": [
 			"画面占位：乘客站在舱内。她抱着一个旧饭盒，胸牌翻在外套里面。",
-			"画面占位：乘客舱地面区域。能看到一小段水痕和旧饭盒底部蹭出的拖痕。",
 			"画面占位：612 层门外切片。自动售卖机灯牌闪烁，等待区已空。",
 		],
 		"DESTINATION_CONFIRMED": [
 			"画面占位：乘客站在舱内。她抱着一个旧饭盒，正在等待电梯执行目标。",
-			"画面占位：乘客舱地面区域。水痕停在乘客脚边，没有继续扩散。",
 			"画面占位：门外等待区已空。",
 		],
 	}
@@ -124,14 +112,6 @@ func _configure_issue_12_case() -> void:
 		"pickup_phases": ["WAITING_FOR_PICKUP", "ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE", "BOARDING_WAIT_DOOR_CLOSE"],
 		"pickup_recommendations": ["612"],
 		"default_onboard_recommendations": ["900"],
-		"summary_recommendations": ["900", "742"],
-	}
-	current_case["dialogue_tree"] = _build_dialogue_tree()
-	current_case["dialogue_fallbacks"] = {
-		"application_reason": "book_prompt_soft", "standard_target": "about_900",
-		"identity_record": "old_badge", "repeated_route": "about_900",
-		"waiting_time": "about_612", "operator_role": "trust_start",
-		"target_clues": "case_summary", "unrecorded_help": "service_area",
 	}
 	current_case["floor_database"] = {
 		"900": {"description": "居民事务柜台层。", "relation": "91%", "access_eval": "可前往", "stability": "基本稳定", "message": "该楼层是派单记录目标。适合标准登记与身份复核。"},
@@ -154,19 +134,6 @@ func _configure_issue_12_case() -> void:
 	}
 	current_building_status_hint = "当前系统提示：\n%s 层检测到待接乘客。\n建议前往 %s 层完成接乘确认。\n\n当前任务：\n前往接乘楼层。" % [get_pickup_floor(), get_pickup_floor()]
 
-func add_front_dialogue(
-		operator_text: String,
-		passenger_text: String,
-		status_hint: String = ""
-) -> void:
-	# 普通问答只写入 TRANSCRIPT，关键选项才更新 LEFT STATUS。
-	add_front_transcript_operator(operator_text)
-	add_front_transcript_passenger(passenger_text)
-	if not status_hint.is_empty():
-		set_building_status_hint(status_hint, true)
-	_trim_front_dialogue_history()
-
-
 func add_front_transcript_operator(operator_text: String) -> void:
 	# 单行写入供 Dialogue Manager 接入使用；仍然只进入 TRANSCRIPT。
 	if operator_text.is_empty():
@@ -182,14 +149,6 @@ func add_front_transcript_passenger(passenger_text: String) -> void:
 	if not formatted_passenger_text.begins_with("乘客："):
 		formatted_passenger_text = "乘客：%s" % formatted_passenger_text
 	front_dialogue_history.append(formatted_passenger_text)
-	_trim_front_dialogue_history()
-
-
-func add_front_transcript_note(note_text: String) -> void:
-	# 备注来自对话 mutation，用于复核通话，不属于玩家操作日志。
-	if note_text.is_empty():
-		return
-	front_dialogue_history.append("备注：%s" % note_text)
 	_trim_front_dialogue_history()
 
 
@@ -269,11 +228,6 @@ func get_pickup_data() -> Dictionary:
 func get_pickup_floor() -> String:
 	var pickup: Dictionary = current_case.get("pickup", {})
 	return str(pickup.get("floor", current_case.get("pickup_floor", "")))
-
-
-func get_pickup_greeting() -> Dictionary:
-	var pickup: Dictionary = current_case.get("pickup", {})
-	return pickup.get("greeting", {}).duplicate(true)
 
 
 func get_pickup_arrival_feedback() -> String:
@@ -359,21 +313,6 @@ func get_recommended_destinations() -> Array:
 	return get_current_recommended_destinations()
 
 
-func get_initial_passenger_line() -> String:
-	# 初始台词也从对话树根节点读取，更换案例时不需要修改访问接口。
-	var dialogue_tree: Dictionary = current_case.get("dialogue_tree", {})
-	var initial_node: Dictionary = dialogue_tree.get("onboard_start", {})
-	return str(initial_node.get("passenger_line", "乘客舱音频链路待机。"))
-
-
-func get_dialogue_nodes() -> Array:
-	return current_case.get("dialogue_nodes", []).duplicate(true)
-
-
-func get_dialogue_tree() -> Dictionary:
-	return current_case.get("dialogue_tree", {}).duplicate(true)
-
-
 func get_passenger_record() -> Dictionary:
 	return current_case.get("passenger_record", {}).duplicate(true)
 
@@ -395,6 +334,7 @@ func set_submitted_destination(destination: String) -> void:
 	current_case["submitted_destination"] = destination.strip_edges()
 	current_case["destination_feedback_shown"] = false
 	case_updated.emit()
+	destination_submitted.emit(get_submitted_destination())
 
 
 func get_case_phase() -> String:
@@ -450,8 +390,6 @@ func get_current_recommended_destinations() -> Array:
 	var recommendation_key: String = "default_onboard_recommendations"
 	if phase in pickup_phases:
 		recommendation_key = "pickup_recommendations"
-	elif bool(current_case.get("case_summary_reached", false)):
-		recommendation_key = "summary_recommendations"
 	var configured_candidates: Array = rules.get(recommendation_key, [])
 	# 系统推荐与玩家手动发现严格分开，隐藏楼层只能由玩家自行填写。
 	var candidates: Array[String] = []
@@ -473,105 +411,6 @@ func add_recommended_destination(destination: String) -> void:
 		return
 	runtime_recommended_destinations.append(floor_number)
 	case_updated.emit()
-
-
-func mark_case_summary_reached() -> void:
-	# 到达总结节点后，建筑才愿意把稳定的中继等待层 742 加入系统推荐。
-	current_case["case_summary_reached"] = true
-	case_updated.emit()
-
-
-func _choice(operator: String, passenger: String, next_node: String, hint: String = "") -> Dictionary:
-	var choice := {"operator": operator, "passenger": passenger, "next": next_node}
-	if not hint.is_empty():
-		choice["status_hint"] = hint
-	return choice
-
-
-func _node(line: String, choices: Array, hint: String = "") -> Dictionary:
-	var node := {"passenger_line": line, "choices": choices}
-	if not hint.is_empty():
-		node["status_hint"] = hint
-	return node
-
-
-func _build_dialogue_tree() -> Dictionary:
-	# node_id / next 让每条回答明确指向下一节点，不再依赖固定两层数组。
-	return {
-		"onboard_start": _node("乘客：你是真人在听，对吧？那我能不能不直接去 900？", [
-			_choice("你想去哪？", "乘客：下面一点。不是最下面。那里有洗洁精味，晚上会有人把餐盘推过去。", "below_clues"),
-			_choice("系统目前只推荐 900。", "乘客：我知道。900 是柜台。柜台会让我把临时牌交上去，然后等复核。", "about_900", "系统当前推荐目标仅为 900。乘客对标准目标存在迟疑，建议继续询问原因。"),
-			_choice("你为什么在 612 等电梯？", "乘客：我换班以后一直在那层等。612 的屏幕会说“即将调度”，但它说得太久了。", "about_612"),
-			_choice("我可以先保持门关闭。你慢慢说。", "乘客：谢谢。门关着的时候，我比较像一个乘客，不像一个堵在门口的故障。", "trust_start", "乘客对门控状态有明显安全感反馈。保持舱门关闭有助于继续沟通。"),
-		]),
-		"below_clues": _node("乘客：我记不清楼层号。只记得那里有人洗桶，地上总是湿的，暖柜门关不上。", [
-			_choice("你去那里做什么？", "乘客：想拿回一张旧工牌。以前有人替我放在暖柜后面，说哪天系统不认我了，也许还能用上。", "old_badge"),
-			_choice("那听起来像服务区。", "乘客：对，服务区。不是给住户看的地方。大家只是从那里经过，拿东西，换班，倒掉剩饭。", "service_area"),
-			_choice("你为什么不直接申请那个楼层？", "乘客：申请要写理由。我总不能写“我想证明我还是我自己”。", "application_reason", "乘客需求无法被标准申请理由完整表达。建议玩家结合纸质楼层索引书自行判断目标楼层。"),
-			_choice("你确定不是 900 吗？", "乘客：900 是最后要去的地方。可我不想空着手去。", "about_900"),
-		]),
-		"about_900": _node("乘客：900 的灯很白。人在柜台前站着，什么都还没说，记录就先排好了。", [
-			_choice("900 是系统推荐目标，应该最稳。", "乘客：稳定是好事。我也靠稳定活着。只是有时候，稳定会把没写进去的东西都挤掉。", "standard_target"),
-			_choice("你去了 900 会发生什么？", "乘客：他们会收走我的临时牌，给我一张新的。新的上面名字没错，可我以前的班表就对不上了。", "identity_record", "乘客担心标准复核流程改变自身记录状态。900 合规，但可能重复其既往困境。"),
-			_choice("你以前去过 900 吗？", "乘客：三次。每次都在柜台外坐到号码跳过，然后再坐电梯回来。", "repeated_route", "乘客历史路线存在重复但未完成的复核行为。建议查看 LEFT 的 RECORD 页。"),
-			_choice("你不是不去 900，只是不想现在去？", "乘客：对。我想带着一点能说明自己的东西去。", "old_badge"),
-		]),
-		"about_612": _node("乘客：612 有长椅、售卖机，还有一个总是卷边的公告板。等久了，人会开始怀疑是不是自己没被算进去。", [
-			_choice("你在那里等了多久？", "乘客：两班人换过了。售卖机补了一次货。我的汤也从热的变成温的。", "waiting_time"),
-			_choice("你说“汤”？", "乘客：绿豆汤。给夜班的人带的。她以前帮过我。", "soup_context"),
-			_choice("公告板上有什么？", "乘客：班表、清洁扣分、失物认领，还有一张被撕掉一半的低层服务区通知。", "service_area"),
-			_choice("你觉得自己没被算进去？", "乘客：系统会算路线、算人数、算等待时间。可是它不太会算一个人为什么一直没走。", "trust_start", "乘客表达出对调度系统的低信任。建议继续收集目标线索，而不是立即提交 900。"),
-		]),
-		"trust_start": _node("乘客：我不是想给你添麻烦。我知道你也只是按按钮。", [
-			_choice("按按钮也是决定。", "乘客：那你比广播强。广播只会说“请等待”。", "operator_role"),
-			_choice("我需要知道你真正想去哪里。", "乘客：我想先去找旧工牌。找不到的话，再去旧记录层看看。", "target_clues"),
-			_choice("我会先查记录。", "乘客：查吧。记录比我会说话，就是有时候说得太整齐。", "repeated_route", "建议查看 LEFT 的 RECORD 页。系统记录可能完整，但不一定足够解释乘客需求。"),
-			_choice("你可以继续说。", "乘客：我以前在低层发餐点帮忙。不是正式岗位，就是缺人的时候叫我一下。", "work_history"),
-		]),
-		"soup_context": _node("乘客：那碗汤不是任务。只是她胃不好，夜班又总忘记吃东西。", [
-			_choice("她是谁？", "乘客：清洁队的阿姨。她不喜欢别人叫她工号。她说工号是给柜台听的。", "service_area"),
-			_choice("这件事系统里没有记录？", "乘客：不会有。顺手带汤这种事，一登记就变成责任。没人想多一条责任。", "unrecorded_help", "乘客描述的是系统记录之外的生活互助。当前信息可能与非推荐楼层有关。"),
-			_choice("你担心汤被当成异常物品？", "乘客：担心。写“旧饭盒”就好，别写“容器”。容器听起来像我藏了东西。", "record_language"),
-			_choice("这和旧工牌有关吗？", "乘客：有。她说，如果哪天新牌不认我，就去暖柜后面找旧的。", "old_badge"),
-		]),
-		"old_badge": _node("乘客：那张旧工牌不是为了通行，是为了让柜台相信我以前就在这里。", [
-			_choice("新工牌有什么问题？", "乘客：新工牌把我归到临时支援。可我在那边做了很久，久到知道哪台暖柜会夹手。", "work_history"),
-			_choice("旧工牌在哪里？", "乘客：低层服务区，一个坏暖柜后面。那地方纸质索引里应该有写。", "book_prompt_soft"),
-			_choice("你想用旧工牌去 900 复核？", "乘客：对。不是逃开柜台，是想带点证据过去。", "case_summary", "乘客目标不是拒绝 900，而是希望在前往 900 前补足身份材料。"),
-			_choice("如果旧工牌不在了呢？", "乘客：那就看旧班表。纸柜那边也许还留着。电子记录太快，纸有时候慢一点。", "old_records"),
-		]),
-		"service_area": _node("乘客：服务区不太像楼层，更像建筑把不方便给人看的东西都放在那里。", [
-			_choice("你在那里工作过？", "乘客：算是。缺人就叫我，有人请假就叫我，系统里写“临时协助”。", "work_history"),
-			_choice("你记得那层的名字吗？", "乘客：不记得正式名字。大家就说“下面服务区”。", "book_prompt_soft"),
-			_choice("那里为什么重要？", "乘客：因为那里的人知道我是谁。不是系统那种知道，是会问我今天怎么又没吃饭的知道。", "unrecorded_help", "乘客需求与非正式生活关系相关。系统推荐目标可能无法覆盖该信息。"),
-			_choice("你还愿意去 900 吗？", "乘客：愿意。只是想先把自己的名字带上。", "case_summary"),
-		]),
-		"old_records": _node("乘客：旧记录层有纸柜。纸会发霉，字会歪，但有时候它比终端宽容。", [
-			_choice("你去过旧记录层？", "乘客：去过一次，帮人搬过过期班表。风扇吵，纸灰会粘在手上。", "book_prompt_soft"),
-			_choice("你觉得那里会有你的记录？", "乘客：不确定。但如果低层找不到旧牌，那里也许还有第一张班表。", "case_summary"),
-			_choice("为什么纸质记录反而有用？", "乘客：因为纸不急着合并人。它只会放在那里，等有人翻。", "case_summary", "乘客提供了第二类目标线索：旧记录相关楼层。建议玩家自行结合楼层索引书判断。"),
-			_choice("这听起来不像系统推荐会给的目标。", "乘客：它当然不会推荐。系统推荐的是最顺的地方，不一定是能把话说清楚的地方。", "case_summary"),
-		]),
-		"work_history": _node("乘客：我不算正式员工，也不算居民服务人员。哪里缺一点，就把我补进去一点。", [
-			_choice("所以记录很难归类你。", "乘客：对。系统不喜欢半个岗位。可人活着经常就是半个岗位、半顿饭、半张旧牌。", "case_summary", "乘客身份处于多种低优先级记录之间。建议不要只依据单一推荐目标判断。"),
-			_choice("你怕被归到临时支援？", "乘客：临时支援可以随时被替换。可我不是临时认识那些人的。", "unrecorded_help"),
-			_choice("你需要我怎么做？", "乘客：别只把我送到最像答案的地方。让我先找一件能说明我的东西。", "case_summary"),
-			_choice("我明白了。", "乘客：你明白不明白都没关系。只要电梯真的停一次。", "case_summary"),
-		]),
-		"record_language": _node("乘客：他们写字很厉害。同一个东西，写成“饭盒”和写成“未登记容器”，后果不一样。", [
-			_choice("你很在意记录用词。", "乘客：当然。在这里，词会变成楼层，楼层会变成你能不能回去。", "case_summary", "乘客对系统记录语言高度敏感。后续日志与目标选择应避免过早异常化。"),
-			_choice("你希望系统怎么写你？", "乘客：写“夜班回来的人”。别写“异常等待人员”。", "case_summary"),
-			_choice("你以前被这样写过？", "乘客：写过一次“逗留”。其实我只是等一个人把钥匙还我。", "case_summary"),
-			_choice("我先不替你下结论。", "乘客：谢谢。先不下结论，有时候就是帮忙了。", "case_summary"),
-		]),
-		"book_prompt_soft": _node("乘客：我记不住编号。你们台上如果还有旧楼层书，可能比我记得准。", [
-			_choice("我会查。", "乘客：嗯。别只看推荐，推荐里通常没有这些地方。", "case_summary", "乘客建议查阅右侧纸质楼层索引书。系统推荐目标仍只有 900。"),
-			_choice("你能再描述一下吗？", "乘客：低层那个地方有餐盘车。旧记录那个地方有纸柜。一个闻起来潮，一个闻起来灰。", "case_summary"),
-			_choice("你是不是想让我手动输入？", "乘客：如果你只能按推荐，那我就去 900。如果你能查，那就查一下。", "case_summary"),
-			_choice("我不能保证结果。", "乘客：我也不能。我只是想试一次不是自动跳过去的结果。", "case_summary"),
-		]),
-		"case_summary": _node("乘客：我知道 900 是流程。我不是不要流程。我只是想先找回一点能让我站在柜台前说话的东西。", [], "乘客目标线索已整理：标准推荐目标为 900；非推荐线索指向低层服务区与旧记录相关楼层。建议玩家查阅纸质楼层索引书并自行验证目标楼层。"),
-	}
 
 
 func _build_floor_book_entries() -> Array:

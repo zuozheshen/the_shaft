@@ -9,9 +9,8 @@ const PASSENGER_001_DIALOGUE_PATH := "res://dialogues/passengers/passenger_001.d
 const DialogueManagerAdapterScript := preload("res://scripts/dialogue/dialogue_manager_adapter.gd")
 
 const CAMERA_NAMES: Array[String] = [
-	"CAM 01｜主摄像头",
-	"CAM 02｜地面摄像头",
-	"CAM 03｜门外摄像头",
+	"CAM 01｜舱内摄像头",
+	"CAM 02｜门外摄像头",
 ]
 
 
@@ -50,9 +49,6 @@ var dialogue_manager_adapter: DialogueManagerAdapter
 var active_console_type: String = ""
 var current_camera_index: int = 0
 var mic_enabled: bool = false
-var current_dialogue_node_id: String = "onboard_start"
-var dialogue_started: bool = false
-var dialogue_finished: bool = false
 var current_passenger_line: String = "乘客舱音频链路待机。"
 var dm_dialogue_started: bool = false
 var dm_dialogue_finished: bool = false
@@ -80,7 +76,7 @@ func _create_dialogue_manager_adapter() -> void:
 	dialogue_manager_adapter.dialogue_finished.connect(_on_dm_dialogue_finished)
 	dialogue_manager_adapter.status_hint_requested.connect(_on_dm_status_hint_requested)
 	dialogue_manager_adapter.floor_unlock_requested.connect(_on_dm_floor_unlock_requested)
-	dialogue_manager_adapter.transcript_note_requested.connect(_on_dm_transcript_note_requested)
+	dialogue_manager_adapter.door_greeting_done_requested.connect(_on_dm_door_greeting_done_requested)
 
 
 func _cache_front_interaction_nodes() -> void:
@@ -119,15 +115,15 @@ func _find_optional_node(node_name: String) -> Node:
 
 
 func _connect_front_interaction_signals() -> void:
-	# 新增按钮信号逐个检查，避免节点缺失或重复初始化造成错误。
-	var previous_camera_callback: Callable = _change_camera.bind(-1)
-	var next_camera_callback: Callable = _change_camera.bind(1)
+	# 两个摄像头按钮现在是直接选择，不再按上一台/下一台循环。
+	var cabin_camera_callback: Callable = _select_camera.bind(0)
+	var door_camera_callback: Callable = _select_camera.bind(1)
 	if previous_camera_button != null \
-			and not previous_camera_button.pressed.is_connected(previous_camera_callback):
-		previous_camera_button.pressed.connect(previous_camera_callback)
+			and not previous_camera_button.pressed.is_connected(cabin_camera_callback):
+		previous_camera_button.pressed.connect(cabin_camera_callback)
 	if next_camera_button != null \
-			and not next_camera_button.pressed.is_connected(next_camera_callback):
-		next_camera_button.pressed.connect(next_camera_callback)
+			and not next_camera_button.pressed.is_connected(door_camera_callback):
+		next_camera_button.pressed.connect(door_camera_callback)
 	if talk_button != null and not talk_button.pressed.is_connected(_toggle_microphone):
 		talk_button.pressed.connect(_toggle_microphone)
 
@@ -141,9 +137,6 @@ func _connect_front_interaction_signals() -> void:
 func _initialize_front_interaction() -> void:
 	current_camera_index = 0
 	mic_enabled = false
-	current_dialogue_node_id = "onboard_start"
-	dialogue_started = false
-	dialogue_finished = false
 	dm_dialogue_started = false
 	dm_dialogue_finished = false
 	dm_choices.clear()
@@ -166,6 +159,8 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 		return
 	if not demo_flow_manager.case_updated.is_connected(_refresh_case_display):
 		demo_flow_manager.case_updated.connect(_refresh_case_display)
+	if not demo_flow_manager.destination_submitted.is_connected(_on_destination_submitted):
+		demo_flow_manager.destination_submitted.connect(_on_destination_submitted)
 	_update_dialogue_buttons()
 	_refresh_case_display()
 
@@ -226,19 +221,12 @@ func _request_return() -> void:
 	return_requested.emit()
 
 
-func _change_camera(direction: int) -> void:
-	# 三路摄像头只是主仲裁台的文字占位，不创建 Viewport 或真实渲染画面。
-	current_camera_index = posmod(current_camera_index + direction, CAMERA_NAMES.size())
+func _select_camera(camera_index: int) -> void:
+	# 摄像头只切换证据画面，不再决定麦克风是否可以对话。
+	current_camera_index = clampi(camera_index, 0, CAMERA_NAMES.size() - 1)
 	_update_camera_display()
 	_append_front_operation("摄像头切换：%s" % CAMERA_NAMES[current_camera_index])
-
-	if mic_enabled and _can_talk_on_current_camera():
-		current_passenger_line = _get_phase_passenger_line()
-		_update_microphone_display()
-	if mic_enabled and not _can_talk_on_current_camera():
-		system_hint_label.text = _get_unavailable_dialogue_hint()
-	else:
-		system_hint_label.text = "已切换至 %s。" % CAMERA_NAMES[current_camera_index]
+	system_hint_label.text = "已切换至 %s。" % CAMERA_NAMES[current_camera_index]
 	_update_dialogue_visibility()
 
 
@@ -265,29 +253,42 @@ func _toggle_microphone() -> void:
 	_append_front_operation("麦克风%s" % ("开启" if mic_enabled else "关闭"))
 
 	if mic_enabled and not dm_dialogue_started and not dm_dialogue_finished:
-		_start_dialogue_manager_passenger()
-	elif mic_enabled and not dialogue_started and not dialogue_finished:
-		dialogue_started = true
-		current_passenger_line = _get_phase_passenger_line()
+		if not _start_dialogue_manager_passenger():
+			current_passenger_line = _get_phase_passenger_line()
 	_update_microphone_display()
 
 	if mic_enabled and dm_dialogue_started and not dm_dialogue_finished:
 		system_hint_label.text = "乘客通话链路已开启。"
-	elif mic_enabled and not _can_talk_on_current_camera():
-		system_hint_label.text = _get_unavailable_dialogue_hint()
 	elif mic_enabled:
 		system_hint_label.text = "乘客通话链路已开启。"
 	else:
 		system_hint_label.text = "乘客通话链路已关闭。"
 
 
-func _start_dialogue_manager_passenger() -> void:
-	# Issue 13：先固定接入一个测试乘客，证明 DM3 能驱动主操作台问答。
+func _start_dialogue_manager_passenger() -> bool:
+	# DM 对话按旧 phase 分入口：接乘前只做门外确认，关门后才进入舱内询问。
+	var start_title: String = _get_dialogue_manager_start_title()
+	if start_title.is_empty():
+		return false
 	dm_dialogue_started = true
 	dm_dialogue_finished = false
 	dm_choices.clear()
 	if dialogue_manager_adapter != null:
-		dialogue_manager_adapter.start_dialogue(PASSENGER_001_DIALOGUE_PATH, "start")
+		dialogue_manager_adapter.start_dialogue(PASSENGER_001_DIALOGUE_PATH, start_title)
+	return true
+
+
+func _get_dialogue_manager_start_title() -> String:
+	if demo_flow_manager == null:
+		return ""
+	var phase: String = demo_flow_manager.get_case_phase()
+	if phase == "ARRIVED_AT_PICKUP" and not demo_flow_manager.is_door_greeting_done():
+		return "pickup_start"
+	if phase == "PASSENGER_ONBOARD" \
+			and demo_flow_manager.is_passenger_onboard() \
+			and demo_flow_manager.is_cabin_door_closed_after_boarding():
+		return "onboard_start"
+	return ""
 
 
 func _update_microphone_display() -> void:
@@ -296,8 +297,13 @@ func _update_microphone_display() -> void:
 	if talk_button != null:
 		talk_button.text = "关闭麦克风" if mic_enabled else "开启麦克风"
 	if passenger_speech_label != null:
+		var should_show_passenger_line: bool = mic_enabled \
+			or (
+				demo_flow_manager != null \
+				and demo_flow_manager.get_case_phase() == "DESTINATION_CONFIRMED"
+			)
 		passenger_speech_label.text = current_passenger_line \
-			if mic_enabled else "乘客舱音频链路待机。"
+			if should_show_passenger_line else "乘客舱音频链路待机。"
 	_update_dialogue_visibility()
 
 
@@ -307,13 +313,10 @@ func _update_dialogue_visibility() -> void:
 
 	var is_front_visible: bool = passenger_monitor_panel != null \
 		and passenger_monitor_panel.visible
-	# 对话区只在门外问候或关门后的正式询问条件完整满足时出现。
+	# 对话区不再要求特定摄像头；摄像头只提供不同证据画面。
 	var can_select_dialogue: bool = is_front_visible and mic_enabled \
-		and (
-			(dm_dialogue_started and not dm_dialogue_finished) \
-			or _is_door_greeting_available() \
-			or _is_onboard_dialogue_available()
-		)
+		and dm_dialogue_started \
+		and not dm_dialogue_finished
 	dialogue_choice_panel.visible = can_select_dialogue
 	for choice_button in dialogue_choice_buttons:
 		choice_button.disabled = false
@@ -322,35 +325,21 @@ func _update_dialogue_visibility() -> void:
 
 	if dialogue_prompt_label == null:
 		return
-	if dm_dialogue_started and not dm_dialogue_finished:
-		_update_dialogue_manager_buttons()
-		return
-	if dialogue_finished:
-		dialogue_prompt_label.text = "当前通话节点已结束。"
-	elif not _can_talk_on_current_camera():
-		dialogue_prompt_label.text = "请切换到当前阶段可用的通话摄像头。"
-	else:
-		dialogue_prompt_label.text = "选择对乘客的回应："
+	_update_dialogue_manager_buttons()
 
 
 func _update_dialogue_buttons() -> void:
-	if dm_dialogue_started:
+	if dm_dialogue_started and not dm_dialogue_finished:
 		_update_dialogue_manager_buttons()
 		return
-	if demo_flow_manager != null and demo_flow_manager.get_case_phase() == "ARRIVED_AT_PICKUP":
-		for button_index in dialogue_choice_buttons.size():
-			var greeting_button := dialogue_choice_buttons[button_index]
-			greeting_button.visible = button_index == 0
-			if button_index == 0:
-				greeting_button.text = "你好。"
-		return
-	var current_node: Dictionary = _get_dialogue_node(current_dialogue_node_id)
-	var choices: Array = current_node.get("choices", [])
-	for choice_index in dialogue_choice_buttons.size():
-		var choice_button := dialogue_choice_buttons[choice_index]
-		choice_button.visible = choice_index < choices.size()
-		if choice_button.visible:
-			choice_button.text = str(choices[choice_index].get("operator", "继续"))
+	_clear_dialogue_buttons()
+
+
+func _clear_dialogue_buttons() -> void:
+	for choice_button in dialogue_choice_buttons:
+		choice_button.visible = false
+		choice_button.disabled = true
+		choice_button.text = ""
 
 
 func _update_dialogue_manager_buttons() -> void:
@@ -377,46 +366,7 @@ func _update_dialogue_manager_buttons() -> void:
 
 
 func _select_dialogue_choice(choice_index: int) -> void:
-	if dm_dialogue_started:
-		_select_dialogue_manager_choice(choice_index)
-		return
-	if not mic_enabled or not _can_talk_on_current_camera() or dialogue_finished:
-		return
-	if demo_flow_manager != null and demo_flow_manager.get_case_phase() == "ARRIVED_AT_PICKUP":
-		_handle_door_greeting(choice_index)
-		return
-	var current_node: Dictionary = _get_dialogue_node(current_dialogue_node_id)
-	var choices: Array = current_node.get("choices", [])
-	if choice_index >= choices.size():
-		return
-	var selected_choice: Dictionary = choices[choice_index]
-	var operator_line: String = str(selected_choice.get("operator", ""))
-	var passenger_reply: String = str(selected_choice.get("passenger", ""))
-	var status_hint: String = str(selected_choice.get("status_hint", ""))
-	current_passenger_line = passenger_reply
-	if passenger_speech_label != null:
-		passenger_speech_label.text = current_passenger_line
-	_append_front_dialogue(operator_line, passenger_reply, status_hint)
-
-	current_dialogue_node_id = _resolve_dialogue_node_id(str(selected_choice.get("next", "case_summary")))
-	var next_node: Dictionary = _get_dialogue_node(current_dialogue_node_id)
-	current_passenger_line = str(next_node.get("passenger_line", passenger_reply))
-	if current_dialogue_node_id == "case_summary" and demo_flow_manager != null:
-		# 乘客线索整理完成后，系统只增加中继缓冲候选，不直接泄露 004 / 387。
-		demo_flow_manager.mark_case_summary_reached()
-	if next_node.get("choices", []).is_empty():
-		dialogue_finished = true
-		var summary_hint: String = str(next_node.get("status_hint", ""))
-		if not summary_hint.is_empty() and demo_flow_manager != null:
-			demo_flow_manager.set_building_status_hint(summary_hint, true)
-		system_hint_label.text = "乘客已给出目标线索。请复核建筑终端，或前往右侧目标楼层控制台。"
-		_update_dialogue_visibility()
-		return
-
-	_update_dialogue_buttons()
-	system_hint_label.text = "乘客已回应。请选择下一句。"
-	_update_microphone_display()
-	_update_building_alert()
+	_select_dialogue_manager_choice(choice_index)
 
 
 func _select_dialogue_manager_choice(choice_index: int) -> void:
@@ -482,9 +432,34 @@ func _on_dm_floor_unlock_requested(floor_id: String) -> void:
 		system_hint_label.text = "建筑终端已加入临时推荐楼层：%s。" % floor_id
 
 
-func _on_dm_transcript_note_requested(text: String) -> void:
-	if demo_flow_manager != null:
-		demo_flow_manager.add_front_transcript_note(text)
+func _on_dm_door_greeting_done_requested() -> void:
+	# DM 只完成“门外乘客已确认”；后续开门、进舱、关门仍走原有门控 phase。
+	if demo_flow_manager == null:
+		return
+	if demo_flow_manager.get_case_phase() != "ARRIVED_AT_PICKUP":
+		return
+	demo_flow_manager.set_door_greeting_done(true)
+	demo_flow_manager.set_case_phase("DOOR_GREETING_DONE")
+	_update_dialogue_buttons()
+	_update_dialogue_visibility()
+	_update_building_alert()
+
+
+func _on_destination_submitted(destination: String) -> void:
+	# 右侧提交目标后，交给 DM 文件里的 destination_xxx 标题生成乘客反馈。
+	if demo_flow_manager == null \
+			or not demo_flow_manager.is_passenger_onboard() \
+			or not demo_flow_manager.is_cabin_door_closed_after_boarding():
+		return
+	if dialogue_manager_adapter != null:
+		var title: String = "destination_%s" % destination.strip_edges()
+		dm_dialogue_started = true
+		dm_dialogue_finished = false
+		dm_choices.clear()
+		if dialogue_manager_adapter.dialogue_resource == null:
+			dialogue_manager_adapter.start_dialogue(PASSENGER_001_DIALOGUE_PATH, title)
+		else:
+			dialogue_manager_adapter.show_title(title)
 
 
 func _format_dialogue_character(character: String) -> String:
@@ -493,51 +468,9 @@ func _format_dialogue_character(character: String) -> String:
 	return character
 
 
-func _get_dialogue_node(node_id: String) -> Dictionary:
-	if demo_flow_manager == null:
-		return {}
-
-	var tree: Dictionary = demo_flow_manager.get_dialogue_tree()
-	if tree.has(node_id):
-		return tree[node_id]
-
-	return tree.get("case_summary", tree.get("onboard_start", {}))
-
-func _resolve_dialogue_node_id(requested_id: String) -> String:
-	if demo_flow_manager == null:
-		return "onboard_start"
-	var current_case: Dictionary = demo_flow_manager.get_current_case()
-	var tree: Dictionary = current_case.get("dialogue_tree", {})
-	var fallbacks: Dictionary = current_case.get("dialogue_fallbacks", {})
-	var resolved_id: String = str(fallbacks.get(requested_id, requested_id))
-	if tree.has(resolved_id):
-		return resolved_id
-	return "case_summary" if tree.has("case_summary") else "onboard_start"
-
-
-func _can_talk_on_current_camera() -> bool:
-	return _is_door_greeting_available() or _is_onboard_dialogue_available()
-
-
-func _is_door_greeting_available() -> bool:
-	return demo_flow_manager != null \
-		and demo_flow_manager.get_case_phase() == "ARRIVED_AT_PICKUP" \
-		and not demo_flow_manager.is_door_greeting_done() \
-		and current_camera_index == 2
-
-
-func _is_onboard_dialogue_available() -> bool:
-	return demo_flow_manager != null \
-		and demo_flow_manager.get_case_phase() == "PASSENGER_ONBOARD" \
-		and demo_flow_manager.is_passenger_onboard() \
-		and demo_flow_manager.is_cabin_door_closed_after_boarding() \
-		and current_camera_index == 0 \
-		and not dialogue_finished
-
-
 func _get_phase_passenger_line() -> String:
 	if demo_flow_manager == null:
-		return _get_initial_passenger_line()
+		return "乘客舱音频链路待机。"
 	var phase: String = demo_flow_manager.get_case_phase()
 	if phase == "ARRIVED_AT_PICKUP":
 		return str(demo_flow_manager.get_pickup_data().get("outside_audio_idle", "门外音频链路已开启。"))
@@ -549,59 +482,8 @@ func _get_phase_passenger_line() -> String:
 		)
 		if not feedback.is_empty() and phase == "DESTINATION_CONFIRMED":
 			return str(feedback.get("passenger", ""))
-		return str(_get_dialogue_node(current_dialogue_node_id).get("passenger_line", _get_initial_passenger_line()))
+		return current_passenger_line
 	return "乘客舱音频链路待机。"
-
-
-func _get_unavailable_dialogue_hint() -> String:
-	if demo_flow_manager == null:
-		return "当前摄像头仅用于观察。"
-	var phase: String = demo_flow_manager.get_case_phase()
-	if phase == "ARRIVED_AT_PICKUP":
-		return "请切换至门外摄像头联系等待乘客。"
-	if phase == "DOOR_GREETING_DONE":
-		return "门外乘客已确认。请开启舱门。"
-	if phase == "BOARDING_WAIT_DOOR_CLOSE":
-		return "请先关闭舱门，再继续舱内询问。"
-	if not demo_flow_manager.is_passenger_onboard():
-		return "乘客尚未进入舱内。"
-	return "当前摄像头仅用于观察。"
-
-
-func _handle_door_greeting(choice_index: int) -> void:
-	if choice_index != 0 or demo_flow_manager == null:
-		return
-	var greeting: Dictionary = demo_flow_manager.get_pickup_greeting()
-	var operator_line: String = str(greeting.get("operator", "你好。"))
-	var passenger_reply: String = str(greeting.get("passenger", "乘客：……"))
-	var status_hint: String = str(greeting.get("status_hint", "门外乘客已回应。"))
-	current_passenger_line = passenger_reply
-	demo_flow_manager.add_front_dialogue(operator_line, passenger_reply)
-	demo_flow_manager.set_door_greeting_done(true)
-	demo_flow_manager.set_case_phase("DOOR_GREETING_DONE")
-	demo_flow_manager.set_building_status_hint(status_hint, true)
-	system_hint_label.text = str(greeting.get("system_hint", status_hint))
-	_update_microphone_display()
-	_update_dialogue_buttons()
-	_update_building_alert()
-
-
-func _get_initial_passenger_line() -> String:
-	if demo_flow_manager != null:
-		var initial_line: String = demo_flow_manager.get_initial_passenger_line()
-		if not initial_line.is_empty():
-			return initial_line
-	return "乘客：你是真人在听吗？我需要去下面。"
-
-
-func _append_front_dialogue(
-		operator_text: String,
-		passenger_text: String,
-		status_hint: String
-) -> void:
-	# 对话与建筑提示走独立通道，不写入 LEFT 的 SYSTEM LOG。
-	if demo_flow_manager != null:
-		demo_flow_manager.add_front_dialogue(operator_text, passenger_text, status_hint)
 
 
 func _append_front_operation(operation_text: String) -> void:
@@ -610,13 +492,9 @@ func _append_front_operation(operation_text: String) -> void:
 		demo_flow_manager.add_front_operation(operation_text)
 
 
-func _print_door_action(action_name: String) -> void:
-	print("Door action: ", action_name)
-	_append_front_operation("门控：%s" % action_name)
-
-
 func _handle_open_door() -> void:
 	print("Door action: 开门")
+	var dialogue_reply_applied: bool = _apply_dialogue_door_reply(true)
 	if demo_flow_manager == null:
 		_append_front_operation("门控：开门")
 		return
@@ -632,21 +510,23 @@ func _handle_open_door() -> void:
 		demo_flow_manager.set_cabin_door_closed_after_boarding(false)
 		demo_flow_manager.set_case_phase("BOARDING_WAIT_DOOR_CLOSE")
 		_append_front_operation("乘客进入舱内")
-		current_dialogue_node_id = "onboard_start"
-		dialogue_started = false
-		dialogue_finished = false
-		current_passenger_line = demo_flow_manager.get_after_open_line()
+		dm_dialogue_started = false
+		dm_dialogue_finished = false
+		dm_choices.clear()
+		if not dialogue_reply_applied:
+			current_passenger_line = demo_flow_manager.get_after_open_line()
 		system_hint_label.text = demo_flow_manager.get_after_open_hint()
 		_update_camera_display()
 		_update_dialogue_buttons()
 		_update_microphone_display()
-		if passenger_speech_label != null:
+		if passenger_speech_label != null and not dialogue_reply_applied:
 			passenger_speech_label.text = current_passenger_line
 
 
 func _handle_close_door() -> void:
 	print("Door action: 关门")
 	_append_front_operation("门控：关门")
+	var dialogue_reply_applied: bool = _apply_dialogue_door_reply(false)
 	if demo_flow_manager == null \
 		or demo_flow_manager.get_case_phase() != "BOARDING_WAIT_DOOR_CLOSE":
 		return
@@ -654,14 +534,36 @@ func _handle_close_door() -> void:
 	demo_flow_manager.set_cabin_door_closed_after_boarding(true)
 	demo_flow_manager.set_case_phase("PASSENGER_ONBOARD")
 	_append_front_operation("乘客舱门已关闭")
-	current_passenger_line = demo_flow_manager.get_after_close_line()
+	dm_dialogue_started = false
+	dm_dialogue_finished = false
+	dm_choices.clear()
+	if not dialogue_reply_applied:
+		current_passenger_line = demo_flow_manager.get_after_close_line()
 	system_hint_label.text = demo_flow_manager.get_after_close_hint()
 	demo_flow_manager.set_building_status_hint(demo_flow_manager.get_after_close_status_hint(), true)
+	if mic_enabled:
+		_start_dialogue_manager_passenger()
 	_update_camera_display()
 	_update_dialogue_buttons()
 	_update_microphone_display()
-	if passenger_speech_label != null:
+	if passenger_speech_label != null and not dialogue_reply_applied:
 		passenger_speech_label.text = current_passenger_line
+
+
+func _apply_dialogue_door_reply(is_open_action: bool) -> bool:
+	# 门控按钮本身触发乘客回应；不提前根据门状态生成分支对白。
+	if dialogue_manager_adapter == null:
+		return false
+	var reply: String = dialogue_manager_adapter.consume_open_door_reply() \
+		if is_open_action else dialogue_manager_adapter.consume_close_door_reply()
+	if reply.is_empty():
+		return false
+	current_passenger_line = reply
+	if passenger_speech_label != null and mic_enabled:
+		passenger_speech_label.text = current_passenger_line
+	if demo_flow_manager != null:
+		demo_flow_manager.add_front_transcript_passenger(current_passenger_line)
+	return true
 
 
 func _refresh_case_display() -> void:

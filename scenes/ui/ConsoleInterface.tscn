@@ -54,7 +54,7 @@ text = "乘客舱主监控 / PASSENGER CABIN FEED"
 
 [node name="CameraNameLabel" type="Label" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout" unique_id=780136419]
 layout_mode = 2
-text = "CAM 01｜主摄像头"
+text = "CAM 01｜舱内摄像头"
 
 [node name="MonitorScreenPanel" type="PanelContainer" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout" unique_id=491437425]
 layout_mode = 2
@@ -77,11 +77,11 @@ alignment = 1
 
 [node name="PrevCameraButton" type="Button" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/CameraControlPanel" unique_id=262943396]
 layout_mode = 2
-text = "上一个摄像头"
+text = "舱内摄像头"
 
 [node name="NextCameraButton" type="Button" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/CameraControlPanel" unique_id=2102578449]
 layout_mode = 2
-text = "下一个摄像头"
+text = "门外摄像头"
 
 [node name="IntercomPanel" type="PanelContainer" parent="ConsoleLayout" unique_id=923970757]
 layout_mode = 2
