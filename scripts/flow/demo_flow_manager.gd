@@ -101,12 +101,12 @@ func _configure_issue_12_case() -> void:
 		"ARRIVED_AT_PICKUP": {"state": "当前状态：已抵达接乘点", "task": "当前任务：使用门外摄像头确认 {pickup_floor} 层等待乘客"},
 		"DOOR_GREETING_DONE": {"state": "当前状态：门外乘客已回应", "task": "当前任务：开启舱门完成接乘"},
 		"BOARDING_WAIT_DOOR_CLOSE": {"state": "当前状态：乘客已进入，等待关门", "task": "当前任务：关闭舱门后继续询问"},
-		"PASSENGER_ONBOARD": {"state": "当前状态：舱内询问中", "task": "当前目标：{submitted_destination_or_none}"},
-		"DESTINATION_CONFIRMED": {"state": "当前状态：目标已提交", "task": "当前目标：{submitted_destination_or_none}"},
+		"PASSENGER_ONBOARD": {"state": "当前状态：舱内询问中", "task": "当前任务：询问乘客自述目标并验证楼层"},
+		"DESTINATION_CONFIRMED": {"state": "当前状态：目标已提交", "task": "已提交目标：{submitted_destination_or_none}"},
 	}
 	current_case["right_phase_texts"] = {
 		"PICKUP": {"task": "当前任务：前往 {pickup_floor} 层接乘"},
-		"ONBOARD": {"task": "当前目标：{submitted_destination_or_none}"},
+		"ONBOARD": {"task": "当前任务：验证并提交正式目标楼层"},
 	}
 	current_case["recommended_destination_rules"] = {
 		"pickup_phases": ["WAITING_FOR_PICKUP", "ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE", "BOARDING_WAIT_DOOR_CLOSE"],
@@ -123,15 +123,6 @@ func _configure_issue_12_case() -> void:
 		"547": {"description": "普通办公层。", "relation": "0%", "access_eval": "可前往", "stability": "基本稳定", "message": "该楼层与当前派单无关联，稳定度未见明显变化。"},
 	}
 	current_case["floor_book_entries"] = _build_floor_book_entries()
-	current_case["destination_feedbacks"] = {
-		"900": {"passenger": "乘客：好吧。那就是记录上的地方。也许这次我能把话说完。", "status_hint": "目标 900 已确认。该目标与派单记录一致。提示：标准目标稳定，但可能重复乘客此前未完成的复核路径。"},
-		"742": {"passenger": "乘客：中间停一下也好。至少不是立刻坐到柜台前。", "status_hint": "目标 742 已确认。该楼层可作为中继等待点。提示：该选择较稳定，但不会直接解决乘客旧牌与旧记录问题。"},
-		"612": {"passenger": "乘客：送回去？那我可能又要坐回那张长椅上了。", "status_hint": "目标 612 已确认。电梯将返回接乘相关层。提示：返回起点可维持流程安全，但可能无法推进乘客问题。"},
-		"004": {"passenger": "乘客：你查到了？前面的零还在吗？那地方少一个零就不是它了。", "status_hint": "目标 004 已确认。该楼层不在系统推荐中，但与乘客服务区线索相符。提示：该选择可能满足乘客取回旧工牌的特殊需求。"},
-		"387": {"passenger": "乘客：旧记录层……如果班表还在，我就还能证明我不是临时出现的。", "status_hint": "目标 387 已确认。旧记录存放层已被选为目标。提示：该选择可能提供纸质记录证据，但会偏离标准派单。"},
-		"392": {"passenger": "乘客：我不认识那层。你确定不是输错了吗？", "status_hint": "目标 392 已确认。该目标与当前乘客线索无直接关联。提示：可前往，但缺少案例依据。"},
-		"547": {"passenger": "乘客：办公层？我这身味道上去，可能会被请去走货梯。", "status_hint": "目标 547 已确认。该目标与当前乘客线索无直接关联。提示：可前往，但与当前派单和乘客自述关联较弱。"},
-	}
 	current_building_status_hint = "当前系统提示：\n%s 层检测到待接乘客。\n建议前往 %s 层完成接乘确认。\n\n当前任务：\n前往接乘楼层。" % [get_pickup_floor(), get_pickup_floor()]
 
 func add_front_transcript_operator(operator_text: String) -> void:
@@ -283,7 +274,7 @@ func get_right_phase_task_text() -> String:
 
 
 func _format_case_text(template: String) -> String:
-	# 集中替换案例占位符，UI 不需要知道接乘楼层或当前目标的具体值。
+	# 集中替换案例占位符，UI 不需要知道接乘楼层或已提交目标的具体值。
 	var submitted_destination: String = get_submitted_destination()
 	# 接乘楼层提交只代表电梯抵达起点，乘客登舱后尚未选择正式目标。
 	if get_case_phase() == "PASSENGER_ONBOARD" and submitted_destination == get_pickup_floor():
@@ -376,11 +367,6 @@ func is_cabin_door_closed_after_boarding() -> bool:
 func set_cabin_door_closed_after_boarding(value: bool) -> void:
 	current_case["cabin_door_closed_after_boarding"] = value
 	case_updated.emit()
-
-
-func get_destination_feedback(destination: String) -> Dictionary:
-	var feedbacks: Dictionary = current_case.get("destination_feedbacks", {})
-	return feedbacks.get(destination, {}).duplicate(true)
 
 
 func get_current_recommended_destinations() -> Array:

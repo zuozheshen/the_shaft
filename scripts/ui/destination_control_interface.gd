@@ -461,12 +461,25 @@ func _submit_destination() -> void:
 		]
 	)
 	if demo_flow_manager != null:
-		demo_flow_manager.set_submitted_destination(destination)
 		demo_flow_manager.set_case_phase("DESTINATION_CONFIRMED")
-		var feedback: Dictionary = demo_flow_manager.get_destination_feedback(destination)
-		demo_flow_manager.set_building_status_hint(str(feedback.get("status_hint", "目标已确认。")), true)
+		# 先写入通用系统提示；随后提交目标会触发 DM，允许 destination_xxx 里的 status_hint 覆盖它。
+		demo_flow_manager.set_building_status_hint(
+			_build_destination_status_hint(destination, floor_data),
+			true
+		)
+		demo_flow_manager.set_submitted_destination(destination)
 	_append_operation("目标提交：%s" % destination)
 	_update_dispatch_summary_label()
+
+
+func _build_destination_status_hint(destination: String, floor_data: Dictionary) -> String:
+	# 右操作台只生成系统状态提示；乘客反馈由 Dialogue Manager 的 destination_xxx 标题负责。
+	return "目标 %s 已确认。\n通行评估：%s\n稳定度：%s\n系统提示：%s" % [
+		destination,
+		str(floor_data.get("access_eval", "待评估")),
+		str(floor_data.get("stability", "待评估")),
+		str(floor_data.get("message", "目标已提交。")),
+	]
 
 
 func _get_current_destination() -> String:
@@ -478,7 +491,7 @@ func _get_current_destination() -> String:
 
 func _build_unverified_status(destination: String) -> String:
 	return """目标确认状态：未验证
-当前目标：%s
+待验证楼层：%s
 楼层说明：等待验证
 与当前派单的关联度：待评估
 通行评估：等待验证
@@ -490,7 +503,7 @@ func _build_unverified_status(destination: String) -> String:
 
 func _build_pickup_status(pickup_floor: String) -> String:
 	return """目标确认状态：接乘楼层
-当前目标：%s
+接乘楼层：%s
 楼层说明：当前待接乘客所在楼层。
 通行评估：可前往
 
@@ -500,7 +513,7 @@ func _build_pickup_status(pickup_floor: String) -> String:
 
 func _build_recognized_status(destination: String, floor_data: Dictionary) -> String:
 	return """目标确认状态：已验证
-当前目标：%s
+已验证楼层：%s
 楼层说明：%s
 与当前派单的关联度：%s
 通行评估：%s
@@ -551,11 +564,15 @@ func _update_dispatch_summary_label() -> void:
 	var recommendation_text: String = " / ".join(recommendation_labels)
 	var passenger_label: String = "当前乘客"
 	var task_text: String = "当前任务：前往接乘楼层"
+	var submitted_destination_text: String = "已提交目标：暂无"
 	if demo_flow_manager != null:
 		passenger_label = demo_flow_manager.get_passenger_label()
 		task_text = demo_flow_manager.get_right_phase_task_text()
-	var summary: String = "当前乘客：%s\n%s\n系统推荐目标：%s" % [
-		passenger_label, task_text, recommendation_text,
+		var submitted_destination: String = demo_flow_manager.get_submitted_destination()
+		if not submitted_destination.is_empty():
+			submitted_destination_text = "已提交目标：%s" % submitted_destination
+	var summary: String = "当前乘客：%s\n%s\n%s\n系统推荐楼层：%s" % [
+		passenger_label, task_text, submitted_destination_text, recommendation_text,
 	]
 	_set_label_text(dispatch_summary_label, summary)
 
@@ -579,7 +596,7 @@ func _get_floor_book_entries() -> Array:
 
 func _build_unrecognized_status(destination: String) -> String:
 	return """目标确认状态：无法确认
-当前目标：%s
+待验证楼层：%s
 楼层说明：无记录
 与当前派单的关联度：未知
 通行评估：无法前往

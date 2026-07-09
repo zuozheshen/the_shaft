@@ -29,7 +29,7 @@ text = "目标楼层控制台 / DESTINATION CONSOLE"
 [node name="DispatchSummaryLabel" type="Label" parent="RootMargin/DestinationLayout" unique_id=146286753]
 layout_mode = 2
 text = "当前派单：612 → 900
-系统推荐目标：900 / 742 / 612
+系统推荐楼层：900 / 742 / 612
 当前状态：等待目标确认
 "
 
@@ -81,7 +81,7 @@ layout_mode = 2
 [node name="DestinationStatusLabel" type="Label" parent="RootMargin/DestinationLayout/DestinationStatusPanel" unique_id=1479404367]
 layout_mode = 2
 text = "目标确认状态：未验证
-当前目标：900
+待验证楼层：900
 楼层说明：等待验证
 与当前派单的关联度：待评估
 通行评估：等待验证

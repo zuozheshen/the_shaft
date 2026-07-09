@@ -53,6 +53,8 @@ var current_passenger_line: String = "乘客舱音频链路待机。"
 var dm_dialogue_started: bool = false
 var dm_dialogue_finished: bool = false
 var dm_choices: Array[Dictionary] = []
+var dm_pending_status_hint_update: bool = false
+var dm_pending_unlocked_floor_ids: Array[String] = []
 
 func _ready() -> void:
 	_cache_front_interaction_nodes()
@@ -273,6 +275,7 @@ func _start_dialogue_manager_passenger() -> bool:
 	dm_dialogue_started = true
 	dm_dialogue_finished = false
 	dm_choices.clear()
+	_begin_dm_front_hint_batch()
 	if dialogue_manager_adapter != null:
 		dialogue_manager_adapter.start_dialogue(PASSENGER_001_DIALOGUE_PATH, start_title)
 	return true
@@ -378,6 +381,7 @@ func _select_dialogue_manager_choice(choice_index: int) -> void:
 	var operator_line: String = str(dm_choices[choice_index].get("text", ""))
 	if demo_flow_manager != null:
 		demo_flow_manager.add_front_transcript_operator(operator_line)
+	_begin_dm_front_hint_batch()
 	dialogue_manager_adapter.choose_response(choice_index)
 
 
@@ -418,18 +422,43 @@ func _on_dm_dialogue_finished() -> void:
 
 
 func _on_dm_status_hint_requested(text: String) -> void:
-	system_hint_label.text = text
+	# DM 的详细判断写入 LEFT Status；FRONT 只显示短操作提示，避免复读正文。
 	if demo_flow_manager != null:
 		demo_flow_manager.set_building_status_hint(text, true)
+	dm_pending_status_hint_update = true
+	_apply_dm_front_hint_batch()
 
 
 func _on_dm_floor_unlock_requested(floor_id: String) -> void:
+	var normalized_floor_id: String = floor_id.strip_edges()
 	if destination_control_interface != null:
-		destination_control_interface.add_recommended_floor(floor_id)
+		destination_control_interface.add_recommended_floor(normalized_floor_id)
 	elif demo_flow_manager != null:
-		demo_flow_manager.add_recommended_destination(floor_id)
-	if system_hint_label != null:
-		system_hint_label.text = "建筑终端已加入临时推荐楼层：%s。" % floor_id
+		demo_flow_manager.add_recommended_destination(normalized_floor_id)
+	if not normalized_floor_id.is_empty() and normalized_floor_id not in dm_pending_unlocked_floor_ids:
+		dm_pending_unlocked_floor_ids.append(normalized_floor_id)
+	_apply_dm_front_hint_batch()
+
+
+func _begin_dm_front_hint_batch() -> void:
+	# 一次 DM 行推进可能连续触发多个 mutation，这里先清空，随后合成一条 FRONT 短提示。
+	dm_pending_status_hint_update = false
+	dm_pending_unlocked_floor_ids.clear()
+
+
+func _apply_dm_front_hint_batch() -> void:
+	if system_hint_label == null:
+		return
+	var unlocked_floor_labels := PackedStringArray()
+	for floor_id in dm_pending_unlocked_floor_ids:
+		unlocked_floor_labels.append(floor_id)
+	var unlocked_text: String = "、".join(unlocked_floor_labels)
+	if dm_pending_status_hint_update and not unlocked_text.is_empty():
+		system_hint_label.text = "系统判断已更新；推荐楼层已更新：%s。" % unlocked_text
+	elif dm_pending_status_hint_update:
+		system_hint_label.text = "系统判断已更新，请查看左侧 Status。"
+	elif not unlocked_text.is_empty():
+		system_hint_label.text = "推荐楼层已更新：%s。" % unlocked_text
 
 
 func _on_dm_door_greeting_done_requested() -> void:
@@ -456,6 +485,7 @@ func _on_destination_submitted(destination: String) -> void:
 		dm_dialogue_started = true
 		dm_dialogue_finished = false
 		dm_choices.clear()
+		_begin_dm_front_hint_batch()
 		if dialogue_manager_adapter.dialogue_resource == null:
 			dialogue_manager_adapter.start_dialogue(PASSENGER_001_DIALOGUE_PATH, title)
 		else:
@@ -477,11 +507,7 @@ func _get_phase_passenger_line() -> String:
 	if phase == "BOARDING_WAIT_DOOR_CLOSE":
 		return demo_flow_manager.get_after_open_line()
 	if phase in ["PASSENGER_ONBOARD", "DESTINATION_CONFIRMED"]:
-		var feedback := demo_flow_manager.get_destination_feedback(
-			demo_flow_manager.get_submitted_destination()
-		)
-		if not feedback.is_empty() and phase == "DESTINATION_CONFIRMED":
-			return str(feedback.get("passenger", ""))
+		# 乘客对正式目标楼层的反馈统一来自 .dialogue 的 destination_xxx 标题。
 		return current_passenger_line
 	return "乘客舱音频链路待机。"
 
@@ -573,11 +599,9 @@ func _refresh_case_display() -> void:
 	_update_dialogue_visibility()
 	if demo_flow_manager != null and demo_flow_manager.get_case_phase() == "DESTINATION_CONFIRMED":
 		current_passenger_line = _get_phase_passenger_line()
-		system_hint_label.text = "目标楼层已提交：%s。乘客反应已更新。" % demo_flow_manager.get_submitted_destination()
 		_update_microphone_display()
 		if passenger_speech_label != null:
 			passenger_speech_label.text = current_passenger_line
-	# 最后刷新短提醒，避免目标反馈刷新时覆盖无专用 Label 的 fallback。
 	_update_building_alert()
 
 
@@ -586,14 +610,9 @@ func _update_building_alert() -> void:
 		if demo_flow_manager != null \
 				and demo_flow_manager.has_unread_building_status_hint() \
 				and system_hint_label != null \
-				and not system_hint_label.text.begins_with("建筑终端收到新的复核提示。"):
-			# 缺少专用 Label 时只补一行短提醒，不把 LEFT STATUS 正文搬到 FRONT。
-			system_hint_label.text = "建筑终端收到新的复核提示。\n" + system_hint_label.text
-		elif demo_flow_manager != null \
-				and not demo_flow_manager.has_unread_building_status_hint() \
-				and system_hint_label != null \
-				and system_hint_label.text.begins_with("建筑终端收到新的复核提示。\n"):
-			system_hint_label.text = system_hint_label.text.trim_prefix("建筑终端收到新的复核提示。\n")
+				and system_hint_label.text.is_empty():
+			# 缺少专用 Label 时也只显示短提醒，不把 LEFT Status 正文搬到 FRONT。
+			system_hint_label.text = "系统判断已更新，请查看左侧 Status。"
 		return
 	var has_unread: bool = demo_flow_manager != null \
 		and demo_flow_manager.has_unread_building_status_hint()
