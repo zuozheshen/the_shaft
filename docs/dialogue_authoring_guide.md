@@ -9,7 +9,7 @@
 - 舱内多层分支问答
 - 系统提示
 - 推荐楼层解锁
-- 目标楼层提交后的乘客反馈
+- 到站开门后的乘客楼层反馈
 - 左操作台 Transcript 自动记录
 
 不能保证“任何改法都不出错”。但只要按本文规则写，并完成最后的检查清单，通常不会破坏现有流程。
@@ -18,10 +18,10 @@
 
 当前 UI 把几类信息分开显示：
 
-- 当前派单目标：流程任务，例如“前往 612 层接乘”，来自派单/phase，不等于乘客最终想去的地方。
+- 当前派单目标：流程任务，例如“前往 612 层接乘”，来自派单/phase，不等于玩家实际前往的楼层。
 - 乘客自述目标：写在 `.dialogue` 乘客台词里，由玩家询问获得。
 - 系统推荐楼层：右侧控制台的推荐列表，可由 `do unlock_floor("742")` 临时加入。
-- 已提交目标：玩家最终在右侧控制台提交的楼层，会显示在右侧摘要和左侧 Status/Record 中。
+- 电梯位置：右侧摘要显示当前楼层、正在前往的目标楼层与移动状态。派单和推荐只提供建议，不限制有效楼层的前往。
 
 主操作台 `SystemHintLabel` 只显示短操作提示。详细系统判断放在左侧 Status，不要依赖主操作台完整复读。
 
@@ -50,7 +50,7 @@
 - `~ start` 建议只跳到 `pickup_start`。
 - `~ pickup_start` 是接乘前、门外乘客对话。
 - `~ onboard_start` 是关门后、乘客在舱内的正式问答。
-- `~ destination_楼层号` 是提交正式目标楼层后的乘客反馈。
+- `~ destination_楼层号` 是乘客在舱内、玩家于该楼层开门后触发的反馈。
 
 推荐开头：
 
@@ -69,10 +69,10 @@
 ~ pickup_start
 Passenger: 这里是 612。你那边是真人操作员吗？
 - 我在听。请确认你是 612 层等待乘客。
-    do status_hint("门外乘客已完成人工通话确认。请开启舱门完成接乘。")
-    do mark_door_greeting_done()
-    Passenger: 是我。我就在门外。
-    => END
+	do status_hint("门外乘客已完成人工通话确认。请开启舱门完成接乘。")
+	do mark_door_greeting_done()
+	Passenger: 是我。我就在门外。
+	=> END
 ```
 
 关键规则：
@@ -93,17 +93,17 @@ Passenger: 这里是 612。你那边是真人操作员吗？
 ~ onboard_start
 Passenger: 你是真人在听，对吧？那我能不能不直接去 900？
 - 你想去哪？
-    => below_clues
+	=> below_clues
 - 系统目前只推荐 900。
-    do status_hint("系统当前推荐目标仅为 900。建议继续询问原因。")
-    => about_900
+	do status_hint("系统当前推荐目标仅为 900。建议继续询问原因。")
+	=> about_900
 
 ~ below_clues
 Passenger: 我记不清楼层号。只记得那里地上总是湿的。
 - 那听起来像服务区。
-    => service_area
+	=> service_area
 - 你为什么不直接申请那个楼层？
-    => application_reason
+	=> application_reason
 ```
 
 关键规则：
@@ -192,7 +192,18 @@ do reply_when_close_door("乘客：好了，现在能听见你了。")
 
 ## 目标楼层反馈
 
-当乘客已上电梯并关门后，右操作台提交目标楼层会触发：
+当乘客已上电梯并关门后，右操作台的“前往该楼层”只会确认移动：
+
+```text
+验证有效楼层
+→ 前往该楼层
+→ 电梯移动并更新当前楼层
+→ 舱门保持关闭
+→ 玩家在主操作台点击开门
+→ 触发当前楼层的 destination_楼层号
+```
+
+因此，`destination_楼层号` 不是提交时立即执行的对话，而是在当前楼层开门时执行：
 
 ```dialogue
 ~ destination_楼层号
@@ -219,10 +230,13 @@ Passenger: 你查到了？前面的零还在吗？
 
 规则：
 
-- 接乘前提交 `612` 是“前往接乘楼层”，不会触发 `destination_612`。
-- 乘客上电梯并关门后提交 `612`，才是正式目的楼层反馈。
-- 你希望玩家可能提交的楼层，都应提供对应 `destination_楼层号`。
+- 右操作台只能前往楼层数据库中存在且已验证的楼层；系统推荐与当前派单不会限制该选择。
+- 单纯抵达任何楼层都不会触发接乘、乘客进入/离开、`destination_楼层号` 或案例结束。
+- 接乘前到达 `612` 后，必须由玩家开门，原有接乘确认流程才会开始；此时不触发 `destination_612`。
+- 乘客上电梯、关门后，玩家可以先去任意有效楼层。只有开门时才按**当前楼层**尝试执行对应的 `destination_楼层号`。
+- 你希望玩家在乘客舱内开门时获得反馈的每个有效楼层，都应提供对应 `destination_楼层号`。
 - 没有对应标题时，主操作台不会显示该楼层的 DM 乘客反馈。
+- 不要在 `.dialogue` 中根据移动时长、经过楼层或中途停顿添加乘客反应；当前流程只在开门时让乘客得知所在楼层。
 
 ## 常见错误
 
@@ -230,7 +244,7 @@ Passenger: 你查到了？前面的零还在吗？
 
 ```dialogue
 - 我会查旧记录。
-    => old_record
+	=> old_record
 ```
 
 但文件里实际写的是：
@@ -249,7 +263,7 @@ Passenger: 你查到了？前面的零还在吗？
 ~ pickup_start
 Passenger: 你能开门吗？
 - 可以。
-    => onboard_start
+	=> onboard_start
 ```
 
 原因：这样会绕过开门、进舱、关门 phase。
@@ -289,29 +303,29 @@ do add_transcript_note("玩家选择先核对记录")
 ~ pickup_start
 Passenger: 这里是 612。你能听见我吗？
 - 我在听。请确认你是等待乘客。
-    do status_hint("门外乘客已完成人工通话确认。请开启舱门完成接乘。")
-    do mark_door_greeting_done()
-    Passenger: 是我。我在门外。
-    => END
+	do status_hint("门外乘客已完成人工通话确认。请开启舱门完成接乘。")
+	do mark_door_greeting_done()
+	Passenger: 是我。我在门外。
+	=> END
 
 ~ onboard_start
 Passenger: 现在能听见你了。我不确定该不该直接去 900。
 - 为什么不直接去 900？
-    => about_900
+	=> about_900
 - 你真正想找什么？
-    => target_clues
+	=> target_clues
 
 ~ about_900
 Passenger: 900 是记录上的地方，但记录不一定能说明我为什么来。
 - 我会把这个作为依据。
-    do status_hint("乘客认为标准目标无法完整解释需求。")
-    => case_summary
+	do status_hint("乘客认为标准目标无法完整解释需求。")
+	=> case_summary
 
 ~ target_clues
 Passenger: 我想先确认一件旧东西还在不在。
 - 我会查楼层索引。
-    do unlock_floor("742")
-    => case_summary
+	do unlock_floor("742")
+	=> case_summary
 
 ~ case_summary
 Passenger: 我不是拒绝流程。我只是想带着依据过去。
@@ -338,7 +352,7 @@ Passenger: 送回去？那我可能又要重新等一次。
 - `pickup_start` 至少一个选项调用 `do mark_door_greeting_done()`。
 - 文件里有 `~ onboard_start`。
 - 每个 `=> xxx` 都能找到 `~ xxx`。
-- 每个可能提交的正式目标都有 `~ destination_楼层号`。
+- 每个希望在乘客舱内开门时获得反馈的有效楼层都有 `~ destination_楼层号`。
 - `unlock_floor` 的楼层号都用字符串。
 - 没有 `do add_transcript_note(...)`。
 - 没有在接乘前跳到 `onboard_start`。
@@ -374,11 +388,11 @@ if ($missing.Count -eq 0) {
 每次替换对话后，建议按这个顺序试一遍：
 
 1. 运行主场景。
-2. 右操作台提交 `612` 到接乘点。
-3. 主操作台开麦，确认出现 `pickup_start` 里的门外对话。
-4. 选择门外确认选项。
-5. 点击开门，确认乘客进入舱内。
+2. 在右操作台输入、验证并前往 `612`；确认停靠后舱门保持关闭，且尚未出现接乘或乘客反馈。
+3. 回到主操作台点击开门，确认接乘点才被确认；此时乘客尚未进入舱内。
+4. 主操作台开麦，确认出现 `pickup_start` 里的门外对话。
+5. 选择门外确认选项后，再点击开门，确认乘客进入舱内。
 6. 点击关门，确认进入舱内问答。
 7. 点击几个舱内选项，确认 Transcript 自动记录玩家选项和乘客回复。
 8. 走到含 `unlock_floor("742")` 的分支，确认右操作台出现 `742`。
-9. 提交 `900`、`612` 或其他目标，确认主操作台显示对应 `destination_xxx` 反馈。
+9. 验证并前往 `900`、`612` 或其他有效楼层；确认单纯停靠不显示 `destination_xxx` 反馈，随后在主操作台开门才显示当前楼层对应反馈。

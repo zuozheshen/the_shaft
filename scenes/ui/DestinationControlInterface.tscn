@@ -28,9 +28,9 @@ text = "目标楼层控制台 / DESTINATION CONSOLE"
 
 [node name="DispatchSummaryLabel" type="Label" parent="RootMargin/DestinationLayout" unique_id=146286753]
 layout_mode = 2
-text = "当前派单：612 → 900
-系统推荐楼层：900 / 742 / 612
-当前状态：等待目标确认
+text = "当前楼层：900
+目标楼层：---
+电梯状态：待命，舱门关闭
 "
 
 [node name="RecommendedDestinationPanel" type="PanelContainer" parent="RootMargin/DestinationLayout" unique_id=677712943]
@@ -93,7 +93,7 @@ text = "请选择推荐楼层，或手动输入目标楼层。"
 
 [node name="SubmitDestinationButton" type="Button" parent="RootMargin/DestinationLayout" unique_id=1759764360]
 layout_mode = 2
-text = "提交目标"
+text = "前往该楼层"
 
 [node name="ReturnButton" type="Button" parent="RootMargin/DestinationLayout" unique_id=1438800514]
 layout_mode = 2

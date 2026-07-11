@@ -10,6 +10,23 @@ signal destination_submitted(destination: String)
 const MAX_FRONT_HISTORY_LINES: int = 20
 const SYSTEM_RECOMMENDATION_EXCLUSIONS: Array[String] = ["004", "387", "392", "547"]
 
+# 电梯位置独立于案例阶段：派单只提供建议，不能限制实际可前往的楼层。
+enum MovementState {
+	IDLE,
+	MOVING,
+	ARRIVED,
+}
+
+# 可在 Main 场景的 DemoFlowManager Inspector 中调整，避免起始楼层散落在多个脚本里。
+@export var initial_floor: String = "900"
+@export_range(0.1, 5.0, 0.1, "suffix:s") var movement_duration_seconds: float = 0.6
+
+var current_floor: String = ""
+var target_floor: String = ""
+var movement_state: MovementState = MovementState.IDLE
+var cabin_door_is_open: bool = false
+var movement_timer: Timer
+
 
 # 当前案例暂时以内置 GDScript 数据保存，后续会迁移到 data/cases/case_001.json。
 # UI 应通过下方 getter 读取，未来替换 CaseManager / PassengerCase / JSON Loader 时无需大改。
@@ -55,6 +72,21 @@ var runtime_recommended_destinations: Array[String] = []
 
 func _ready() -> void:
 	_configure_issue_12_case()
+	_initialize_elevator_position()
+
+
+func _initialize_elevator_position() -> void:
+	# 初始位置在流程管理器中统一初始化，RIGHT 与 FRONT 都从这里读取。
+	current_floor = initial_floor.strip_edges()
+	target_floor = ""
+	movement_state = MovementState.IDLE
+	cabin_door_is_open = false
+	movement_timer = Timer.new()
+	movement_timer.one_shot = true
+	movement_timer.wait_time = movement_duration_seconds
+	movement_timer.timeout.connect(_complete_elevator_movement)
+	add_child(movement_timer)
+	case_updated.emit()
 
 
 func _configure_issue_12_case() -> void:
@@ -314,6 +346,74 @@ func get_floor_database() -> Dictionary:
 
 func get_floor_book_entries() -> Array:
 	return current_case.get("floor_book_entries", []).duplicate(true)
+
+
+func get_current_floor() -> String:
+	return current_floor
+
+
+func get_target_floor() -> String:
+	return target_floor
+
+
+func get_movement_state() -> MovementState:
+	return movement_state
+
+
+func get_movement_state_text() -> String:
+	match movement_state:
+		MovementState.MOVING:
+			return "运行中"
+		MovementState.ARRIVED:
+			return "已停靠，舱门关闭"
+		_:
+			return "待命，舱门关闭"
+
+
+func is_elevator_moving() -> bool:
+	return movement_state == MovementState.MOVING
+
+
+func is_cabin_door_open() -> bool:
+	return cabin_door_is_open
+
+
+func set_cabin_door_open(is_open: bool) -> void:
+	# 门控由 FRONT 处理，位置状态只保存门是否已开，确保不能开门移动。
+	if cabin_door_is_open == is_open:
+		return
+	cabin_door_is_open = is_open
+	case_updated.emit()
+
+
+func request_elevator_movement(destination: String) -> bool:
+	# 只处理电梯移动，不推进接乘、送达或案例阶段。
+	var requested_floor: String = destination.strip_edges()
+	if requested_floor.is_empty() or not get_floor_database().has(requested_floor):
+		return false
+	if is_elevator_moving() or cabin_door_is_open:
+		return false
+
+	target_floor = requested_floor
+	movement_state = MovementState.MOVING
+	add_front_operation("目标楼层已确认：%s" % target_floor)
+	add_front_operation("电梯正在前往 %s 层" % target_floor)
+	set_building_status_hint("电梯正在前往 %s 层。" % target_floor, true)
+	if movement_timer != null:
+		movement_timer.start()
+	return true
+
+
+func _complete_elevator_movement() -> void:
+	# 到站只更新位置并保持舱门关闭；所有案例判断必须等 FRONT 的开门操作。
+	if target_floor.is_empty():
+		return
+	current_floor = target_floor
+	target_floor = ""
+	movement_state = MovementState.ARRIVED
+	cabin_door_is_open = false
+	add_front_operation("已停靠于 %s 层，舱门保持关闭" % current_floor)
+	set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % current_floor, true)
 
 
 func get_submitted_destination() -> String:

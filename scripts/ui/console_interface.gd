@@ -161,8 +161,6 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 		return
 	if not demo_flow_manager.case_updated.is_connected(_refresh_case_display):
 		demo_flow_manager.case_updated.connect(_refresh_case_display)
-	if not demo_flow_manager.destination_submitted.is_connected(_on_destination_submitted):
-		demo_flow_manager.destination_submitted.connect(_on_destination_submitted)
 	_update_dialogue_buttons()
 	_refresh_case_display()
 
@@ -300,11 +298,7 @@ func _update_microphone_display() -> void:
 	if talk_button != null:
 		talk_button.text = "关闭麦克风" if mic_enabled else "开启麦克风"
 	if passenger_speech_label != null:
-		var should_show_passenger_line: bool = mic_enabled \
-			or (
-				demo_flow_manager != null \
-				and demo_flow_manager.get_case_phase() == "DESTINATION_CONFIRMED"
-			)
+		var should_show_passenger_line: bool = mic_enabled or dm_dialogue_started
 		passenger_speech_label.text = current_passenger_line \
 			if should_show_passenger_line else "乘客舱音频链路待机。"
 	_update_dialogue_visibility()
@@ -474,14 +468,12 @@ func _on_dm_door_greeting_done_requested() -> void:
 	_update_building_alert()
 
 
-func _on_destination_submitted(destination: String) -> void:
-	# 右侧提交目标后，交给 DM 文件里的 destination_xxx 标题生成乘客反馈。
-	if demo_flow_manager == null \
-			or not demo_flow_manager.is_passenger_onboard() \
-			or not demo_flow_manager.is_cabin_door_closed_after_boarding():
+func _show_destination_feedback_for_current_floor() -> void:
+	# 到站本身不触发乘客反馈；只有玩家开门时才按当前楼层读取 destination_xxx。
+	if demo_flow_manager == null or not demo_flow_manager.is_passenger_onboard():
 		return
 	if dialogue_manager_adapter != null:
-		var title: String = "destination_%s" % destination.strip_edges()
+		var title: String = "destination_%s" % demo_flow_manager.get_current_floor()
 		dm_dialogue_started = true
 		dm_dialogue_finished = false
 		dm_choices.clear()
@@ -520,15 +512,31 @@ func _append_front_operation(operation_text: String) -> void:
 
 func _handle_open_door() -> void:
 	print("Door action: 开门")
-	var dialogue_reply_applied: bool = _apply_dialogue_door_reply(true)
 	if demo_flow_manager == null:
 		_append_front_operation("门控：开门")
 		return
+	if demo_flow_manager.is_elevator_moving():
+		system_hint_label.text = "电梯正在运行中，无法开门。"
+		_append_front_operation("门控：开门尝试 / 电梯运行中")
+		return
+
 	var phase: String = demo_flow_manager.get_case_phase()
+	# 接乘点的到达仅在玩家开门时确认；前往该层和案例推进保持分离。
+	if phase == "WAITING_FOR_PICKUP" and demo_flow_manager.get_current_floor() == demo_flow_manager.get_pickup_floor():
+		demo_flow_manager.set_case_phase("ARRIVED_AT_PICKUP")
+		demo_flow_manager.set_building_status_hint(
+			demo_flow_manager.get_pickup_arrival_status_hint(),
+			true
+		)
+		_append_front_operation("已在 %s 层请求开门，接乘点已确认" % demo_flow_manager.get_current_floor())
+		phase = demo_flow_manager.get_case_phase()
 	if phase == "ARRIVED_AT_PICKUP" and not demo_flow_manager.is_door_greeting_done():
 		system_hint_label.text = "建议先通过门外摄像头与等待乘客确认。"
 		_append_front_operation("门控：开门尝试 / 未完成门外确认")
 		return
+
+	var dialogue_reply_applied: bool = _apply_dialogue_door_reply(true)
+	demo_flow_manager.set_cabin_door_open(true)
 	_append_front_operation("门控：开门")
 	if phase == "DOOR_GREETING_DONE":
 		demo_flow_manager.set_passenger_onboard(true)
@@ -547,14 +555,21 @@ func _handle_open_door() -> void:
 		_update_microphone_display()
 		if passenger_speech_label != null and not dialogue_reply_applied:
 			passenger_speech_label.text = current_passenger_line
+	elif phase == "PASSENGER_ONBOARD" and demo_flow_manager.is_cabin_door_closed_after_boarding():
+		_show_destination_feedback_for_current_floor()
+		_update_microphone_display()
+		_update_dialogue_buttons()
+		_update_dialogue_visibility()
 
 
 func _handle_close_door() -> void:
 	print("Door action: 关门")
 	_append_front_operation("门控：关门")
+	if demo_flow_manager == null:
+		return
+	demo_flow_manager.set_cabin_door_open(false)
 	var dialogue_reply_applied: bool = _apply_dialogue_door_reply(false)
-	if demo_flow_manager == null \
-		or demo_flow_manager.get_case_phase() != "BOARDING_WAIT_DOOR_CLOSE":
+	if demo_flow_manager.get_case_phase() != "BOARDING_WAIT_DOOR_CLOSE":
 		return
 	# 登舱后必须显式关门，正式舱内询问才会解锁。
 	demo_flow_manager.set_cabin_door_closed_after_boarding(true)
@@ -597,6 +612,9 @@ func _refresh_case_display() -> void:
 	_update_camera_display()
 	_update_dialogue_buttons()
 	_update_dialogue_visibility()
+	if demo_flow_manager != null:
+		# 即使存在快捷键或旧场景连接，运行中也不能执行开门。
+		open_door_button.disabled = demo_flow_manager.is_elevator_moving()
 	if demo_flow_manager != null and demo_flow_manager.get_case_phase() == "DESTINATION_CONFIRMED":
 		current_passenger_line = _get_phase_passenger_line()
 		_update_microphone_display()

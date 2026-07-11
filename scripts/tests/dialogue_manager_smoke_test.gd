@@ -9,15 +9,15 @@ Passenger: 你是真人在听吗？
 Passenger: 请选择回应。
 - 是，我在听。
     Passenger: 那就别太快关门。
-    do status_hint("乘客确认操作员为人工口")
+	do status_hint("乘客确认操作员为人工口")
     => END
 - 请按标准格式陈述目的地。
     Passenger: ……低优先级补给路线。
-    do unlock_floor("742")
+	do unlock_floor("742")
     => END
 - 我需要先核对记录。
     Passenger: 记录里不会写这个。
-    do add_log("玩家选择先核对记录")
+	do add_log("玩家选择先核对记录")
     => END
 """
 const DIALOGUE_FILE_PATH := "res://dialogues/test/dm_smoke_test.dialogue"
