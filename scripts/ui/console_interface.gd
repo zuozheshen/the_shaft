@@ -521,15 +521,6 @@ func _handle_open_door() -> void:
 		return
 
 	var phase: String = demo_flow_manager.get_case_phase()
-	# 接乘点的到达仅在玩家开门时确认；前往该层和案例推进保持分离。
-	if phase == "WAITING_FOR_PICKUP" and demo_flow_manager.get_current_floor() == demo_flow_manager.get_pickup_floor():
-		demo_flow_manager.set_case_phase("ARRIVED_AT_PICKUP")
-		demo_flow_manager.set_building_status_hint(
-			demo_flow_manager.get_pickup_arrival_status_hint(),
-			true
-		)
-		_append_front_operation("已在 %s 层请求开门，接乘点已确认" % demo_flow_manager.get_current_floor())
-		phase = demo_flow_manager.get_case_phase()
 	if phase == "ARRIVED_AT_PICKUP" and not demo_flow_manager.is_door_greeting_done():
 		system_hint_label.text = "建议先通过门外摄像头与等待乘客确认。"
 		_append_front_operation("门控：开门尝试 / 未完成门外确认")
@@ -608,6 +599,7 @@ func _apply_dialogue_door_reply(is_open_action: bool) -> bool:
 
 
 func _refresh_case_display() -> void:
+	_clear_pickup_dialogue_after_departure()
 	_update_dispatch_panel()
 	_update_camera_display()
 	_update_dialogue_buttons()
@@ -621,6 +613,21 @@ func _refresh_case_display() -> void:
 		if passenger_speech_label != null:
 			passenger_speech_label.text = current_passenger_line
 	_update_building_alert()
+
+
+func _clear_pickup_dialogue_after_departure() -> void:
+	# 已完成门外确认但尚未登舱时可以离开；此时不能继续保留 612 门外对话。
+	if demo_flow_manager == null \
+			or demo_flow_manager.is_passenger_onboard() \
+			or demo_flow_manager.get_case_phase() != "WAITING_FOR_PICKUP":
+		return
+	if not dm_dialogue_started and dm_choices.is_empty():
+		return
+	dm_dialogue_started = false
+	dm_dialogue_finished = false
+	dm_choices.clear()
+	current_passenger_line = "乘客舱音频链路待机。"
+	_update_microphone_display()
 
 
 func _update_building_alert() -> void:
@@ -642,12 +649,18 @@ func _update_dispatch_panel() -> void:
 	if demo_flow_manager == null:
 		return
 	var phase: String = demo_flow_manager.get_case_phase()
-	var passenger_text: String = "当前乘客：%s" % demo_flow_manager.get_passenger_label()
 	var phase_text: Dictionary = demo_flow_manager.get_front_phase_text(phase)
 	if state_label != null:
 		state_label.text = str(phase_text.get("state", ""))
 	if dispatch_info_label != null:
-		dispatch_info_label.text = passenger_text + "\n" + str(phase_text.get("task", ""))
+		var task_text: String = str(phase_text.get("task", ""))
+		# 乘客未登舱前不在主操作台暴露身份；接乘点仅显示待处理任务。
+		if demo_flow_manager.is_passenger_onboard():
+			dispatch_info_label.text = "当前乘客：%s\n%s" % [
+				demo_flow_manager.get_passenger_label(), task_text,
+			]
+		else:
+			dispatch_info_label.text = task_text
 
 
 func _is_key_pressed(event: InputEvent, key: Key) -> bool:

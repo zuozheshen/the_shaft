@@ -166,6 +166,8 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 		return
 	if not demo_flow_manager.case_updated.is_connected(_update_dispatch_summary_label):
 		demo_flow_manager.case_updated.connect(_update_dispatch_summary_label)
+	if not demo_flow_manager.elevator_movement_completed.is_connected(_on_elevator_movement_completed):
+		demo_flow_manager.elevator_movement_completed.connect(_on_elevator_movement_completed)
 	# 子节点 ready 后才注入共享流程，因此这里再次刷新案例相关文字。
 	_initialize_destination_text()
 
@@ -417,22 +419,24 @@ func _submit_destination() -> void:
 		_set_label_text(destination_feedback_label, "请输入目标楼层。")
 		_append_operation("目标提交失败：空输入")
 		return
-	# 输入内容若在验证后被修改，必须重新验证当前字符串。
-	if not is_destination_verified or destination != verified_destination:
-		_set_label_text(destination_feedback_label, "请先验证目标楼层。")
-		_append_operation("目标提交失败：未验证")
+	if demo_flow_manager == null:
+		_set_label_text(destination_feedback_label, "电梯位置系统尚未连接。")
 		return
 
-	if not is_destination_recognized:
+	var floor_database: Dictionary = _get_floor_database()
+	if not floor_database.has(destination):
 		_set_label_text(
 			destination_feedback_label,
-			"提交失败：无法识别目标楼层 %s。\n请重新输入或选择系统推荐楼层。" % destination
+			"无法前往：楼层 %s 不在当前楼层数据库中。" % destination
 		)
 		_append_operation("目标提交失败：%s / 无法识别" % destination)
 		return
 
-	if demo_flow_manager == null:
-		_set_label_text(destination_feedback_label, "电梯位置系统尚未连接。")
+	# 乘客未登舱时，操作员可直接前往任意已登记楼层；舱内阶段仍需保留地址复核。
+	if demo_flow_manager.is_passenger_onboard() \
+			and (not is_destination_verified or destination != verified_destination):
+		_set_label_text(destination_feedback_label, "乘客在舱内时，请先验证目标楼层。")
+		_append_operation("目标提交失败：未验证")
 		return
 	if demo_flow_manager.is_cabin_door_open():
 		_set_label_text(destination_feedback_label, "请先关闭舱门，再确认前往楼层。")
@@ -445,6 +449,12 @@ func _submit_destination() -> void:
 		return
 
 	_set_label_text(destination_feedback_label, "目标楼层已确认：%s。电梯正在前往该楼层。" % destination)
+	_update_dispatch_summary_label()
+
+
+func _on_elevator_movement_completed(arrived_floor: String) -> void:
+	# 移动完成时清除“正在前往”的旧提示，避免右侧保留过期运行状态。
+	_set_label_text(destination_feedback_label, "已停靠于 %s 层，舱门保持关闭。" % arrived_floor)
 	_update_dispatch_summary_label()
 
 

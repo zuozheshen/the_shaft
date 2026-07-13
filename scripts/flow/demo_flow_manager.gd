@@ -5,6 +5,7 @@ class_name DemoFlowManager
 # 状态变化后通知界面等监听者，避免其他节点反复查询流程状态。
 signal case_updated
 signal destination_submitted(destination: String)
+signal elevator_movement_completed(arrived_floor: String)
 
 
 const MAX_FRONT_HISTORY_LINES: int = 20
@@ -405,7 +406,7 @@ func request_elevator_movement(destination: String) -> bool:
 
 
 func _complete_elevator_movement() -> void:
-	# 到站只更新位置并保持舱门关闭；所有案例判断必须等 FRONT 的开门操作。
+	# 到站只更新位置并保持舱门关闭；乘客登舱与楼层反馈仍必须等 FRONT 的开门操作。
 	if target_floor.is_empty():
 		return
 	current_floor = target_floor
@@ -413,7 +414,19 @@ func _complete_elevator_movement() -> void:
 	movement_state = MovementState.ARRIVED
 	cabin_door_is_open = false
 	add_front_operation("已停靠于 %s 层，舱门保持关闭" % current_floor)
-	set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % current_floor, true)
+	# 接乘点状态跟随当前位置刷新，保证离开 612 后门外摄像头不会继续显示 612 的证据。
+	if not is_passenger_onboard() and current_floor == get_pickup_floor():
+		var pickup_phase: String = "DOOR_GREETING_DONE" \
+			if is_door_greeting_done() else "ARRIVED_AT_PICKUP"
+		if get_case_phase() != pickup_phase:
+			set_case_phase(pickup_phase)
+		set_building_status_hint(get_pickup_arrival_status_hint(), true)
+	elif not is_passenger_onboard() and get_case_phase() in ["ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE"]:
+		set_case_phase("WAITING_FOR_PICKUP")
+		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % current_floor, true)
+	else:
+		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % current_floor, true)
+	elevator_movement_completed.emit(current_floor)
 
 
 func get_submitted_destination() -> String:

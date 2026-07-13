@@ -1,3 +1,10 @@
 {
-  "sync_records": []
+  "sync_records": [
+    {
+      "issue": "#14",
+      "commit": "52fff0986d2a3202ba3d4f5f4f0692d419f1ec42",
+      "document_id": "M0Hgdd8xFoRLmix5RJOciwZrntc",
+      "synced_at": "2026-07-13T21:58:46+08:00"
+    }
+  ]
 }
