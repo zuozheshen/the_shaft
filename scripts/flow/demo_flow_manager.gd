@@ -62,11 +62,10 @@ var current_case: Dictionary = {
 	},
 }
 
-# 三份状态是 FRONT 到 LEFT 的临时桥接，后续会由正式 PassengerCase 替换。
-# 对话历史只用于 TRANSCRIPT，操作历史只用于 SYSTEM LOG，提示只用于 STATUS。
+# FRONT 到 LEFT 的临时桥接：对话记录与系统通信分别保存，后续会由正式 PassengerCase 替换。
 var front_dialogue_history: Array[String] = []
-var front_operation_history: Array[String] = []
-var current_building_status_hint: String = "暂无前台通话。"
+var system_message_history: Array[String] = []
+var current_building_status_hint: String = "暂无系统消息。"
 var has_unread_status_hint: bool = false
 var runtime_recommended_destinations: Array[String] = []
 
@@ -146,17 +145,19 @@ func _configure_issue_12_case() -> void:
 		"pickup_recommendations": ["612"],
 		"default_onboard_recommendations": ["900"],
 	}
+	# 楼层概览是固定资料；派单关联度与稳定度只在右台的当前派单评估中读取。
 	current_case["floor_database"] = {
-		"900": {"description": "居民事务柜台层。", "relation": "91%", "access_eval": "可前往", "stability": "基本稳定", "message": "该楼层是派单记录目标。适合标准登记与身份复核。"},
-		"742": {"description": "中继等待层。", "relation": "76%", "access_eval": "可前往", "stability": "稳定", "message": "该楼层适合临时等待与路线复核，但不能直接解决乘客登记问题。"},
-		"612": {"description": "接乘起始相关层。", "relation": "84%", "access_eval": "可前往", "stability": "稳定", "message": "该楼层为本单接乘来源。返回该层可维持流程安全。"},
-		"004": {"description": "低层服务区。", "relation": "48%", "access_eval": "可前往", "stability": "中等波动", "message": "该楼层不在系统推荐中，但与乘客描述的服务区、洗洁精味和旧暖柜线索相符。"},
-		"387": {"description": "旧记录存放层。", "relation": "61%", "access_eval": "可前往", "stability": "轻微波动", "message": "该楼层与乘客提到的旧工牌、旧班表和纸质记录线索相符。"},
-		"392": {"description": "普通通行层。", "relation": "0%", "access_eval": "可前往", "stability": "稳定", "message": "该楼层与当前派单无关联，但建筑允许前往。"},
-		"547": {"description": "普通办公层。", "relation": "0%", "access_eval": "可前往", "stability": "基本稳定", "message": "该楼层与当前派单无关联，稳定度未见明显变化。"},
+		"900": {"overview": "居民事务柜台与登记复核区域。", "relation": "91%", "stability": "基本稳定"},
+		"742": {"overview": "中继等待与短时路线复核区域。", "relation": "76%", "stability": "稳定"},
+		"612": {"overview": "居住与基础服务混合区域。", "relation": "84%", "stability": "稳定"},
+		"004": {"overview": "低层后勤服务与设备暂存区域。", "relation": "48%", "stability": "中等波动"},
+		"387": {"overview": "纸质旧记录与人工复查资料存放区域。", "relation": "61%", "stability": "轻微波动"},
+		"392": {"overview": "常规办公与短时通行区域。", "relation": "0%", "stability": "稳定"},
+		"547": {"overview": "内部办公、会议与文件处理区域。", "relation": "0%", "stability": "基本稳定"},
 	}
 	current_case["floor_book_entries"] = _build_floor_book_entries()
 	current_building_status_hint = "当前系统提示：\n%s 层检测到待接乘客。\n建议前往 %s 层完成接乘确认。\n\n当前任务：\n前往接乘楼层。" % [get_pickup_floor(), get_pickup_floor()]
+	system_message_history = [current_building_status_hint]
 
 func add_front_transcript_operator(operator_text: String) -> void:
 	# 单行写入供 Dialogue Manager 接入使用；仍然只进入 TRANSCRIPT。
@@ -181,14 +182,6 @@ func _trim_front_dialogue_history() -> void:
 		front_dialogue_history.pop_front()
 
 
-func add_front_operation(operation_text: String) -> void:
-	# 当前是临时操作历史缓存：虽从 FRONT 事件开始，现在也接收 RIGHT 目标楼层操作。
-	# 这些记录只供 LEFT SYSTEM LOG 使用，后续会由 PassengerCase 或统一事件系统替换。
-	front_operation_history.append(operation_text)
-	if front_operation_history.size() > MAX_FRONT_HISTORY_LINES:
-		front_operation_history.pop_front()
-
-
 func get_front_dialogue_history() -> Array[String]:
 	# 返回副本，避免 LEFT 界面意外改写共享对话缓存。
 	var history_copy: Array[String] = []
@@ -196,21 +189,46 @@ func get_front_dialogue_history() -> Array[String]:
 	return history_copy
 
 
-func get_front_operation_history() -> Array[String]:
-	# 返回副本，避免 LEFT 界面意外改写共享操作缓存。
-	var history_copy: Array[String] = []
-	history_copy.assign(front_operation_history)
-	return history_copy
-
-
 func get_current_building_status_hint() -> String:
 	return current_building_status_hint
 
 
-func set_building_status_hint(hint: String, mark_unread: bool = true) -> void:
+func set_building_status_hint(
+		hint: String,
+		mark_unread: bool = true,
+		include_in_history: bool = true,
+		history_text: String = ""
+) -> void:
+	if hint.is_empty():
+		return
 	current_building_status_hint = hint
+	if include_in_history:
+		var message_text: String = history_text if not history_text.is_empty() else hint
+		_append_system_message(message_text)
 	has_unread_status_hint = mark_unread
 	case_updated.emit()
+
+
+func add_system_log_message(message_text: String, mark_unread: bool = true) -> void:
+	# 仅写入左侧历史，不覆盖 FRONT 当前正在显示的短提示。
+	if message_text.is_empty():
+		return
+	_append_system_message(message_text)
+	has_unread_status_hint = mark_unread
+	case_updated.emit()
+
+
+func _append_system_message(message_text: String) -> void:
+	system_message_history.append(message_text)
+	while system_message_history.size() > MAX_FRONT_HISTORY_LINES:
+		system_message_history.pop_front()
+
+
+func get_system_message_history() -> Array[String]:
+	# 返回副本，避免终端界面意外改写本轮系统通信记录。
+	var history_copy: Array[String] = []
+	history_copy.assign(system_message_history)
+	return history_copy
 
 
 func has_unread_building_status_hint() -> bool:
@@ -397,8 +415,6 @@ func request_elevator_movement(destination: String) -> bool:
 
 	target_floor = requested_floor
 	movement_state = MovementState.MOVING
-	add_front_operation("目标楼层已确认：%s" % target_floor)
-	add_front_operation("电梯正在前往 %s 层" % target_floor)
 	set_building_status_hint("电梯正在前往 %s 层。" % target_floor, true)
 	if movement_timer != null:
 		movement_timer.start()
@@ -413,14 +429,19 @@ func _complete_elevator_movement() -> void:
 	target_floor = ""
 	movement_state = MovementState.ARRIVED
 	cabin_door_is_open = false
-	add_front_operation("已停靠于 %s 层，舱门保持关闭" % current_floor)
 	# 接乘点状态跟随当前位置刷新，保证离开 612 后门外摄像头不会继续显示 612 的证据。
 	if not is_passenger_onboard() and current_floor == get_pickup_floor():
 		var pickup_phase: String = "DOOR_GREETING_DONE" \
 			if is_door_greeting_done() else "ARRIVED_AT_PICKUP"
 		if get_case_phase() != pickup_phase:
 			set_case_phase(pickup_phase)
-		set_building_status_hint(get_pickup_arrival_status_hint(), true)
+		# 主台仍保留原有接乘提示；日志只保存精简的关键状态。
+		set_building_status_hint(
+			get_pickup_arrival_status_hint(),
+			true,
+			true,
+			"已抵达接乘楼层。\n等待乘客确认。"
+		)
 	elif not is_passenger_onboard() and get_case_phase() in ["ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE"]:
 		set_case_phase("WAITING_FOR_PICKUP")
 		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % current_floor, true)
@@ -487,7 +508,8 @@ func get_current_recommended_destinations() -> Array:
 	var rules: Dictionary = current_case.get("recommended_destination_rules", {})
 	var pickup_phases: Array = rules.get("pickup_phases", [])
 	var recommendation_key: String = "default_onboard_recommendations"
-	if phase in pickup_phases:
+	# 乘客一进入电梯就建立正式派单；不必等待关门才显示舱内推荐。
+	if not is_passenger_onboard() and phase in pickup_phases:
 		recommendation_key = "pickup_recommendations"
 	var configured_candidates: Array = rules.get(recommendation_key, [])
 	# 系统推荐与玩家手动发现严格分开，隐藏楼层只能由玩家自行填写。

@@ -16,7 +16,7 @@ const FACING_OBJECTS: Array[String] = ["主调度台", "目标楼层控制台", 
 const CONSOLE_DESCRIPTIONS: Dictionary = {
 	FacingDirection.FRONT: "这里以后显示派单、路线建议和门控。",
 	FacingDirection.RIGHT: "这里用于确认系统推荐或手动输入的目标楼层。",
-	FacingDirection.LEFT: "这里显示建筑判断、乘客记录、对话转写和系统日志。",
+	FacingDirection.LEFT: "这里显示系统日志、乘客档案和对话记录。",
 }
 
 var current_direction: int = FacingDirection.FRONT

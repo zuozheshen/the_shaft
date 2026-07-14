@@ -30,30 +30,33 @@ text = "访问权限：OPERATOR｜节点：L-612-A｜会话：ACTIVE"
 [node name="TabButtonPanel" type="HBoxContainer" parent="TerminalLayout" unique_id=716400975]
 layout_mode = 2
 
-[node name="StatusTabButton" type="Button" parent="TerminalLayout/TabButtonPanel" unique_id=1692400210]
-layout_mode = 2
-text = "STATUS"
-
 [node name="RecordTabButton" type="Button" parent="TerminalLayout/TabButtonPanel" unique_id=1297660751]
 layout_mode = 2
-text = "RECORD"
+text = "乘客档案"
 
 [node name="TranscriptTabButton" type="Button" parent="TerminalLayout/TabButtonPanel" unique_id=930622262]
 layout_mode = 2
-text = "TRANSCRIPT"
+text = "对话记录"
 
 [node name="SystemLogTabButton" type="Button" parent="TerminalLayout/TabButtonPanel" unique_id=1119633557]
 layout_mode = 2
-text = "SYSTEM LOG"
+text = "系统日志"
 
-[node name="TerminalContentPanel" type="PanelContainer" parent="TerminalLayout" unique_id=1754242529]
+[node name="ContentScrollContainer" type="ScrollContainer" parent="TerminalLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TerminalContentPanel" type="PanelContainer" parent="TerminalLayout/ContentScrollContainer" unique_id=1754242529]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TerminalContentMargin" type="MarginContainer" parent="TerminalLayout/ContentScrollContainer/TerminalContentPanel" unique_id=1200964278]
 layout_mode = 2
 
-[node name="TerminalContentMargin" type="MarginContainer" parent="TerminalLayout/TerminalContentPanel" unique_id=1200964278]
+[node name="TerminalContentLabel" type="Label" parent="TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin" unique_id=474040416]
 layout_mode = 2
-
-[node name="TerminalContentLabel" type="Label" parent="TerminalLayout/TerminalContentPanel/TerminalContentMargin" unique_id=474040416]
-layout_mode = 2
+size_flags_horizontal = 3
 text = "等待终端数据。"
 autowrap_mode = 2
 

@@ -68,14 +68,29 @@ layout_mode = 2
 layout_mode = 2
 text = "验证地址"
 
+[node name="FloorOverviewPanel" type="PanelContainer" parent="RootMargin/DestinationLayout"]
+visible = false
+layout_mode = 2
+
+[node name="FloorOverviewLabel" type="Label" parent="RootMargin/DestinationLayout/FloorOverviewPanel"]
+layout_mode = 2
+text = "楼层概览"
+autowrap_mode = 2
+
+[node name="DispatchEvaluationPanel" type="PanelContainer" parent="RootMargin/DestinationLayout"]
+visible = false
+layout_mode = 2
+
+[node name="DispatchEvaluationLabel" type="Label" parent="RootMargin/DestinationLayout/DispatchEvaluationPanel"]
+layout_mode = 2
+text = "当前派单评估"
+autowrap_mode = 2
+
 [node name="OpenFloorBookButton" type="Button" parent="RootMargin/DestinationLayout" unique_id=777911491]
 layout_mode = 2
 text = "查看楼层索引书"
 
 [node name="DestinationStatusPanel" type="PanelContainer" parent="RootMargin/DestinationLayout" unique_id=897540669]
-layout_mode = 2
-
-[node name="DestinationStatusMargin" type="MarginContainer" parent="RootMargin/DestinationLayout/DestinationStatusPanel" unique_id=1406425467]
 layout_mode = 2
 
 [node name="DestinationStatusLabel" type="Label" parent="RootMargin/DestinationLayout/DestinationStatusPanel" unique_id=1479404367]

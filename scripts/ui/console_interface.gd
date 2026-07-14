@@ -194,7 +194,6 @@ func show_console(
 	if is_main_dispatch_console and demo_flow_manager != null:
 		_update_dispatch_panel()
 		_refresh_case_display()
-		_append_front_operation("进入 FRONT 主仲裁台")
 
 	show()
 	# 默认焦点跟随当前操作台类型，键盘玩家可直接继续操作或返回。
@@ -216,8 +215,6 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _request_return() -> void:
 	# 界面只发送退出意图，具体恢复舱内视图由外层控制器负责。
-	if active_console_type == "FRONT":
-		_append_front_operation("返回操作间")
 	return_requested.emit()
 
 
@@ -225,8 +222,7 @@ func _select_camera(camera_index: int) -> void:
 	# 摄像头只切换证据画面，不再决定麦克风是否可以对话。
 	current_camera_index = clampi(camera_index, 0, CAMERA_NAMES.size() - 1)
 	_update_camera_display()
-	_append_front_operation("摄像头切换：%s" % CAMERA_NAMES[current_camera_index])
-	system_hint_label.text = "已切换至 %s。" % CAMERA_NAMES[current_camera_index]
+	_show_system_hint("已切换至 %s。" % CAMERA_NAMES[current_camera_index])
 	_update_dialogue_visibility()
 
 
@@ -250,7 +246,6 @@ func _get_phase_camera_feed(camera_index: int) -> String:
 func _toggle_microphone() -> void:
 	# 麦克风目前只是交互状态占位，不接入真实录音。
 	mic_enabled = not mic_enabled
-	_append_front_operation("麦克风%s" % ("开启" if mic_enabled else "关闭"))
 
 	if mic_enabled and not dm_dialogue_started and not dm_dialogue_finished:
 		if not _start_dialogue_manager_passenger():
@@ -258,11 +253,11 @@ func _toggle_microphone() -> void:
 	_update_microphone_display()
 
 	if mic_enabled and dm_dialogue_started and not dm_dialogue_finished:
-		system_hint_label.text = "乘客通话链路已开启。"
+		_show_system_hint("乘客通话链路已开启。")
 	elif mic_enabled:
-		system_hint_label.text = "乘客通话链路已开启。"
+		_show_system_hint("乘客通话链路已开启。")
 	else:
-		system_hint_label.text = "乘客通话链路已关闭。"
+		_show_system_hint("乘客通话链路已关闭。")
 
 
 func _start_dialogue_manager_passenger() -> bool:
@@ -416,7 +411,7 @@ func _on_dm_dialogue_finished() -> void:
 
 
 func _on_dm_status_hint_requested(text: String) -> void:
-	# DM 的详细判断写入 LEFT Status；FRONT 只显示短操作提示，避免复读正文。
+	# DM 的详细判断写入 LEFT 系统日志；FRONT 只显示短操作提示，避免复读正文。
 	if demo_flow_manager != null:
 		demo_flow_manager.set_building_status_hint(text, true)
 	dm_pending_status_hint_update = true
@@ -448,11 +443,13 @@ func _apply_dm_front_hint_batch() -> void:
 		unlocked_floor_labels.append(floor_id)
 	var unlocked_text: String = "、".join(unlocked_floor_labels)
 	if dm_pending_status_hint_update and not unlocked_text.is_empty():
-		system_hint_label.text = "系统判断已更新；推荐楼层已更新：%s。" % unlocked_text
+		_show_system_hint("系统判断已更新；推荐楼层已更新：%s。" % unlocked_text)
+		_record_system_log("推荐目标列表已更新。")
 	elif dm_pending_status_hint_update:
-		system_hint_label.text = "系统判断已更新，请查看左侧 Status。"
+		_show_system_hint("系统判断已更新，请查看左侧系统日志。")
 	elif not unlocked_text.is_empty():
-		system_hint_label.text = "推荐楼层已更新：%s。" % unlocked_text
+		_show_system_hint("推荐楼层已更新：%s。" % unlocked_text)
+		_record_system_log("推荐目标列表已更新。")
 
 
 func _on_dm_door_greeting_done_requested() -> void:
@@ -504,43 +501,43 @@ func _get_phase_passenger_line() -> String:
 	return "乘客舱音频链路待机。"
 
 
-func _append_front_operation(operation_text: String) -> void:
-	# 麦克风、摄像头和门控属于玩家操作，只写入 LEFT 的 SYSTEM LOG。
+func _show_system_hint(hint_text: String) -> void:
+	# FRONT 的短提示不自动写入历史，避免左侧日志重复玩家刚完成的操作。
+	if system_hint_label != null:
+		system_hint_label.text = hint_text
+
+
+func _record_system_log(message_text: String) -> void:
 	if demo_flow_manager != null:
-		demo_flow_manager.add_front_operation(operation_text)
+		demo_flow_manager.add_system_log_message(message_text, true)
 
 
 func _handle_open_door() -> void:
 	print("Door action: 开门")
 	if demo_flow_manager == null:
-		_append_front_operation("门控：开门")
 		return
 	if demo_flow_manager.is_elevator_moving():
-		system_hint_label.text = "电梯正在运行中，无法开门。"
-		_append_front_operation("门控：开门尝试 / 电梯运行中")
+		_show_system_hint("电梯正在运行中，无法开门。")
 		return
 
 	var phase: String = demo_flow_manager.get_case_phase()
 	if phase == "ARRIVED_AT_PICKUP" and not demo_flow_manager.is_door_greeting_done():
-		system_hint_label.text = "建议先通过门外摄像头与等待乘客确认。"
-		_append_front_operation("门控：开门尝试 / 未完成门外确认")
+		_show_system_hint("建议先通过门外摄像头与等待乘客确认。")
 		return
 
 	var dialogue_reply_applied: bool = _apply_dialogue_door_reply(true)
 	demo_flow_manager.set_cabin_door_open(true)
-	_append_front_operation("门控：开门")
 	if phase == "DOOR_GREETING_DONE":
 		demo_flow_manager.set_passenger_onboard(true)
 		demo_flow_manager.set_pickup_completed(true)
 		demo_flow_manager.set_cabin_door_closed_after_boarding(false)
 		demo_flow_manager.set_case_phase("BOARDING_WAIT_DOOR_CLOSE")
-		_append_front_operation("乘客进入舱内")
 		dm_dialogue_started = false
 		dm_dialogue_finished = false
 		dm_choices.clear()
 		if not dialogue_reply_applied:
 			current_passenger_line = demo_flow_manager.get_after_open_line()
-		system_hint_label.text = demo_flow_manager.get_after_open_hint()
+		_show_system_hint(demo_flow_manager.get_after_open_hint())
 		_update_camera_display()
 		_update_dialogue_buttons()
 		_update_microphone_display()
@@ -555,7 +552,6 @@ func _handle_open_door() -> void:
 
 func _handle_close_door() -> void:
 	print("Door action: 关门")
-	_append_front_operation("门控：关门")
 	if demo_flow_manager == null:
 		return
 	demo_flow_manager.set_cabin_door_open(false)
@@ -565,13 +561,12 @@ func _handle_close_door() -> void:
 	# 登舱后必须显式关门，正式舱内询问才会解锁。
 	demo_flow_manager.set_cabin_door_closed_after_boarding(true)
 	demo_flow_manager.set_case_phase("PASSENGER_ONBOARD")
-	_append_front_operation("乘客舱门已关闭")
 	dm_dialogue_started = false
 	dm_dialogue_finished = false
 	dm_choices.clear()
 	if not dialogue_reply_applied:
 		current_passenger_line = demo_flow_manager.get_after_close_line()
-	system_hint_label.text = demo_flow_manager.get_after_close_hint()
+	_show_system_hint(demo_flow_manager.get_after_close_hint())
 	demo_flow_manager.set_building_status_hint(demo_flow_manager.get_after_close_status_hint(), true)
 	if mic_enabled:
 		_start_dialogue_manager_passenger()
@@ -636,8 +631,8 @@ func _update_building_alert() -> void:
 				and demo_flow_manager.has_unread_building_status_hint() \
 				and system_hint_label != null \
 				and system_hint_label.text.is_empty():
-			# 缺少专用 Label 时也只显示短提醒，不把 LEFT Status 正文搬到 FRONT。
-			system_hint_label.text = "系统判断已更新，请查看左侧 Status。"
+			# 缺少专用 Label 时也只显示短提醒，不把 LEFT 系统日志正文搬到 FRONT。
+			_show_system_hint("系统判断已更新，请查看左侧系统日志。")
 		return
 	var has_unread: bool = demo_flow_manager != null \
 		and demo_flow_manager.has_unread_building_status_hint()

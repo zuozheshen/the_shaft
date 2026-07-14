@@ -11,53 +11,39 @@ const RECOMMENDED_DESTINATIONS: Array[String] = ["612"]
 # 楼层编号始终按字符串处理，确保 004 之类的编号不会丢失前导零。
 const FLOOR_DATABASE: Dictionary = {
 	"900": {
-		"description": "派单记录目标层。",
+		"overview": "居民事务柜台与登记复核区域。",
 		"relation": "94%",
-		"access_eval": "可前往",
 		"stability": "基本稳定",
-		"message": "该楼层与当前派单高度一致。",
 	},
 	"742": {
-		"description": "系统推荐的中继目标层。",
+		"overview": "中继等待与短时路线复核区域。",
 		"relation": "78%",
-		"access_eval": "可前往",
 		"stability": "轻微波动",
-		"message": "该楼层与当前派单存在关联，但不是派单记录目标。",
 	},
 	"612": {
-		"description": "当前派单起始相关层。",
+		"overview": "居住与基础服务混合区域。",
 		"relation": "63%",
-		"access_eval": "可前往",
 		"stability": "稳定",
-		"message": "该楼层仍与当前派单相关，适合暂时复核。",
 	},
 	"004": {
-		"description": "低层服务区。",
+		"overview": "低层后勤服务与设备暂存区域。",
 		"relation": "48%",
-		"access_eval": "可前往",
 		"stability": "中等波动",
-		"message": "该楼层不在系统推荐中，但与乘客描述的服务区、洗洁精味和旧暖柜线索相符。",
 	},
 	"387": {
-		"description": "旧记录存放层。",
+		"overview": "纸质旧记录与人工复查资料存放区域。",
 		"relation": "29%",
-		"access_eval": "可前往",
 		"stability": "轻微波动",
-		"message": "该楼层与当前派单存在弱关联，建议谨慎提交。",
 	},
 	"392": {
-		"description": "普通通行层。",
+		"overview": "常规办公与短时通行区域。",
 		"relation": "0%",
-		"access_eval": "可前往",
 		"stability": "稳定",
-		"message": "该楼层与当前派单无关联，但建筑允许前往。",
 	},
 	"547": {
-		"description": "普通办公层。",
+		"overview": "内部办公、会议与文件处理区域。",
 		"relation": "0%",
-		"access_eval": "可前往",
 		"stability": "基本稳定",
-		"message": "该楼层与当前派单无关联，稳定度未见明显变化。",
 	},
 }
 
@@ -116,33 +102,42 @@ const FLOOR_BOOK_ENTRIES: Array[Dictionary] = [
 ]
 
 
-# 手工场景节点可能仍在调整，因此统一安全查找；缺失节点只跳过对应功能。
-var title_label: Label
-var dispatch_summary_label: Label
-var recommended_title_label: Label
-var recommended_destination_buttons: Array[Button] = []
-var manual_destination_line_edit: LineEdit
-var verify_destination_button: Button
-var destination_status_label: Label
-var destination_feedback_label: Label
-var submit_destination_button: Button
-var return_button: Button
+# 场景结构已固定，直接引用节点；节点改名或移动时 Godot 会直接报出明确错误。
+@onready var root_margin: MarginContainer = $RootMargin
+@onready var title_label: Label = $RootMargin/DestinationLayout/TitleLabel
+@onready var dispatch_summary_label: Label = $RootMargin/DestinationLayout/DispatchSummaryLabel
+@onready var recommended_destination_panel: PanelContainer = $RootMargin/DestinationLayout/RecommendedDestinationPanel
+@onready var recommended_title_label: Label = $RootMargin/DestinationLayout/RecommendedDestinationPanel/RecommendedDestinationLayout/RecommendedTitleLabel
+@onready var recommended_destination_buttons: Array[Button] = [
+	$RootMargin/DestinationLayout/RecommendedDestinationPanel/RecommendedDestinationLayout/RecommendedDestinationButton1,
+	$RootMargin/DestinationLayout/RecommendedDestinationPanel/RecommendedDestinationLayout/RecommendedDestinationButton2,
+	$RootMargin/DestinationLayout/RecommendedDestinationPanel/RecommendedDestinationLayout/RecommendedDestinationButton3,
+]
+@onready var manual_destination_line_edit: LineEdit = $RootMargin/DestinationLayout/ManualInputPanel/ManualInputLayout/ManualDestinationLineEdit
+@onready var verify_destination_button: Button = $RootMargin/DestinationLayout/ManualInputPanel/ManualInputLayout/VerifyDestinationButton
+@onready var floor_overview_panel: PanelContainer = $RootMargin/DestinationLayout/FloorOverviewPanel
+@onready var floor_overview_label: Label = $RootMargin/DestinationLayout/FloorOverviewPanel/FloorOverviewLabel
+@onready var dispatch_evaluation_panel: PanelContainer = $RootMargin/DestinationLayout/DispatchEvaluationPanel
+@onready var dispatch_evaluation_label: Label = $RootMargin/DestinationLayout/DispatchEvaluationPanel/DispatchEvaluationLabel
+@onready var destination_status_label: Label = $RootMargin/DestinationLayout/DestinationStatusPanel/DestinationStatusLabel
+@onready var destination_feedback_label: Label = $RootMargin/DestinationLayout/DestinationFeedbackLabel
+@onready var submit_destination_button: Button = $RootMargin/DestinationLayout/SubmitDestinationButton
+@onready var return_button: Button = $RootMargin/DestinationLayout/ReturnButton
 
 # 索引书是右侧操作台上的纸质资料页，不参与系统验证结果计算。
-var root_margin: MarginContainer
-var open_floor_book_button: Button
-var floor_book_page: MarginContainer
-var floor_book_title_label: Label
-var floor_book_page_label: Label
-var floor_book_number_label: Label
-var floor_book_intro_label: Label
-var floor_book_function_label: Label
-var floor_book_history_label: Label
-var floor_book_note_label: Label
-var previous_book_page_button: Button
-var next_book_page_button: Button
-var fill_current_floor_button: Button
-var close_floor_book_button: Button
+@onready var open_floor_book_button: Button = $RootMargin/DestinationLayout/OpenFloorBookButton
+@onready var floor_book_page: MarginContainer = $FloorBookPage
+@onready var floor_book_title_label: Label = $FloorBookPage/FloorBookLayout/FloorBookTitleLabel
+@onready var floor_book_page_label: Label = $FloorBookPage/FloorBookLayout/FloorBookPageLabel
+@onready var floor_book_number_label: Label = $FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin/FloorBookContentLayout/FloorBookNumberLabel
+@onready var floor_book_intro_label: Label = $FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin/FloorBookContentLayout/FloorBookIntroLabel
+@onready var floor_book_function_label: Label = $FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin/FloorBookContentLayout/FloorBookFunctionLabel
+@onready var floor_book_history_label: Label = $FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin/FloorBookContentLayout/FloorBookHistoryLabel
+@onready var floor_book_note_label: Label = $FloorBookPage/FloorBookLayout/FloorBookContentPanel/FloorBookContentMargin/FloorBookContentLayout/FloorBookNoteLabel
+@onready var previous_book_page_button: Button = $FloorBookPage/FloorBookLayout/FloorBookButtonPanel/PrevBookPageButton
+@onready var next_book_page_button: Button = $FloorBookPage/FloorBookLayout/FloorBookButtonPanel/NextBookPageButton
+@onready var fill_current_floor_button: Button = $FloorBookPage/FloorBookLayout/FloorBookButtonPanel/FillCurrentFloorButton
+@onready var close_floor_book_button: Button = $FloorBookPage/FloorBookLayout/FloorBookButtonPanel/CloseFloorBookButton
 var current_book_page_index: int = 0
 
 var demo_flow_manager: DemoFlowManager
@@ -154,7 +149,6 @@ var is_destination_recognized: bool = false
 
 
 func _ready() -> void:
-	_cache_destination_nodes()
 	_connect_destination_signals()
 	_initialize_destination_text()
 
@@ -164,12 +158,24 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 	if demo_flow_manager == null:
 		push_warning("DestinationControlInterface: DemoFlowManager is not connected.")
 		return
-	if not demo_flow_manager.case_updated.is_connected(_update_dispatch_summary_label):
-		demo_flow_manager.case_updated.connect(_update_dispatch_summary_label)
+	if not demo_flow_manager.case_updated.is_connected(_refresh_case_display):
+		demo_flow_manager.case_updated.connect(_refresh_case_display)
 	if not demo_flow_manager.elevator_movement_completed.is_connected(_on_elevator_movement_completed):
 		demo_flow_manager.elevator_movement_completed.connect(_on_elevator_movement_completed)
 	# 子节点 ready 后才注入共享流程，因此这里再次刷新案例相关文字。
 	_initialize_destination_text()
+
+
+func _refresh_case_display() -> void:
+	_update_dispatch_summary_label()
+	_update_recommended_destination_buttons()
+	if recommended_destination_panel != null:
+		recommended_destination_panel.visible = _has_active_dispatch()
+	if not is_destination_verified or not is_destination_recognized:
+		_set_dispatch_evaluation("", false)
+		return
+	var floor_data: Dictionary = _get_floor_database().get(verified_destination, {})
+	_set_dispatch_evaluation(_build_dispatch_evaluation(floor_data), _has_active_dispatch())
 
 
 func show_destination_console() -> void:
@@ -181,49 +187,8 @@ func show_destination_console() -> void:
 		manual_destination_line_edit.grab_focus()
 
 
-func _cache_destination_nodes() -> void:
-	root_margin = _find_ui_node("RootMargin") as MarginContainer
-	title_label = _find_ui_node("TitleLabel") as Label
-	dispatch_summary_label = _find_ui_node("DispatchSummaryLabel") as Label
-	recommended_title_label = _find_ui_node("RecommendedTitleLabel") as Label
-	manual_destination_line_edit = _find_ui_node("ManualDestinationLineEdit") as LineEdit
-	verify_destination_button = _find_ui_node("VerifyDestinationButton") as Button
-	destination_status_label = _find_ui_node("DestinationStatusLabel") as Label
-	destination_feedback_label = _find_ui_node("DestinationFeedbackLabel") as Label
-	submit_destination_button = _find_ui_node("SubmitDestinationButton") as Button
-	return_button = _find_ui_node("ReturnButton") as Button
-	open_floor_book_button = _find_ui_node("OpenFloorBookButton") as Button
-	floor_book_page = _find_ui_node("FloorBookPage") as MarginContainer
-	floor_book_title_label = _find_ui_node("FloorBookTitleLabel") as Label
-	floor_book_page_label = _find_ui_node("FloorBookPageLabel") as Label
-	floor_book_number_label = _find_ui_node("FloorBookNumberLabel") as Label
-	floor_book_intro_label = _find_ui_node("FloorBookIntroLabel") as Label
-	floor_book_function_label = _find_ui_node("FloorBookFunctionLabel") as Label
-	floor_book_history_label = _find_ui_node("FloorBookHistoryLabel") as Label
-	floor_book_note_label = _find_ui_node("FloorBookNoteLabel") as Label
-	previous_book_page_button = _find_ui_node("PrevBookPageButton") as Button
-	next_book_page_button = _find_ui_node("NextBookPageButton") as Button
-	fill_current_floor_button = _find_ui_node("FillCurrentFloorButton") as Button
-	close_floor_book_button = _find_ui_node("CloseFloorBookButton") as Button
-
-	# 三个按钮是推荐数据槽位，显示数字来自 RECOMMENDED_DESTINATIONS，而不是节点名。
-	for button_number in range(1, 4):
-		var recommendation_button := _find_ui_node(
-			"RecommendedDestinationButton%d" % button_number
-		) as Button
-		if recommendation_button != null:
-			recommended_destination_buttons.append(recommendation_button)
-
-
-func _find_ui_node(node_name: String) -> Node:
-	var found_node: Node = find_child(node_name, true, false)
-	if found_node == null:
-		push_warning("DestinationControlInterface: Missing optional node '%s'." % node_name)
-	return found_node
-
-
 func _connect_destination_signals() -> void:
-	# 推荐、验证、提交和返回均逐项检查，避免手工场景缺少节点时崩溃。
+	# 推荐、验证、提交和返回均在场景加载后连接。
 	for button_index in recommended_destination_buttons.size():
 		var recommendation_button := recommended_destination_buttons[button_index]
 		var callback: Callable = _select_recommended_destination.bind(button_index)
@@ -236,7 +201,7 @@ func _connect_destination_signals() -> void:
 	if manual_destination_line_edit != null \
 			and not manual_destination_line_edit.text_changed.is_connected(_on_destination_text_changed):
 		manual_destination_line_edit.text_changed.connect(_on_destination_text_changed)
-	# 打开、填写和合上会记入 SYSTEM LOG；前后翻页只是浏览，不记录操作。
+	# 楼层书只提供浏览与填入，不写入左侧的系统通信历史。
 	_connect_button(open_floor_book_button, _open_floor_book)
 	_connect_button(previous_book_page_button, _change_floor_book_page.bind(-1))
 	_connect_button(next_book_page_button, _change_floor_book_page.bind(1))
@@ -251,17 +216,23 @@ func _connect_button(button: Button, callback: Callable) -> void:
 
 func _initialize_destination_text() -> void:
 	var recommended_destinations: Array = _get_recommended_destinations()
+	var has_active_dispatch: bool = _has_active_dispatch()
 	_set_label_text(title_label, "目标楼层控制台 / DESTINATION CONSOLE")
 	_update_dispatch_summary_label()
 	_set_label_text(recommended_title_label, "系统推荐楼层：")
 
 	_update_recommended_destination_buttons()
+	if recommended_destination_panel != null:
+		recommended_destination_panel.visible = has_active_dispatch
 
-	if manual_destination_line_edit != null:
+	if manual_destination_line_edit != null and has_active_dispatch \
+			and manual_destination_line_edit.text.strip_edges().is_empty():
 		manual_destination_line_edit.text = str(recommended_destinations[0]) \
 			if not recommended_destinations.is_empty() else ""
 	_set_button_text(verify_destination_button, "验证地址")
-	_set_label_text(destination_status_label, _build_unverified_status(_get_current_destination()))
+	_set_label_text(destination_status_label, _build_idle_destination_status())
+	_set_floor_overview("", false)
+	_set_dispatch_evaluation("", false)
 	_set_label_text(
 		destination_feedback_label,
 		"请选择推荐楼层，或手动输入目标楼层。"
@@ -283,7 +254,6 @@ func _open_floor_book() -> void:
 	current_book_page_index = 0
 	_update_floor_book_display()
 	_set_floor_book_visibility(true)
-	_append_operation("打开楼层索引书")
 	if next_book_page_button != null:
 		next_book_page_button.grab_focus()
 
@@ -291,7 +261,6 @@ func _open_floor_book() -> void:
 func _close_floor_book() -> void:
 	_set_floor_book_visibility(false)
 	_set_label_text(destination_feedback_label, "已合上楼层索引书。")
-	_append_operation("合上楼层索引书")
 	if open_floor_book_button != null:
 		open_floor_book_button.grab_focus()
 
@@ -301,7 +270,7 @@ func _change_floor_book_page(direction: int) -> void:
 	if floor_book_entries.is_empty():
 		push_warning("DestinationControlInterface: Floor book has no entries.")
 		return
-	# 纸质书翻页仅改变浏览页码，不写入 LEFT 的 SYSTEM LOG。
+	# 纸质书翻页仅改变浏览页码，不写入系统通信记录。
 	current_book_page_index = wrapi(
 		current_book_page_index + direction,
 		0,
@@ -327,7 +296,6 @@ func _fill_current_floor() -> void:
 		destination_feedback_label,
 		"已从楼层索引书填写：%s。请验证地址。" % floor_number
 	)
-	_append_operation("从楼层索引书填写：%s" % floor_number)
 	# 纸质索引只帮助玩家填写；004 / 387 等隐藏楼层不会因此成为系统推荐。
 	if verify_destination_button != null:
 		verify_destination_button.grab_focus()
@@ -372,7 +340,6 @@ func _select_recommended_destination(button_index: int) -> void:
 		destination_feedback_label,
 		"已填入推荐楼层：%s。请验证地址。" % destination
 	)
-	_append_operation("推荐楼层选择：%s" % destination)
 
 
 func _on_destination_text_changed(_new_text: String) -> void:
@@ -380,13 +347,18 @@ func _on_destination_text_changed(_new_text: String) -> void:
 	verified_destination = ""
 	is_destination_verified = false
 	is_destination_recognized = false
+	_set_label_text(destination_status_label, _build_idle_destination_status())
+	_set_floor_overview("", false)
+	_set_dispatch_evaluation("", false)
 
 
 func _verify_destination() -> void:
 	var destination: String = _get_current_destination()
 	if destination.is_empty():
 		_set_label_text(destination_feedback_label, "请输入目标楼层。")
-		_append_operation("目标验证失败：空输入")
+		_set_label_text(destination_status_label, _build_idle_destination_status())
+		_set_floor_overview("", false)
+		_set_dispatch_evaluation("", false)
 		return
 
 	verified_destination = destination
@@ -397,27 +369,20 @@ func _verify_destination() -> void:
 	if not is_destination_recognized:
 		_set_label_text(destination_status_label, _build_unrecognized_status(destination))
 		_set_label_text(destination_feedback_label, "无法识别目标楼层：%s。" % destination)
-		_append_operation("目标验证：%s / 无法识别 / 无法前往" % destination)
+		_set_floor_overview("", false)
+		_set_dispatch_evaluation("", false)
 		return
 	var floor_data: Dictionary = floor_database[destination]
 	_set_label_text(destination_status_label, _build_recognized_status(destination, floor_data))
 	_set_label_text(destination_feedback_label, "目标已验证：%s。" % destination)
-	_append_operation(
-		"目标验证：%s / %s / 稳定度%s / 关联度%s" % [
-			destination,
-			floor_data["access_eval"],
-			floor_data["stability"],
-			floor_data["relation"],
-		]
-	)
-	# 验证只决定能否提交，不改变系统愿意主动推荐的楼层。
+	_set_floor_overview(_build_floor_overview(destination, floor_data), true)
+	_set_dispatch_evaluation(_build_dispatch_evaluation(floor_data), _has_active_dispatch())
 
 
 func _submit_destination() -> void:
 	var destination: String = _get_current_destination()
 	if destination.is_empty():
 		_set_label_text(destination_feedback_label, "请输入目标楼层。")
-		_append_operation("目标提交失败：空输入")
 		return
 	if demo_flow_manager == null:
 		_set_label_text(destination_feedback_label, "电梯位置系统尚未连接。")
@@ -429,14 +394,12 @@ func _submit_destination() -> void:
 			destination_feedback_label,
 			"无法前往：楼层 %s 不在当前楼层数据库中。" % destination
 		)
-		_append_operation("目标提交失败：%s / 无法识别" % destination)
 		return
 
 	# 乘客未登舱时，操作员可直接前往任意已登记楼层；舱内阶段仍需保留地址复核。
 	if demo_flow_manager.is_passenger_onboard() \
 			and (not is_destination_verified or destination != verified_destination):
 		_set_label_text(destination_feedback_label, "乘客在舱内时，请先验证目标楼层。")
-		_append_operation("目标提交失败：未验证")
 		return
 	if demo_flow_manager.is_cabin_door_open():
 		_set_label_text(destination_feedback_label, "请先关闭舱门，再确认前往楼层。")
@@ -449,23 +412,15 @@ func _submit_destination() -> void:
 		return
 
 	_set_label_text(destination_feedback_label, "目标楼层已确认：%s。电梯正在前往该楼层。" % destination)
+	_set_label_text(destination_status_label, "目标状态：已提交\n当前目标：%s" % destination)
 	_update_dispatch_summary_label()
 
 
 func _on_elevator_movement_completed(arrived_floor: String) -> void:
 	# 移动完成时清除“正在前往”的旧提示，避免右侧保留过期运行状态。
 	_set_label_text(destination_feedback_label, "已停靠于 %s 层，舱门保持关闭。" % arrived_floor)
+	_set_label_text(destination_status_label, "目标状态：已抵达\n当前楼层：%s" % arrived_floor)
 	_update_dispatch_summary_label()
-
-
-func _build_destination_status_hint(destination: String, floor_data: Dictionary) -> String:
-	# 右操作台只生成系统状态提示；乘客反馈由 Dialogue Manager 的 destination_xxx 标题负责。
-	return "目标 %s 已确认。\n通行评估：%s\n稳定度：%s\n系统提示：%s" % [
-		destination,
-		str(floor_data.get("access_eval", "待评估")),
-		str(floor_data.get("stability", "待评估")),
-		str(floor_data.get("message", "目标已提交。")),
-	]
 
 
 func _get_current_destination() -> String:
@@ -475,45 +430,8 @@ func _get_current_destination() -> String:
 	return manual_destination_line_edit.text.strip_edges()
 
 
-func _build_unverified_status(destination: String) -> String:
-	return """目标确认状态：未验证
-待验证楼层：%s
-楼层说明：等待验证
-与当前派单的关联度：待评估
-通行评估：等待验证
-稳定度：待评估
-
-系统提示：
-请选择系统推荐楼层，或手动输入目标楼层后进行验证。""" % destination
-
-
-func _build_pickup_status(pickup_floor: String) -> String:
-	return """目标确认状态：接乘楼层
-接乘楼层：%s
-楼层说明：当前待接乘客所在楼层。
-通行评估：可前往
-
-系统提示：
-该楼层用于完成接乘确认。抵达后请使用门外摄像头联系乘客。""" % pickup_floor
-
-
-func _build_recognized_status(destination: String, floor_data: Dictionary) -> String:
-	return """目标确认状态：已验证
-已验证楼层：%s
-楼层说明：%s
-与当前派单的关联度：%s
-通行评估：%s
-稳定度：%s
-
-系统提示：
-%s""" % [
-		destination,
-		floor_data["description"],
-		floor_data["relation"],
-		floor_data["access_eval"],
-		floor_data["stability"],
-		floor_data["message"],
-	]
+func _build_recognized_status(destination: String, _floor_data: Dictionary) -> String:
+	return "目标状态：已验证\n已验证楼层：%s" % destination
 
 
 func _get_recommended_destinations() -> Array:
@@ -576,24 +494,49 @@ func _get_floor_book_entries() -> Array:
 
 
 func _build_unrecognized_status(destination: String) -> String:
-	return """目标确认状态：无法确认
-待验证楼层：%s
-楼层说明：无记录
-与当前派单的关联度：未知
-通行评估：无法前往
-稳定度：未知
-
-系统提示：
-无法识别该楼层。请重新输入目标楼层。""" % destination
+	return "目标状态：无法验证\n待验证楼层：%s" % destination
 
 
-func _append_operation(operation_text: String) -> void:
-	# RIGHT 操作只写入 LEFT 的 SYSTEM LOG，不会进入 TRANSCRIPT。
-	# 当前沿用早期以 FRONT 命名的临时操作缓存，后续由统一事件系统替换。
-	if demo_flow_manager == null:
-		push_warning("DestinationControlInterface: Cannot record operation without DemoFlowManager.")
-		return
-	demo_flow_manager.add_front_operation(operation_text)
+func _build_idle_destination_status() -> String:
+	if demo_flow_manager != null:
+		var active_target: String = demo_flow_manager.get_target_floor()
+		if not active_target.is_empty():
+			return "目标状态：已提交\n当前目标：%s" % active_target
+		if demo_flow_manager.get_movement_state() == DemoFlowManager.MovementState.ARRIVED:
+			return "目标状态：已抵达\n当前楼层：%s" % demo_flow_manager.get_current_floor()
+	if _has_active_dispatch():
+		return "目标状态：等待验证\n乘客已在舱内，请确认目标楼层。"
+	return "目标状态：自由查询\n当前未建立乘客派单。"
+
+
+func _build_floor_overview(destination: String, floor_data: Dictionary) -> String:
+	return "楼层：%s\n楼层概览：%s" % [
+		destination,
+		str(floor_data.get("overview", "暂无楼层概览。")),
+	]
+
+
+func _build_dispatch_evaluation(floor_data: Dictionary) -> String:
+	return "当前派单评估\n与当前派单关联度：%s\n预计稳定度影响：%s" % [
+		str(floor_data.get("relation", "待评估")),
+		str(floor_data.get("stability", "待评估")),
+	]
+
+
+func _has_active_dispatch() -> bool:
+	return demo_flow_manager != null and demo_flow_manager.is_passenger_onboard()
+
+
+func _set_floor_overview(overview_text: String, is_visible: bool) -> void:
+	if floor_overview_panel != null:
+		floor_overview_panel.visible = is_visible
+	_set_label_text(floor_overview_label, overview_text)
+
+
+func _set_dispatch_evaluation(evaluation_text: String, is_visible: bool) -> void:
+	if dispatch_evaluation_panel != null:
+		dispatch_evaluation_panel.visible = is_visible and _has_active_dispatch()
+	_set_label_text(dispatch_evaluation_label, evaluation_text)
 
 
 func _set_label_text(label: Label, new_text: String) -> void:
