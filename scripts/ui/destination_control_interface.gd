@@ -119,7 +119,6 @@ const FLOOR_BOOK_ENTRIES: Array[Dictionary] = [
 @onready var floor_overview_label: Label = $RootMargin/DestinationLayout/FloorOverviewPanel/FloorOverviewLabel
 @onready var dispatch_evaluation_panel: PanelContainer = $RootMargin/DestinationLayout/DispatchEvaluationPanel
 @onready var dispatch_evaluation_label: Label = $RootMargin/DestinationLayout/DispatchEvaluationPanel/DispatchEvaluationLabel
-@onready var destination_status_label: Label = $RootMargin/DestinationLayout/DestinationStatusPanel/DestinationStatusLabel
 @onready var destination_feedback_label: Label = $RootMargin/DestinationLayout/DestinationFeedbackLabel
 @onready var submit_destination_button: Button = $RootMargin/DestinationLayout/SubmitDestinationButton
 @onready var return_button: Button = $RootMargin/DestinationLayout/ReturnButton
@@ -170,7 +169,7 @@ func _refresh_case_display() -> void:
 	_update_dispatch_summary_label()
 	_update_recommended_destination_buttons()
 	if recommended_destination_panel != null:
-		recommended_destination_panel.visible = _has_active_dispatch()
+		recommended_destination_panel.visible = _should_show_recommendations()
 	if not is_destination_verified or not is_destination_recognized:
 		_set_dispatch_evaluation("", false)
 		return
@@ -223,14 +222,13 @@ func _initialize_destination_text() -> void:
 
 	_update_recommended_destination_buttons()
 	if recommended_destination_panel != null:
-		recommended_destination_panel.visible = has_active_dispatch
+		recommended_destination_panel.visible = _should_show_recommendations()
 
 	if manual_destination_line_edit != null and has_active_dispatch \
 			and manual_destination_line_edit.text.strip_edges().is_empty():
 		manual_destination_line_edit.text = str(recommended_destinations[0]) \
 			if not recommended_destinations.is_empty() else ""
 	_set_button_text(verify_destination_button, "验证地址")
-	_set_label_text(destination_status_label, _build_idle_destination_status())
 	_set_floor_overview("", false)
 	_set_dispatch_evaluation("", false)
 	_set_label_text(
@@ -347,7 +345,7 @@ func _on_destination_text_changed(_new_text: String) -> void:
 	verified_destination = ""
 	is_destination_verified = false
 	is_destination_recognized = false
-	_set_label_text(destination_status_label, _build_idle_destination_status())
+	_set_label_text(destination_feedback_label, "目标已变更，请重新验证地址。")
 	_set_floor_overview("", false)
 	_set_dispatch_evaluation("", false)
 
@@ -356,7 +354,6 @@ func _verify_destination() -> void:
 	var destination: String = _get_current_destination()
 	if destination.is_empty():
 		_set_label_text(destination_feedback_label, "请输入目标楼层。")
-		_set_label_text(destination_status_label, _build_idle_destination_status())
 		_set_floor_overview("", false)
 		_set_dispatch_evaluation("", false)
 		return
@@ -367,13 +364,11 @@ func _verify_destination() -> void:
 	is_destination_recognized = floor_database.has(destination)
 
 	if not is_destination_recognized:
-		_set_label_text(destination_status_label, _build_unrecognized_status(destination))
 		_set_label_text(destination_feedback_label, "无法识别目标楼层：%s。" % destination)
 		_set_floor_overview("", false)
 		_set_dispatch_evaluation("", false)
 		return
 	var floor_data: Dictionary = floor_database[destination]
-	_set_label_text(destination_status_label, _build_recognized_status(destination, floor_data))
 	_set_label_text(destination_feedback_label, "目标已验证：%s。" % destination)
 	_set_floor_overview(_build_floor_overview(destination, floor_data), true)
 	_set_dispatch_evaluation(_build_dispatch_evaluation(floor_data), _has_active_dispatch())
@@ -412,14 +407,12 @@ func _submit_destination() -> void:
 		return
 
 	_set_label_text(destination_feedback_label, "目标楼层已确认：%s。电梯正在前往该楼层。" % destination)
-	_set_label_text(destination_status_label, "目标状态：已提交\n当前目标：%s" % destination)
 	_update_dispatch_summary_label()
 
 
 func _on_elevator_movement_completed(arrived_floor: String) -> void:
 	# 移动完成时清除“正在前往”的旧提示，避免右侧保留过期运行状态。
 	_set_label_text(destination_feedback_label, "已停靠于 %s 层，舱门保持关闭。" % arrived_floor)
-	_set_label_text(destination_status_label, "目标状态：已抵达\n当前楼层：%s" % arrived_floor)
 	_update_dispatch_summary_label()
 
 
@@ -430,16 +423,25 @@ func _get_current_destination() -> String:
 	return manual_destination_line_edit.text.strip_edges()
 
 
-func _build_recognized_status(destination: String, _floor_data: Dictionary) -> String:
-	return "目标状态：已验证\n已验证楼层：%s" % destination
-
-
 func _get_recommended_destinations() -> Array:
 	if demo_flow_manager != null:
 		var destinations: Array = demo_flow_manager.get_current_recommended_destinations()
 		if not destinations.is_empty():
 			return destinations
 	return RECOMMENDED_DESTINATIONS
+
+
+func _should_show_recommendations() -> bool:
+	# 乘客上梯后显示正式推荐；接乘阶段则只显示乘客所在楼层。
+	if demo_flow_manager == null:
+		return false
+	if demo_flow_manager.is_passenger_onboard():
+		return true
+	return demo_flow_manager.get_case_phase() in [
+		"WAITING_FOR_PICKUP",
+		"ARRIVED_AT_PICKUP",
+		"DOOR_GREETING_DONE",
+	]
 
 
 func add_recommended_floor(floor_id: String) -> void:
@@ -491,22 +493,6 @@ func _get_floor_book_entries() -> Array:
 		if not case_book_entries.is_empty():
 			return case_book_entries
 	return FLOOR_BOOK_ENTRIES
-
-
-func _build_unrecognized_status(destination: String) -> String:
-	return "目标状态：无法验证\n待验证楼层：%s" % destination
-
-
-func _build_idle_destination_status() -> String:
-	if demo_flow_manager != null:
-		var active_target: String = demo_flow_manager.get_target_floor()
-		if not active_target.is_empty():
-			return "目标状态：已提交\n当前目标：%s" % active_target
-		if demo_flow_manager.get_movement_state() == DemoFlowManager.MovementState.ARRIVED:
-			return "目标状态：已抵达\n当前楼层：%s" % demo_flow_manager.get_current_floor()
-	if _has_active_dispatch():
-		return "目标状态：等待验证\n乘客已在舱内，请确认目标楼层。"
-	return "目标状态：自由查询\n当前未建立乘客派单。"
 
 
 func _build_floor_overview(destination: String, floor_data: Dictionary) -> String:

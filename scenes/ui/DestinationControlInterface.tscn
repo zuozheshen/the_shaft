@@ -90,17 +90,6 @@ autowrap_mode = 2
 layout_mode = 2
 text = "查看楼层索引书"
 
-[node name="DestinationStatusPanel" type="PanelContainer" parent="RootMargin/DestinationLayout" unique_id=897540669]
-layout_mode = 2
-
-[node name="DestinationStatusLabel" type="Label" parent="RootMargin/DestinationLayout/DestinationStatusPanel" unique_id=1479404367]
-layout_mode = 2
-text = "目标确认状态：未验证
-待验证楼层：900
-与当前派单的关联度：待评估
-通行评估：等待验证
-稳定度：待评估"
-
 [node name="DestinationFeedbackLabel" type="Label" parent="RootMargin/DestinationLayout" unique_id=1936292264]
 layout_mode = 2
 text = "请选择推荐楼层，或手动输入目标楼层。"
