@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FloorCatalog" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/catalogs/floor_catalog.gd" id="1_catalog"]
+[ext_resource type="Script" path="res://scripts/data/definitions/floor_definition.gd" id="2_definition"]
+[ext_resource type="Resource" path="res://data/floors/floor_900.tres" id="3_900"]
+[ext_resource type="Resource" path="res://data/floors/floor_742.tres" id="4_742"]
+[ext_resource type="Resource" path="res://data/floors/floor_612.tres" id="5_612"]
+[ext_resource type="Resource" path="res://data/floors/floor_004.tres" id="6_004"]
+[ext_resource type="Resource" path="res://data/floors/floor_387.tres" id="7_387"]
+[ext_resource type="Resource" path="res://data/floors/floor_392.tres" id="8_392"]
+[ext_resource type="Resource" path="res://data/floors/floor_547.tres" id="9_547"]
+
+[resource]
+script = ExtResource("1_catalog")
+floors = Array[ExtResource("2_definition")]([ExtResource("3_900"), ExtResource("4_742"), ExtResource("5_612"), ExtResource("6_004"), ExtResource("7_387"), ExtResource("8_392"), ExtResource("9_547")])

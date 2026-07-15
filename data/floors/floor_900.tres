@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FloorDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/definitions/floor_definition.gd" id="1_definition"]
+
+[resource]
+script = ExtResource("1_definition")
+floor_id = &"900"
+display_name = "居民事务柜台层"
+description = "居民事务柜台层。这里处理迁入、合并、岗位登记、异常路线复核和临时身份牌回收。"
+function_description = "登记复核、居民事务、派单申诉、身份状态更新。"
+maintenance_history = "该层柜台灯网曾因长期开启出现白斑频闪，后改为恒定冷白照明。"
+book_note = "等待区座椅很少，叫号错过后需重新取号。"
+book_order = 10

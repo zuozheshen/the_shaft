@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FloorDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/definitions/floor_definition.gd" id="1_definition"]
+
+[resource]
+script = ExtResource("1_definition")
+floor_id = &"547"
+display_name = "普通办公层"
+description = "普通办公层。文件窗口、值班室和小会议间沿走廊排列。"
+function_description = "办公、会议、文件处理、内部人员通行。"
+maintenance_history = "曾因楼层编号牌更换导致短期导航混乱。"
+book_note = "信息较完整，但缺少近期状态记录。"
+book_order = 70

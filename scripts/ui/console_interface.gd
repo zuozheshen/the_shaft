@@ -5,7 +5,6 @@ class_name ConsoleInterface
 signal return_requested
 
 
-const PASSENGER_001_DIALOGUE_PATH := "res://dialogues/passengers/passenger_001.dialogue"
 const DialogueManagerAdapterScript := preload("res://scripts/dialogue/dialogue_manager_adapter.gd")
 
 const CAMERA_NAMES: Array[String] = [
@@ -46,7 +45,6 @@ const CAMERA_NAMES: Array[String] = [
 ]
 
 var demo_flow_manager: DemoFlowManager
-var destination_control_interface: DestinationControlInterface
 var dialogue_manager_adapter: DialogueManagerAdapter
 var current_camera_index: int = 0
 var mic_enabled: bool = false
@@ -123,10 +121,6 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 		demo_flow_manager.case_updated.connect(_refresh_case_display)
 	_update_dialogue_buttons()
 	_refresh_case_display()
-
-
-func set_destination_control_interface(destination_interface: DestinationControlInterface) -> void:
-	destination_control_interface = destination_interface
 
 
 func show_main_console() -> void:
@@ -213,7 +207,7 @@ func _start_dialogue_manager_passenger() -> bool:
 	dm_choices.clear()
 	_begin_dm_front_hint_batch()
 	if dialogue_manager_adapter != null:
-		dialogue_manager_adapter.start_dialogue(PASSENGER_001_DIALOGUE_PATH, start_title)
+		dialogue_manager_adapter.start_dialogue(_get_current_dispatch_dialogue_path(), start_title)
 	return true
 
 
@@ -352,9 +346,8 @@ func _on_dm_status_hint_requested(text: String) -> void:
 
 func _on_dm_floor_unlock_requested(floor_id: String) -> void:
 	var normalized_floor_id: String = floor_id.strip_edges()
-	if destination_control_interface != null:
-		destination_control_interface.add_recommended_floor(normalized_floor_id)
-	elif demo_flow_manager != null:
+	# Dialogue mutation 直接修改派单状态，右台通过 case_updated 自动刷新。
+	if demo_flow_manager != null:
 		demo_flow_manager.add_recommended_destination(normalized_floor_id)
 	if not normalized_floor_id.is_empty() and normalized_floor_id not in dm_pending_unlocked_floor_ids:
 		dm_pending_unlocked_floor_ids.append(normalized_floor_id)
@@ -398,16 +391,23 @@ func _show_destination_feedback_for_current_floor() -> void:
 	# 到站本身不触发乘客反馈；只有玩家开门时才按当前楼层读取 destination_xxx。
 	if demo_flow_manager == null or not demo_flow_manager.is_passenger_onboard():
 		return
-	if dialogue_manager_adapter != null:
-		var title: String = "destination_%s" % demo_flow_manager.get_current_floor()
-		dm_dialogue_started = true
-		dm_dialogue_finished = false
-		dm_choices.clear()
-		_begin_dm_front_hint_batch()
-		if dialogue_manager_adapter.dialogue_resource == null:
-			dialogue_manager_adapter.start_dialogue(PASSENGER_001_DIALOGUE_PATH, title)
-		else:
-			dialogue_manager_adapter.show_title(title)
+	var current_floor: String = demo_flow_manager.get_current_floor()
+	if demo_flow_manager.get_selected_target_floor() != current_floor:
+		return
+	if dialogue_manager_adapter == null:
+		return
+	# 同一派单的抵达反馈只允许触发一次，重复开门不会重复播放对白。
+	if not demo_flow_manager.try_mark_arrival_triggered():
+		return
+	var title: String = "destination_%s" % current_floor
+	dm_dialogue_started = true
+	dm_dialogue_finished = false
+	dm_choices.clear()
+	_begin_dm_front_hint_batch()
+	if dialogue_manager_adapter.dialogue_resource == null:
+		dialogue_manager_adapter.start_dialogue(_get_current_dispatch_dialogue_path(), title)
+	else:
+		dialogue_manager_adapter.show_title(title)
 
 
 func _format_dialogue_character(character: String) -> String:
@@ -416,12 +416,19 @@ func _format_dialogue_character(character: String) -> String:
 	return character
 
 
+func _get_current_dispatch_dialogue_path() -> String:
+	if demo_flow_manager == null:
+		return ""
+	return demo_flow_manager.get_dispatch_dialogue_path()
+
+
 func _get_phase_passenger_line() -> String:
 	if demo_flow_manager == null:
 		return "乘客舱音频链路待机。"
 	var phase: String = demo_flow_manager.get_case_phase()
 	if phase == "ARRIVED_AT_PICKUP":
-		return str(demo_flow_manager.get_pickup_data().get("outside_audio_idle", "门外音频链路已开启。"))
+		var outside_audio_idle: String = demo_flow_manager.get_outside_audio_idle()
+		return outside_audio_idle if not outside_audio_idle.is_empty() else "门外音频链路已开启。"
 	if phase == "BOARDING_WAIT_DOOR_CLOSE":
 		return demo_flow_manager.get_after_open_line()
 	if phase == "PASSENGER_ONBOARD":

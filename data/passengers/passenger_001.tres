@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="PassengerDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/definitions/passenger_definition.gd" id="1_passenger"]
+
+[resource]
+script = ExtResource("1_passenger")
+passenger_id = &"passenger_001"
+system_name = "M. ROWAN"
+display_name = "罗文"
+archive_text = """
+姓名：M. ROWAN
+常用称呼：罗文
+登记状态：TEMPORARY SUPPORT / 待复核
+风险标记：LOW
+当前派单：{dispatch}
+平均停留：12 MIN
+
+近期路线：
+612 → 900 / APPROVED / 未完成复核
+612 → 900 / APPROVED / 未完成复核
+612 → 900 / APPROVED / 未完成复核
+
+备注：
+该乘客近期路线重复率异常。
+多次抵达 900 外等待区后未完成柜台复核。
+服务区相关记录存在纸质缺口。"""

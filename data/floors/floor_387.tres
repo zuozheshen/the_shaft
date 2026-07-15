@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FloorDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/definitions/floor_definition.gd" id="1_definition"]
+
+[resource]
+script = ExtResource("1_definition")
+floor_id = &"387"
+display_name = "旧记录存放层"
+description = "旧记录存放层。纸柜、过期派单、班表副本和居民申诉回执在这里低频存放。"
+function_description = "纸质记录存储、旧档案转运、人工复查、过期柜清理。"
+maintenance_history = "该层曾发生多次归档编号错位，风扇长期开启以降低纸张受潮。"
+book_note = "找不到电子记录时，先看第三排铁柜。"
+book_order = 50

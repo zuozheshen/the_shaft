@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FloorDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/definitions/floor_definition.gd" id="1_definition"]
+
+[resource]
+script = ExtResource("1_definition")
+floor_id = &"004"
+display_name = "低层服务区"
+description = "低层服务区。空气里常有洗洁精、湿灰和热汤混在一起的味道。旧暖柜、回收餐盘车和拖把桶靠墙排放。"
+function_description = "后勤转运、餐具回收、夜班临时发餐、低层服务人员通行。"
+maintenance_history = "早期曾作为备用疏散层，后来改成服务与维护混合区。部分暖柜编号与终端记录不一致。"
+book_note = "纸质索引特别标注：004 前缀零不可省略。"
+book_order = 40

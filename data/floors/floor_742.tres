@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FloorDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/definitions/floor_definition.gd" id="1_definition"]
+
+[resource]
+script = ExtResource("1_definition")
+floor_id = &"742"
+display_name = "中继等待层"
+description = "中继等待层。长距离调度中常被用作临时停靠点，走廊里有旧热水器和三排塑料候椅。"
+function_description = "临时等待、路线复核、短时停留、乘客缓冲。"
+maintenance_history = "该层广播曾延迟三秒，后来被调低，但热水器一直没有更换。"
+book_note = "旧版索引边角写着：杯子要自带。"
+book_order = 20

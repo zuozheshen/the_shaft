@@ -29,7 +29,6 @@ var current_direction: int = FacingDirection.FRONT
 func _ready() -> void:
 	# 控制器负责把流程管理器交给操作台，并监听操作台发出的退出请求。
 	console_interface.set_demo_flow_manager(demo_flow_manager)
-	console_interface.set_destination_control_interface(destination_control_interface)
 	console_interface.return_requested.connect(_exit_console)
 	# LEFT 使用独立建筑终端，并沿用 FRONT 的返回流程恢复操作间。
 	building_terminal_interface.set_demo_flow_manager(demo_flow_manager)

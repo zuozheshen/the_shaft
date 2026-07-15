@@ -45,15 +45,15 @@ text = "系统推荐楼层："
 
 [node name="RecommendedDestinationButton1" type="Button" parent="RootMargin/DestinationLayout/RecommendedDestinationPanel/RecommendedDestinationLayout" unique_id=475463531]
 layout_mode = 2
-text = "900"
+text = "—"
 
 [node name="RecommendedDestinationButton2" type="Button" parent="RootMargin/DestinationLayout/RecommendedDestinationPanel/RecommendedDestinationLayout" unique_id=364650850]
 layout_mode = 2
-text = "742"
+text = "—"
 
 [node name="RecommendedDestinationButton3" type="Button" parent="RootMargin/DestinationLayout/RecommendedDestinationPanel/RecommendedDestinationLayout" unique_id=1488497665]
 layout_mode = 2
-text = "612"
+text = "—"
 
 [node name="ManualInputPanel" type="PanelContainer" parent="RootMargin/DestinationLayout" unique_id=143807259]
 layout_mode = 2

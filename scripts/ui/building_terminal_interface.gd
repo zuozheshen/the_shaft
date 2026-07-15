@@ -76,35 +76,18 @@ func _show_record_tab() -> void:
 
 
 func _build_record_content() -> String:
-	# RECORD 只从 current_case 生成；缺少流程管理器时明确提示数据不可用。
+	# RECORD 读取乘客永久档案；当前派单号只在显示时替换，不改写资源。
 	if demo_flow_manager == null:
 		return "乘客档案\n\n数据源未连接：无法读取当前乘客记录。"
 
-	var passenger_record: Dictionary = demo_flow_manager.get_passenger_record()
-	if passenger_record.is_empty():
+	var archive_text: String = demo_flow_manager.get_passenger_archive_text()
+	if archive_text.is_empty():
 		return "乘客档案\n\n当前案例未提供乘客记录。"
 
-	var record_lines := PackedStringArray([
-		"乘客档案",
-		"",
-		"姓名：%s" % passenger_record.get("name", demo_flow_manager.get_passenger_name()),
-		"常用称呼：%s" % passenger_record.get("display_name", "罗文"),
-		"登记状态：%s" % passenger_record.get("registration_status", "UNKNOWN"),
-		"风险标记：%s" % passenger_record.get("risk_tag", "UNKNOWN"),
-		"当前派单：%s" % demo_flow_manager.get_dispatch_text(),
-		"平均停留：%s" % passenger_record.get("average_stay", "UNKNOWN"),
-		"",
-		"近期路线：",
-	])
-	var recent_routes: Array = passenger_record.get("recent_routes", [])
-	for route in recent_routes:
-		record_lines.append(str(route))
-
-	record_lines.append("")
-	record_lines.append("备注：")
-	record_lines.append(str(passenger_record.get("note", "暂无备注。")))
-
-	return "\n".join(record_lines)
+	return "乘客档案\n\n%s" % archive_text.replace(
+		"{dispatch}",
+		demo_flow_manager.get_dispatch_text()
+	)
 
 
 func _show_transcript_tab() -> void:
@@ -134,7 +117,7 @@ func _show_system_log_tab() -> void:
 
 
 func _get_front_dialogue_history() -> Array[String]:
-	# dialogue_history 专供 LEFT 的 TRANSCRIPT，后续会由 PassengerCase 替换。
+	# dialogue_history 专供 LEFT 的 TRANSCRIPT，后续由 UIHistoryState 管理。
 	if demo_flow_manager == null:
 		push_warning("BuildingTerminalInterface: Cannot read dialogue without DemoFlowManager.")
 		var empty_history: Array[String] = []
