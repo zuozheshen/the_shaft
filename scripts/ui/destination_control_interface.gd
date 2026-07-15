@@ -5,103 +5,6 @@ class_name DestinationControlInterface
 signal return_requested
 
 
-const RECOMMENDED_DESTINATIONS: Array[String] = ["612"]
-
-# Issue 9 的临时楼层数据库；后续会替换为正式楼层数据资源。
-# 楼层编号始终按字符串处理，确保 004 之类的编号不会丢失前导零。
-const FLOOR_DATABASE: Dictionary = {
-	"900": {
-		"overview": "居民事务柜台与登记复核区域。",
-		"relation": "94%",
-		"stability": "基本稳定",
-	},
-	"742": {
-		"overview": "中继等待与短时路线复核区域。",
-		"relation": "78%",
-		"stability": "轻微波动",
-	},
-	"612": {
-		"overview": "居住与基础服务混合区域。",
-		"relation": "63%",
-		"stability": "稳定",
-	},
-	"004": {
-		"overview": "低层后勤服务与设备暂存区域。",
-		"relation": "48%",
-		"stability": "中等波动",
-	},
-	"387": {
-		"overview": "纸质旧记录与人工复查资料存放区域。",
-		"relation": "29%",
-		"stability": "轻微波动",
-	},
-	"392": {
-		"overview": "常规办公与短时通行区域。",
-		"relation": "0%",
-		"stability": "稳定",
-	},
-	"547": {
-		"overview": "内部办公、会议与文件处理区域。",
-		"relation": "0%",
-		"stability": "基本稳定",
-	},
-}
-
-# Issue 10 的临时纸质索引数据，与负责系统验证的 FLOOR_DATABASE 分开维护。
-# 书页只保存纸面资料，不包含关联度、通行评估、稳定度或系统提示。
-const FLOOR_BOOK_ENTRIES: Array[Dictionary] = [
-	{
-		"number": "900",
-		"intro": "派单记录中的目标层，常用于标准人员交接与登记确认。",
-		"function": "登记、交接、身份复核、短暂停留。",
-		"history": "该层曾在多次垂直调度异常后作为稳定参照层使用。",
-		"note": "纸质索引内容可能滞后于建筑当前状态。",
-	},
-	{
-		"number": "742",
-		"intro": "中继楼层，常见于长距离垂直调度中的临时停靠。",
-		"function": "中继等待、人员重新编号、短时路线复核。",
-		"history": "曾因照明频闪与广播延迟被短暂停用，后恢复为有限通行层。",
-		"note": "部分旧版索引将该层标为“等待层”。",
-	},
-	{
-		"number": "612",
-		"intro": "当前派单起始相关层，靠近普通居住与服务混合区。",
-		"function": "居民登记、基础服务、短程派单生成。",
-		"history": "多次门控校准记录显示，该层门外等待区存在轻微延迟。",
-		"note": "该层记录常被用作派单起点参考。",
-	},
-	{
-		"number": "004",
-		"intro": "低层服务区，位于旧维护系统附近。",
-		"function": "后勤转运、旧设备暂存、低层人员通行。",
-		"history": "早期曾作为备用疏散层使用，后被改为服务与维护混合区。",
-		"note": "纸质索引中对该层描述较少，部分信息可能缺失。",
-	},
-	{
-		"number": "387",
-		"intro": "旧记录存放层，保留大量过期派单、登记与复核资料。",
-		"function": "纸质记录存储、过期档案转运、人工复查。",
-		"history": "该层曾发生多次归档编号错位，后改为低频访问区域。",
-		"note": "部分乘客记录可能仍指向该层的旧档案柜。",
-	},
-	{
-		"number": "392",
-		"intro": "普通通行层，服务于常规办公与短时停留。",
-		"function": "办公、通行、临时等待。",
-		"history": "最近一次维护记录显示通风系统调整完成。",
-		"note": "未发现与当前派单直接相关的纸质标记。",
-	},
-	{
-		"number": "547",
-		"intro": "普通办公层，主要供内部人员使用。",
-		"function": "办公、会议、文件处理。",
-		"history": "该层曾因楼层编号牌更换导致短期导航混乱。",
-		"note": "纸质索引中该层信息较完整，但缺少近期状态记录。",
-	},
-]
-
-
 # 场景结构已固定，直接引用节点；节点改名或移动时 Godot 会直接报出明确错误。
 @onready var root_margin: MarginContainer = $RootMargin
 @onready var title_label: Label = $RootMargin/DestinationLayout/TitleLabel
@@ -231,10 +134,10 @@ func _initialize_destination_text() -> void:
 	_set_button_text(verify_destination_button, "验证地址")
 	_set_floor_overview("", false)
 	_set_dispatch_evaluation("", false)
-	_set_label_text(
-		destination_feedback_label,
-		"请选择推荐楼层，或手动输入目标楼层。"
-	)
+	var feedback_text: String = "请选择推荐楼层，或手动输入目标楼层。"
+	if demo_flow_manager == null:
+		feedback_text = "数据源未连接：无法读取楼层与派单信息。"
+	_set_label_text(destination_feedback_label, feedback_text)
 	_set_button_text(submit_destination_button, "前往该楼层")
 	_set_button_text(return_button, "返回操作间")
 	_set_button_text(open_floor_book_button, "查看楼层索引书")
@@ -309,7 +212,12 @@ func _set_floor_book_visibility(book_is_open: bool) -> void:
 func _update_floor_book_display() -> void:
 	var floor_book_entries: Array = _get_floor_book_entries()
 	if floor_book_entries.is_empty():
-		push_warning("DestinationControlInterface: Floor book has no entries to display.")
+		_set_label_text(floor_book_page_label, "数据源未连接")
+		_set_label_text(floor_book_number_label, "楼层编号：—")
+		_set_label_text(floor_book_intro_label, "楼层介绍：无法读取")
+		_set_label_text(floor_book_function_label, "主要功能：无法读取")
+		_set_label_text(floor_book_history_label, "维修历史：无法读取")
+		_set_label_text(floor_book_note_label, "备注：请检查 DemoFlowManager 连接。")
 		return
 
 	var entry: Dictionary = floor_book_entries[current_book_page_index]
@@ -424,11 +332,9 @@ func _get_current_destination() -> String:
 
 
 func _get_recommended_destinations() -> Array:
-	if demo_flow_manager != null:
-		var destinations: Array = demo_flow_manager.get_current_recommended_destinations()
-		if not destinations.is_empty():
-			return destinations
-	return RECOMMENDED_DESTINATIONS
+	if demo_flow_manager == null:
+		return []
+	return demo_flow_manager.get_current_recommended_destinations()
 
 
 func _should_show_recommendations() -> bool:
@@ -479,20 +385,15 @@ func _update_dispatch_summary_label() -> void:
 
 
 func _get_floor_database() -> Dictionary:
-	# 正常运行读取 current_case；常量只用于流程管理器缺失时防止场景崩溃。
-	if demo_flow_manager != null:
-		var case_floor_database: Dictionary = demo_flow_manager.get_floor_database()
-		if not case_floor_database.is_empty():
-			return case_floor_database
-	return FLOOR_DATABASE
+	if demo_flow_manager == null:
+		return {}
+	return demo_flow_manager.get_floor_database()
 
 
 func _get_floor_book_entries() -> Array:
-	if demo_flow_manager != null:
-		var case_book_entries: Array = demo_flow_manager.get_floor_book_entries()
-		if not case_book_entries.is_empty():
-			return case_book_entries
-	return FLOOR_BOOK_ENTRIES
+	if demo_flow_manager == null:
+		return []
+	return demo_flow_manager.get_floor_book_entries()
 
 
 func _build_floor_overview(destination: String, floor_data: Dictionary) -> String:

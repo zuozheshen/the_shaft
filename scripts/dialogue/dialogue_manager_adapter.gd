@@ -12,14 +12,12 @@ signal door_greeting_done_requested
 
 var dialogue_resource: DialogueResource
 var current_line: DialogueLine
-var current_resource_path: String = ""
 var pending_open_door_reply: String = ""
 var pending_close_door_reply: String = ""
 
 
 func start_dialogue(resource_path: String, title: String = "start") -> void:
 	# 同一个 DialogueResource 会在后续 next_id 中持续复用，避免对话状态被重新创建。
-	current_resource_path = resource_path
 	dialogue_resource = load(resource_path) as DialogueResource
 	current_line = null
 
@@ -60,15 +58,6 @@ func show_title(title: String) -> void:
 func show_destination_feedback(floor_id: String) -> void:
 	# 楼层反馈统一约定为 destination_楼层号，例如 destination_900。
 	await show_title("destination_%s" % floor_id.strip_edges())
-
-
-func get_response_text(index: int) -> String:
-	if current_line == null or index < 0 or index >= current_line.responses.size():
-		return ""
-	var response: DialogueResponse = current_line.responses[index] as DialogueResponse
-	if response == null:
-		return ""
-	return response.text
 
 
 func _load_line(line_id: String) -> void:

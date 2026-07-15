@@ -4,7 +4,6 @@ class_name DemoFlowManager
 
 # 状态变化后通知界面等监听者，避免其他节点反复查询流程状态。
 signal case_updated
-signal destination_submitted(destination: String)
 signal elevator_movement_completed(arrived_floor: String)
 
 
@@ -42,10 +41,7 @@ var current_case: Dictionary = {
 	"pickup_floor": "612",
 	"passenger_onboard": false,
 	"door_greeting_done": false,
-	"pickup_completed": false,
 	"cabin_door_closed_after_boarding": false,
-	"submitted_destination": "",
-	"destination_feedback_shown": false,
 	"passenger_record": {
 		"name": "M. ROWAN",
 		"display_name": "罗文",
@@ -66,7 +62,6 @@ var current_case: Dictionary = {
 var front_dialogue_history: Array[String] = []
 var system_message_history: Array[String] = []
 var current_building_status_hint: String = "暂无系统消息。"
-var has_unread_status_hint: bool = false
 var runtime_recommended_destinations: Array[String] = []
 
 
@@ -93,7 +88,6 @@ func _configure_issue_12_case() -> void:
 	# 第一位乘客暂用内置案例数据；后续由正式 CaseManager / JSON 替换。
 	current_case["pickup"] = {
 		"floor": "612",
-		"arrival_feedback": "已前往接乘楼层：612。请回到主操作台，使用门外摄像头确认乘客。",
 		"arrival_status_hint": "电梯已被指派至 612 层接乘点。建议使用门外摄像头确认乘客状态。",
 		"outside_audio_idle": "门外音频链路已开启。",
 		"after_open_line": "乘客：谢谢。门关上以后再说吧。",
@@ -123,10 +117,6 @@ func _configure_issue_12_case() -> void:
 			"画面占位：乘客站在舱内。她抱着一个旧饭盒，胸牌翻在外套里面。",
 			"画面占位：612 层门外切片。自动售卖机灯牌闪烁，等待区已空。",
 		],
-		"DESTINATION_CONFIRMED": [
-			"画面占位：乘客站在舱内。她抱着一个旧饭盒，正在等待电梯执行目标。",
-			"画面占位：门外等待区已空。",
-		],
 	}
 	current_case["front_phase_texts"] = {
 		"WAITING_FOR_PICKUP": {"state": "当前状态：等待接乘", "task": "当前任务：前往 {pickup_floor} 层接乘"},
@@ -134,11 +124,6 @@ func _configure_issue_12_case() -> void:
 		"DOOR_GREETING_DONE": {"state": "当前状态：门外乘客已回应", "task": "当前任务：开启舱门完成接乘"},
 		"BOARDING_WAIT_DOOR_CLOSE": {"state": "当前状态：乘客已进入，等待关门", "task": "当前任务：关闭舱门后继续询问"},
 		"PASSENGER_ONBOARD": {"state": "当前状态：舱内询问中", "task": "当前任务：询问乘客自述目标并验证楼层"},
-		"DESTINATION_CONFIRMED": {"state": "当前状态：目标已提交", "task": "已提交目标：{submitted_destination_or_none}"},
-	}
-	current_case["right_phase_texts"] = {
-		"PICKUP": {"task": "当前任务：前往 {pickup_floor} 层接乘"},
-		"ONBOARD": {"task": "当前任务：验证并提交正式目标楼层"},
 	}
 	current_case["recommended_destination_rules"] = {
 		"pickup_phases": ["WAITING_FOR_PICKUP", "ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE", "BOARDING_WAIT_DOOR_CLOSE"],
@@ -195,7 +180,6 @@ func get_current_building_status_hint() -> String:
 
 func set_building_status_hint(
 		hint: String,
-		mark_unread: bool = true,
 		include_in_history: bool = true,
 		history_text: String = ""
 ) -> void:
@@ -205,16 +189,14 @@ func set_building_status_hint(
 	if include_in_history:
 		var message_text: String = history_text if not history_text.is_empty() else hint
 		_append_system_message(message_text)
-	has_unread_status_hint = mark_unread
 	case_updated.emit()
 
 
-func add_system_log_message(message_text: String, mark_unread: bool = true) -> void:
+func add_system_log_message(message_text: String) -> void:
 	# 仅写入左侧历史，不覆盖 FRONT 当前正在显示的短提示。
 	if message_text.is_empty():
 		return
 	_append_system_message(message_text)
-	has_unread_status_hint = mark_unread
 	case_updated.emit()
 
 
@@ -229,24 +211,6 @@ func get_system_message_history() -> Array[String]:
 	var history_copy: Array[String] = []
 	history_copy.assign(system_message_history)
 	return history_copy
-
-
-func has_unread_building_status_hint() -> bool:
-	return has_unread_status_hint
-
-
-func clear_unread_building_status_hint() -> void:
-	has_unread_status_hint = false
-	case_updated.emit()
-
-
-# 以下方法是当前案例的临时访问接口，正式数据层接入后可保持 UI 调用方式不变。
-func get_current_case() -> Dictionary:
-	return current_case.duplicate(true)
-
-
-func get_case_id() -> String:
-	return str(current_case.get("case_id", ""))
 
 
 func get_passenger_name() -> String:
@@ -270,10 +234,6 @@ func get_pickup_data() -> Dictionary:
 func get_pickup_floor() -> String:
 	var pickup: Dictionary = current_case.get("pickup", {})
 	return str(pickup.get("floor", current_case.get("pickup_floor", "")))
-
-
-func get_pickup_arrival_feedback() -> String:
-	return str(current_case.get("pickup", {}).get("arrival_feedback", ""))
 
 
 func get_pickup_arrival_status_hint() -> String:
@@ -317,26 +277,9 @@ func get_front_phase_text(phase: String) -> Dictionary:
 	return text_data
 
 
-func get_right_phase_task_text() -> String:
-	var right_phase_texts: Dictionary = current_case.get("right_phase_texts", {})
-	var text_key: String = "ONBOARD" if get_case_phase() in ["PASSENGER_ONBOARD", "DESTINATION_CONFIRMED"] else "PICKUP"
-	var text_data: Dictionary = right_phase_texts.get(text_key, {})
-	return _format_case_text(str(text_data.get("task", "")))
-
-
 func _format_case_text(template: String) -> String:
-	# 集中替换案例占位符，UI 不需要知道接乘楼层或已提交目标的具体值。
-	var submitted_destination: String = get_submitted_destination()
-	# 接乘楼层提交只代表电梯抵达起点，乘客登舱后尚未选择正式目标。
-	if get_case_phase() == "PASSENGER_ONBOARD" and submitted_destination == get_pickup_floor():
-		submitted_destination = ""
-	var destination_or_none: String = submitted_destination if not submitted_destination.is_empty() else "暂无"
-	var formatted_text: String = template.replace(
-		"{submitted_destination_or_none}", destination_or_none
-	)
-	formatted_text = formatted_text.replace("{submitted_destination}", submitted_destination)
-	formatted_text = formatted_text.replace("{pickup_floor}", get_pickup_floor())
-	return formatted_text
+	# 主操作台阶段文案目前只使用接乘楼层占位符。
+	return template.replace("{pickup_floor}", get_pickup_floor())
 
 
 func get_dispatch_from() -> String:
@@ -375,18 +318,15 @@ func get_target_floor() -> String:
 	return target_floor
 
 
-func get_movement_state() -> MovementState:
-	return movement_state
-
-
 func get_movement_state_text() -> String:
+	var door_text: String = "舱门开启" if cabin_door_is_open else "舱门关闭"
 	match movement_state:
 		MovementState.MOVING:
-			return "运行中"
+			return "运行中，舱门关闭"
 		MovementState.ARRIVED:
-			return "已停靠，舱门关闭"
+			return "已停靠，%s" % door_text
 		_:
-			return "待命，舱门关闭"
+			return "待命，%s" % door_text
 
 
 func is_elevator_moving() -> bool:
@@ -415,7 +355,7 @@ func request_elevator_movement(destination: String) -> bool:
 
 	target_floor = requested_floor
 	movement_state = MovementState.MOVING
-	set_building_status_hint("电梯正在前往 %s 层。" % target_floor, true)
+	set_building_status_hint("电梯正在前往 %s 层。" % target_floor)
 	if movement_timer != null:
 		movement_timer.start()
 	return true
@@ -439,27 +379,14 @@ func _complete_elevator_movement() -> void:
 		set_building_status_hint(
 			get_pickup_arrival_status_hint(),
 			true,
-			true,
 			"已抵达接乘楼层。\n等待乘客确认。"
 		)
 	elif not is_passenger_onboard() and get_case_phase() in ["ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE"]:
 		set_case_phase("WAITING_FOR_PICKUP")
-		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % current_floor, true)
+		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % current_floor)
 	else:
-		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % current_floor, true)
+		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % current_floor)
 	elevator_movement_completed.emit(current_floor)
-
-
-func get_submitted_destination() -> String:
-	return str(current_case.get("submitted_destination", ""))
-
-
-func set_submitted_destination(destination: String) -> void:
-	# 目标仍按字符串保存，避免 004 这样的正式楼层编号丢失前导零。
-	current_case["submitted_destination"] = destination.strip_edges()
-	current_case["destination_feedback_shown"] = false
-	case_updated.emit()
-	destination_submitted.emit(get_submitted_destination())
 
 
 func get_case_phase() -> String:
@@ -486,11 +413,6 @@ func is_door_greeting_done() -> bool:
 
 func set_door_greeting_done(value: bool) -> void:
 	current_case["door_greeting_done"] = value
-	case_updated.emit()
-
-
-func set_pickup_completed(value: bool) -> void:
-	current_case["pickup_completed"] = value
 	case_updated.emit()
 
 

@@ -25,28 +25,29 @@ const CAMERA_NAMES: Array[String] = [
 @onready var system_hint_label: Label = %SystemHintLabel
 @onready var return_button: Button = %ReturnButton
 
-# 新增节点在运行时安全查找，缺少单个占位节点不会阻止 Issue 5 的旧功能运行。
-var passenger_monitor_panel: Control
-var dispatch_info_label: Label
-var route_suggestion_label: Label
-var monitor_title_label: Label
-var camera_name_label: Label
-var monitor_feed_label: Label
-var passenger_speech_label: Label
-var previous_camera_button: Button
-var next_camera_button: Button
-var intercom_panel: Control
-var mic_status_label: Label
-var talk_button: Button
-var dialogue_choice_panel: Control
-var dialogue_prompt_label: Label
-var dialogue_choice_buttons: Array[Button] = []
-var building_alert_label: Label
+@onready var passenger_monitor_panel: Control = $ConsoleLayout/PassengerMonitorPanel
+@onready var dispatch_info_label: Label = $ConsoleLayout/DispatchPanel/DispatchInfoLabel
+@onready var monitor_title_label: Label = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorTitleLabel
+@onready var camera_name_label: Label = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/CameraNameLabel
+@onready var monitor_feed_label: Label = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel/MonitorScreenLayout/MonitorFeedLabel
+@onready var passenger_speech_label: Label = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel/MonitorScreenLayout/PassengerSpeechLabel
+@onready var previous_camera_button: Button = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/CameraControlPanel/PrevCameraButton
+@onready var next_camera_button: Button = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/CameraControlPanel/NextCameraButton
+@onready var intercom_panel: Control = $ConsoleLayout/IntercomPanel
+@onready var mic_status_label: Label = $ConsoleLayout/IntercomPanel/IntercomLayout/MicStatusLabel
+@onready var talk_button: Button = $ConsoleLayout/IntercomPanel/IntercomLayout/TalkButton
+@onready var dialogue_choice_panel: Control = $ConsoleLayout/DialogueChoicePanel
+@onready var dialogue_prompt_label: Label = $ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout/DialoguePromptLabel
+@onready var dialogue_choice_buttons: Array[Button] = [
+	$ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout/DialogueChoiceButton1,
+	$ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout/DialogueChoiceButton2,
+	$ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout/DialogueChoiceButton3,
+	$ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout/DialogueChoiceButton4,
+]
 
 var demo_flow_manager: DemoFlowManager
 var destination_control_interface: DestinationControlInterface
 var dialogue_manager_adapter: DialogueManagerAdapter
-var active_console_type: String = ""
 var current_camera_index: int = 0
 var mic_enabled: bool = false
 var current_passenger_line: String = "乘客舱音频链路待机。"
@@ -57,7 +58,6 @@ var dm_pending_status_hint_update: bool = false
 var dm_pending_unlocked_floor_ids: Array[String] = []
 
 func _ready() -> void:
-	_cache_front_interaction_nodes()
 	_create_dialogue_manager_adapter()
 	# 三个门控按钮共用处理函数，同时把操作同步给 LEFT 的临时事件缓存。
 	open_door_button.pressed.connect(_handle_open_door)
@@ -81,52 +81,15 @@ func _create_dialogue_manager_adapter() -> void:
 	dialogue_manager_adapter.door_greeting_done_requested.connect(_on_dm_door_greeting_done_requested)
 
 
-func _cache_front_interaction_nodes() -> void:
-	passenger_monitor_panel = _find_optional_node("PassengerMonitorPanel") as Control
-	dispatch_info_label = find_child("DispatchInfoLabel", true, false) as Label
-	# 该旧栏位可能由场景手工删除，因此不通过会报警的必需节点查找。
-	route_suggestion_label = find_child("RouteSuggestionLabel", true, false) as Label
-	if route_suggestion_label != null:
-		route_suggestion_label.hide()
-	monitor_title_label = _find_optional_node("MonitorTitleLabel") as Label
-	camera_name_label = _find_optional_node("CameraNameLabel") as Label
-	monitor_feed_label = _find_optional_node("MonitorFeedLabel") as Label
-	passenger_speech_label = _find_optional_node("PassengerSpeechLabel") as Label
-	previous_camera_button = _find_optional_node("PrevCameraButton") as Button
-	next_camera_button = _find_optional_node("NextCameraButton") as Button
-	intercom_panel = _find_optional_node("IntercomPanel") as Control
-	mic_status_label = _find_optional_node("MicStatusLabel") as Label
-	talk_button = _find_optional_node("TalkButton") as Button
-	dialogue_choice_panel = _find_optional_node("DialogueChoicePanel") as Control
-	dialogue_prompt_label = _find_optional_node("DialoguePromptLabel") as Label
-	building_alert_label = _find_optional_node("BuildingAlertLabel") as Label
-
-	for choice_number in range(1, 5):
-		var choice_button := _find_optional_node(
-			"DialogueChoiceButton%d" % choice_number
-		) as Button
-		if choice_button != null:
-			dialogue_choice_buttons.append(choice_button)
-
-
-func _find_optional_node(node_name: String) -> Node:
-	var found_node: Node = find_child(node_name, true, false)
-	if found_node == null:
-		push_warning("ConsoleInterface: Missing optional node '%s'." % node_name)
-	return found_node
-
-
 func _connect_front_interaction_signals() -> void:
 	# 两个摄像头按钮现在是直接选择，不再按上一台/下一台循环。
 	var cabin_camera_callback: Callable = _select_camera.bind(0)
 	var door_camera_callback: Callable = _select_camera.bind(1)
-	if previous_camera_button != null \
-			and not previous_camera_button.pressed.is_connected(cabin_camera_callback):
+	if not previous_camera_button.pressed.is_connected(cabin_camera_callback):
 		previous_camera_button.pressed.connect(cabin_camera_callback)
-	if next_camera_button != null \
-			and not next_camera_button.pressed.is_connected(door_camera_callback):
+	if not next_camera_button.pressed.is_connected(door_camera_callback):
 		next_camera_button.pressed.connect(door_camera_callback)
-	if talk_button != null and not talk_button.pressed.is_connected(_toggle_microphone):
+	if not talk_button.pressed.is_connected(_toggle_microphone):
 		talk_button.pressed.connect(_toggle_microphone)
 
 	for choice_index in dialogue_choice_buttons.size():
@@ -144,14 +107,11 @@ func _initialize_front_interaction() -> void:
 	dm_choices.clear()
 	current_passenger_line = "乘客舱音频链路待机。"
 
-	if monitor_title_label != null:
-		monitor_title_label.text = "乘客舱主监控 / PASSENGER CABIN FEED"
-	if dialogue_prompt_label != null:
-		dialogue_prompt_label.text = "选择对乘客的回应："
+	monitor_title_label.text = "乘客舱主监控 / PASSENGER CABIN FEED"
+	dialogue_prompt_label.text = "选择对乘客的回应："
 	_update_camera_display()
 	_update_microphone_display()
 	_update_dialogue_buttons()
-	_update_building_alert()
 	_update_dispatch_panel()
 
 
@@ -169,38 +129,23 @@ func set_destination_control_interface(destination_interface: DestinationControl
 	destination_control_interface = destination_interface
 
 
-func show_console(
-		console_type: String,
-		console_name: String,
-		console_description: String
-) -> void:
-	# FRONT 是主调度台，需要显示调度、门控和流程按钮；其他方向只显示各自说明。
-	var is_main_dispatch_console: bool = console_type == "FRONT"
-	active_console_type = console_type
-	title_label.text = console_name
-	description_label.text = "乘客接乘、证据复核与门控。" \
-		if is_main_dispatch_console else console_description
-	dispatch_panel.visible = is_main_dispatch_console
-	door_control_panel.visible = is_main_dispatch_console
-	system_hint_label.visible = is_main_dispatch_console
-	if passenger_monitor_panel != null:
-		passenger_monitor_panel.visible = is_main_dispatch_console
-	if intercom_panel != null:
-		intercom_panel.visible = is_main_dispatch_console
-	if dialogue_choice_panel != null and not is_main_dispatch_console:
-		dialogue_choice_panel.hide()
+func show_main_console() -> void:
+	# LEFT 与 RIGHT 使用独立界面，ConsoleInterface 只负责 FRONT 主调度台。
+	title_label.text = "主调度台"
+	description_label.text = "乘客接乘、证据复核与门控。"
+	dispatch_panel.show()
+	door_control_panel.show()
+	system_hint_label.show()
+	passenger_monitor_panel.show()
+	intercom_panel.show()
 	_update_dialogue_visibility()
 
-	if is_main_dispatch_console and demo_flow_manager != null:
+	if demo_flow_manager != null:
 		_update_dispatch_panel()
 		_refresh_case_display()
 
 	show()
-	# 默认焦点跟随当前操作台类型，键盘玩家可直接继续操作或返回。
-	if is_main_dispatch_console:
-		open_door_button.grab_focus()
-	else:
-		return_button.grab_focus()
+	open_door_button.grab_focus()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -227,10 +172,8 @@ func _select_camera(camera_index: int) -> void:
 
 
 func _update_camera_display() -> void:
-	if camera_name_label != null:
-		camera_name_label.text = CAMERA_NAMES[current_camera_index]
-	if monitor_feed_label != null:
-		monitor_feed_label.text = _get_phase_camera_feed(current_camera_index)
+	camera_name_label.text = CAMERA_NAMES[current_camera_index]
+	monitor_feed_label.text = _get_phase_camera_feed(current_camera_index)
 
 
 func _get_phase_camera_feed(camera_index: int) -> String:
@@ -288,23 +231,16 @@ func _get_dialogue_manager_start_title() -> String:
 
 
 func _update_microphone_display() -> void:
-	if mic_status_label != null:
-		mic_status_label.text = "麦克风：开启" if mic_enabled else "麦克风：关闭"
-	if talk_button != null:
-		talk_button.text = "关闭麦克风" if mic_enabled else "开启麦克风"
-	if passenger_speech_label != null:
-		var should_show_passenger_line: bool = mic_enabled or dm_dialogue_started
-		passenger_speech_label.text = current_passenger_line \
-			if should_show_passenger_line else "乘客舱音频链路待机。"
+	mic_status_label.text = "麦克风：开启" if mic_enabled else "麦克风：关闭"
+	talk_button.text = "关闭麦克风" if mic_enabled else "开启麦克风"
+	var should_show_passenger_line: bool = mic_enabled or dm_dialogue_started
+	passenger_speech_label.text = current_passenger_line \
+		if should_show_passenger_line else "乘客舱音频链路待机。"
 	_update_dialogue_visibility()
 
 
 func _update_dialogue_visibility() -> void:
-	if dialogue_choice_panel == null:
-		return
-
-	var is_front_visible: bool = passenger_monitor_panel != null \
-		and passenger_monitor_panel.visible
+	var is_front_visible: bool = passenger_monitor_panel.visible
 	# 对话区不再要求特定摄像头；摄像头只提供不同证据画面。
 	var can_select_dialogue: bool = is_front_visible and mic_enabled \
 		and dm_dialogue_started \
@@ -315,8 +251,6 @@ func _update_dialogue_visibility() -> void:
 	if not dialogue_choice_panel.visible:
 		return
 
-	if dialogue_prompt_label == null:
-		return
 	_update_dialogue_manager_buttons()
 
 
@@ -342,12 +276,10 @@ func _update_dialogue_manager_buttons() -> void:
 		choice_button.text = ""
 
 	if dm_dialogue_finished:
-		if dialogue_prompt_label != null:
-			dialogue_prompt_label.text = "当前通话已结束。"
+		dialogue_prompt_label.text = "当前通话已结束。"
 		return
 
-	if dialogue_prompt_label != null:
-		dialogue_prompt_label.text = "选择对乘客的回应："
+	dialogue_prompt_label.text = "选择对乘客的回应："
 	for choice_index in dialogue_choice_buttons.size():
 		var has_choice: bool = choice_index < dm_choices.size()
 		var choice_button := dialogue_choice_buttons[choice_index]
@@ -413,7 +345,7 @@ func _on_dm_dialogue_finished() -> void:
 func _on_dm_status_hint_requested(text: String) -> void:
 	# DM 的详细判断写入 LEFT 系统日志；FRONT 只显示短操作提示，避免复读正文。
 	if demo_flow_manager != null:
-		demo_flow_manager.set_building_status_hint(text, true)
+		demo_flow_manager.set_building_status_hint(text)
 	dm_pending_status_hint_update = true
 	_apply_dm_front_hint_batch()
 
@@ -436,8 +368,6 @@ func _begin_dm_front_hint_batch() -> void:
 
 
 func _apply_dm_front_hint_batch() -> void:
-	if system_hint_label == null:
-		return
 	var unlocked_floor_labels := PackedStringArray()
 	for floor_id in dm_pending_unlocked_floor_ids:
 		unlocked_floor_labels.append(floor_id)
@@ -462,7 +392,6 @@ func _on_dm_door_greeting_done_requested() -> void:
 	demo_flow_manager.set_case_phase("DOOR_GREETING_DONE")
 	_update_dialogue_buttons()
 	_update_dialogue_visibility()
-	_update_building_alert()
 
 
 func _show_destination_feedback_for_current_floor() -> void:
@@ -495,7 +424,7 @@ func _get_phase_passenger_line() -> String:
 		return str(demo_flow_manager.get_pickup_data().get("outside_audio_idle", "门外音频链路已开启。"))
 	if phase == "BOARDING_WAIT_DOOR_CLOSE":
 		return demo_flow_manager.get_after_open_line()
-	if phase in ["PASSENGER_ONBOARD", "DESTINATION_CONFIRMED"]:
+	if phase == "PASSENGER_ONBOARD":
 		# 乘客对正式目标楼层的反馈统一来自 .dialogue 的 destination_xxx 标题。
 		return current_passenger_line
 	return "乘客舱音频链路待机。"
@@ -503,13 +432,12 @@ func _get_phase_passenger_line() -> String:
 
 func _show_system_hint(hint_text: String) -> void:
 	# FRONT 的短提示不自动写入历史，避免左侧日志重复玩家刚完成的操作。
-	if system_hint_label != null:
-		system_hint_label.text = hint_text
+	system_hint_label.text = hint_text
 
 
 func _record_system_log(message_text: String) -> void:
 	if demo_flow_manager != null:
-		demo_flow_manager.add_system_log_message(message_text, true)
+		demo_flow_manager.add_system_log_message(message_text)
 
 
 func _handle_open_door() -> void:
@@ -518,6 +446,9 @@ func _handle_open_door() -> void:
 		return
 	if demo_flow_manager.is_elevator_moving():
 		_show_system_hint("电梯正在运行中，无法开门。")
+		return
+	if demo_flow_manager.is_cabin_door_open():
+		_show_system_hint("舱门已经开启。")
 		return
 
 	var phase: String = demo_flow_manager.get_case_phase()
@@ -529,7 +460,6 @@ func _handle_open_door() -> void:
 	demo_flow_manager.set_cabin_door_open(true)
 	if phase == "DOOR_GREETING_DONE":
 		demo_flow_manager.set_passenger_onboard(true)
-		demo_flow_manager.set_pickup_completed(true)
 		demo_flow_manager.set_cabin_door_closed_after_boarding(false)
 		demo_flow_manager.set_case_phase("BOARDING_WAIT_DOOR_CLOSE")
 		dm_dialogue_started = false
@@ -541,7 +471,7 @@ func _handle_open_door() -> void:
 		_update_camera_display()
 		_update_dialogue_buttons()
 		_update_microphone_display()
-		if passenger_speech_label != null and not dialogue_reply_applied:
+		if not dialogue_reply_applied:
 			passenger_speech_label.text = current_passenger_line
 	elif phase == "PASSENGER_ONBOARD" and demo_flow_manager.is_cabin_door_closed_after_boarding():
 		_show_destination_feedback_for_current_floor()
@@ -553,6 +483,9 @@ func _handle_open_door() -> void:
 func _handle_close_door() -> void:
 	print("Door action: 关门")
 	if demo_flow_manager == null:
+		return
+	if not demo_flow_manager.is_cabin_door_open():
+		_show_system_hint("舱门已经关闭。")
 		return
 	demo_flow_manager.set_cabin_door_open(false)
 	var dialogue_reply_applied: bool = _apply_dialogue_door_reply(false)
@@ -567,13 +500,13 @@ func _handle_close_door() -> void:
 	if not dialogue_reply_applied:
 		current_passenger_line = demo_flow_manager.get_after_close_line()
 	_show_system_hint(demo_flow_manager.get_after_close_hint())
-	demo_flow_manager.set_building_status_hint(demo_flow_manager.get_after_close_status_hint(), true)
+	demo_flow_manager.set_building_status_hint(demo_flow_manager.get_after_close_status_hint())
 	if mic_enabled:
 		_start_dialogue_manager_passenger()
 	_update_camera_display()
 	_update_dialogue_buttons()
 	_update_microphone_display()
-	if passenger_speech_label != null and not dialogue_reply_applied:
+	if not dialogue_reply_applied:
 		passenger_speech_label.text = current_passenger_line
 
 
@@ -586,7 +519,7 @@ func _apply_dialogue_door_reply(is_open_action: bool) -> bool:
 	if reply.is_empty():
 		return false
 	current_passenger_line = reply
-	if passenger_speech_label != null and mic_enabled:
+	if mic_enabled:
 		passenger_speech_label.text = current_passenger_line
 	if demo_flow_manager != null:
 		demo_flow_manager.add_front_transcript_passenger(current_passenger_line)
@@ -602,12 +535,6 @@ func _refresh_case_display() -> void:
 	if demo_flow_manager != null:
 		# 即使存在快捷键或旧场景连接，运行中也不能执行开门。
 		open_door_button.disabled = demo_flow_manager.is_elevator_moving()
-	if demo_flow_manager != null and demo_flow_manager.get_case_phase() == "DESTINATION_CONFIRMED":
-		current_passenger_line = _get_phase_passenger_line()
-		_update_microphone_display()
-		if passenger_speech_label != null:
-			passenger_speech_label.text = current_passenger_line
-	_update_building_alert()
 
 
 func _clear_pickup_dialogue_after_departure() -> void:
@@ -625,37 +552,20 @@ func _clear_pickup_dialogue_after_departure() -> void:
 	_update_microphone_display()
 
 
-func _update_building_alert() -> void:
-	if building_alert_label == null:
-		if demo_flow_manager != null \
-				and demo_flow_manager.has_unread_building_status_hint() \
-				and system_hint_label != null \
-				and system_hint_label.text.is_empty():
-			# 缺少专用 Label 时也只显示短提醒，不把 LEFT 系统日志正文搬到 FRONT。
-			_show_system_hint("系统判断已更新，请查看左侧系统日志。")
-		return
-	var has_unread: bool = demo_flow_manager != null \
-		and demo_flow_manager.has_unread_building_status_hint()
-	building_alert_label.text = "建筑终端：有新复核提示" if has_unread \
-		else "建筑终端：无新提示"
-
-
 func _update_dispatch_panel() -> void:
 	if demo_flow_manager == null:
 		return
 	var phase: String = demo_flow_manager.get_case_phase()
 	var phase_text: Dictionary = demo_flow_manager.get_front_phase_text(phase)
-	if state_label != null:
-		state_label.text = str(phase_text.get("state", ""))
-	if dispatch_info_label != null:
-		var task_text: String = str(phase_text.get("task", ""))
-		# 乘客未登舱前不在主操作台暴露身份；接乘点仅显示待处理任务。
-		if demo_flow_manager.is_passenger_onboard():
-			dispatch_info_label.text = "当前乘客：%s\n%s" % [
-				demo_flow_manager.get_passenger_label(), task_text,
-			]
-		else:
-			dispatch_info_label.text = task_text
+	state_label.text = str(phase_text.get("state", ""))
+	var task_text: String = str(phase_text.get("task", ""))
+	# 乘客未登舱前不在主操作台暴露身份；接乘点仅显示待处理任务。
+	if demo_flow_manager.is_passenger_onboard():
+		dispatch_info_label.text = "当前乘客：%s\n%s" % [
+			demo_flow_manager.get_passenger_label(), task_text,
+		]
+	else:
+		dispatch_info_label.text = task_text
 
 
 func _is_key_pressed(event: InputEvent, key: Key) -> bool:

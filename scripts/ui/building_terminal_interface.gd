@@ -5,23 +5,6 @@ class_name BuildingTerminalInterface
 signal return_requested
 
 
-const FALLBACK_RECORD_CONTENT: String = """乘客档案
-
-姓名：M. ROWAN
-登记状态：UNREGISTERED
-风险标记：LOW
-当前派单：612 → 900
-平均停留：2 MIN
-
-近期路线：
-612 → 900 / APPROVED
-612 → 900 / APPROVED
-612 → 900 / APPROVED
-
-备注：
-该乘客近期路线重复率异常。
-当前自述与历史目的地不完全一致。"""
-
 const EMPTY_TRANSCRIPT_CONTENT: String = """对话记录
 
 暂无通话转写。
@@ -93,13 +76,13 @@ func _show_record_tab() -> void:
 
 
 func _build_record_content() -> String:
-	# RECORD 从 current_case 生成；流程管理器缺失时才退回旧占位文本。
+	# RECORD 只从 current_case 生成；缺少流程管理器时明确提示数据不可用。
 	if demo_flow_manager == null:
-		return FALLBACK_RECORD_CONTENT
+		return "乘客档案\n\n数据源未连接：无法读取当前乘客记录。"
 
 	var passenger_record: Dictionary = demo_flow_manager.get_passenger_record()
 	if passenger_record.is_empty():
-		return FALLBACK_RECORD_CONTENT
+		return "乘客档案\n\n当前案例未提供乘客记录。"
 
 	var record_lines := PackedStringArray([
 		"乘客档案",
@@ -121,10 +104,6 @@ func _build_record_content() -> String:
 	record_lines.append("备注：")
 	record_lines.append(str(passenger_record.get("note", "暂无备注。")))
 
-	var submitted_destination: String = demo_flow_manager.get_submitted_destination()
-	if not submitted_destination.is_empty():
-		record_lines.append("")
-		record_lines.append("当前已提交目标：%s" % submitted_destination)
 	return "\n".join(record_lines)
 
 
@@ -152,8 +131,6 @@ func _show_system_log_tab() -> void:
 	for message_text in message_history:
 		log_lines.append(message_text)
 	_set_content("\n\n".join(log_lines), "已读取本轮系统通信历史。")
-	if demo_flow_manager != null:
-		demo_flow_manager.clear_unread_building_status_hint()
 
 
 func _get_front_dialogue_history() -> Array[String]:

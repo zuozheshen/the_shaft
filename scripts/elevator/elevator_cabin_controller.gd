@@ -13,12 +13,6 @@ enum FacingDirection {
 const DIRECTION_NAMES: Array[String] = ["FRONT", "RIGHT", "BACK", "LEFT"]
 const FACING_OBJECTS: Array[String] = ["主调度台", "目标楼层控制台", "后方舱壁", "建筑终端"]
 
-const CONSOLE_DESCRIPTIONS: Dictionary = {
-	FacingDirection.FRONT: "这里以后显示派单、路线建议和门控。",
-	FacingDirection.RIGHT: "这里用于确认系统推荐或手动输入的目标楼层。",
-	FacingDirection.LEFT: "这里显示系统日志、乘客档案和对话记录。",
-}
-
 var current_direction: int = FacingDirection.FRONT
 
 # 使用场景中的唯一节点名取得界面引用，集中声明便于新手看清控制器依赖。
@@ -92,11 +86,7 @@ func _interact_with_facing_object() -> void:
 		cabin_view.hide()
 		return
 
-	console_interface.show_console(
-		DIRECTION_NAMES[current_direction],
-		FACING_OBJECTS[current_direction],
-		CONSOLE_DESCRIPTIONS[current_direction]
-	)
+	console_interface.show_main_console()
 	cabin_view.hide()
 
 
