@@ -16,6 +16,14 @@ var pending_open_door_reply: String = ""
 var pending_close_door_reply: String = ""
 
 
+func reset_dialogue() -> void:
+	# 切换派单时清掉资源和门控缓存，避免下一名乘客沿用上一段对话。
+	dialogue_resource = null
+	current_line = null
+	pending_open_door_reply = ""
+	pending_close_door_reply = ""
+
+
 func start_dialogue(resource_path: String, title: String = "start") -> void:
 	# 同一个 DialogueResource 会在后续 next_id 中持续复用，避免对话状态被重新创建。
 	dialogue_resource = load(resource_path) as DialogueResource

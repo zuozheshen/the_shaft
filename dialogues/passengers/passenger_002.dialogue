@@ -1,0 +1,21 @@
+~ start
+=> pickup_start
+
+~ pickup_start
+Passenger: 我是 900 层等待交接的维修支援，工具包已经登记。
+- 已确认。可以进舱。
+	do mark_door_greeting_done()
+	Passenger: 收到，我在门外等你开门。
+	=> END
+
+~ onboard_start
+Passenger: 我去 742 层交接这套工具，登记目的地也是 742。
+- 目标已确认。
+	do status_hint("乘客自述与派单默认目标一致：742 层。")
+	Passenger: 好，我会在到站后直接离舱。
+	=> END
+
+~ destination_742
+do status_hint("目标 742 已确认。技术测试派单按标准路线完成送达。")
+Passenger: 到了。交接点就在走廊里面，谢谢。
+=> END

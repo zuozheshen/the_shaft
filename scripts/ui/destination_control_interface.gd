@@ -59,8 +59,31 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 		demo_flow_manager.case_updated.connect(_refresh_case_display)
 	if not demo_flow_manager.elevator_movement_completed.is_connected(_on_elevator_movement_completed):
 		demo_flow_manager.elevator_movement_completed.connect(_on_elevator_movement_completed)
+	if not demo_flow_manager.dispatch_started.is_connected(_on_dispatch_started):
+		demo_flow_manager.dispatch_started.connect(_on_dispatch_started)
+	if not demo_flow_manager.shift_completed.is_connected(_on_shift_completed):
+		demo_flow_manager.shift_completed.connect(_on_shift_completed)
 	# 子节点 ready 后才注入共享流程，因此这里再次刷新案例相关文字。
 	_initialize_destination_text()
+
+
+func _on_dispatch_started(_dispatch_id: StringName) -> void:
+	# 新派单保留电梯位置，但清掉上一单的输入、验证和派单评估。
+	if manual_destination_line_edit != null:
+		manual_destination_line_edit.clear()
+	_set_floor_overview("", false)
+	_set_dispatch_evaluation("", false)
+	_set_label_text(destination_feedback_label, "新派单已加载，请选择或输入目标楼层。")
+	_refresh_case_display()
+
+
+func _on_shift_completed() -> void:
+	if manual_destination_line_edit != null:
+		manual_destination_line_edit.clear()
+	_set_floor_overview("", false)
+	_set_dispatch_evaluation("", false)
+	_set_label_text(destination_feedback_label, "本轮派单已完成；仍可输入已登记楼层自由移动。")
+	_refresh_case_display()
 
 
 func _refresh_case_display() -> void:
@@ -346,7 +369,7 @@ func _get_recommended_destinations() -> Array:
 
 func _should_show_recommendations() -> bool:
 	# 乘客上梯后显示正式推荐；接乘阶段则只显示乘客所在楼层。
-	if demo_flow_manager == null:
+	if demo_flow_manager == null or not demo_flow_manager.has_active_dispatch():
 		return false
 	if demo_flow_manager.is_passenger_onboard():
 		return true

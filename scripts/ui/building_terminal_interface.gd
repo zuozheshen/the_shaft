@@ -37,7 +37,19 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 	if demo_flow_manager == null:
 		push_warning("BuildingTerminalInterface: DemoFlowManager is not connected.")
 		return
+	if not demo_flow_manager.dispatch_started.is_connected(_on_dispatch_started):
+		demo_flow_manager.dispatch_started.connect(_on_dispatch_started)
+	if not demo_flow_manager.shift_completed.is_connected(_on_shift_completed):
+		demo_flow_manager.shift_completed.connect(_on_shift_completed)
 	# 父节点完成依赖注入后刷新一次，补上子节点 ready 时尚未取得的共享事件。
+	_show_system_log_tab()
+
+
+func _on_dispatch_started(_dispatch_id: StringName) -> void:
+	_show_system_log_tab()
+
+
+func _on_shift_completed() -> void:
 	_show_system_log_tab()
 
 
@@ -79,6 +91,8 @@ func _build_record_content() -> String:
 	# RECORD 读取乘客永久档案；当前派单号只在显示时替换，不改写资源。
 	if demo_flow_manager == null:
 		return "乘客档案\n\n数据源未连接：无法读取当前乘客记录。"
+	if not demo_flow_manager.has_active_dispatch():
+		return "乘客档案\n\n暂无当前乘客。"
 
 	var archive_text: String = demo_flow_manager.get_passenger_archive_text()
 	if archive_text.is_empty():

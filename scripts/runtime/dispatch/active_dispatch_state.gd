@@ -13,6 +13,7 @@ var passenger_inside: bool = false
 var arrival_triggered: bool = false
 var door_greeting_done: bool = false
 var cabin_door_closed_after_boarding: bool = false
+var dropoff_feedback_finished: bool = false
 
 var _recommended_floor_ids: Array[StringName] = []
 
