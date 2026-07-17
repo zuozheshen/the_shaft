@@ -63,6 +63,7 @@ var dm_pending_status_hint_update: bool = false
 var dm_pending_unlocked_floor_ids: Array[String] = []
 var current_dialogue_context: DialogueContext = DialogueContext.NONE
 var current_dialogue_context_finished: bool = false
+var embedded_3d_mode: bool = false
 
 func _ready() -> void:
 	_create_dialogue_manager_adapter()
@@ -123,8 +124,12 @@ func _initialize_front_interaction() -> void:
 
 
 func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
+	if demo_flow_manager == flow_manager:
+		return
+	_disconnect_demo_flow_manager()
 	demo_flow_manager = flow_manager
 	if demo_flow_manager == null:
+		push_warning("ConsoleInterface: DemoFlowManager is not connected.")
 		return
 	if not demo_flow_manager.case_updated.is_connected(_refresh_case_display):
 		demo_flow_manager.case_updated.connect(_refresh_case_display)
@@ -137,6 +142,19 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 	_reset_dispatch_ui_state()
 	_update_dialogue_buttons()
 	_refresh_case_display()
+
+
+func _disconnect_demo_flow_manager() -> void:
+	if demo_flow_manager == null:
+		return
+	if demo_flow_manager.case_updated.is_connected(_refresh_case_display):
+		demo_flow_manager.case_updated.disconnect(_refresh_case_display)
+	if demo_flow_manager.dispatch_started.is_connected(_on_dispatch_started):
+		demo_flow_manager.dispatch_started.disconnect(_on_dispatch_started)
+	if demo_flow_manager.dispatch_completed.is_connected(_on_dispatch_completed):
+		demo_flow_manager.dispatch_completed.disconnect(_on_dispatch_completed)
+	if demo_flow_manager.shift_completed.is_connected(_on_shift_completed):
+		demo_flow_manager.shift_completed.disconnect(_on_shift_completed)
 
 
 func _on_dispatch_started(_dispatch_id: StringName) -> void:
@@ -189,8 +207,18 @@ func show_main_console() -> void:
 	open_door_button.grab_focus()
 
 
+# 3D 模式只关闭旧的“退出操作台”入口，不改变旧 2D 场景的默认行为。
+func set_embedded_3d_mode(is_enabled: bool) -> void:
+	embedded_3d_mode = is_enabled
+	if return_button != null:
+		return_button.visible = not is_enabled
+		return_button.disabled = is_enabled
+		if is_enabled:
+			return_button.release_focus()
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	if not visible:
+	if not visible or embedded_3d_mode:
 		return
 
 	# 操作台可用 Esc（ui_cancel）或 S 退出，与舱内进入操作形成清晰对应。
@@ -201,6 +229,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _request_return() -> void:
 	# 界面只发送退出意图，具体恢复舱内视图由外层控制器负责。
+	if embedded_3d_mode:
+		return
 	return_requested.emit()
 
 

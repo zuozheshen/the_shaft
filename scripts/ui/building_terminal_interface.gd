@@ -24,6 +24,7 @@ const EMPTY_SYSTEM_LOG_CONTENT: String = "暂无系统通信记录。"
 @onready var return_button: Button = $TerminalLayout/ReturnButton
 
 var demo_flow_manager: DemoFlowManager
+var embedded_3d_mode: bool = false
 
 
 func _ready() -> void:
@@ -33,6 +34,9 @@ func _ready() -> void:
 
 
 func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
+	if demo_flow_manager == flow_manager:
+		return
+	_disconnect_demo_flow_manager()
 	demo_flow_manager = flow_manager
 	if demo_flow_manager == null:
 		push_warning("BuildingTerminalInterface: DemoFlowManager is not connected.")
@@ -43,6 +47,15 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 		demo_flow_manager.shift_completed.connect(_on_shift_completed)
 	# 父节点完成依赖注入后刷新一次，补上子节点 ready 时尚未取得的共享事件。
 	_show_system_log_tab()
+
+
+func _disconnect_demo_flow_manager() -> void:
+	if demo_flow_manager == null:
+		return
+	if demo_flow_manager.dispatch_started.is_connected(_on_dispatch_started):
+		demo_flow_manager.dispatch_started.disconnect(_on_dispatch_started)
+	if demo_flow_manager.shift_completed.is_connected(_on_shift_completed):
+		demo_flow_manager.shift_completed.disconnect(_on_shift_completed)
 
 
 func _on_dispatch_started(_dispatch_id: StringName) -> void:
@@ -59,6 +72,16 @@ func show_terminal() -> void:
 	show()
 	if system_log_tab_button != null:
 		system_log_tab_button.grab_focus()
+
+
+# 旧返回按钮仅在 2D 舱体中使用；3D 实例通过 Q / E 直接切换朝向。
+func set_embedded_3d_mode(is_enabled: bool) -> void:
+	embedded_3d_mode = is_enabled
+	if return_button != null:
+		return_button.visible = not is_enabled
+		return_button.disabled = is_enabled
+		if is_enabled:
+			return_button.release_focus()
 
 
 func _connect_terminal_signals() -> void:
@@ -164,11 +187,13 @@ func _set_button_text(button: Button, new_text: String) -> void:
 
 func _request_return() -> void:
 	# 与 FRONT 相同，界面只通知外层控制器恢复电梯操作间。
+	if embedded_3d_mode:
+		return
 	return_requested.emit()
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not visible:
+	if not visible or embedded_3d_mode:
 		return
 	if event.is_action_pressed("ui_cancel") or _is_key_pressed(event, KEY_S):
 		_request_return()

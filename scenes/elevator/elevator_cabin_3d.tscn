@@ -1,0 +1,156 @@
+[gd_scene format=3 uid="uid://pfkh2fdm64ga"]
+
+[ext_resource type="Script" uid="uid://bfnx7v1oyqct0" path="res://scripts/elevator/cabin_view_controller_3d.gd" id="1_wegik"]
+[ext_resource type="PackedScene" uid="uid://dwgr21xrksmb4" path="res://scenes/ui/ConsoleInterface.tscn" id="2_laov4"]
+[ext_resource type="PackedScene" uid="uid://2mxpahaa3nm2" path="res://scenes/ui/BuildingTerminalInterface.tscn" id="3_tyhlv"]
+[ext_resource type="PackedScene" uid="uid://wet3ybwny70j" path="res://scenes/ui/DestinationControlInterface.tscn" id="4_rx0mt"]
+[ext_resource type="Script" path="res://scripts/ui/cabin_interface_router_3d.gd" id="5_router"]
+
+[node name="三维操作舱" type="Node3D" unique_id=699471354]
+script = ExtResource("1_wegik")
+
+[node name="灰盒环境" type="Node3D" parent="." unique_id=408541640]
+
+[node name="地面" type="CSGBox3D" parent="灰盒环境" unique_id=120851442]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+size = Vector3(6, 0.2, 6)
+
+[node name="天花板" type="CSGBox3D" parent="灰盒环境" unique_id=1367294192]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1, 0)
+size = Vector3(6, 0.2, 6)
+
+[node name="前墙" type="CSGBox3D" parent="灰盒环境" unique_id=1372158968]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -3)
+size = Vector3(6, 3, 0.2)
+
+[node name="后墙" type="CSGBox3D" parent="灰盒环境" unique_id=125213659]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 3)
+size = Vector3(6, 3, 0.2)
+
+[node name="左墙" type="CSGBox3D" parent="灰盒环境" unique_id=847244142]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1.5, 0)
+size = Vector3(0.2, 3, 6)
+
+[node name="右墙" type="CSGBox3D" parent="灰盒环境" unique_id=2006808390]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.5, 0)
+size = Vector3(0.2, 3, 6)
+
+[node name="操作台占位" type="Node3D" parent="." unique_id=181656154]
+
+[node name="主操作台" type="CSGBox3D" parent="操作台占位" unique_id=627889392]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, -2.4)
+size = Vector3(3.2, 1.3, 0.8)
+
+[node name="左操作台" type="CSGBox3D" parent="操作台占位" unique_id=820231946]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 0.65, 0)
+size = Vector3(0.8, 1.3, 3.2)
+
+[node name="右操作台" type="CSGBox3D" parent="操作台占位" unique_id=370481032]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, 0.65, 0)
+size = Vector3(0.8, 1.3, 3.2)
+
+[node name="电梯门" type="CSGBox3D" parent="操作台占位" unique_id=1785867298]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 2.85)
+size = Vector3(2.2, 2.7, 0.15)
+
+[node name="灯光" type="Node3D" parent="." unique_id=635936352]
+
+[node name="环境光" type="WorldEnvironment" parent="灯光" unique_id=1374125310]
+
+[node name="顶灯" type="OmniLight3D" parent="灯光" unique_id=1615220384]
+
+[node name="玩家视角" type="Node3D" parent="." unique_id=309831261]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, 0)
+
+[node name="摄像机旋转轴" type="Node3D" parent="玩家视角" unique_id=1544840613]
+
+[node name="玩家摄像机" type="Camera3D" parent="玩家视角/摄像机旋转轴" unique_id=1715136786]
+current = true
+fov = 70.0
+far = 100.0
+
+[node name="观察方向" type="Node3D" parent="." unique_id=1741820516]
+
+[node name="主操作台方向" type="Marker3D" parent="观察方向" unique_id=372422750]
+
+[node name="左操作台方向" type="Marker3D" parent="观察方向" unique_id=1804484710]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, 0)
+
+[node name="电梯门方向" type="Marker3D" parent="观察方向" unique_id=2079569328]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+
+[node name="右操作台方向" type="Marker3D" parent="观察方向" unique_id=891792811]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, 0)
+
+[node name="调试界面" type="CanvasLayer" parent="." unique_id=503277580]
+
+[node name="当前方向文本" type="Label" parent="调试界面" unique_id=225948649]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 260.0
+offset_bottom = 48.0
+text = "当前方向：主操作台"
+
+[node name="操作提示文本" type="Label" parent="调试界面" unique_id=1157696205]
+offset_left = 24.0
+offset_top = 58.0
+offset_right = 260.0
+offset_bottom = 82.0
+text = "Q 左转　E 右转"
+
+[node name="操作台界面层" type="CanvasLayer" parent="." unique_id=1850028273]
+script = ExtResource("5_router")
+
+[node name="主操作台界面容器" type="Control" parent="操作台界面层" unique_id=1294954568]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ConsoleInterface" parent="操作台界面层/主操作台界面容器" unique_id=1275362082 instance=ExtResource("2_laov4")]
+layout_mode = 1
+
+[node name="左操作台界面容器" type="Control" parent="操作台界面层" unique_id=1834363644]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="BuildingTerminalInterface" parent="操作台界面层/左操作台界面容器" unique_id=217403649 instance=ExtResource("3_tyhlv")]
+layout_mode = 1
+
+[node name="右操作台界面容器" type="Control" parent="操作台界面层" unique_id=864153351]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="DestinationControlInterface" parent="操作台界面层/右操作台界面容器" unique_id=1185287254 instance=ExtResource("4_rx0mt")]
+layout_mode = 1
+
+[node name="门区提示" type="Label" parent="操作台界面层" unique_id=308266697]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -80.0
+offset_top = -118.0
+offset_right = 80.0
+offset_bottom = -61.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+text = "当前面向电梯门"
+horizontal_alignment = 1

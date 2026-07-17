@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="DispatchDefinition" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="DispatchDefinition" format=3 uid="uid://br7d7wuvwk66v"]
 
-[ext_resource type="Script" path="res://scripts/data/definitions/dispatch_definition.gd" id="1_dispatch"]
-[ext_resource type="Script" path="res://scripts/data/definitions/dispatch_floor_relation.gd" id="2_relation"]
+[ext_resource type="Script" uid="uid://dbe50mwg4lx0m" path="res://scripts/data/definitions/dispatch_definition.gd" id="1_dispatch"]
+[ext_resource type="Script" uid="uid://ddce5csl28x7p" path="res://scripts/data/definitions/dispatch_floor_relation.gd" id="2_relation"]
 
 [sub_resource type="Resource" id="DispatchFloorRelation_742"]
 script = ExtResource("2_relation")
@@ -38,13 +38,37 @@ camera_feeds = {
 "WAITING_FOR_PICKUP": ["画面占位：乘客舱内为空。", "画面占位：当前楼层暂无待接乘客。"]
 }
 front_phase_texts = {
-"ARRIVED_AT_DESTINATION": {"state": "当前状态：已抵达目标楼层", "task": "当前任务：开启舱门完成送达"},
-"ARRIVED_AT_PICKUP": {"state": "当前状态：已抵达接乘点", "task": "当前任务：确认乘客或直接开启舱门"},
-"BOARDING_WAIT_DOOR_CLOSE": {"state": "当前状态：乘客已进入，等待关门", "task": "当前任务：关闭舱门后继续询问"},
-"DOOR_GREETING_DONE": {"state": "当前状态：门外乘客已回应", "task": "当前任务：开启舱门完成接乘"},
-"DROPOFF_FEEDBACK": {"state": "当前状态：送达反馈中", "task": "当前任务：等待乘客反馈结束"},
-"DROPOFF_WAIT_DOOR_CLOSE": {"state": "当前状态：乘客已离舱", "task": "当前任务：关闭舱门完成派单"},
-"PASSENGER_ONBOARD": {"state": "当前状态：舱内询问中", "task": "当前任务：确认并验证目标楼层"},
-"WAITING_FOR_PICKUP": {"state": "当前状态：等待接乘", "task": "当前任务：前往 {pickup_floor} 层接乘"}
+"ARRIVED_AT_DESTINATION": {
+"state": "当前状态：已抵达目标楼层",
+"task": "当前任务：开启舱门完成送达"
+},
+"ARRIVED_AT_PICKUP": {
+"state": "当前状态：已抵达接乘点",
+"task": "当前任务：确认乘客或直接开启舱门"
+},
+"BOARDING_WAIT_DOOR_CLOSE": {
+"state": "当前状态：乘客已进入，等待关门",
+"task": "当前任务：关闭舱门后继续询问"
+},
+"DOOR_GREETING_DONE": {
+"state": "当前状态：门外乘客已回应",
+"task": "当前任务：开启舱门完成接乘"
+},
+"DROPOFF_FEEDBACK": {
+"state": "当前状态：送达反馈中",
+"task": "当前任务：等待乘客反馈结束"
+},
+"DROPOFF_WAIT_DOOR_CLOSE": {
+"state": "当前状态：乘客已离舱",
+"task": "当前任务：关闭舱门完成派单"
+},
+"PASSENGER_ONBOARD": {
+"state": "当前状态：舱内询问中",
+"task": "当前任务：确认并验证目标楼层"
+},
+"WAITING_FOR_PICKUP": {
+"state": "当前状态：等待接乘",
+"task": "当前任务：前往 {pickup_floor} 层接乘"
+}
 }
 floor_relations = Array[ExtResource("2_relation")]([SubResource("DispatchFloorRelation_742")])

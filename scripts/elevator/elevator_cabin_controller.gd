@@ -23,10 +23,18 @@ var current_direction: int = FacingDirection.FRONT
 @onready var console_interface: ConsoleInterface = %ConsoleInterface
 @onready var building_terminal_interface: BuildingTerminalInterface = %BuildingTerminalInterface
 @onready var destination_control_interface: DestinationControlInterface = %DestinationControlInterface
-@onready var demo_flow_manager: DemoFlowManager = get_node_or_null("../DemoFlowManager") as DemoFlowManager
+@export var game_runtime_path: NodePath = ^"../游戏运行层"
+
+@onready var game_runtime: GameRuntime = get_node_or_null(game_runtime_path) as GameRuntime
+@onready var demo_flow_manager: DemoFlowManager = game_runtime.get_demo_flow_manager() \
+		if game_runtime != null else null
 
 
 func _ready() -> void:
+	if game_runtime == null:
+		push_error("旧 2D 操作舱找不到游戏运行层：%s" % game_runtime_path)
+	elif demo_flow_manager == null:
+		push_error("旧 2D 操作舱无法取得演示流程管理器。")
 	# 控制器负责把流程管理器交给操作台，并监听操作台发出的退出请求。
 	console_interface.set_demo_flow_manager(demo_flow_manager)
 	console_interface.return_requested.connect(_exit_console)
