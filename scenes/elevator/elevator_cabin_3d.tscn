@@ -1,15 +1,10 @@
 [gd_scene format=3 uid="uid://pfkh2fdm64ga"]
 
 [ext_resource type="Script" uid="uid://bfnx7v1oyqct0" path="res://scripts/elevator/cabin_view_controller_3d.gd" id="1_wegik"]
-[ext_resource type="Material" uid="uid://nqlqs65oovpk" path="res://materials/cabin/cabin_floor_material.tres" id="2_bt1c0"]
 [ext_resource type="PackedScene" uid="uid://dwgr21xrksmb4" path="res://scenes/ui/ConsoleInterface.tscn" id="2_laov4"]
-[ext_resource type="Material" uid="uid://e2vk45vcrgba" path="res://materials/cabin/side_console_material.tres" id="3_djexe"]
 [ext_resource type="PackedScene" uid="uid://2mxpahaa3nm2" path="res://scenes/ui/BuildingTerminalInterface.tscn" id="3_tyhlv"]
 [ext_resource type="PackedScene" uid="uid://wet3ybwny70j" path="res://scenes/ui/DestinationControlInterface.tscn" id="4_rx0mt"]
-[ext_resource type="Material" uid="uid://cbx780g34lpuu" path="res://materials/cabin/main_console_material.tres" id="5_0r6a2"]
 [ext_resource type="Script" uid="uid://d3ik5m87sk8gx" path="res://scripts/ui/cabin_interface_router_3d.gd" id="5_router"]
-[ext_resource type="Material" uid="uid://dcvtr5kbqwpte" path="res://materials/cabin/screen_idle_material.tres" id="6_cymdg"]
-[ext_resource type="Material" uid="uid://coai6278sqkw0" path="res://materials/cabin/console_detail_material.tres" id="7_fkxr1"]
 [ext_resource type="Script" uid="uid://b7vbl3jrmhedx" path="res://scripts/interaction/interaction_hotspot_3d.gd" id="8_hotspot"]
 [ext_resource type="Script" uid="uid://dmivswclo885p" path="res://scripts/interaction/cabin_interaction_controller.gd" id="9_interaction"]
 
@@ -41,12 +36,10 @@ script = ExtResource("1_wegik")
 [node name="地面" type="CSGBox3D" parent="灰盒环境" unique_id=120851442]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
 size = Vector3(3.8, 0.2, 3.8)
-material = ExtResource("2_bt1c0")
 
 [node name="天花板" type="CSGBox3D" parent="灰盒环境" unique_id=1367294192]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
 size = Vector3(3.8, 0.2, 3.8)
-material = ExtResource("2_bt1c0")
 
 [node name="前墙" type="CSGBox3D" parent="灰盒环境" unique_id=1372158968]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -1.8)
@@ -72,17 +65,14 @@ size = Vector3(0.2, 2.5, 3.8)
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1.35, 0.5, -1.35)
 polygon = PackedVector2Array(-0.28, -0.5, 0.52, -0.5, 0.52, 0.9, -0.28, 0.14)
 depth = 2.7
-material = ExtResource("5_0r6a2")
 
 [node name="主台背板" type="CSGBox3D" parent="操作台占位/主操作台定位" unique_id=1574089554]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6569335, -1.64)
 size = Vector3(3, 1.5, 0.1)
-material = ExtResource("3_djexe")
 
 [node name="主台屏幕框" type="CSGBox3D" parent="操作台占位/主操作台定位" unique_id=1944041572]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6908691, -1.56)
 size = Vector3(2.55, 1, 0.05)
-material = ExtResource("6_cymdg")
 
 [node name="主台交互热点" type="Node3D" parent="操作台占位/主操作台定位" unique_id=266902568]
 
@@ -118,17 +108,14 @@ text = "MIC"
 [node name="左台背板" type="CSGBox3D" parent="操作台占位/左操作台定位" unique_id=1923443643]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.64, 1.3555053, 0)
 size = Vector3(0.1, 2.1, 3)
-material = ExtResource("3_djexe")
 
 [node name="左台屏幕框" type="CSGBox3D" parent="操作台占位/左操作台定位" unique_id=789538808]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.56, 1.55, 0)
 size = Vector3(0.05, 1.35, 2.6)
-material = ExtResource("6_cymdg")
 
 [node name="左台操作沿" type="CSGBox3D" parent="操作台占位/左操作台定位" unique_id=427055735]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.45, 0.65, 0)
 size = Vector3(0.35, 0.12, 1.8)
-material = ExtResource("7_fkxr1")
 
 [node name="电梯门" type="CSGBox3D" parent="操作台占位" unique_id=1785867298]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 2.85)
@@ -140,22 +127,18 @@ size = Vector3(2.2, 2.7, 0.15)
 [node name="右台背板" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=1643159438]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.64, 1.2850586, 0)
 size = Vector3(0.1, 2.1, 3)
-material = ExtResource("3_djexe")
 
 [node name="右台屏幕框" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=563705914]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.56, 1.65, 0)
 size = Vector3(0.05, 1, 1.6)
-material = ExtResource("6_cymdg")
 
 [node name="右台输入区" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=400004086]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.43, 0.95, 0)
 size = Vector3(0.25, 0.45, 1.4)
-material = ExtResource("7_fkxr1")
 
 [node name="右台操作沿" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=1288246358]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.38, 0.55, 0)
 size = Vector3(0.35, 0.15, 1.8)
-material = ExtResource("7_fkxr1")
 
 [node name="灯光" type="Node3D" parent="." unique_id=635936352]
 
