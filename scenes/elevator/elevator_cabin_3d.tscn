@@ -1,10 +1,37 @@
 [gd_scene format=3 uid="uid://pfkh2fdm64ga"]
 
 [ext_resource type="Script" uid="uid://bfnx7v1oyqct0" path="res://scripts/elevator/cabin_view_controller_3d.gd" id="1_wegik"]
+[ext_resource type="Material" uid="uid://nqlqs65oovpk" path="res://materials/cabin/cabin_floor_material.tres" id="2_bt1c0"]
 [ext_resource type="PackedScene" uid="uid://dwgr21xrksmb4" path="res://scenes/ui/ConsoleInterface.tscn" id="2_laov4"]
+[ext_resource type="Material" uid="uid://e2vk45vcrgba" path="res://materials/cabin/side_console_material.tres" id="3_djexe"]
 [ext_resource type="PackedScene" uid="uid://2mxpahaa3nm2" path="res://scenes/ui/BuildingTerminalInterface.tscn" id="3_tyhlv"]
 [ext_resource type="PackedScene" uid="uid://wet3ybwny70j" path="res://scenes/ui/DestinationControlInterface.tscn" id="4_rx0mt"]
-[ext_resource type="Script" path="res://scripts/ui/cabin_interface_router_3d.gd" id="5_router"]
+[ext_resource type="Material" uid="uid://cbx780g34lpuu" path="res://materials/cabin/main_console_material.tres" id="5_0r6a2"]
+[ext_resource type="Script" uid="uid://d3ik5m87sk8gx" path="res://scripts/ui/cabin_interface_router_3d.gd" id="5_router"]
+[ext_resource type="Material" uid="uid://dcvtr5kbqwpte" path="res://materials/cabin/screen_idle_material.tres" id="6_cymdg"]
+[ext_resource type="Material" uid="uid://coai6278sqkw0" path="res://materials/cabin/console_detail_material.tres" id="7_fkxr1"]
+[ext_resource type="Script" uid="uid://b7vbl3jrmhedx" path="res://scripts/interaction/interaction_hotspot_3d.gd" id="8_hotspot"]
+[ext_resource type="Script" uid="uid://dmivswclo885p" path="res://scripts/interaction/cabin_interaction_controller.gd" id="9_interaction"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_microphone"]
+size = Vector3(0.4, 0.04, 0.34)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_djexe"]
+albedo_color = Color(0.41215247, 0.41215247, 0.41215247, 1)
+metallic = 0.2
+roughness = 0.81
+
+[sub_resource type="BoxMesh" id="BoxMesh_bhunq"]
+material = SubResource("StandardMaterial3D_djexe")
+size = Vector3(0.3373413, 0.023, 0.274292)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_db77g"]
+shading_mode = 0
+albedo_color = Color(1, 0.5, 0.5, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_sn0t7"]
+material = SubResource("StandardMaterial3D_db77g")
+size = Vector3(0.34, 0.01, 0.28)
 
 [node name="三维操作舱" type="Node3D" unique_id=699471354]
 script = ExtResource("1_wegik")
@@ -13,45 +40,122 @@ script = ExtResource("1_wegik")
 
 [node name="地面" type="CSGBox3D" parent="灰盒环境" unique_id=120851442]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
-size = Vector3(6, 0.2, 6)
+size = Vector3(3.8, 0.2, 3.8)
+material = ExtResource("2_bt1c0")
 
 [node name="天花板" type="CSGBox3D" parent="灰盒环境" unique_id=1367294192]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1, 0)
-size = Vector3(6, 0.2, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+size = Vector3(3.8, 0.2, 3.8)
+material = ExtResource("2_bt1c0")
 
 [node name="前墙" type="CSGBox3D" parent="灰盒环境" unique_id=1372158968]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -3)
-size = Vector3(6, 3, 0.2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -1.8)
+size = Vector3(3.8, 2.5, 0.2)
 
 [node name="后墙" type="CSGBox3D" parent="灰盒环境" unique_id=125213659]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 3)
-size = Vector3(6, 3, 0.2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 1.8)
+size = Vector3(3.8, 2.5, 0.2)
 
 [node name="左墙" type="CSGBox3D" parent="灰盒环境" unique_id=847244142]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1.5, 0)
-size = Vector3(0.2, 3, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 1.25, 0)
+size = Vector3(0.2, 2.5, 3.8)
 
 [node name="右墙" type="CSGBox3D" parent="灰盒环境" unique_id=2006808390]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.5, 0)
-size = Vector3(0.2, 3, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 1.25, 0)
+size = Vector3(0.2, 2.5, 3.8)
 
 [node name="操作台占位" type="Node3D" parent="." unique_id=181656154]
 
-[node name="主操作台" type="CSGBox3D" parent="操作台占位" unique_id=627889392]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, -2.4)
-size = Vector3(3.2, 1.3, 0.8)
+[node name="主操作台定位" type="Node3D" parent="操作台占位" unique_id=1804053782]
 
-[node name="左操作台" type="CSGBox3D" parent="操作台占位" unique_id=820231946]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, 0.65, 0)
-size = Vector3(0.8, 1.3, 3.2)
+[node name="主操作台机身" type="CSGPolygon3D" parent="操作台占位/主操作台定位" unique_id=1725224134]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1.35, 0.5, -1.35)
+polygon = PackedVector2Array(-0.28, -0.5, 0.52, -0.5, 0.52, 0.9, -0.28, 0.14)
+depth = 2.7
+material = ExtResource("5_0r6a2")
 
-[node name="右操作台" type="CSGBox3D" parent="操作台占位" unique_id=370481032]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, 0.65, 0)
-size = Vector3(0.8, 1.3, 3.2)
+[node name="主台背板" type="CSGBox3D" parent="操作台占位/主操作台定位" unique_id=1574089554]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6569335, -1.64)
+size = Vector3(3, 1.5, 0.1)
+material = ExtResource("3_djexe")
+
+[node name="主台屏幕框" type="CSGBox3D" parent="操作台占位/主操作台定位" unique_id=1944041572]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6908691, -1.56)
+size = Vector3(2.55, 1, 0.05)
+material = ExtResource("6_cymdg")
+
+[node name="主台交互热点" type="Node3D" parent="操作台占位/主操作台定位" unique_id=266902568]
+
+[node name="麦克风热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=1122092151]
+transform = Transform3D(1, 0, 0, 0, 0.725374, -0.688355, 0, 0.688355, 0.725374, -0.72, 0.93, -1.35)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"open_microphone"
+prompt_text = "使用麦克风"
+hover_visual_path = NodePath("麦克风视觉/麦克风高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点" unique_id=548643525]
+shape = SubResource("BoxShape3D_microphone")
+
+[node name="麦克风视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点" unique_id=601847303]
+
+[node name="麦克风底座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/麦克风视觉" unique_id=1363491600]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0050354004, 0.0086244345, -0.05548632)
+mesh = SubResource("BoxMesh_bhunq")
+
+[node name="麦克风高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/麦克风视觉" unique_id=832558151]
+transform = Transform3D(1.0943732, 0, 0, 0, 0.9557091, -1.1920929e-07, 0, -2.9802322e-08, 1.1470098, 0, 0.003, -0.051)
+visible = false
+mesh = SubResource("BoxMesh_sn0t7")
+
+[node name="麦克风标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/麦克风视觉" unique_id=723398530]
+transform = Transform3D(1, 0, 0, 0, 0.0022322536, 0.99999785, 0, -0.99999785, 0.0022322536, 0, 0.021769345, -0.06918633)
+text = "MIC"
+
+[node name="左操作台定位" type="Node3D" parent="操作台占位" unique_id=1852062320]
+
+[node name="左台背板" type="CSGBox3D" parent="操作台占位/左操作台定位" unique_id=1923443643]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.64, 1.3555053, 0)
+size = Vector3(0.1, 2.1, 3)
+material = ExtResource("3_djexe")
+
+[node name="左台屏幕框" type="CSGBox3D" parent="操作台占位/左操作台定位" unique_id=789538808]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.56, 1.55, 0)
+size = Vector3(0.05, 1.35, 2.6)
+material = ExtResource("6_cymdg")
+
+[node name="左台操作沿" type="CSGBox3D" parent="操作台占位/左操作台定位" unique_id=427055735]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.45, 0.65, 0)
+size = Vector3(0.35, 0.12, 1.8)
+material = ExtResource("7_fkxr1")
 
 [node name="电梯门" type="CSGBox3D" parent="操作台占位" unique_id=1785867298]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 2.85)
+visible = false
 size = Vector3(2.2, 2.7, 0.15)
+
+[node name="右操作台定位" type="Node3D" parent="操作台占位" unique_id=1554468139]
+
+[node name="右台背板" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=1643159438]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.64, 1.2850586, 0)
+size = Vector3(0.1, 2.1, 3)
+material = ExtResource("3_djexe")
+
+[node name="右台屏幕框" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=563705914]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.56, 1.65, 0)
+size = Vector3(0.05, 1, 1.6)
+material = ExtResource("6_cymdg")
+
+[node name="右台输入区" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=400004086]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.43, 0.95, 0)
+size = Vector3(0.25, 0.45, 1.4)
+material = ExtResource("7_fkxr1")
+
+[node name="右台操作沿" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=1288246358]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.38, 0.55, 0)
+size = Vector3(0.35, 0.15, 1.8)
+material = ExtResource("7_fkxr1")
 
 [node name="灯光" type="Node3D" parent="." unique_id=635936352]
 
@@ -60,7 +164,7 @@ size = Vector3(2.2, 2.7, 0.15)
 [node name="顶灯" type="OmniLight3D" parent="灯光" unique_id=1615220384]
 
 [node name="玩家视角" type="Node3D" parent="." unique_id=309831261]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
 [node name="摄像机旋转轴" type="Node3D" parent="玩家视角" unique_id=1544840613]
 
@@ -68,6 +172,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, 0)
 current = true
 fov = 70.0
 far = 100.0
+
+[node name="交互控制器" type="Node" parent="." unique_id=981601509]
+script = ExtResource("9_interaction")
+player_camera_path = NodePath("../玩家视角/摄像机旋转轴/玩家摄像机")
+view_controller_path = NodePath("..")
+console_interface_path = NodePath("../操作台界面层/操作台界面根/主操作台界面容器/ConsoleInterface")
+interaction_hint_label_path = NodePath("../调试界面/操作提示文本")
 
 [node name="观察方向" type="Node3D" parent="." unique_id=1741820516]
 
@@ -101,19 +212,7 @@ text = "Q 左转　E 右转"
 [node name="操作台界面层" type="CanvasLayer" parent="." unique_id=1850028273]
 script = ExtResource("5_router")
 
-[node name="主操作台界面容器" type="Control" parent="操作台界面层" unique_id=1294954568]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="ConsoleInterface" parent="操作台界面层/主操作台界面容器" unique_id=1275362082 instance=ExtResource("2_laov4")]
-layout_mode = 1
-
-[node name="左操作台界面容器" type="Control" parent="操作台界面层" unique_id=1834363644]
-visible = false
+[node name="操作台界面根" type="Control" parent="操作台界面层" unique_id=1874357234]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -122,20 +221,48 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="BuildingTerminalInterface" parent="操作台界面层/左操作台界面容器" unique_id=217403649 instance=ExtResource("3_tyhlv")]
+[node name="主操作台界面容器" type="Control" parent="操作台界面层/操作台界面根" unique_id=1294954568]
+clip_contents = true
 layout_mode = 1
-
-[node name="右操作台界面容器" type="Control" parent="操作台界面层" unique_id=864153351]
-visible = false
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchor_left = 0.31
+anchor_top = 0.25
+anchor_right = 0.69
+anchor_bottom = 0.61
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="DestinationControlInterface" parent="操作台界面层/右操作台界面容器" unique_id=1185287254 instance=ExtResource("4_rx0mt")]
+[node name="ConsoleInterface" parent="操作台界面层/操作台界面根/主操作台界面容器" unique_id=1275362082 instance=ExtResource("2_laov4")]
+layout_mode = 1
+
+[node name="左操作台界面容器" type="Control" parent="操作台界面层/操作台界面根" unique_id=1834363644]
+visible = false
+clip_contents = true
+layout_mode = 1
+anchor_left = 0.18
+anchor_top = 0.18
+anchor_right = 0.82
+anchor_bottom = 0.7
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="BuildingTerminalInterface" parent="操作台界面层/操作台界面根/左操作台界面容器" unique_id=217403649 instance=ExtResource("3_tyhlv")]
+layout_mode = 1
+
+[node name="右操作台界面容器" type="Control" parent="操作台界面层/操作台界面根" unique_id=864153351]
+visible = false
+clip_contents = true
+layout_mode = 1
+anchor_left = 0.3
+anchor_top = 0.2
+anchor_right = 0.7
+anchor_bottom = 0.58
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="DestinationControlInterface" parent="操作台界面层/操作台界面根/右操作台界面容器" unique_id=1185287254 instance=ExtResource("4_rx0mt")]
 layout_mode = 1
 
 [node name="门区提示" type="Label" parent="操作台界面层" unique_id=308266697]
@@ -151,6 +278,5 @@ offset_right = 80.0
 offset_bottom = -61.0
 grow_horizontal = 2
 grow_vertical = 0
-mouse_filter = 2
 text = "当前面向电梯门"
 horizontal_alignment = 1

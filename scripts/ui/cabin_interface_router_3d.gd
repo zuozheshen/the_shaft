@@ -17,22 +17,15 @@ func _ready() -> void:
 	if _view_controller == null:
 		push_error("操作台界面层的父节点必须是三维操作舱视角控制器。")
 
-	_main_container = _get_required_control(^"主操作台界面容器")
-	_left_container = _get_required_control(^"左操作台界面容器")
-	_right_container = _get_required_control(^"右操作台界面容器")
+	# 场景允许在 CanvasLayer 下增加统一的界面根节点；这里按稳定节点名递归查找，
+	# 避免纯布局调整让三个操作台同时失去路由和业务连接。
+	_main_container = _find_required_control("主操作台界面容器")
+	_left_container = _find_required_control("左操作台界面容器")
+	_right_container = _find_required_control("右操作台界面容器")
 	_door_hint = _get_required_node(^"门区提示", "Label") as Label
-	_main_interface = _get_required_node(
-		^"主操作台界面容器/ConsoleInterface",
-		"Control"
-	) as ConsoleInterface
-	_left_interface = _get_required_node(
-		^"左操作台界面容器/BuildingTerminalInterface",
-		"Control"
-	) as BuildingTerminalInterface
-	_right_interface = _get_required_node(
-		^"右操作台界面容器/DestinationControlInterface",
-		"Control"
-	) as DestinationControlInterface
+	_main_interface = _find_required_control("ConsoleInterface") as ConsoleInterface
+	_left_interface = _find_required_control("BuildingTerminalInterface") as BuildingTerminalInterface
+	_right_interface = _find_required_control("DestinationControlInterface") as DestinationControlInterface
 
 	_configure_embedded_interfaces()
 	_connect_view_signals()
@@ -51,6 +44,19 @@ func _connect_view_signals() -> void:
 		_view_controller.turn_started.connect(_on_turn_started)
 	if not _view_controller.facing_changed.is_connected(_on_facing_changed):
 		_view_controller.facing_changed.connect(_on_facing_changed)
+
+
+# 运行层只向路由器查询界面，不再重复了解 CanvasLayer 内部的布局路径。
+func get_main_interface() -> ConsoleInterface:
+	return _main_interface
+
+
+func get_left_interface() -> BuildingTerminalInterface:
+	return _left_interface
+
+
+func get_right_interface() -> DestinationControlInterface:
+	return _right_interface
 
 
 func _configure_embedded_interfaces() -> void:
@@ -110,6 +116,13 @@ func _set_container_enabled(container: Control, is_enabled: bool) -> void:
 
 func _get_required_control(node_path: NodePath) -> Control:
 	return _get_required_node(node_path, "Control") as Control
+
+
+func _find_required_control(node_name: String) -> Control:
+	var control := find_child(node_name, true, false) as Control
+	if control == null:
+		push_error("操作台界面层缺少关键 Control 节点：%s" % node_name)
+	return control
 
 
 func _get_required_node(node_path: NodePath, expected_type: String) -> Node:

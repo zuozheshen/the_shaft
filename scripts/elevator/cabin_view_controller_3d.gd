@@ -23,6 +23,12 @@ const DIRECTION_NAMES: Array[String] = [
 	"电梯门",
 	"右操作台",
 ]
+const DIRECTION_STATION_IDS: Array[StringName] = [
+	&"main_console",
+	&"left_console",
+	&"elevator_door",
+	&"right_console",
+]
 const DIRECTION_ANCHOR_PATHS: Array[NodePath] = [
 	^"观察方向/主操作台方向",
 	^"观察方向/左操作台方向",
@@ -85,6 +91,11 @@ func get_current_direction() -> int:
 
 func get_current_direction_name() -> String:
 	return DIRECTION_NAMES[_current_direction]
+
+
+# 交互系统查询统一台位标识，不另存一份可能与转向动画失步的方向状态。
+func get_current_station_id() -> StringName:
+	return DIRECTION_STATION_IDS[_current_direction]
 
 
 func is_turning() -> bool:

@@ -261,7 +261,7 @@ func _get_phase_camera_feed(camera_index: int) -> String:
 	return "画面占位：摄像头文本未连接。"
 
 
-func _toggle_microphone() -> void:
+func request_toggle_microphone() -> void:
 	# 麦克风目前只是交互状态占位，不接入真实录音。
 	if demo_flow_manager == null or not demo_flow_manager.has_active_dispatch():
 		_show_system_hint("当前没有可通话的乘客派单。")
@@ -279,6 +279,11 @@ func _toggle_microphone() -> void:
 		_show_system_hint("乘客通话链路已开启。")
 	else:
 		_show_system_hint("乘客通话链路已关闭。")
+
+
+func _toggle_microphone() -> void:
+	# 2D 按钮和 3D 热点统一从同一个公共入口执行，不复制对话状态逻辑。
+	request_toggle_microphone()
 
 
 func _start_dialogue_manager_passenger() -> bool:
