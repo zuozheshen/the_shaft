@@ -2,11 +2,26 @@
 
 [ext_resource type="Script" uid="uid://bfnx7v1oyqct0" path="res://scripts/elevator/cabin_view_controller_3d.gd" id="1_wegik"]
 [ext_resource type="PackedScene" uid="uid://dwgr21xrksmb4" path="res://scenes/ui/ConsoleInterface.tscn" id="2_laov4"]
+[ext_resource type="Texture2D" uid="uid://cfbbo0x2c8jqu" path="res://assets/art/metal_3868 (3).jpg" id="2_ynrpa"]
+[ext_resource type="Texture2D" uid="uid://hjv0ohl87vf" path="res://assets/art/testpic.png" id="3_5c8hr"]
 [ext_resource type="PackedScene" uid="uid://2mxpahaa3nm2" path="res://scenes/ui/BuildingTerminalInterface.tscn" id="3_tyhlv"]
 [ext_resource type="PackedScene" uid="uid://wet3ybwny70j" path="res://scenes/ui/DestinationControlInterface.tscn" id="4_rx0mt"]
+[ext_resource type="Shader" uid="uid://c5ev61meb7jam" path="res://scenes/elevator/overlay.gdshader" id="5_0eoy0"]
 [ext_resource type="Script" uid="uid://d3ik5m87sk8gx" path="res://scripts/ui/cabin_interface_router_3d.gd" id="5_router"]
 [ext_resource type="Script" uid="uid://b7vbl3jrmhedx" path="res://scripts/interaction/interaction_hotspot_3d.gd" id="8_hotspot"]
 [ext_resource type="Script" uid="uid://dmivswclo885p" path="res://scripts/interaction/cabin_interaction_controller.gd" id="9_interaction"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5c8hr"]
+albedo_texture = ExtResource("3_5c8hr")
+uv1_scale = Vector3(5, 5, 5)
+uv1_triplanar = true
+texture_filter = 0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bt1c0"]
+albedo_texture = ExtResource("3_5c8hr")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0eoy0"]
+albedo_texture = ExtResource("2_ynrpa")
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_microphone"]
 size = Vector3(0.4, 0.04, 0.34)
@@ -28,10 +43,23 @@ albedo_color = Color(1, 0.5, 0.5, 1)
 material = SubResource("StandardMaterial3D_db77g")
 size = Vector3(0.34, 0.01, 0.28)
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_riqys"]
+render_priority = 0
+shader = ExtResource("5_0eoy0")
+shader_parameter/pixel_size = 2.0
+shader_parameter/levels = 24.0
+shader_parameter/gamma = Vector2(1.155, 0.995)
+
+[sub_resource type="QuadMesh" id="QuadMesh_bhunq"]
+material = SubResource("ShaderMaterial_riqys")
+flip_faces = true
+size = Vector2(2, 2)
+
 [node name="三维操作舱" type="Node3D" unique_id=699471354]
 script = ExtResource("1_wegik")
 
 [node name="灰盒环境" type="Node3D" parent="." unique_id=408541640]
+visible = false
 
 [node name="地面" type="CSGBox3D" parent="灰盒环境" unique_id=120851442]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
@@ -63,15 +91,18 @@ size = Vector3(0.2, 2.5, 3.8)
 
 [node name="主操作台机身" type="CSGPolygon3D" parent="操作台占位/主操作台定位" unique_id=1725224134]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1.35, 0.5, -1.35)
+material_override = SubResource("StandardMaterial3D_5c8hr")
 polygon = PackedVector2Array(-0.28, -0.5, 0.52, -0.5, 0.52, 0.9, -0.28, 0.14)
 depth = 2.7
 
 [node name="主台背板" type="CSGBox3D" parent="操作台占位/主操作台定位" unique_id=1574089554]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6569335, -1.64)
+material_override = SubResource("StandardMaterial3D_bt1c0")
 size = Vector3(3, 1.5, 0.1)
 
 [node name="主台屏幕框" type="CSGBox3D" parent="操作台占位/主操作台定位" unique_id=1944041572]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6908691, -1.56)
+material_override = SubResource("StandardMaterial3D_0eoy0")
 size = Vector3(2.55, 1, 0.05)
 
 [node name="主台交互热点" type="Node3D" parent="操作台占位/主操作台定位" unique_id=266902568]
@@ -96,7 +127,6 @@ mesh = SubResource("BoxMesh_bhunq")
 
 [node name="麦克风高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/麦克风视觉" unique_id=832558151]
 transform = Transform3D(1.0943732, 0, 0, 0, 0.9557091, -1.1920929e-07, 0, -2.9802322e-08, 1.1470098, 0, 0.003, -0.051)
-visible = false
 mesh = SubResource("BoxMesh_sn0t7")
 
 [node name="麦克风标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/麦克风视觉" unique_id=723398530]
@@ -155,6 +185,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 current = true
 fov = 70.0
 far = 100.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="玩家视角/摄像机旋转轴/玩家摄像机" unique_id=931000830]
+extra_cull_margin = 16384.0
+mesh = SubResource("QuadMesh_bhunq")
 
 [node name="交互控制器" type="Node" parent="." unique_id=981601509]
 script = ExtResource("9_interaction")
