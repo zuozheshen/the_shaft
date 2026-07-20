@@ -3,6 +3,8 @@ extends Node
 
 
 const OPEN_MICROPHONE_ACTION: StringName = &"open_microphone"
+const OPEN_DOOR_ACTION: StringName = &"open_door"
+const CLOSE_DOOR_ACTION: StringName = &"close_door"
 
 
 @export var player_camera_path: NodePath
@@ -158,6 +160,12 @@ func _execute_action(action_id: StringName) -> void:
 		OPEN_MICROPHONE_ACTION:
 			if _console_interface != null:
 				_console_interface.request_toggle_microphone()
+		OPEN_DOOR_ACTION:
+			if _console_interface != null:
+				_console_interface.request_open_door()
+		CLOSE_DOOR_ACTION:
+			if _console_interface != null:
+				_console_interface.request_close_door()
 		_:
 			if not _warned_action_ids.has(action_id):
 				_warned_action_ids[action_id] = true

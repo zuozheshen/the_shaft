@@ -4,7 +4,6 @@ extends CanvasLayer
 
 var _view_controller: CabinViewController3D
 var _main_container: Control
-var _left_container: Control
 var _right_container: Control
 var _door_hint: Label
 var _main_interface: ConsoleInterface
@@ -20,11 +19,17 @@ func _ready() -> void:
 	# 场景允许在 CanvasLayer 下增加统一的界面根节点；这里按稳定节点名递归查找，
 	# 避免纯布局调整让三个操作台同时失去路由和业务连接。
 	_main_container = _find_required_control("主操作台界面容器")
-	_left_container = _find_required_control("左操作台界面容器")
 	_right_container = _find_required_control("右操作台界面容器")
 	_door_hint = _get_required_node(^"门区提示", "Label") as Label
 	_main_interface = _find_required_control("ConsoleInterface") as ConsoleInterface
-	_left_interface = _find_required_control("BuildingTerminalInterface") as BuildingTerminalInterface
+	# LEFT 已迁入 3D 屏幕的 SubViewport，但仍由本路由器向运行层提供唯一实例。
+	_left_interface = _view_controller.find_child(
+		"BuildingTerminalInterface",
+		true,
+		false
+	) as BuildingTerminalInterface if _view_controller != null else null
+	if _left_interface == null:
+		push_error("三维操作舱缺少左台 BuildingTerminalInterface。")
 	_right_interface = _find_required_control("DestinationControlInterface") as DestinationControlInterface
 
 	_configure_embedded_interfaces()
@@ -60,7 +65,7 @@ func get_right_interface() -> DestinationControlInterface:
 
 
 func _configure_embedded_interfaces() -> void:
-	# 三个实例一直留在场景树中；只由外层容器控制当前显示与鼠标输入。
+	# 三个实例一直留在场景树中；LEFT 始终渲染，主台和右台仍沿用覆盖层。
 	if _main_interface != null:
 		_main_interface.set_embedded_3d_mode(true)
 		_main_interface.show()
@@ -87,7 +92,7 @@ func _show_direction(direction: int) -> void:
 		CabinViewController3D.FacingDirection.MAIN_CONSOLE:
 			_set_container_enabled(_main_container, true)
 		CabinViewController3D.FacingDirection.LEFT_CONSOLE:
-			_set_container_enabled(_left_container, true)
+			pass
 		CabinViewController3D.FacingDirection.RIGHT_CONSOLE:
 			_set_container_enabled(_right_container, true)
 		CabinViewController3D.FacingDirection.ELEVATOR_DOOR:
@@ -99,7 +104,6 @@ func _show_direction(direction: int) -> void:
 
 func _hide_all_interfaces() -> void:
 	_set_container_enabled(_main_container, false)
-	_set_container_enabled(_left_container, false)
 	_set_container_enabled(_right_container, false)
 	if _door_hint != null:
 		_door_hint.hide()

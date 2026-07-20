@@ -17,6 +17,7 @@
 [ext_resource type="Script" uid="uid://d3ik5m87sk8gx" path="res://scripts/ui/cabin_interface_router_3d.gd" id="5_router"]
 [ext_resource type="Script" uid="uid://b7vbl3jrmhedx" path="res://scripts/interaction/interaction_hotspot_3d.gd" id="8_hotspot"]
 [ext_resource type="Script" uid="uid://dmivswclo885p" path="res://scripts/interaction/cabin_interaction_controller.gd" id="9_interaction"]
+[ext_resource type="Script" uid="uid://ctsid46bkuw3b" path="res://scripts/ui/left_terminal_screen_3d.gd" id="10_left_screen"]
 [ext_resource type="Texture2D" uid="uid://dl5r0aw4ar1kx" path="res://assets/art/金属划痕.png" id="11_aod7d"]
 [ext_resource type="Texture2D" uid="uid://doccuhoswfb86" path="res://assets/art/metal_plate_02_4k/metal_plate_frac/blue_metal_plate_disp_4k.jpg" id="13_aod7d"]
 
@@ -57,11 +58,6 @@ metallic_specular = 1.0
 uv1_triplanar = true
 texture_filter = 0
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_aod7d"]
-albedo_texture = ExtResource("11_aod7d")
-metallic = 1.0
-metallic_specular = 0.53
-
 [sub_resource type="BoxShape3D" id="BoxShape3D_microphone"]
 size = Vector3(0.4, 0.04, 0.34)
 
@@ -76,11 +72,63 @@ size = Vector3(0.3373413, 0.023, 0.274292)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_db77g"]
 shading_mode = 0
-albedo_color = Color(1, 0.5, 0.5, 1)
+albedo_color = Color(7.749051e-06, 0.8917738, 0.3193373, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_sn0t7"]
 material = SubResource("StandardMaterial3D_db77g")
-size = Vector3(0.34, 0.01, 0.28)
+size = Vector3(0.34, 0.01, 0.2545758)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sn0t7"]
+albedo_color = Color(0.4117647, 0.4117647, 0.4117647, 1)
+metallic = 0.2
+roughness = 0.81
+
+[sub_resource type="BoxMesh" id="BoxMesh_riqys"]
+material = SubResource("StandardMaterial3D_sn0t7")
+size = Vector3(0.32696915, 0.0637207, 0.27590942)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_riqys"]
+albedo_color = Color(0.3267, 0.55, 0.071499996, 1)
+metallic = 0.11
+roughness = 0.6
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_bhunq"]
+material = SubResource("StandardMaterial3D_riqys")
+radial_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qr0ht"]
+shading_mode = 0
+albedo_color = Color(0, 0.8901961, 0.31764707, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_6f8o3"]
+material = SubResource("StandardMaterial3D_qr0ht")
+size = Vector3(0.37337494, 0.014404297, 0.34222412)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0pcg1"]
+albedo_color = Color(0.9, 0.10350001, 0.09000002, 1)
+metallic = 0.51
+roughness = 0.56
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_34rt5"]
+material = SubResource("StandardMaterial3D_0pcg1")
+radial_segments = 12
+
+[sub_resource type="BoxMesh" id="BoxMesh_efn7a"]
+material = SubResource("StandardMaterial3D_qr0ht")
+size = Vector3(0.38802147, 0.014404297, 0.34222412)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_aod7d"]
+albedo_texture = ExtResource("13_aod7d")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_34rt5"]
+albedo_color = Color(0, 0, 0, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_1esiv"]
+material = SubResource("StandardMaterial3D_34rt5")
+size = Vector2(2.295, 1.287)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_05vjs"]
+size = Vector3(0.03, 1.287, 2.295)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_05vjs"]
 albedo_texture = ExtResource("4_cymdg")
@@ -155,7 +203,6 @@ size = Vector3(3, 1.5, 0.1)
 
 [node name="主台屏幕框" type="CSGBox3D" parent="操作台占位/主操作台定位" unique_id=1944041572]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6908691, -1.56)
-material_override = SubResource("StandardMaterial3D_aod7d")
 size = Vector3(2.55, 1, 0.05)
 
 [node name="主台交互热点" type="Node3D" parent="操作台占位/主操作台定位" unique_id=266902568]
@@ -179,14 +226,69 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0050354004, 0.0086244345, -
 mesh = SubResource("BoxMesh_bhunq")
 
 [node name="麦克风高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/麦克风视觉" unique_id=832558151]
-transform = Transform3D(1.0943732, 0, 0, 0, 0.9557091, -1.1920929e-07, 0, -2.9802322e-08, 1.1470098, 0, 0.003, -0.051)
+transform = Transform3D(1.0943732, 0, 0, 0, 0.95570934, -1.1920929e-07, 0, 0, 1.1470098, 0, 0.0030001998, -0.058588743)
+visible = false
 mesh = SubResource("BoxMesh_sn0t7")
 
-[node name="麦克风标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/麦克风视觉" unique_id=723398530]
-transform = Transform3D(1, 0, 0, 0, 0.0022322536, 0.99999785, 0, -0.99999785, 0.0022322536, 0, 0.021769345, -0.06918633)
-text = "MIC"
+[node name="开门热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=227531788]
+transform = Transform3D(0.62513196, 0, 0, 0, 0.3640323, -0.32701334, 0, 0.3454542, 0.34459975, 0.14766312, 0.93, -1.35)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"open_door"
+prompt_text = "开门"
+hover_visual_path = NodePath("开门视觉/开门悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点" unique_id=680504911]
+shape = SubResource("BoxShape3D_microphone")
+
+[node name="开门视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点" unique_id=478558191]
+
+[node name="开门按钮底座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉" unique_id=1491395173]
+transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, -4.388392e-05, 0.01409328, -0.05431366)
+mesh = SubResource("BoxMesh_riqys")
+
+[node name="开门按钮帽" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉" unique_id=1589114084]
+transform = Transform3D(0.19519144, 0, 0, 0, 0.052140184, 0, 0, -1.8626451e-09, 0.18330532, 0, 0.09898114, -0.047130108)
+mesh = SubResource("CylinderMesh_bhunq")
+
+[node name="开门悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉" unique_id=1590688762]
+transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, 0.006237045, -0.020806313, -0.06995964)
+visible = false
+mesh = SubResource("BoxMesh_6f8o3")
+
+[node name="关门热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=116356286]
+transform = Transform3D(0.62513196, 0, 0, 0, 0.3640323, -0.32701334, 0, 0.3454542, 0.34459975, 0.5420569, 0.93, -1.35)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"close_door"
+prompt_text = "关门"
+hover_visual_path = NodePath("关门视觉/关门悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点" unique_id=2099203521]
+shape = SubResource("BoxShape3D_microphone")
+
+[node name="关门视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点" unique_id=54416564]
+transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, -0.0044502616, 0, 0)
+
+[node name="关门按钮底座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉" unique_id=392433914]
+transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, -4.388392e-05, 0.01409328, -0.05431366)
+mesh = SubResource("BoxMesh_riqys")
+
+[node name="关门按钮帽" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉" unique_id=1092615721]
+transform = Transform3D(0.19519144, 0, 0, 0, 0.052140184, 0, 0, -1.8626451e-09, 0.18330532, 0, 0.09898114, -0.047130108)
+mesh = SubResource("CylinderMesh_34rt5")
+
+[node name="关门悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉" unique_id=1144826803]
+transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, 0.013560355, -0.020805597, -0.06995964)
+visible = false
+mesh = SubResource("BoxMesh_efn7a")
 
 [node name="左操作台定位" type="Node3D" parent="操作台占位" unique_id=1852062320]
+script = ExtResource("10_left_screen")
+player_camera_path = NodePath("../../玩家视角/摄像机旋转轴/玩家摄像机")
+view_controller_path = NodePath("../..")
 
 [node name="左台背板" type="CSGBox3D" parent="操作台占位/左操作台定位" unique_id=1923443643]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.64, 1.3555053, 0)
@@ -195,8 +297,27 @@ size = Vector3(0.1, 2.1, 3)
 
 [node name="左台屏幕框" type="CSGBox3D" parent="操作台占位/左操作台定位" unique_id=789538808]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.56, 1.55, 0)
-material_override = SubResource("StandardMaterial3D_aod7d")
-size = Vector3(0.05, 1.35, 2.6)
+size = Vector3(0.05, 1.43, 2.55)
+material = SubResource("StandardMaterial3D_aod7d")
+
+[node name="左台屏幕" type="MeshInstance3D" parent="操作台占位/左操作台定位" unique_id=1873020594]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.5, 1.557, 0)
+mesh = SubResource("QuadMesh_1esiv")
+
+[node name="左台屏幕交互区" type="Area3D" parent="操作台占位/左操作台定位" unique_id=843999954]
+collision_layer = 128
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/左操作台定位/左台屏幕交互区" unique_id=1515030379]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5143995, 1.557, 0)
+shape = SubResource("BoxShape3D_05vjs")
+
+[node name="左台界面视口" type="SubViewport" parent="操作台占位/左操作台定位" unique_id=1860998438]
+disable_3d = true
+size = Vector2i(1152, 648)
+render_target_update_mode = 4
+
+[node name="BuildingTerminalInterface" parent="操作台占位/左操作台定位/左台界面视口" unique_id=217403649 instance=ExtResource("3_tyhlv")]
 
 [node name="左台操作沿" type="CSGBox3D" parent="操作台占位/左操作台定位" unique_id=427055735]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.45, 0.65, 0)
@@ -216,7 +337,6 @@ size = Vector3(0.1, 2.1, 3)
 
 [node name="右台屏幕框" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=563705914]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.56, 1.65, 0)
-material_override = SubResource("StandardMaterial3D_aod7d")
 size = Vector3(0.05, 1, 1.6)
 
 [node name="右台输入区" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=400004086]
@@ -247,6 +367,7 @@ far = 100.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="玩家视角/摄像机旋转轴/玩家摄像机" unique_id=931000830]
 transform = Transform3D(0.9988905, 0, 0, 0, 0.9988905, 0, 0, 0, 0.9988905, 0, 0, 0)
+visible = false
 extra_cull_margin = 16384.0
 mesh = SubResource("QuadMesh_bhunq")
 
@@ -310,21 +431,6 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="ConsoleInterface" parent="操作台界面层/操作台界面根/主操作台界面容器" unique_id=1275362082 instance=ExtResource("2_laov4")]
-layout_mode = 1
-
-[node name="左操作台界面容器" type="Control" parent="操作台界面层/操作台界面根" unique_id=1834363644]
-visible = false
-clip_contents = true
-layout_mode = 1
-anchor_left = 0.18
-anchor_top = 0.18
-anchor_right = 0.82
-anchor_bottom = 0.7
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="BuildingTerminalInterface" parent="操作台界面层/操作台界面根/左操作台界面容器" unique_id=217403649 instance=ExtResource("3_tyhlv")]
 layout_mode = 1
 
 [node name="右操作台界面容器" type="Control" parent="操作台界面层/操作台界面根" unique_id=864153351]

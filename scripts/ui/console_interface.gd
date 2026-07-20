@@ -68,8 +68,8 @@ var embedded_3d_mode: bool = false
 func _ready() -> void:
 	_create_dialogue_manager_adapter()
 	# 三个门控按钮共用处理函数，同时把操作同步给 LEFT 的临时事件缓存。
-	open_door_button.pressed.connect(_handle_open_door)
-	close_door_button.pressed.connect(_handle_close_door)
+	open_door_button.pressed.connect(request_open_door)
+	close_door_button.pressed.connect(request_close_door)
 	# 推进按钮调用流程管理器；返回按钮通过信号通知舱体控制器退出界面。
 	return_button.pressed.connect(_request_return)
 	_connect_front_interaction_signals()
@@ -555,7 +555,8 @@ func _record_system_log(message_text: String) -> void:
 		demo_flow_manager.add_system_log_message(message_text)
 
 
-func _handle_open_door() -> void:
+func request_open_door() -> void:
+	# 2D 按钮与 3D 实体热点统一调用此入口，门控规则仍只维护一份。
 	print("Door action: 开门")
 	if demo_flow_manager == null:
 		return
@@ -593,7 +594,8 @@ func _handle_open_door() -> void:
 		_update_dialogue_visibility()
 
 
-func _handle_close_door() -> void:
+func request_close_door() -> void:
+	# 关闭请求沿用现有 phase 与对话反馈，不在 3D 交互层判断门状态。
 	print("Door action: 关门")
 	if demo_flow_manager == null:
 		return

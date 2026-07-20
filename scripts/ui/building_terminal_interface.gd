@@ -28,6 +28,7 @@ var embedded_3d_mode: bool = false
 
 
 func _ready() -> void:
+	_apply_terminal_theme()
 	_connect_terminal_signals()
 	_initialize_terminal_text()
 	_set_content(EMPTY_SYSTEM_LOG_CONTENT, "等待系统通信。")
@@ -98,12 +99,71 @@ func _connect_button(button: Button, callback: Callable) -> void:
 
 
 func _initialize_terminal_text() -> void:
-	_set_label_text(title_label, "建筑终端 / BUILDING TERMINAL")
-	_set_label_text(access_status_label, "访问权限：OPERATOR｜节点：L-612-A｜会话：ACTIVE")
-	_set_button_text(record_tab_button, "乘客档案")
-	_set_button_text(transcript_tab_button, "对话记录")
-	_set_button_text(system_log_tab_button, "系统日志")
+	_set_label_text(title_label, "SHAFT FACILITIES // ARCHIVE TERMINAL")
+	_set_label_text(access_status_label, "> 建筑终端 L-612-A  //  OPERATOR ACCESS  //  LINK ACTIVE")
+	_set_button_text(record_tab_button, "[ 乘客档案 ]")
+	_set_button_text(transcript_tab_button, "[ 对话记录 ]")
+	_set_button_text(system_log_tab_button, "[ 系统日志 ]")
 	_set_button_text(return_button, "返回操作间")
+
+
+func _apply_terminal_theme() -> void:
+	# 使用系统等宽字体和高对比绿色，保持中文可回退显示并适配 1152×648 屏幕。
+	var terminal_font := SystemFont.new()
+	terminal_font.font_names = PackedStringArray([
+		"Consolas",
+		"Cascadia Mono",
+		"Noto Sans Mono CJK SC",
+		"Microsoft YaHei UI",
+	])
+	var terminal_theme := Theme.new()
+	terminal_theme.default_font = terminal_font
+	terminal_theme.default_font_size = 19
+	terminal_theme.set_color("font_color", "Label", Color("78f58f"))
+	terminal_theme.set_color("font_shadow_color", "Label", Color(0.05, 0.3, 0.08, 0.8))
+	terminal_theme.set_constant("shadow_offset_x", "Label", 1)
+	terminal_theme.set_constant("shadow_offset_y", "Label", 1)
+	terminal_theme.set_color("font_color", "Button", Color("8cff9d"))
+	terminal_theme.set_color("font_hover_color", "Button", Color("d0ffd5"))
+	terminal_theme.set_color("font_pressed_color", "Button", Color("07140a"))
+	terminal_theme.set_color("font_focus_color", "Button", Color("d0ffd5"))
+	terminal_theme.set_font_size("font_size", "Button", 20)
+
+	var normal_style := _create_terminal_style(Color("07140a"), Color("3d9b52"), 1)
+	var hover_style := _create_terminal_style(Color("102819"), Color("8cff9d"), 2)
+	var pressed_style := _create_terminal_style(Color("78f58f"), Color("b7ffc1"), 2)
+	terminal_theme.set_stylebox("normal", "Button", normal_style)
+	terminal_theme.set_stylebox("hover", "Button", hover_style)
+	terminal_theme.set_stylebox("pressed", "Button", pressed_style)
+	terminal_theme.set_stylebox("focus", "Button", hover_style)
+	terminal_theme.set_stylebox(
+		"panel",
+		"PanelContainer",
+		_create_terminal_style(Color("050d07"), Color("3d9b52"), 1)
+	)
+	theme = terminal_theme
+
+	title_label.add_theme_font_size_override("font_size", 28)
+	title_label.add_theme_color_override("font_color", Color("b7ffc1"))
+	access_status_label.add_theme_font_size_override("font_size", 17)
+	terminal_hint_label.add_theme_font_size_override("font_size", 16)
+	terminal_hint_label.add_theme_color_override("font_color", Color("4fbd65"))
+
+
+func _create_terminal_style(
+		background_color: Color,
+		border_color: Color,
+		border_width: int
+) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = background_color
+	style.border_color = border_color
+	style.set_border_width_all(border_width)
+	style.content_margin_left = 12.0
+	style.content_margin_top = 8.0
+	style.content_margin_right = 12.0
+	style.content_margin_bottom = 8.0
+	return style
 
 
 func _show_record_tab() -> void:

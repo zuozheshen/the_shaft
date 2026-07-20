@@ -11,36 +11,55 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_terminal")
 
-[node name="TerminalLayout" type="VBoxContainer" parent="." unique_id=521382491]
+[node name="TerminalBackground" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+color = Color(0.008, 0.025, 0.012, 1)
+
+[node name="TerminalLayout" type="VBoxContainer" parent="." unique_id=521382491]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = 26.0
+offset_right = -32.0
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
 
 [node name="TitleLabel" type="Label" parent="TerminalLayout" unique_id=55323921]
 layout_mode = 2
-text = "建筑终端 / BUILDING TERMINAL"
+text = "SHAFT FACILITIES // ARCHIVE TERMINAL"
 
 [node name="AccessStatusLabel" type="Label" parent="TerminalLayout" unique_id=1436583908]
 layout_mode = 2
-text = "访问权限：OPERATOR｜节点：L-612-A｜会话：ACTIVE"
+text = "> 建筑终端 L-612-A  //  OPERATOR ACCESS  //  LINK ACTIVE"
 
 [node name="TabButtonPanel" type="HBoxContainer" parent="TerminalLayout" unique_id=716400975]
 layout_mode = 2
+theme_override_constants/separation = 10
 
 [node name="RecordTabButton" type="Button" parent="TerminalLayout/TabButtonPanel" unique_id=1297660751]
 layout_mode = 2
-text = "乘客档案"
+size_flags_horizontal = 3
+text = "[ 乘客档案 ]"
 
 [node name="TranscriptTabButton" type="Button" parent="TerminalLayout/TabButtonPanel" unique_id=930622262]
 layout_mode = 2
-text = "对话记录"
+size_flags_horizontal = 3
+text = "[ 对话记录 ]"
 
 [node name="SystemLogTabButton" type="Button" parent="TerminalLayout/TabButtonPanel" unique_id=1119633557]
 layout_mode = 2
-text = "系统日志"
+size_flags_horizontal = 3
+text = "[ 系统日志 ]"
 
 [node name="ContentScrollContainer" type="ScrollContainer" parent="TerminalLayout"]
 layout_mode = 2
@@ -53,6 +72,10 @@ size_flags_horizontal = 3
 
 [node name="TerminalContentMargin" type="MarginContainer" parent="TerminalLayout/ContentScrollContainer/TerminalContentPanel" unique_id=1200964278]
 layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
 
 [node name="TerminalContentLabel" type="Label" parent="TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin" unique_id=474040416]
 layout_mode = 2
