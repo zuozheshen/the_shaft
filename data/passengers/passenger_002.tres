@@ -1,16 +1,16 @@
-[gd_resource type="Resource" script_class="PassengerDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="PassengerDefinition" format=3 uid="uid://d3ym1egln621m"]
 
-[ext_resource type="Script" path="res://scripts/data/definitions/passenger_definition.gd" id="1_passenger"]
+[ext_resource type="Script" uid="uid://ve8y7hjduokg" path="res://scripts/data/definitions/passenger_definition.gd" id="1_passenger"]
 
 [resource]
 script = ExtResource("1_passenger")
 passenger_id = &"passenger_002"
 system_name = "T. VALE"
 display_name = "维尔"
-archive_text = """姓名：T. VALE
+archive_text = "姓名：T. VALE
 常用称呼：维尔
 登记状态：MAINTENANCE SUPPORT / 在岗
 风险标记：LOW
 当前派单：{dispatch}
 
-备注：技术测试乘客。携带已登记的维修工具包，申请前往 742 层交接。"""
+备注：技术测试乘客。携带已登记的维修工具包，申请前往 742 层交接。"
