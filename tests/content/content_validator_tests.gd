@@ -1,12 +1,12 @@
 extends RefCounted
 
 
-const VALID_DIALOGUE := "res://tests/fixtures/content_validation/valid.dialogue"
+const VALID_DIALOGUE := "res://tests/fixtures/content_validation/valid.dialogue.txt"
 const MISSING_TITLES_DIALOGUE := (
-	"res://tests/fixtures/content_validation/missing_titles.dialogue"
+	"res://tests/fixtures/content_validation/missing_titles.dialogue.txt"
 )
 const INVALID_UNLOCK_DIALOGUE := (
-	"res://tests/fixtures/content_validation/invalid_unlock.dialogue"
+	"res://tests/fixtures/content_validation/invalid_unlock.dialogue.txt"
 )
 
 
