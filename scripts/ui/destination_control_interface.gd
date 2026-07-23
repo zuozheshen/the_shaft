@@ -2,6 +2,11 @@ extends Control
 class_name DestinationControlInterface
 
 
+const FlowCommandResultScript := preload(
+	"res://scripts/runtime/commands/flow_command_result.gd"
+)
+
+
 signal return_requested
 
 
@@ -302,35 +307,31 @@ func _select_recommended_destination(button_index: int) -> void:
 func _on_destination_text_changed(_new_text: String) -> void:
 	# LineEdit 每次改写都使旧验证失效，包括从楼层书或推荐按钮填入的编号。
 	if demo_flow_manager != null:
-		demo_flow_manager.set_validated_floor("")
+		demo_flow_manager.request_clear_destination_validation()
 	_set_label_text(destination_feedback_label, "目标已变更，请重新验证地址。")
 	_set_floor_overview("", false)
 	_set_dispatch_evaluation("", false)
 
 
 func _verify_destination() -> void:
-	var destination: String = _get_current_destination()
-	if destination.is_empty():
-		if demo_flow_manager != null:
-			demo_flow_manager.set_validated_floor("")
-		_set_label_text(destination_feedback_label, "请输入目标楼层。")
+	if demo_flow_manager == null:
+		_set_label_text(destination_feedback_label, "数据源未连接：无法验证目标楼层。")
 		_set_floor_overview("", false)
 		_set_dispatch_evaluation("", false)
 		return
 
-	var floor: FloorDefinition = ContentRegistry.get_floor(destination)
-
-	if floor == null:
-		if demo_flow_manager != null:
-			demo_flow_manager.set_validated_floor("")
-		_set_label_text(destination_feedback_label, "无法识别目标楼层：%s。" % destination)
+	var result: FlowCommandResultScript = demo_flow_manager.request_validate_destination(
+		_get_current_destination()
+	)
+	_set_label_text(destination_feedback_label, result.message)
+	if not result.succeeded:
 		_set_floor_overview("", false)
 		_set_dispatch_evaluation("", false)
 		return
-	if demo_flow_manager != null:
-		demo_flow_manager.set_validated_floor(destination)
-	var relation: DispatchFloorRelation = _get_dispatch_floor_relation(destination)
-	_set_label_text(destination_feedback_label, "目标已验证：%s。" % destination)
+
+	# 命令只返回标准化楼层编号，静态资料仍由右台读取并负责展示。
+	var floor: FloorDefinition = ContentRegistry.get_floor(result.floor_id)
+	var relation: DispatchFloorRelation = _get_dispatch_floor_relation(result.floor_id)
 	_set_floor_overview(_build_floor_overview(floor), true)
 	_set_dispatch_evaluation(
 		_build_dispatch_evaluation(relation),
@@ -339,40 +340,16 @@ func _verify_destination() -> void:
 
 
 func _submit_destination() -> void:
-	var destination: String = _get_current_destination()
-	if destination.is_empty():
-		_set_label_text(destination_feedback_label, "请输入目标楼层。")
-		return
 	if demo_flow_manager == null:
 		_set_label_text(destination_feedback_label, "电梯位置系统尚未连接。")
 		return
 
-	if not ContentRegistry.has_floor(destination):
-		_set_label_text(
-			destination_feedback_label,
-			"无法前往：楼层 %s 不在当前楼层数据库中。" % destination
-		)
-		return
-
-	# 乘客未登舱时，操作员可直接前往任意已登记楼层；舱内阶段仍需保留地址复核。
-	if demo_flow_manager.is_passenger_onboard() \
-			and destination != demo_flow_manager.get_validated_floor():
-		_set_label_text(destination_feedback_label, "乘客在舱内时，请先验证目标楼层。")
-		return
-	if demo_flow_manager.is_cabin_door_open():
-		_set_label_text(destination_feedback_label, "请先关闭舱门，再确认前往楼层。")
-		return
-	if demo_flow_manager.is_elevator_moving():
-		_set_label_text(destination_feedback_label, "电梯正在运行中，请等待停靠。")
-		return
-	if not demo_flow_manager.request_elevator_movement(destination):
-		_set_label_text(destination_feedback_label, "无法开始移动，请检查电梯状态。")
-		return
-	if demo_flow_manager.is_passenger_onboard():
-		demo_flow_manager.select_target_floor(destination)
-
-	_set_label_text(destination_feedback_label, "目标楼层已确认：%s。电梯正在前往该楼层。" % destination)
-	_update_dispatch_summary_label()
+	var result: FlowCommandResultScript = demo_flow_manager.request_travel_to_floor(
+		_get_current_destination()
+	)
+	_set_label_text(destination_feedback_label, result.message)
+	if result.succeeded:
+		_update_dispatch_summary_label()
 
 
 func _on_elevator_movement_completed(arrived_floor: String) -> void:
