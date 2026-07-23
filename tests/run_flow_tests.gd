@@ -1,0 +1,63 @@
+extends Node
+
+
+const DispatchPhaseTests := preload("res://tests/flow/dispatch_phase_tests.gd")
+const DemoFlowManagerTests := preload("res://tests/flow/demo_flow_manager_tests.gd")
+
+var passed_count: int = 0
+var failed_count: int = 0
+
+
+func _ready() -> void:
+	# 延后一帧运行，确保项目 Autoload 已完成资源注册。
+	call_deferred("_run")
+
+
+func _run() -> void:
+	await get_tree().process_frame
+	print("=== The Shaft / Issue 30 派单流程测试 ===")
+
+	var dispatch_phase_tests := DispatchPhaseTests.new()
+	dispatch_phase_tests.run(self)
+
+	var demo_flow_manager_tests := DemoFlowManagerTests.new()
+	await demo_flow_manager_tests.run(self, get_tree())
+
+	print("=== 测试汇总：通过 %d，失败 %d ===" % [passed_count, failed_count])
+	get_tree().quit(0 if failed_count == 0 else 1)
+
+
+func assert_true(test_name: String, condition: bool, detail: String = "") -> void:
+	_record_result(test_name, condition, detail)
+
+
+func assert_false(test_name: String, condition: bool, detail: String = "") -> void:
+	_record_result(test_name, not condition, detail)
+
+
+func assert_equal(test_name: String, expected: Variant, actual: Variant) -> void:
+	_record_result(
+		test_name,
+		expected == actual,
+		"期望：%s；实际：%s" % [str(expected), str(actual)]
+	)
+
+
+func assert_not_equal(test_name: String, unexpected: Variant, actual: Variant) -> void:
+	_record_result(
+		test_name,
+		unexpected != actual,
+		"不应为：%s；实际：%s" % [str(unexpected), str(actual)]
+	)
+
+
+func _record_result(test_name: String, passed: bool, detail: String) -> void:
+	if passed:
+		passed_count += 1
+		print("PASS | %s" % test_name)
+		return
+	failed_count += 1
+	printerr("FAIL | %s%s" % [
+		test_name,
+		"" if detail.is_empty() else " | %s" % detail,
+	])

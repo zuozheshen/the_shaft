@@ -4,7 +4,7 @@ extends RefCounted
 
 ## 当前派单的纯运行时状态。这里只保存本轮会变化的数据，不持有静态 Resource。
 var dispatch_id: StringName = &""
-var current_phase: StringName = &"WAITING_FOR_PICKUP"
+var current_phase: String = DispatchPhase.WAITING_FOR_PICKUP
 
 var validated_floor_id: StringName = &""
 var selected_target_floor_id: StringName = &""
