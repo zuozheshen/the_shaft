@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ShiftCatalog" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/catalogs/shift_catalog.gd" id="1_catalog"]
+[ext_resource type="Script" path="res://scripts/data/definitions/shift_definition.gd" id="2_shift"]
+[ext_resource type="Resource" path="res://data/shifts/demo_shift_001.tres" id="3_demo_shift"]
+
+[resource]
+script = ExtResource("1_catalog")
+shifts = Array[ExtResource("2_shift")]([ExtResource("3_demo_shift")])

@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=15
+type="Resource"
+uid="uid://c7io0elx7y50p"
+path="res://.godot/imported/missing_titles.dialogue-724850b7570ab533ec3d68e8014a778f.tres"
+
+[deps]
+
+source_file="res://tests/fixtures/content_validation/missing_titles.dialogue"
+dest_files=["res://.godot/imported/missing_titles.dialogue-724850b7570ab533ec3d68e8014a778f.tres"]
+
+[params]
+
+defaults=true

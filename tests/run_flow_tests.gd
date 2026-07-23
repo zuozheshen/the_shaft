@@ -15,6 +15,12 @@ const FlowCommandResultTests := preload(
 	"res://tests/runtime/flow_command_result_tests.gd"
 )
 const FlowCommandTests := preload("res://tests/flow/flow_command_tests.gd")
+const ContentValidationReportTests := preload(
+	"res://tests/content/content_validation_report_tests.gd"
+)
+const ContentValidatorTests := preload(
+	"res://tests/content/content_validator_tests.gd"
+)
 
 var passed_count: int = 0
 var failed_count: int = 0
@@ -27,7 +33,13 @@ func _ready() -> void:
 
 func _run() -> void:
 	await get_tree().process_frame
-	print("=== The Shaft / Issue 32 统一流程命令入口测试 ===")
+	print("=== The Shaft / Issue 33 内容资源契约校验测试 ===")
+
+	var content_validation_report_tests := ContentValidationReportTests.new()
+	content_validation_report_tests.run(self)
+
+	var content_validator_tests := ContentValidatorTests.new()
+	content_validator_tests.run(self)
 
 	var dispatch_phase_tests := DispatchPhaseTests.new()
 	dispatch_phase_tests.run(self)

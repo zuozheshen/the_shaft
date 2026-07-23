@@ -4,6 +4,7 @@ extends Node
 const FLOOR_CATALOG: FloorCatalog = preload("res://data/catalogs/floor_catalog.tres")
 const PASSENGER_CATALOG: PassengerCatalog = preload("res://data/catalogs/passenger_catalog.tres")
 const DISPATCH_CATALOG: DispatchCatalog = preload("res://data/catalogs/dispatch_catalog.tres")
+const SHIFT_CATALOG: ShiftCatalog = preload("res://data/catalogs/shift_catalog.tres")
 
 var _floors_by_id: Dictionary = {}
 var _passengers_by_id: Dictionary = {}
@@ -166,6 +167,32 @@ func get_floor(raw_value: String) -> FloorDefinition:
 
 func get_all_floors() -> Array[FloorDefinition]:
 	return _ordered_floors.duplicate()
+
+
+func get_all_floor_definitions() -> Array[FloorDefinition]:
+	return FLOOR_CATALOG.floors.duplicate()
+
+
+func get_all_passenger_definitions() -> Array[PassengerDefinition]:
+	return PASSENGER_CATALOG.passengers.duplicate()
+
+
+func get_all_dispatch_definitions() -> Array[DispatchDefinition]:
+	return DISPATCH_CATALOG.dispatches.duplicate()
+
+
+func get_all_shift_definitions() -> Array[ShiftDefinition]:
+	return SHIFT_CATALOG.shifts.duplicate()
+
+
+func validate_all_content() -> ContentValidationReport:
+	# 完整校验按需执行，并直接读取 Catalog 原始数组以保留 null 和重复项。
+	return ContentValidator.validate_content(
+		get_all_floor_definitions(),
+		get_all_passenger_definitions(),
+		get_all_dispatch_definitions(),
+		get_all_shift_definitions()
+	)
 
 
 func get_passenger(raw_value: String) -> PassengerDefinition:
