@@ -71,10 +71,10 @@ func start_dispatch(dispatch_id: StringName) -> bool:
 	target_floor = ""
 	front_dialogue_history.clear()
 	if current_floor == get_pickup_floor():
-		active_dispatch.current_phase = &"ARRIVED_AT_PICKUP"
+		active_dispatch.current_phase = DispatchPhase.ARRIVED_AT_PICKUP
 		current_building_status_hint = "新派单已建立。\n当前楼层检测到等待乘客。\n可通过门外摄像头确认，或直接开启舱门。"
 	else:
-		active_dispatch.current_phase = &"WAITING_FOR_PICKUP"
+		active_dispatch.current_phase = DispatchPhase.WAITING_FOR_PICKUP
 		current_building_status_hint = "新派单已建立。\n%s 层检测到等待乘客。\n请前往接乘楼层。" % get_pickup_floor()
 	system_message_history = [current_building_status_hint]
 	case_updated.emit()
@@ -115,7 +115,7 @@ func start_next_dispatch() -> bool:
 func complete_active_dispatch() -> bool:
 	if active_dispatch == null:
 		return false
-	if get_case_phase() != "DROPOFF_WAIT_DOOR_CLOSE" or cabin_door_is_open:
+	if get_case_phase() != DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE or cabin_door_is_open:
 		push_warning("DemoFlowManager: 当前阶段不允许完成派单。")
 		return false
 
@@ -305,7 +305,10 @@ func get_camera_feed_for_phase(phase: String, camera_index: int) -> String:
 	if dispatch == null:
 		return ""
 	var camera_feeds: Dictionary = dispatch.camera_feeds
-	var phase_feeds: Array = camera_feeds.get(phase, camera_feeds.get("WAITING_FOR_PICKUP", []))
+	var phase_feeds: Array = camera_feeds.get(
+		phase,
+		camera_feeds.get(DispatchPhase.WAITING_FOR_PICKUP, [])
+	)
 	if camera_index < 0 or camera_index >= phase_feeds.size():
 		return ""
 	return str(phase_feeds[camera_index])
@@ -316,7 +319,10 @@ func get_front_phase_text(phase: String) -> Dictionary:
 	if dispatch == null:
 		return {}
 	var phase_texts: Dictionary = dispatch.front_phase_texts
-	var text_data: Dictionary = phase_texts.get(phase, phase_texts.get("WAITING_FOR_PICKUP", {})).duplicate(true)
+	var text_data: Dictionary = phase_texts.get(
+		phase,
+		phase_texts.get(DispatchPhase.WAITING_FOR_PICKUP, {})
+	).duplicate(true)
 	text_data["state"] = _format_case_text(str(text_data.get("state", "")))
 	text_data["task"] = _format_case_text(str(text_data.get("task", "")))
 	return text_data
@@ -414,15 +420,15 @@ func _complete_elevator_movement() -> void:
 	if is_passenger_onboard() \
 			and not get_selected_target_floor().is_empty() \
 			and current_floor == get_selected_target_floor():
-		set_case_phase("ARRIVED_AT_DESTINATION")
+		set_case_phase(DispatchPhase.ARRIVED_AT_DESTINATION)
 		set_building_status_hint(
 			"已抵达目标楼层。请开启舱门完成送达。",
 			true,
 			"已抵达目标楼层，等待开门送达。"
 		)
 	elif not is_passenger_onboard() and current_floor == get_pickup_floor():
-		var pickup_phase: String = "DOOR_GREETING_DONE" \
-			if is_door_greeting_done() else "ARRIVED_AT_PICKUP"
+		var pickup_phase: String = DispatchPhase.DOOR_GREETING_DONE \
+			if is_door_greeting_done() else DispatchPhase.ARRIVED_AT_PICKUP
 		if get_case_phase() != pickup_phase:
 			set_case_phase(pickup_phase)
 		# 主台仍保留原有接乘提示；日志只保存精简的关键状态。
@@ -431,8 +437,11 @@ func _complete_elevator_movement() -> void:
 			true,
 			"已抵达接乘楼层。\n等待乘客确认。"
 		)
-	elif not is_passenger_onboard() and get_case_phase() in ["ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE"]:
-		set_case_phase("WAITING_FOR_PICKUP")
+	elif not is_passenger_onboard() and get_case_phase() in [
+		DispatchPhase.ARRIVED_AT_PICKUP,
+		DispatchPhase.DOOR_GREETING_DONE,
+	]:
+		set_case_phase(DispatchPhase.WAITING_FOR_PICKUP)
 		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % current_floor)
 	else:
 		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % current_floor)
@@ -440,15 +449,38 @@ func _complete_elevator_movement() -> void:
 
 
 func get_case_phase() -> String:
-	return String(active_dispatch.current_phase) if active_dispatch != null else "SHIFT_IDLE"
+	return active_dispatch.current_phase if active_dispatch != null else DispatchPhase.SHIFT_IDLE
 
 
 func set_case_phase(phase: String) -> void:
+	try_set_case_phase(phase)
+
+
+func try_set_case_phase(next_phase: String) -> bool:
+	var previous_phase: String = get_case_phase()
 	if active_dispatch == null:
-		push_warning("DemoFlowManager: 当前无派单，无法修改派单阶段。")
-		return
-	active_dispatch.current_phase = StringName(phase)
+		push_warning(
+			"DemoFlowManager: 当前无派单，无法修改派单阶段：%s -> %s"
+			% [previous_phase, next_phase]
+		)
+		return false
+	if not DispatchPhase.is_valid(next_phase):
+		push_warning(
+			"DemoFlowManager: 目标派单阶段无效：%s -> %s"
+			% [previous_phase, next_phase]
+		)
+		return false
+	if previous_phase == next_phase:
+		return true
+	if not DispatchPhase.can_transition(previous_phase, next_phase):
+		push_warning(
+			"DemoFlowManager: 不允许派单阶段转换：%s -> %s"
+			% [previous_phase, next_phase]
+		)
+		return false
+	active_dispatch.current_phase = next_phase
 	case_updated.emit()
+	return true
 
 
 func is_passenger_onboard() -> bool:
@@ -531,28 +563,24 @@ func try_mark_arrival_triggered() -> bool:
 
 func mark_dropoff_feedback_finished() -> bool:
 	# 对话层只报告反馈结束；离舱和阶段推进统一由流程管理器负责。
-	if active_dispatch == null or get_case_phase() != "DROPOFF_FEEDBACK":
+	if active_dispatch == null or get_case_phase() != DispatchPhase.DROPOFF_FEEDBACK:
 		return false
 	if active_dispatch.dropoff_feedback_finished:
 		return false
 	active_dispatch.dropoff_feedback_finished = true
 	active_dispatch.passenger_inside = false
-	active_dispatch.current_phase = &"DROPOFF_WAIT_DOOR_CLOSE"
-	set_building_status_hint(
-		"乘客已离舱。请关闭舱门完成本次派单。",
-		true,
-		"乘客已离舱，等待关门结算。"
-	)
-	return true
+	current_building_status_hint = "乘客已离舱。请关闭舱门完成本次派单。"
+	_append_system_message("乘客已离舱，等待关门结算。")
+	return try_set_case_phase(DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE)
 
 
 func get_current_recommended_destinations() -> Array[String]:
 	var phase: String = get_case_phase()
 	var pickup_phases: Array[String] = [
-		"WAITING_FOR_PICKUP",
-		"ARRIVED_AT_PICKUP",
-		"DOOR_GREETING_DONE",
-		"BOARDING_WAIT_DOOR_CLOSE",
+		DispatchPhase.WAITING_FOR_PICKUP,
+		DispatchPhase.ARRIVED_AT_PICKUP,
+		DispatchPhase.DOOR_GREETING_DONE,
+		DispatchPhase.BOARDING_WAIT_DOOR_CLOSE,
 	]
 	var dispatch: DispatchDefinition = get_active_dispatch()
 	if dispatch == null:

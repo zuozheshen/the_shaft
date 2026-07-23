@@ -401,9 +401,9 @@ func _should_show_recommendations() -> bool:
 	if demo_flow_manager.is_passenger_onboard():
 		return true
 	return demo_flow_manager.get_case_phase() in [
-		"WAITING_FOR_PICKUP",
-		"ARRIVED_AT_PICKUP",
-		"DOOR_GREETING_DONE",
+		DispatchPhase.WAITING_FOR_PICKUP,
+		DispatchPhase.ARRIVED_AT_PICKUP,
+		DispatchPhase.DOOR_GREETING_DONE,
 	]
 
 

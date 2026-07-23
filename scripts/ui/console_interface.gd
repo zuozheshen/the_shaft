@@ -307,9 +307,9 @@ func _get_dialogue_manager_start_title() -> String:
 	if demo_flow_manager == null:
 		return ""
 	var phase: String = demo_flow_manager.get_case_phase()
-	if phase == "ARRIVED_AT_PICKUP" and not demo_flow_manager.is_door_greeting_done():
+	if phase == DispatchPhase.ARRIVED_AT_PICKUP and not demo_flow_manager.is_door_greeting_done():
 		return "pickup_start"
-	if phase == "PASSENGER_ONBOARD" \
+	if phase == DispatchPhase.PASSENGER_ONBOARD \
 			and demo_flow_manager.is_passenger_onboard() \
 			and demo_flow_manager.is_cabin_door_closed_after_boarding():
 		return "onboard_start"
@@ -483,10 +483,10 @@ func _on_dm_door_greeting_done_requested() -> void:
 	# DM 只完成“门外乘客已确认”；后续开门、进舱、关门仍走原有门控 phase。
 	if demo_flow_manager == null:
 		return
-	if demo_flow_manager.get_case_phase() != "ARRIVED_AT_PICKUP":
+	if demo_flow_manager.get_case_phase() != DispatchPhase.ARRIVED_AT_PICKUP:
 		return
 	demo_flow_manager.set_door_greeting_done(true)
-	demo_flow_manager.set_case_phase("DOOR_GREETING_DONE")
+	demo_flow_manager.set_case_phase(DispatchPhase.DOOR_GREETING_DONE)
 	_update_dialogue_buttons()
 	_update_dialogue_visibility()
 
@@ -532,15 +532,15 @@ func _get_phase_passenger_line() -> String:
 	if demo_flow_manager == null:
 		return "乘客舱音频链路待机。"
 	var phase: String = demo_flow_manager.get_case_phase()
-	if phase == "ARRIVED_AT_PICKUP":
+	if phase == DispatchPhase.ARRIVED_AT_PICKUP:
 		var outside_audio_idle: String = demo_flow_manager.get_outside_audio_idle()
 		return outside_audio_idle if not outside_audio_idle.is_empty() else "门外音频链路已开启。"
-	if phase == "BOARDING_WAIT_DOOR_CLOSE":
+	if phase == DispatchPhase.BOARDING_WAIT_DOOR_CLOSE:
 		return demo_flow_manager.get_after_open_line()
-	if phase == "PASSENGER_ONBOARD":
+	if phase == DispatchPhase.PASSENGER_ONBOARD:
 		# 乘客对正式目标楼层的反馈统一来自 .dialogue 的 destination_xxx 标题。
 		return current_passenger_line
-	if phase == "DROPOFF_WAIT_DOOR_CLOSE":
+	if phase == DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE:
 		return "乘客已离舱。"
 	return "乘客舱音频链路待机。"
 
@@ -570,10 +570,10 @@ func request_open_door() -> void:
 	var phase: String = demo_flow_manager.get_case_phase()
 	var dialogue_reply_applied: bool = _apply_dialogue_door_reply(true)
 	demo_flow_manager.set_cabin_door_open(true)
-	if phase in ["ARRIVED_AT_PICKUP", "DOOR_GREETING_DONE"]:
+	if phase in [DispatchPhase.ARRIVED_AT_PICKUP, DispatchPhase.DOOR_GREETING_DONE]:
 		demo_flow_manager.set_passenger_onboard(true)
 		demo_flow_manager.set_cabin_door_closed_after_boarding(false)
-		demo_flow_manager.set_case_phase("BOARDING_WAIT_DOOR_CLOSE")
+		demo_flow_manager.set_case_phase(DispatchPhase.BOARDING_WAIT_DOOR_CLOSE)
 		dm_dialogue_started = false
 		dm_dialogue_finished = false
 		dm_choices.clear()
@@ -585,9 +585,9 @@ func request_open_door() -> void:
 		_update_microphone_display()
 		if not dialogue_reply_applied:
 			passenger_speech_label.text = current_passenger_line
-	elif phase == "ARRIVED_AT_DESTINATION" \
+	elif phase == DispatchPhase.ARRIVED_AT_DESTINATION \
 			and demo_flow_manager.is_cabin_door_closed_after_boarding():
-		demo_flow_manager.set_case_phase("DROPOFF_FEEDBACK")
+		demo_flow_manager.set_case_phase(DispatchPhase.DROPOFF_FEEDBACK)
 		_show_destination_feedback_for_current_floor()
 		_update_microphone_display()
 		_update_dialogue_buttons()
@@ -603,19 +603,19 @@ func request_close_door() -> void:
 		_show_system_hint("舱门已经关闭。")
 		return
 	var phase: String = demo_flow_manager.get_case_phase()
-	if phase == "DROPOFF_FEEDBACK":
+	if phase == DispatchPhase.DROPOFF_FEEDBACK:
 		_show_system_hint("请等待乘客反馈结束后再关闭舱门。")
 		return
 	demo_flow_manager.set_cabin_door_open(false)
 	var dialogue_reply_applied: bool = _apply_dialogue_door_reply(false)
-	if phase == "DROPOFF_WAIT_DOOR_CLOSE":
+	if phase == DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE:
 		demo_flow_manager.complete_active_dispatch()
 		return
-	if phase != "BOARDING_WAIT_DOOR_CLOSE":
+	if phase != DispatchPhase.BOARDING_WAIT_DOOR_CLOSE:
 		return
 	# 登舱后必须显式关门，正式舱内询问才会解锁。
 	demo_flow_manager.set_cabin_door_closed_after_boarding(true)
-	demo_flow_manager.set_case_phase("PASSENGER_ONBOARD")
+	demo_flow_manager.set_case_phase(DispatchPhase.PASSENGER_ONBOARD)
 	dm_dialogue_started = false
 	dm_dialogue_finished = false
 	dm_choices.clear()
@@ -665,7 +665,7 @@ func _clear_pickup_dialogue_after_departure() -> void:
 	# 已完成门外确认但尚未登舱时可以离开；此时不能继续保留 612 门外对话。
 	if demo_flow_manager == null \
 			or demo_flow_manager.is_passenger_onboard() \
-			or demo_flow_manager.get_case_phase() != "WAITING_FOR_PICKUP":
+			or demo_flow_manager.get_case_phase() != DispatchPhase.WAITING_FOR_PICKUP:
 		return
 	if not dm_dialogue_started and dm_choices.is_empty():
 		return
