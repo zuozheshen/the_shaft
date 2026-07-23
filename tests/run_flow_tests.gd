@@ -3,6 +3,14 @@ extends Node
 
 const DispatchPhaseTests := preload("res://tests/flow/dispatch_phase_tests.gd")
 const DemoFlowManagerTests := preload("res://tests/flow/demo_flow_manager_tests.gd")
+const ElevatorRuntimeStateTests := preload(
+	"res://tests/runtime/elevator_runtime_state_tests.gd"
+)
+const DispatchLifecycleTests := preload(
+	"res://tests/runtime/dispatch_lifecycle_tests.gd"
+)
+const ShiftRunnerTests := preload("res://tests/runtime/shift_runner_tests.gd")
+const UIHistoryStateTests := preload("res://tests/runtime/ui_history_state_tests.gd")
 
 var passed_count: int = 0
 var failed_count: int = 0
@@ -15,10 +23,22 @@ func _ready() -> void:
 
 func _run() -> void:
 	await get_tree().process_frame
-	print("=== The Shaft / Issue 30 派单流程测试 ===")
+	print("=== The Shaft / Issue 31 运行时职责与派单流程测试 ===")
 
 	var dispatch_phase_tests := DispatchPhaseTests.new()
 	dispatch_phase_tests.run(self)
+
+	var elevator_runtime_state_tests := ElevatorRuntimeStateTests.new()
+	await elevator_runtime_state_tests.run(self, get_tree())
+
+	var dispatch_lifecycle_tests := DispatchLifecycleTests.new()
+	dispatch_lifecycle_tests.run(self)
+
+	var shift_runner_tests := ShiftRunnerTests.new()
+	shift_runner_tests.run(self)
+
+	var ui_history_state_tests := UIHistoryStateTests.new()
+	ui_history_state_tests.run(self)
 
 	var demo_flow_manager_tests := DemoFlowManagerTests.new()
 	await demo_flow_manager_tests.run(self, get_tree())
