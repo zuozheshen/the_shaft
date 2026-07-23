@@ -2,7 +2,8 @@ class_name FlowCommandResult
 extends RefCounted
 
 
-# effects 只描述已经发生的中性流程事实，UI 可据此决定播放哪类表现。
+# succeeded 表示命令主要目标是否完成；effects 只描述本次调用中已经发生的变化。
+# 失败结果通常没有 effects，但若失败过程中确实完成清理，也可以携带清理类 effect。
 const DOOR_OPENED: StringName = &"DOOR_OPENED"
 const DOOR_CLOSED: StringName = &"DOOR_CLOSED"
 const PASSENGER_BOARDED: StringName = &"PASSENGER_BOARDED"
@@ -89,5 +90,7 @@ static func _create(
 	result.previous_phase = previous
 	result.current_phase = current
 	result.floor_id = result_floor_id
-	result.effects.assign(result_effects)
+	for effect_id: StringName in result_effects:
+		if effect_id not in result.effects:
+			result.effects.append(effect_id)
 	return result

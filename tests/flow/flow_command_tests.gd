@@ -161,6 +161,10 @@ func _test_validation_and_travel_commands(
 		"",
 		manager.get_validated_floor()
 	)
+	test_runner.assert_true(
+		"地址命令 / 空地址失败报告实际清理效果",
+		empty_result.has_effect(FlowCommandResultScript.VALIDATION_CLEARED)
+	)
 	manager.request_validate_destination("900")
 	var unknown_result = manager.request_validate_destination("999999")
 	test_runner.assert_false("地址命令 / 未知地址失败", unknown_result.succeeded)
@@ -168,6 +172,24 @@ func _test_validation_and_travel_commands(
 		"地址命令 / 未知地址清除旧验证",
 		"",
 		manager.get_validated_floor()
+	)
+	test_runner.assert_true(
+		"地址命令 / 未知地址失败报告实际清理效果",
+		unknown_result.has_effect(
+			FlowCommandResultScript.VALIDATION_CLEARED
+		)
+	)
+	var empty_without_old_validation = \
+			manager.request_validate_destination("   ")
+	test_runner.assert_false(
+		"地址命令 / 无旧验证时空地址仍失败",
+		empty_without_old_validation.succeeded
+	)
+	test_runner.assert_false(
+		"地址命令 / 无旧验证时不虚构清理效果",
+		empty_without_old_validation.has_effect(
+			FlowCommandResultScript.VALIDATION_CLEARED
+		)
 	)
 	var leading_zero_result = manager.request_validate_destination(" 004 ")
 	test_runner.assert_true(

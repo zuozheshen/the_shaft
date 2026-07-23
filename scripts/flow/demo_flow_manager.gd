@@ -573,6 +573,7 @@ func _clear_validation_for_failed_command(
 ) -> FlowCommandResultScript:
 	var result_effects: Array[StringName] = []
 	if has_active_dispatch() and not get_validated_floor().is_empty():
+		# 主要验证目标虽失败，但旧验证确实被清除，因此仍报告清理 effect。
 		dispatch_lifecycle.set_validated_floor("")
 		result_effects.append(FlowCommandResultScript.VALIDATION_CLEARED)
 		case_updated.emit()
