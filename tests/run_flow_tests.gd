@@ -21,6 +21,9 @@ const ContentValidationReportTests := preload(
 const ContentValidatorTests := preload(
 	"res://tests/content/content_validator_tests.gd"
 )
+const Case003ContentTests := preload(
+	"res://tests/content/case_003_content_tests.gd"
+)
 
 var passed_count: int = 0
 var failed_count: int = 0
@@ -33,13 +36,16 @@ func _ready() -> void:
 
 func _run() -> void:
 	await get_tree().process_frame
-	print("=== The Shaft / Issue 33 内容资源契约校验测试 ===")
+	print("=== The Shaft / Issue 34 第三个案例生产试跑测试 ===")
 
 	var content_validation_report_tests := ContentValidationReportTests.new()
 	content_validation_report_tests.run(self)
 
 	var content_validator_tests := ContentValidatorTests.new()
 	content_validator_tests.run(self)
+
+	var case_003_content_tests := Case003ContentTests.new()
+	case_003_content_tests.run(self)
 
 	var dispatch_phase_tests := DispatchPhaseTests.new()
 	dispatch_phase_tests.run(self)

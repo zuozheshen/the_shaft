@@ -420,6 +420,39 @@ func _test_dropoff_and_shift_completion_commands(
 			shift_signal_counter["count"] = \
 					int(shift_signal_counter["count"]) + 1
 	)
+	var second_completion_result = manager.request_close_cabin_door()
+	test_runner.assert_true(
+		"结算命令 / 第二单关门完成派单",
+		second_completion_result.succeeded
+	)
+	test_runner.assert_true(
+		"结算命令 / 第二单返回下一单开始效果",
+		second_completion_result.has_effect(
+			FlowCommandResultScript.NEXT_DISPATCH_STARTED
+		)
+	)
+	test_runner.assert_false(
+		"结算命令 / 第二单不提前返回值班结束效果",
+		second_completion_result.has_effect(
+			FlowCommandResultScript.SHIFT_COMPLETED
+		)
+	)
+	test_runner.assert_equal(
+		"结算命令 / 第二单结束后载入第三单",
+		"CASE_003",
+		String(manager.get_active_dispatch().dispatch_id)
+	)
+	test_runner.assert_equal(
+		"结算命令 / 第二单结束后值班尚未结束",
+		0,
+		int(shift_signal_counter["count"])
+	)
+
+	await _board_at_pickup(manager, "387")
+	manager.request_validate_destination("547")
+	await _travel_and_wait(manager, "547")
+	manager.request_open_cabin_door()
+	manager.request_finish_dropoff_feedback()
 	var final_completion_result = manager.request_close_cabin_door()
 	test_runner.assert_true(
 		"结算命令 / 最后一单关门不能误报失败",
@@ -440,6 +473,11 @@ func _test_dropoff_and_shift_completion_commands(
 	test_runner.assert_false(
 		"结算命令 / 值班结束后无活动派单",
 		manager.has_active_dispatch()
+	)
+	test_runner.assert_equal(
+		"结算命令 / 值班记录三条完成结果",
+		3,
+		manager.shift_runner.get_completed_count()
 	)
 	manager.finish_shift()
 	test_runner.assert_equal(

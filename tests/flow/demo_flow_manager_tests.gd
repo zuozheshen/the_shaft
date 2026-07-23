@@ -281,6 +281,7 @@ func _test_delivery_and_dispatch_order(test_runner: Variant, tree: SceneTree) ->
 		["742"],
 		manager.get_current_recommended_destinations()
 	)
+	manager.set_door_greeting_done(true)
 
 	var shift_signal_counter := {"count": 0}
 	manager.shift_completed.connect(
@@ -298,9 +299,73 @@ func _test_delivery_and_dispatch_order(test_runner: Variant, tree: SceneTree) ->
 	manager.complete_active_dispatch()
 
 	test_runner.assert_equal(
-		"派单顺序 / 两条派单结果均已记录",
+		"派单顺序 / 第二条完成后载入第三条",
+		"CASE_003",
+		String(manager.get_active_dispatch().dispatch_id)
+	)
+	test_runner.assert_equal(
+		"派单顺序 / 第三条派单继续发送 dispatch_started",
+		2,
+		int(dispatch_started_counter["count"])
+	)
+	test_runner.assert_equal(
+		"派单顺序 / 第三条开始前已记录两条结果",
 		2,
 		completed_results.size()
+	)
+	test_runner.assert_equal(
+		"派单顺序 / 第三条不继承验证楼层",
+		"",
+		manager.get_validated_floor()
+	)
+	test_runner.assert_equal(
+		"派单顺序 / 第三条不继承选择目标",
+		"",
+		manager.get_selected_target_floor()
+	)
+	test_runner.assert_false(
+		"派单顺序 / 第三条不继承乘客进舱状态",
+		manager.is_passenger_onboard()
+	)
+	test_runner.assert_false(
+		"派单顺序 / 第三条不继承门外确认标记",
+		manager.is_door_greeting_done()
+	)
+	test_runner.assert_false(
+		"派单顺序 / 第三条不继承到站反馈标记",
+		manager.dispatch_lifecycle.is_arrival_triggered()
+	)
+	test_runner.assert_equal(
+		"派单顺序 / 第三条初始推荐仅包含 547",
+		[&"547"],
+		manager.dispatch_lifecycle.get_recommended_floor_ids()
+	)
+	test_runner.assert_equal(
+		"派单顺序 / 第二条完成后值班尚未结束",
+		0,
+		int(shift_signal_counter["count"])
+	)
+
+	await _move_to(manager, "387")
+	_board_passenger(manager)
+	manager.set_validated_floor("547")
+	manager.select_target_floor("547")
+	await _move_to(manager, "547")
+	manager.try_mark_arrival_triggered()
+	manager.set_cabin_door_open(true)
+	manager.try_set_case_phase(DispatchPhase.DROPOFF_FEEDBACK)
+	manager.mark_dropoff_feedback_finished()
+	manager.set_cabin_door_open(false)
+	manager.complete_active_dispatch()
+
+	test_runner.assert_equal(
+		"派单顺序 / 三条派单结果均已记录",
+		3,
+		completed_results.size()
+	)
+	test_runner.assert_false(
+		"派单顺序 / 第三条完成后无活动派单",
+		manager.has_active_dispatch()
 	)
 	test_runner.assert_equal(
 		"派单顺序 / 值班结束后无活动派单",

@@ -1,0 +1,122 @@
+[gd_resource type="Resource" script_class="DispatchDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/definitions/dispatch_definition.gd" id="1_dispatch"]
+[ext_resource type="Script" path="res://scripts/data/definitions/dispatch_floor_relation.gd" id="2_relation"]
+
+[sub_resource type="Resource" id="DispatchFloorRelation_547"]
+script = ExtResource("2_relation")
+floor_id = &"547"
+relevance = 95
+stability_preview = &"basic_stable"
+recommendation_eligible = true
+initially_recommended = true
+
+[sub_resource type="Resource" id="DispatchFloorRelation_004"]
+script = ExtResource("2_relation")
+floor_id = &"004"
+relevance = 82
+stability_preview = &"moderate_fluctuation"
+recommendation_eligible = true
+initially_recommended = false
+
+[sub_resource type="Resource" id="DispatchFloorRelation_900"]
+script = ExtResource("2_relation")
+floor_id = &"900"
+relevance = 75
+stability_preview = &"stable"
+recommendation_eligible = true
+initially_recommended = false
+
+[sub_resource type="Resource" id="DispatchFloorRelation_387"]
+script = ExtResource("2_relation")
+floor_id = &"387"
+relevance = 55
+stability_preview = &"minor_fluctuation"
+recommendation_eligible = false
+initially_recommended = false
+
+[sub_resource type="Resource" id="DispatchFloorRelation_612"]
+script = ExtResource("2_relation")
+floor_id = &"612"
+relevance = 40
+stability_preview = &"stable"
+recommendation_eligible = false
+initially_recommended = false
+
+[sub_resource type="Resource" id="DispatchFloorRelation_742"]
+script = ExtResource("2_relation")
+floor_id = &"742"
+relevance = 30
+stability_preview = &"stable"
+recommendation_eligible = false
+initially_recommended = false
+
+[sub_resource type="Resource" id="DispatchFloorRelation_392"]
+script = ExtResource("2_relation")
+floor_id = &"392"
+relevance = 15
+stability_preview = &"stable"
+recommendation_eligible = false
+initially_recommended = false
+
+[resource]
+script = ExtResource("1_dispatch")
+dispatch_id = &"CASE_003"
+passenger_id = &"passenger_003"
+pickup_floor_id = &"387"
+default_destination_floor_id = &"547"
+dialogue_path = "res://dialogues/passengers/passenger_003.dialogue"
+pickup_data = {
+"after_close_hint": "舱门已关闭。可以开启麦克风询问班表与改送理由。",
+"after_close_line": "乘客：系统写的是 547，但我想先去 004 补签。",
+"after_close_status_hint": "乘客已登舱。标准交付目标为 547，乘客提出非标准改送申请。",
+"after_open_hint": "乘客已进入舱内。请关闭舱门后确认交付目标。",
+"after_open_line": "乘客：谢谢。封套别碰水，门关上以后我再说明。",
+"arrival_status_hint": "电梯已抵达 387 层接乘点。门外有一名携带纸质封套的转运员。",
+"outside_audio_idle": "门外音频链路已开启。"
+}
+camera_feeds = {
+"ARRIVED_AT_DESTINATION": ["舱内摄像头：乘客仍在舱内，等待舱门开启。", "门外摄像头：当前停靠层门外区域未发现阻挡。"],
+"ARRIVED_AT_PICKUP": ["舱内摄像头：舱内为空。", "门外摄像头：387 层门外，一名转运员抱着防潮纸质封套等待。"],
+"BOARDING_WAIT_DOOR_CLOSE": ["舱内摄像头：乘客已经进入舱内，纸质封套抱在胸前。", "门外摄像头：387 层门外等待区已经空出。"],
+"DOOR_GREETING_DONE": ["舱内摄像头：舱内为空。", "门外摄像头：乘客站在 387 层门线外，等待舱门开启。"],
+"DROPOFF_FEEDBACK": ["舱内摄像头：乘客携带封套离开电梯。", "门外摄像头：当前停靠层门口可见乘客离场。"],
+"DROPOFF_WAIT_DOOR_CLOSE": ["舱内摄像头：舱内为空。", "门外摄像头：当前停靠层门外区域，乘客已经离开。"],
+"PASSENGER_ONBOARD": ["舱内摄像头：乘客站在舱内，封套边角留有旧水渍。", "门外摄像头：舱门关闭，外部画面不可用。"],
+"WAITING_FOR_PICKUP": ["舱内摄像头：舱内为空。", "门外摄像头：当前停靠层门外未发现本派单待接乘客。"]
+}
+front_phase_texts = {
+"ARRIVED_AT_DESTINATION": {
+"state": "当前状态：已抵达目标楼层",
+"task": "当前任务：开启舱门完成文件交付"
+},
+"ARRIVED_AT_PICKUP": {
+"state": "当前状态：已抵达接乘点",
+"task": "当前任务：确认门外转运员或直接开启舱门"
+},
+"BOARDING_WAIT_DOOR_CLOSE": {
+"state": "当前状态：乘客已进入，等待关门",
+"task": "当前任务：关闭舱门后确认文件交付目标"
+},
+"DOOR_GREETING_DONE": {
+"state": "当前状态：门外乘客已回应",
+"task": "当前任务：开启舱门完成接乘"
+},
+"DROPOFF_FEEDBACK": {
+"state": "当前状态：交付反馈中",
+"task": "当前任务：等待乘客反馈结束"
+},
+"DROPOFF_WAIT_DOOR_CLOSE": {
+"state": "当前状态：乘客已离舱",
+"task": "当前任务：关闭舱门完成派单"
+},
+"PASSENGER_ONBOARD": {
+"state": "当前状态：文件转运目标待确认",
+"task": "当前任务：询问改送理由并验证楼层"
+},
+"WAITING_FOR_PICKUP": {
+"state": "当前状态：等待接乘",
+"task": "当前任务：前往 {pickup_floor} 层接乘"
+}
+}
+floor_relations = Array[ExtResource("2_relation")]([SubResource("DispatchFloorRelation_547"), SubResource("DispatchFloorRelation_004"), SubResource("DispatchFloorRelation_900"), SubResource("DispatchFloorRelation_387"), SubResource("DispatchFloorRelation_612"), SubResource("DispatchFloorRelation_742"), SubResource("DispatchFloorRelation_392")])
