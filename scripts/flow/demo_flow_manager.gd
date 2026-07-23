@@ -2,7 +2,7 @@ extends Node
 class_name DemoFlowManager
 
 
-# 状态变化后通知界面等监听者，避免其他节点反复查询流程状态。
+# 协调层继续发送原有信号，三个 UI 不需要知道内部模块已经拆分。
 signal case_updated
 signal elevator_movement_completed(arrived_floor: String)
 signal dispatch_started(dispatch_id: StringName)
@@ -10,54 +10,50 @@ signal dispatch_completed(result: DispatchResult)
 signal shift_completed
 
 
-const MAX_FRONT_HISTORY_LINES: int = 20
+const ElevatorRuntimeStateScript := preload(
+	"res://scripts/runtime/elevator/elevator_runtime_state.gd"
+)
+const DispatchLifecycleScript := preload(
+	"res://scripts/runtime/dispatch/dispatch_lifecycle.gd"
+)
+const ShiftRunnerScript := preload("res://scripts/runtime/shift/shift_runner.gd")
+const UIHistoryStateScript := preload("res://scripts/runtime/ui/ui_history_state.gd")
 
-# 电梯位置独立于案例阶段：派单只提供建议，不能限制实际可前往的楼层。
-enum MovementState {
-	IDLE,
-	MOVING,
-	ARRIVED,
-}
-
-# 可在 Main 场景的 DemoFlowManager Inspector 中调整，避免起始楼层散落在多个脚本里。
 @export var initial_floor: String = "900"
 @export_range(0.1, 5.0, 0.1, "suffix:s") var movement_duration_seconds: float = 0.6
 @export var initial_shift: ShiftDefinition
 
-var current_floor: String = ""
-var target_floor: String = ""
-var movement_state: MovementState = MovementState.IDLE
-var cabin_door_is_open: bool = false
-var movement_timer: Timer
-var active_dispatch: ActiveDispatchState = null
-var active_shift: ShiftDefinition = null
-var current_dispatch_index: int = -1
-var completed_dispatch_results: Array[DispatchResult] = []
-var shift_is_finished: bool = false
-
-# FRONT 到 LEFT 的临时桥接：对话记录与系统通信分别保存，后续由 UIHistoryState 管理。
-var front_dialogue_history: Array[String] = []
-var system_message_history: Array[String] = []
-var current_building_status_hint: String = "暂无系统消息。"
+var elevator_runtime_state: ElevatorRuntimeStateScript
+var dispatch_lifecycle: DispatchLifecycleScript
+var shift_runner: ShiftRunnerScript
+var ui_history_state: UIHistoryStateScript
 
 
 func _ready() -> void:
-	_initialize_elevator_position()
+	_initialize_runtime_components()
+	elevator_runtime_state.initialize(initial_floor, movement_duration_seconds)
+	case_updated.emit()
 	start_shift(initial_shift)
 
 
-func _initialize_elevator_position() -> void:
-	# 初始位置在流程管理器中统一初始化，RIGHT 与 FRONT 都从这里读取。
-	current_floor = initial_floor.strip_edges()
-	target_floor = ""
-	movement_state = MovementState.IDLE
-	cabin_door_is_open = false
-	movement_timer = Timer.new()
-	movement_timer.one_shot = true
-	movement_timer.wait_time = movement_duration_seconds
-	movement_timer.timeout.connect(_complete_elevator_movement)
-	add_child(movement_timer)
-	case_updated.emit()
+func _initialize_runtime_components() -> void:
+	# 组件由协调层直接持有；重复初始化不会按节点名称搜索或创建第二份状态。
+	if elevator_runtime_state == null:
+		elevator_runtime_state = ElevatorRuntimeStateScript.new()
+		elevator_runtime_state.name = "ElevatorRuntimeState"
+		add_child(elevator_runtime_state)
+	if not elevator_runtime_state.movement_completed.is_connected(
+		_on_elevator_movement_completed
+	):
+		elevator_runtime_state.movement_completed.connect(
+			_on_elevator_movement_completed
+		)
+	if dispatch_lifecycle == null:
+		dispatch_lifecycle = DispatchLifecycleScript.new()
+	if shift_runner == null:
+		shift_runner = ShiftRunnerScript.new()
+	if ui_history_state == null:
+		ui_history_state = UIHistoryStateScript.new()
 
 
 func start_dispatch(dispatch_id: StringName) -> bool:
@@ -66,28 +62,26 @@ func start_dispatch(dispatch_id: StringName) -> bool:
 		push_error("DemoFlowManager: 无法开始不存在的派单：%s" % dispatch_id)
 		return false
 
-	# 每次开始派单都创建新对象，避免上一轮验证、目标或门控状态残留。
-	active_dispatch = ActiveDispatchState.create_from_definition(dispatch)
-	target_floor = ""
-	front_dialogue_history.clear()
-	if current_floor == get_pickup_floor():
-		active_dispatch.current_phase = DispatchPhase.ARRIVED_AT_PICKUP
-		current_building_status_hint = "新派单已建立。\n当前楼层检测到等待乘客。\n可通过门外摄像头确认，或直接开启舱门。"
+	var initial_phase: String = DispatchPhase.ARRIVED_AT_PICKUP \
+			if get_current_floor() == String(dispatch.pickup_floor_id) \
+			else DispatchPhase.WAITING_FOR_PICKUP
+	if not dispatch_lifecycle.start_dispatch(dispatch, initial_phase):
+		return false
+
+	elevator_runtime_state.clear_target_floor()
+	var initial_hint: String
+	if initial_phase == DispatchPhase.ARRIVED_AT_PICKUP:
+		initial_hint = "新派单已建立。\n当前楼层检测到等待乘客。\n可通过门外摄像头确认，或直接开启舱门。"
 	else:
-		active_dispatch.current_phase = DispatchPhase.WAITING_FOR_PICKUP
-		current_building_status_hint = "新派单已建立。\n%s 层检测到等待乘客。\n请前往接乘楼层。" % get_pickup_floor()
-	system_message_history = [current_building_status_hint]
+		initial_hint = "新派单已建立。\n%s 层检测到等待乘客。\n请前往接乘楼层。" \
+				% String(dispatch.pickup_floor_id)
+	ui_history_state.reset_for_new_dispatch(initial_hint)
 	case_updated.emit()
 	return true
 
 
 func start_shift(shift: ShiftDefinition) -> bool:
-	# 值班只负责顺序；每条派单仍通过 ContentRegistry 取得静态定义。
-	active_shift = shift
-	current_dispatch_index = -1
-	completed_dispatch_results.clear()
-	shift_is_finished = false
-	if active_shift == null or active_shift.dispatch_ids.is_empty():
+	if not shift_runner.start_shift(shift):
 		push_error("DemoFlowManager: 无法开始空的值班资源。")
 		finish_shift()
 		return false
@@ -95,27 +89,24 @@ func start_shift(shift: ShiftDefinition) -> bool:
 
 
 func start_next_dispatch() -> bool:
-	if active_shift == null:
-		finish_shift()
-		return false
-
-	# 使用循环跳过无效 ID，避免递归配置错误造成流程卡死。
-	while current_dispatch_index + 1 < active_shift.dispatch_ids.size():
-		current_dispatch_index += 1
-		var dispatch_id: StringName = active_shift.dispatch_ids[current_dispatch_index]
+	# 静态资源校验留在协调层；ShiftRunner 只提供顺序中的下一个 ID。
+	while true:
+		var dispatch_id: StringName = shift_runner.get_next_dispatch_id()
+		if dispatch_id == &"":
+			finish_shift()
+			return false
 		if start_dispatch(dispatch_id):
 			dispatch_started.emit(dispatch_id)
 			return true
 		push_error("DemoFlowManager: 已跳过无效派单：%s" % dispatch_id)
-
-	finish_shift()
 	return false
 
 
 func complete_active_dispatch() -> bool:
-	if active_dispatch == null:
+	if not has_active_dispatch():
 		return false
-	if get_case_phase() != DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE or cabin_door_is_open:
+	if get_case_phase() != DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE \
+			or is_cabin_door_open():
 		push_warning("DemoFlowManager: 当前阶段不允许完成派单。")
 		return false
 
@@ -123,76 +114,53 @@ func complete_active_dispatch() -> bool:
 	if dispatch == null:
 		return false
 	var result := DispatchResult.create(
-		active_dispatch.dispatch_id,
+		dispatch_lifecycle.get_dispatch_id(),
 		dispatch.passenger_id,
-		active_dispatch.selected_target_floor_id,
-		completed_dispatch_results.size() + 1
+		StringName(get_selected_target_floor()),
+		shift_runner.get_completed_count() + 1
 	)
-	completed_dispatch_results.append(result)
-	active_dispatch = null
-	target_floor = ""
+	shift_runner.record_completed_result(result)
+	dispatch_lifecycle.clear()
+	elevator_runtime_state.clear_target_floor()
 	dispatch_completed.emit(result)
 	case_updated.emit()
 	return start_next_dispatch()
 
 
 func finish_shift() -> void:
-	if shift_is_finished:
+	if not shift_runner.finish_shift():
 		return
-	active_dispatch = null
-	target_floor = ""
-	shift_is_finished = true
-	front_dialogue_history.clear()
-	system_message_history = ["本轮派单已全部完成。"]
-	current_building_status_hint = "本轮派单已全部完成。"
+	dispatch_lifecycle.clear()
+	elevator_runtime_state.clear_target_floor()
+	ui_history_state.finish_shift()
 	shift_completed.emit()
 	case_updated.emit()
 
 
 func clear_active_dispatch() -> void:
-	active_dispatch = null
-	front_dialogue_history.clear()
-	system_message_history.clear()
-	current_building_status_hint = "暂无系统消息。"
+	dispatch_lifecycle.clear()
+	ui_history_state.clear_active_dispatch()
 	case_updated.emit()
 
 
 func has_active_dispatch() -> bool:
-	return active_dispatch != null
+	return dispatch_lifecycle != null and dispatch_lifecycle.has_active_dispatch()
 
 
 func add_front_transcript_operator(operator_text: String) -> void:
-	# 单行写入供 Dialogue Manager 接入使用；仍然只进入 TRANSCRIPT。
-	if operator_text.is_empty():
-		return
-	front_dialogue_history.append("操作员：%s" % operator_text)
-	_trim_front_dialogue_history()
+	ui_history_state.add_operator_transcript(operator_text)
 
 
 func add_front_transcript_passenger(passenger_text: String) -> void:
-	if passenger_text.is_empty():
-		return
-	var formatted_passenger_text: String = passenger_text
-	if not formatted_passenger_text.begins_with("乘客："):
-		formatted_passenger_text = "乘客：%s" % formatted_passenger_text
-	front_dialogue_history.append(formatted_passenger_text)
-	_trim_front_dialogue_history()
-
-
-func _trim_front_dialogue_history() -> void:
-	while front_dialogue_history.size() > MAX_FRONT_HISTORY_LINES:
-		front_dialogue_history.pop_front()
+	ui_history_state.add_passenger_transcript(passenger_text)
 
 
 func get_front_dialogue_history() -> Array[String]:
-	# 返回副本，避免 LEFT 界面意外改写共享对话缓存。
-	var history_copy: Array[String] = []
-	history_copy.assign(front_dialogue_history)
-	return history_copy
+	return ui_history_state.get_front_dialogue_history()
 
 
 func get_current_building_status_hint() -> String:
-	return current_building_status_hint
+	return ui_history_state.get_current_building_status_hint()
 
 
 func set_building_status_hint(
@@ -200,34 +168,21 @@ func set_building_status_hint(
 		include_in_history: bool = true,
 		history_text: String = ""
 ) -> void:
-	if hint.is_empty():
-		return
-	current_building_status_hint = hint
-	if include_in_history:
-		var message_text: String = history_text if not history_text.is_empty() else hint
-		_append_system_message(message_text)
-	case_updated.emit()
+	if ui_history_state.set_building_status_hint(
+		hint,
+		include_in_history,
+		history_text
+	):
+		case_updated.emit()
 
 
 func add_system_log_message(message_text: String) -> void:
-	# 仅写入左侧历史，不覆盖 FRONT 当前正在显示的短提示。
-	if message_text.is_empty():
-		return
-	_append_system_message(message_text)
-	case_updated.emit()
-
-
-func _append_system_message(message_text: String) -> void:
-	system_message_history.append(message_text)
-	while system_message_history.size() > MAX_FRONT_HISTORY_LINES:
-		system_message_history.pop_front()
+	if ui_history_state.add_system_log_message(message_text):
+		case_updated.emit()
 
 
 func get_system_message_history() -> Array[String]:
-	# 返回副本，避免终端界面意外改写本轮系统通信记录。
-	var history_copy: Array[String] = []
-	history_copy.assign(system_message_history)
-	return history_copy
+	return ui_history_state.get_system_message_history()
 
 
 func get_passenger_label() -> String:
@@ -239,11 +194,12 @@ func get_passenger_label() -> String:
 
 
 func get_active_dispatch() -> DispatchDefinition:
-	if active_dispatch == null:
+	if not has_active_dispatch():
 		return null
-	var dispatch: DispatchDefinition = ContentRegistry.get_dispatch(String(active_dispatch.dispatch_id))
+	var dispatch_id: StringName = dispatch_lifecycle.get_dispatch_id()
+	var dispatch: DispatchDefinition = ContentRegistry.get_dispatch(String(dispatch_id))
 	if dispatch == null:
-		push_error("DemoFlowManager: 当前状态引用了不存在的派单：%s" % active_dispatch.dispatch_id)
+		push_error("DemoFlowManager: 当前状态引用了不存在的派单：%s" % dispatch_id)
 	return dispatch
 
 
@@ -300,7 +256,6 @@ func get_outside_audio_idle() -> String:
 
 
 func get_camera_feed_for_phase(phase: String, camera_index: int) -> String:
-	# 缺少阶段时回退到接乘初始画面；无效摄像头编号只返回空文本，避免数组越界。
 	var dispatch: DispatchDefinition = get_active_dispatch()
 	if dispatch == null:
 		return ""
@@ -329,7 +284,6 @@ func get_front_phase_text(phase: String) -> Dictionary:
 
 
 func _format_case_text(template: String) -> String:
-	# 主操作台阶段文案目前只使用接乘楼层占位符。
 	return template.replace("{pickup_floor}", get_pickup_floor())
 
 
@@ -352,86 +306,66 @@ func get_dispatch_dialogue_path() -> String:
 
 
 func get_dispatch_floor_relation(floor_id: String) -> DispatchFloorRelation:
-	if active_dispatch == null:
+	if not has_active_dispatch():
 		return null
-	return ContentRegistry.get_dispatch_floor_relation(String(active_dispatch.dispatch_id), floor_id)
+	return ContentRegistry.get_dispatch_floor_relation(
+		String(dispatch_lifecycle.get_dispatch_id()),
+		floor_id
+	)
 
 
 func get_current_floor() -> String:
-	return current_floor
+	return elevator_runtime_state.current_floor
 
 
 func get_target_floor() -> String:
-	return target_floor
+	return elevator_runtime_state.target_floor
 
 
 func get_movement_state_text() -> String:
-	var door_text: String = "舱门开启" if cabin_door_is_open else "舱门关闭"
-	match movement_state:
-		MovementState.MOVING:
-			return "运行中，舱门关闭"
-		MovementState.ARRIVED:
-			return "已停靠，%s" % door_text
-		_:
-			return "待命，%s" % door_text
+	return elevator_runtime_state.get_movement_state_text()
 
 
 func is_elevator_moving() -> bool:
-	return movement_state == MovementState.MOVING
+	return elevator_runtime_state.is_moving()
 
 
 func is_cabin_door_open() -> bool:
-	return cabin_door_is_open
+	return elevator_runtime_state.is_cabin_door_open()
 
 
 func set_cabin_door_open(is_open: bool) -> void:
-	# 门控由 FRONT 处理，位置状态只保存门是否已开，确保不能开门移动。
-	if cabin_door_is_open == is_open:
-		return
-	cabin_door_is_open = is_open
-	case_updated.emit()
+	# ConsoleInterface 仍拥有开关门业务；这里仅保存基础门控状态。
+	if elevator_runtime_state.set_cabin_door_open(is_open):
+		case_updated.emit()
 
 
 func request_elevator_movement(destination: String) -> bool:
-	# 只处理电梯移动，不推进接乘、送达或案例阶段。
 	var requested_floor: String = destination.strip_edges()
 	if requested_floor.is_empty() or not ContentRegistry.has_floor(requested_floor):
 		return false
-	if is_elevator_moving() or cabin_door_is_open:
+	if not elevator_runtime_state.request_movement(requested_floor):
 		return false
-
-	target_floor = requested_floor
-	movement_state = MovementState.MOVING
-	set_building_status_hint("电梯正在前往 %s 层。" % target_floor)
-	if movement_timer != null:
-		movement_timer.start()
+	set_building_status_hint("电梯正在前往 %s 层。" % requested_floor)
 	return true
 
 
-func _complete_elevator_movement() -> void:
-	# 到站只更新位置并保持舱门关闭；乘客登舱与楼层反馈仍必须等 FRONT 的开门操作。
-	if target_floor.is_empty():
-		return
-	current_floor = target_floor
-	target_floor = ""
-	movement_state = MovementState.ARRIVED
-	cabin_door_is_open = false
-	# 接乘点状态跟随当前位置刷新，保证离开 612 后门外摄像头不会继续显示 612 的证据。
+func _on_elevator_movement_completed(arrived_floor: String) -> void:
+	# 到站后的派单含义仍由协调层判断，电梯模块只报告物理停靠结果。
 	if is_passenger_onboard() \
 			and not get_selected_target_floor().is_empty() \
-			and current_floor == get_selected_target_floor():
+			and arrived_floor == get_selected_target_floor():
 		set_case_phase(DispatchPhase.ARRIVED_AT_DESTINATION)
 		set_building_status_hint(
 			"已抵达目标楼层。请开启舱门完成送达。",
 			true,
 			"已抵达目标楼层，等待开门送达。"
 		)
-	elif not is_passenger_onboard() and current_floor == get_pickup_floor():
+	elif not is_passenger_onboard() and arrived_floor == get_pickup_floor():
 		var pickup_phase: String = DispatchPhase.DOOR_GREETING_DONE \
-			if is_door_greeting_done() else DispatchPhase.ARRIVED_AT_PICKUP
+				if is_door_greeting_done() else DispatchPhase.ARRIVED_AT_PICKUP
 		if get_case_phase() != pickup_phase:
 			set_case_phase(pickup_phase)
-		# 主台仍保留原有接乘提示；日志只保存精简的关键状态。
 		set_building_status_hint(
 			get_pickup_arrival_status_hint(),
 			true,
@@ -442,14 +376,14 @@ func _complete_elevator_movement() -> void:
 		DispatchPhase.DOOR_GREETING_DONE,
 	]:
 		set_case_phase(DispatchPhase.WAITING_FOR_PICKUP)
-		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % current_floor)
+		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % arrived_floor)
 	else:
-		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % current_floor)
-	elevator_movement_completed.emit(current_floor)
+		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % arrived_floor)
+	elevator_movement_completed.emit(arrived_floor)
 
 
 func get_case_phase() -> String:
-	return active_dispatch.current_phase if active_dispatch != null else DispatchPhase.SHIFT_IDLE
+	return dispatch_lifecycle.get_phase()
 
 
 func set_case_phase(phase: String) -> void:
@@ -458,120 +392,90 @@ func set_case_phase(phase: String) -> void:
 
 func try_set_case_phase(next_phase: String) -> bool:
 	var previous_phase: String = get_case_phase()
-	if active_dispatch == null:
-		push_warning(
-			"DemoFlowManager: 当前无派单，无法修改派单阶段：%s -> %s"
-			% [previous_phase, next_phase]
-		)
-		return false
-	if not DispatchPhase.is_valid(next_phase):
-		push_warning(
-			"DemoFlowManager: 目标派单阶段无效：%s -> %s"
-			% [previous_phase, next_phase]
-		)
-		return false
-	if previous_phase == next_phase:
-		return true
-	if not DispatchPhase.can_transition(previous_phase, next_phase):
-		push_warning(
-			"DemoFlowManager: 不允许派单阶段转换：%s -> %s"
-			% [previous_phase, next_phase]
-		)
-		return false
-	active_dispatch.current_phase = next_phase
-	case_updated.emit()
-	return true
+	var succeeded: bool = dispatch_lifecycle.try_set_phase(next_phase)
+	if succeeded and previous_phase != next_phase:
+		case_updated.emit()
+	return succeeded
 
 
 func is_passenger_onboard() -> bool:
-	return active_dispatch != null and active_dispatch.passenger_inside
+	return dispatch_lifecycle.is_passenger_inside()
 
 
 func set_passenger_onboard(value: bool) -> void:
-	if active_dispatch == null:
-		push_warning("DemoFlowManager: 当前无派单，无法修改乘客进舱状态。")
-		return
-	active_dispatch.passenger_inside = value
-	case_updated.emit()
+	if dispatch_lifecycle.set_passenger_inside(value):
+		case_updated.emit()
 
 
 func is_door_greeting_done() -> bool:
-	return active_dispatch != null and active_dispatch.door_greeting_done
+	return dispatch_lifecycle.is_door_greeting_done()
 
 
 func set_door_greeting_done(value: bool) -> void:
-	if active_dispatch == null:
-		push_warning("DemoFlowManager: 当前无派单，无法修改门外问候状态。")
-		return
-	active_dispatch.door_greeting_done = value
-	case_updated.emit()
+	if dispatch_lifecycle.set_door_greeting_done(value):
+		case_updated.emit()
 
 
 func is_cabin_door_closed_after_boarding() -> bool:
-	return active_dispatch != null and active_dispatch.cabin_door_closed_after_boarding
+	return dispatch_lifecycle.is_cabin_door_closed_after_boarding()
 
 
 func set_cabin_door_closed_after_boarding(value: bool) -> void:
-	if active_dispatch == null:
-		push_warning("DemoFlowManager: 当前无派单，无法修改登舱后的门控状态。")
-		return
-	active_dispatch.cabin_door_closed_after_boarding = value
-	case_updated.emit()
+	if dispatch_lifecycle.set_cabin_door_closed_after_boarding(value):
+		case_updated.emit()
 
 
 func set_validated_floor(floor_id: String) -> bool:
-	if active_dispatch == null:
-		push_warning("DemoFlowManager: 当前无派单，无法记录楼层验证。")
-		return false
+	if not has_active_dispatch():
+		return dispatch_lifecycle.set_validated_floor(floor_id)
 	var normalized_id: String = floor_id.strip_edges()
 	if not normalized_id.is_empty() and not ContentRegistry.has_floor(normalized_id):
 		push_warning("DemoFlowManager: 无法记录不存在的验证楼层：%s" % normalized_id)
 		return false
-	active_dispatch.validated_floor_id = StringName(normalized_id)
+	if not dispatch_lifecycle.set_validated_floor(normalized_id):
+		return false
 	case_updated.emit()
 	return true
 
 
 func get_validated_floor() -> String:
-	return String(active_dispatch.validated_floor_id) if active_dispatch != null else ""
+	return dispatch_lifecycle.get_validated_floor()
 
 
 func select_target_floor(floor_id: String) -> bool:
-	if active_dispatch == null:
-		push_warning("DemoFlowManager: 当前无派单，无法记录目标楼层。")
-		return false
+	if not has_active_dispatch():
+		return dispatch_lifecycle.set_selected_target_floor(floor_id)
 	var normalized_id: String = floor_id.strip_edges()
 	if normalized_id.is_empty() or not ContentRegistry.has_floor(normalized_id):
 		push_warning("DemoFlowManager: 无法提交不存在的楼层：%s" % normalized_id)
 		return false
-	active_dispatch.selected_target_floor_id = StringName(normalized_id)
+	if not dispatch_lifecycle.set_selected_target_floor(normalized_id):
+		return false
 	case_updated.emit()
 	return true
 
 
 func get_selected_target_floor() -> String:
-	return String(active_dispatch.selected_target_floor_id) if active_dispatch != null else ""
+	return dispatch_lifecycle.get_selected_target_floor()
 
 
 func try_mark_arrival_triggered() -> bool:
-	if active_dispatch == null or active_dispatch.arrival_triggered:
+	if not dispatch_lifecycle.try_mark_arrival_triggered():
 		return false
-	active_dispatch.arrival_triggered = true
 	case_updated.emit()
 	return true
 
 
 func mark_dropoff_feedback_finished() -> bool:
-	# 对话层只报告反馈结束；离舱和阶段推进统一由流程管理器负责。
-	if active_dispatch == null or get_case_phase() != DispatchPhase.DROPOFF_FEEDBACK:
+	if not dispatch_lifecycle.finish_dropoff_feedback():
 		return false
-	if active_dispatch.dropoff_feedback_finished:
-		return false
-	active_dispatch.dropoff_feedback_finished = true
-	active_dispatch.passenger_inside = false
-	current_building_status_hint = "乘客已离舱。请关闭舱门完成本次派单。"
-	_append_system_message("乘客已离舱，等待关门结算。")
-	return try_set_case_phase(DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE)
+	ui_history_state.set_building_status_hint(
+		"乘客已离舱。请关闭舱门完成本次派单。",
+		true,
+		"乘客已离舱，等待关门结算。"
+	)
+	case_updated.emit()
+	return true
 
 
 func get_current_recommended_destinations() -> Array[String]:
@@ -585,16 +489,12 @@ func get_current_recommended_destinations() -> Array[String]:
 	var dispatch: DispatchDefinition = get_active_dispatch()
 	if dispatch == null:
 		return []
-	var is_pickup_phase: bool = not is_passenger_onboard() and phase in pickup_phases
-	# 接乘阶段只显示接乘楼层，正式派单推荐要等乘客进舱后才可见。
-	if is_pickup_phase:
+	if not is_passenger_onboard() and phase in pickup_phases:
 		var pickup_floor: String = String(dispatch.pickup_floor_id)
 		return [pickup_floor] if not pickup_floor.is_empty() else []
 
-	# 运行时列表决定当前显示内容，静态关系是推荐资格的唯一规则来源。
 	var candidates: Array[String] = []
-	var runtime_recommendations: Array[StringName] = active_dispatch.get_recommended_floor_ids()
-	for destination: StringName in runtime_recommendations:
+	for destination: StringName in dispatch_lifecycle.get_recommended_floor_ids():
 		var floor_number: String = String(destination)
 		var relation: DispatchFloorRelation = get_dispatch_floor_relation(floor_number)
 		if relation != null and relation.recommendation_eligible \
@@ -604,8 +504,7 @@ func get_current_recommended_destinations() -> Array[String]:
 
 
 func add_recommended_destination(destination: String) -> void:
-	# DM mutation 只追加本轮运行时推荐；是否有资格由派单关系资源决定。
-	if active_dispatch == null:
+	if not has_active_dispatch():
 		push_warning("DemoFlowManager: 当前无派单，无法解锁推荐楼层。")
 		return
 	var floor_number: String = destination.strip_edges()
@@ -615,6 +514,5 @@ func add_recommended_destination(destination: String) -> void:
 	if relation == null or not relation.recommendation_eligible:
 		push_warning("DemoFlowManager: 楼层 %s 不具备当前派单的推荐资格。" % floor_number)
 		return
-	var changed: bool = active_dispatch.add_recommended_floor(StringName(floor_number))
-	if changed:
+	if dispatch_lifecycle.add_recommended_floor(StringName(floor_number)):
 		case_updated.emit()

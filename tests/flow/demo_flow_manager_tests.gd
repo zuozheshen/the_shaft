@@ -2,6 +2,13 @@ extends RefCounted
 
 
 const DEMO_SHIFT: ShiftDefinition = preload("res://data/shifts/demo_shift_001.tres")
+const CONSOLE_SCENE: PackedScene = preload("res://scenes/ui/ConsoleInterface.tscn")
+const BUILDING_TERMINAL_SCENE: PackedScene = preload(
+	"res://scenes/ui/BuildingTerminalInterface.tscn"
+)
+const DESTINATION_CONTROL_SCENE: PackedScene = preload(
+	"res://scenes/ui/DestinationControlInterface.tscn"
+)
 
 
 func run(test_runner: Variant, tree: SceneTree) -> void:
@@ -9,6 +16,7 @@ func run(test_runner: Variant, tree: SceneTree) -> void:
 	await _test_phase_update_contract(test_runner, tree)
 	await _test_pickup_lifecycle(test_runner, tree)
 	await _test_delivery_and_dispatch_order(test_runner, tree)
+	await _test_ui_compatibility(test_runner, tree)
 
 
 func _test_initial_and_movement_state(test_runner: Variant, tree: SceneTree) -> void:
@@ -19,7 +27,14 @@ func _test_initial_and_movement_state(test_runner: Variant, tree: SceneTree) -> 
 	test_runner.assert_equal(
 		"DemoFlowManager / 第一条派单正常建立",
 		"CASE_001",
-		String(manager.active_dispatch.dispatch_id)
+		String(manager.get_active_dispatch().dispatch_id)
+	)
+	var runtime_component_count: int = manager.get_child_count()
+	manager._initialize_runtime_components()
+	test_runner.assert_equal(
+		"DemoFlowManager / 重复初始化不创建重复组件",
+		runtime_component_count,
+		manager.get_child_count()
 	)
 	test_runner.assert_false(
 		"DemoFlowManager / 空目标不能移动",
@@ -168,6 +183,16 @@ func _test_pickup_lifecycle(test_runner: Variant, tree: SceneTree) -> void:
 
 func _test_delivery_and_dispatch_order(test_runner: Variant, tree: SceneTree) -> void:
 	var manager: DemoFlowManager = await _create_manager(tree)
+	var completed_results: Array[DispatchResult] = []
+	var dispatch_started_counter := {"count": 0}
+	manager.dispatch_completed.connect(
+		func(result: DispatchResult) -> void:
+			completed_results.append(result)
+	)
+	manager.dispatch_started.connect(
+		func(_dispatch_id: StringName) -> void:
+			dispatch_started_counter["count"] = int(dispatch_started_counter["count"]) + 1
+	)
 	await _move_to(manager, "612")
 	_board_passenger(manager)
 
@@ -186,15 +211,11 @@ func _test_delivery_and_dispatch_order(test_runner: Variant, tree: SceneTree) ->
 		manager.get_case_phase()
 	)
 	test_runner.assert_false(
-		"送达流程 / 到达目标本身不触发乘客反馈",
-		manager.active_dispatch.arrival_triggered
-	)
-	test_runner.assert_false(
 		"送达流程 / 未完成反馈时不能结算",
 		manager.complete_active_dispatch()
 	)
 	test_runner.assert_true(
-		"送达流程 / 到站反馈标记第一次成功",
+		"送达流程 / 到达本身未触发反馈且首次标记成功",
 		manager.try_mark_arrival_triggered()
 	)
 	test_runner.assert_false(
@@ -229,7 +250,12 @@ func _test_delivery_and_dispatch_order(test_runner: Variant, tree: SceneTree) ->
 	test_runner.assert_equal(
 		"派单顺序 / 第二条派单 ID 正确",
 		"CASE_002",
-		String(manager.active_dispatch.dispatch_id)
+		String(manager.get_active_dispatch().dispatch_id)
+	)
+	test_runner.assert_equal(
+		"派单顺序 / 第二条派单继续发送 dispatch_started",
+		1,
+		int(dispatch_started_counter["count"])
 	)
 	test_runner.assert_equal(
 		"派单顺序 / 第二条不继承验证楼层",
@@ -245,14 +271,15 @@ func _test_delivery_and_dispatch_order(test_runner: Variant, tree: SceneTree) ->
 		"派单顺序 / 第二条不继承乘客进舱状态",
 		manager.is_passenger_onboard()
 	)
-	test_runner.assert_false(
+	test_runner.assert_true(
 		"派单顺序 / 第二条不继承到站反馈标记",
-		manager.active_dispatch.arrival_triggered
+		manager.try_mark_arrival_triggered()
 	)
+	_board_passenger(manager)
 	test_runner.assert_equal(
 		"派单顺序 / 第二条只保留自身运行时推荐楼层",
-		[&"742"],
-		manager.active_dispatch.get_recommended_floor_ids()
+		["742"],
+		manager.get_current_recommended_destinations()
 	)
 
 	var shift_signal_counter := {"count": 0}
@@ -260,7 +287,6 @@ func _test_delivery_and_dispatch_order(test_runner: Variant, tree: SceneTree) ->
 		func() -> void:
 			shift_signal_counter["count"] = int(shift_signal_counter["count"]) + 1
 	)
-	_board_passenger(manager)
 	manager.set_validated_floor("742")
 	manager.select_target_floor("742")
 	await _move_to(manager, "742")
@@ -271,14 +297,10 @@ func _test_delivery_and_dispatch_order(test_runner: Variant, tree: SceneTree) ->
 	manager.set_cabin_door_open(false)
 	manager.complete_active_dispatch()
 
-	test_runner.assert_true(
-		"派单顺序 / 全部派单完成后进入值班结束状态",
-		manager.shift_is_finished
-	)
 	test_runner.assert_equal(
 		"派单顺序 / 两条派单结果均已记录",
 		2,
-		manager.completed_dispatch_results.size()
+		completed_results.size()
 	)
 	test_runner.assert_equal(
 		"派单顺序 / 值班结束后无活动派单",
@@ -292,6 +314,41 @@ func _test_delivery_and_dispatch_order(test_runner: Variant, tree: SceneTree) ->
 		1,
 		int(shift_signal_counter["count"])
 	)
+	await _destroy_manager(manager, tree)
+
+
+func _test_ui_compatibility(test_runner: Variant, tree: SceneTree) -> void:
+	var manager: DemoFlowManager = await _create_manager(tree)
+	var console_interface = CONSOLE_SCENE.instantiate()
+	var building_terminal_interface = BUILDING_TERMINAL_SCENE.instantiate()
+	var destination_control_interface = DESTINATION_CONTROL_SCENE.instantiate()
+	tree.root.add_child(console_interface)
+	tree.root.add_child(building_terminal_interface)
+	tree.root.add_child(destination_control_interface)
+	await tree.process_frame
+
+	console_interface.set_demo_flow_manager(manager)
+	building_terminal_interface.set_demo_flow_manager(manager)
+	destination_control_interface.set_demo_flow_manager(manager)
+	test_runner.assert_equal(
+		"UI 兼容 / FRONT 仍通过 DemoFlowManager 接入",
+		manager,
+		console_interface.demo_flow_manager
+	)
+	test_runner.assert_equal(
+		"UI 兼容 / LEFT 仍通过 DemoFlowManager 接入",
+		manager,
+		building_terminal_interface.demo_flow_manager
+	)
+	test_runner.assert_equal(
+		"UI 兼容 / RIGHT 仍通过 DemoFlowManager 接入",
+		manager,
+		destination_control_interface.demo_flow_manager
+	)
+
+	console_interface.queue_free()
+	building_terminal_interface.queue_free()
+	destination_control_interface.queue_free()
 	await _destroy_manager(manager, tree)
 
 
