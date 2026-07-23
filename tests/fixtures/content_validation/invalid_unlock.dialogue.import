@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=15
+type="Resource"
+uid="uid://cw4y3y33wjrq0"
+path="res://.godot/imported/invalid_unlock.dialogue-b2f55d845fc78c7439e2cdb6b4527f14.tres"
+
+[deps]
+
+source_file="res://tests/fixtures/content_validation/invalid_unlock.dialogue"
+dest_files=["res://.godot/imported/invalid_unlock.dialogue-b2f55d845fc78c7439e2cdb6b4527f14.tres"]
+
+[params]
+
+defaults=true

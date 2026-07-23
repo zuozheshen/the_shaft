@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=15
+type="Resource"
+uid="uid://c3w0liq4vy3ie"
+path="res://.godot/imported/valid.dialogue-ef72ee3cd192e9bf9ec4530a121e3c05.tres"
+
+[deps]
+
+source_file="res://tests/fixtures/content_validation/valid.dialogue"
+dest_files=["res://.godot/imported/valid.dialogue-ef72ee3cd192e9bf9ec4530a121e3c05.tres"]
+
+[params]
+
+defaults=true

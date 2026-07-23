@@ -1,0 +1,11 @@
+~ pickup_start
+Passenger: ready
+=> END
+
+~ onboard_start
+Passenger: onboard
+=> END
+
+~ destination_100
+Passenger: arrived
+=> END

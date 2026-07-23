@@ -1,7 +1,7 @@
-# 统一流程命令与派单流程测试
+# 内容契约、统一流程命令与派单流程测试
 
 这组测试保留 Issue 30 的派单流程基线和 Issue 31 的运行时职责拆分保护，
-并覆盖 Issue 32 的结构化流程命令入口。
+覆盖 Issue 32 的结构化流程命令入口，并加入 Issue 33 的内容资源契约校验。
 测试只使用 Godot 4.7 自带的 headless 场景入口，不安装 GUT 或其他第三方依赖，
 也不会启动正式 3D 主场景。
 
@@ -10,6 +10,12 @@
 
 ## 覆盖范围
 
+- `ContentValidationReport` 的 Error / Warning 分离、格式、统计和数组副本。
+- Floor、Passenger、Dispatch、DispatchFloorRelation 与 Shift 的 ID、引用和字段契约。
+- `pickup_data`、八个活动阶段的摄像头双画面及前台 state / task 契约。
+- Dialogue 标题、`destination_<floor>` 和双引号 `unlock_floor("<floor>")` 的轻量扫描。
+- 未被值班引用的派单、未被派单引用的乘客和普通楼层缺反馈的 Warning。
+- `ContentRegistry.validate_all_content()` 对正式 Catalog 原始数组执行自检，Error 会使测试失败。
 - `DispatchPhase` 的九个正式阶段、合法与非法转换、接乘楼层离开/返回转换及幂等设置。
 - `ElevatorRuntimeState` 的初始化、门控、移动、到站状态和信号。
 - `DispatchLifecycle` 的状态隔离、阶段转换、乘客状态、反馈标记和推荐去重。
