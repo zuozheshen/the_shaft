@@ -2,6 +2,11 @@ extends Control
 class_name ConsoleInterface
 
 
+const FlowCommandResultScript := preload(
+	"res://scripts/runtime/commands/flow_command_result.gd"
+)
+
+
 signal return_requested
 
 
@@ -437,7 +442,10 @@ func _finish_current_dialogue_context() -> void:
 	current_dialogue_context_finished = true
 	if current_dialogue_context == DialogueContext.DESTINATION \
 			and demo_flow_manager != null:
-		demo_flow_manager.mark_dropoff_feedback_finished()
+		var result: FlowCommandResultScript = \
+				demo_flow_manager.request_finish_dropoff_feedback()
+		if not result.succeeded:
+			_show_system_hint(result.message)
 
 
 func _on_dm_status_hint_requested(text: String) -> void:
@@ -483,25 +491,20 @@ func _on_dm_door_greeting_done_requested() -> void:
 	# DM 只完成“门外乘客已确认”；后续开门、进舱、关门仍走原有门控 phase。
 	if demo_flow_manager == null:
 		return
-	if demo_flow_manager.get_case_phase() != DispatchPhase.ARRIVED_AT_PICKUP:
-		return
-	demo_flow_manager.set_door_greeting_done(true)
-	demo_flow_manager.set_case_phase(DispatchPhase.DOOR_GREETING_DONE)
+	var result: FlowCommandResultScript = \
+			demo_flow_manager.request_complete_door_greeting()
+	if not result.succeeded:
+		_show_system_hint(result.message)
 	_update_dialogue_buttons()
 	_update_dialogue_visibility()
 
 
 func _show_destination_feedback_for_current_floor() -> void:
 	# 到站本身不触发乘客反馈；只有玩家开门时才按当前楼层读取 destination_xxx。
-	if demo_flow_manager == null or not demo_flow_manager.is_passenger_onboard():
+	if demo_flow_manager == null:
 		return
 	var current_floor: String = demo_flow_manager.get_current_floor()
-	if demo_flow_manager.get_selected_target_floor() != current_floor:
-		return
 	if dialogue_manager_adapter == null:
-		return
-	# 同一派单的抵达反馈只允许触发一次，重复开门不会重复播放对白。
-	if not demo_flow_manager.try_mark_arrival_triggered():
 		return
 	var title: String = "destination_%s" % current_floor
 	dm_dialogue_started = true
@@ -556,80 +559,75 @@ func _record_system_log(message_text: String) -> void:
 
 
 func request_open_door() -> void:
-	# 2D 按钮与 3D 实体热点统一调用此入口，门控规则仍只维护一份。
+	# 2D 按钮与 3D 实体热点统一调用流程命令；UI 只处理表现效果。
 	print("Door action: 开门")
 	if demo_flow_manager == null:
 		return
-	if demo_flow_manager.is_elevator_moving():
-		_show_system_hint("电梯正在运行中，无法开门。")
-		return
-	if demo_flow_manager.is_cabin_door_open():
-		_show_system_hint("舱门已经开启。")
+	var result: FlowCommandResultScript = \
+			demo_flow_manager.request_open_cabin_door()
+	if not result.succeeded:
+		_show_system_hint(result.message)
 		return
 
-	var phase: String = demo_flow_manager.get_case_phase()
-	var dialogue_reply_applied: bool = _apply_dialogue_door_reply(true)
-	demo_flow_manager.set_cabin_door_open(true)
-	if phase in [DispatchPhase.ARRIVED_AT_PICKUP, DispatchPhase.DOOR_GREETING_DONE]:
-		demo_flow_manager.set_passenger_onboard(true)
-		demo_flow_manager.set_cabin_door_closed_after_boarding(false)
-		demo_flow_manager.set_case_phase(DispatchPhase.BOARDING_WAIT_DOOR_CLOSE)
+	if result.has_effect(FlowCommandResultScript.PASSENGER_BOARDED):
 		dm_dialogue_started = false
 		dm_dialogue_finished = false
 		dm_choices.clear()
+		var dialogue_reply_applied: bool = _apply_dialogue_door_reply(true)
 		if not dialogue_reply_applied:
 			current_passenger_line = demo_flow_manager.get_after_open_line()
-		_show_system_hint(demo_flow_manager.get_after_open_hint())
+		_show_system_hint(result.message)
 		_update_camera_display()
 		_update_dialogue_buttons()
 		_update_microphone_display()
 		if not dialogue_reply_applied:
 			passenger_speech_label.text = current_passenger_line
-	elif phase == DispatchPhase.ARRIVED_AT_DESTINATION \
-			and demo_flow_manager.is_cabin_door_closed_after_boarding():
-		demo_flow_manager.set_case_phase(DispatchPhase.DROPOFF_FEEDBACK)
+	elif result.has_effect(
+			FlowCommandResultScript.DROPOFF_FEEDBACK_REQUESTED
+	):
 		_show_destination_feedback_for_current_floor()
 		_update_microphone_display()
 		_update_dialogue_buttons()
 		_update_dialogue_visibility()
+	else:
+		if not result.message.is_empty():
+			_show_system_hint(result.message)
 
 
 func request_close_door() -> void:
-	# 关闭请求沿用现有 phase 与对话反馈，不在 3D 交互层判断门状态。
+	# 关闭规则由流程命令处理，UI 仅根据 effects 解锁对应表现。
 	print("Door action: 关门")
 	if demo_flow_manager == null:
 		return
-	if not demo_flow_manager.is_cabin_door_open():
-		_show_system_hint("舱门已经关闭。")
+	var result: FlowCommandResultScript = \
+			demo_flow_manager.request_close_cabin_door()
+	if not result.succeeded:
+		_show_system_hint(result.message)
 		return
-	var phase: String = demo_flow_manager.get_case_phase()
-	if phase == DispatchPhase.DROPOFF_FEEDBACK:
-		_show_system_hint("请等待乘客反馈结束后再关闭舱门。")
+
+	if result.has_effect(FlowCommandResultScript.DISPATCH_COMPLETED):
 		return
-	demo_flow_manager.set_cabin_door_open(false)
-	var dialogue_reply_applied: bool = _apply_dialogue_door_reply(false)
-	if phase == DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE:
-		demo_flow_manager.complete_active_dispatch()
-		return
-	if phase != DispatchPhase.BOARDING_WAIT_DOOR_CLOSE:
-		return
-	# 登舱后必须显式关门，正式舱内询问才会解锁。
-	demo_flow_manager.set_cabin_door_closed_after_boarding(true)
-	demo_flow_manager.set_case_phase(DispatchPhase.PASSENGER_ONBOARD)
-	dm_dialogue_started = false
-	dm_dialogue_finished = false
-	dm_choices.clear()
-	if not dialogue_reply_applied:
-		current_passenger_line = demo_flow_manager.get_after_close_line()
-	_show_system_hint(demo_flow_manager.get_after_close_hint())
-	demo_flow_manager.set_building_status_hint(demo_flow_manager.get_after_close_status_hint())
-	if mic_enabled:
-		_start_dialogue_manager_passenger()
-	_update_camera_display()
-	_update_dialogue_buttons()
-	_update_microphone_display()
-	if not dialogue_reply_applied:
-		passenger_speech_label.text = current_passenger_line
+	if result.has_effect(
+			FlowCommandResultScript.ONBOARD_DIALOGUE_AVAILABLE
+	):
+		# 登舱后的关门结果才会解锁正式舱内询问。
+		dm_dialogue_started = false
+		dm_dialogue_finished = false
+		dm_choices.clear()
+		var dialogue_reply_applied: bool = _apply_dialogue_door_reply(false)
+		if not dialogue_reply_applied:
+			current_passenger_line = demo_flow_manager.get_after_close_line()
+		_show_system_hint(result.message)
+		if mic_enabled:
+			_start_dialogue_manager_passenger()
+		_update_camera_display()
+		_update_dialogue_buttons()
+		_update_microphone_display()
+		if not dialogue_reply_applied:
+			passenger_speech_label.text = current_passenger_line
+	else:
+		if not result.message.is_empty():
+			_show_system_hint(result.message)
 
 
 func _apply_dialogue_door_reply(is_open_action: bool) -> bool:

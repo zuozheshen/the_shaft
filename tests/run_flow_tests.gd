@@ -11,6 +11,10 @@ const DispatchLifecycleTests := preload(
 )
 const ShiftRunnerTests := preload("res://tests/runtime/shift_runner_tests.gd")
 const UIHistoryStateTests := preload("res://tests/runtime/ui_history_state_tests.gd")
+const FlowCommandResultTests := preload(
+	"res://tests/runtime/flow_command_result_tests.gd"
+)
+const FlowCommandTests := preload("res://tests/flow/flow_command_tests.gd")
 
 var passed_count: int = 0
 var failed_count: int = 0
@@ -23,7 +27,7 @@ func _ready() -> void:
 
 func _run() -> void:
 	await get_tree().process_frame
-	print("=== The Shaft / Issue 31 运行时职责与派单流程测试 ===")
+	print("=== The Shaft / Issue 32 统一流程命令入口测试 ===")
 
 	var dispatch_phase_tests := DispatchPhaseTests.new()
 	dispatch_phase_tests.run(self)
@@ -40,8 +44,14 @@ func _run() -> void:
 	var ui_history_state_tests := UIHistoryStateTests.new()
 	ui_history_state_tests.run(self)
 
+	var flow_command_result_tests := FlowCommandResultTests.new()
+	flow_command_result_tests.run(self)
+
 	var demo_flow_manager_tests := DemoFlowManagerTests.new()
 	await demo_flow_manager_tests.run(self, get_tree())
+
+	var flow_command_tests := FlowCommandTests.new()
+	await flow_command_tests.run(self, get_tree())
 
 	print("=== 测试汇总：通过 %d，失败 %d ===" % [passed_count, failed_count])
 	get_tree().quit(0 if failed_count == 0 else 1)
