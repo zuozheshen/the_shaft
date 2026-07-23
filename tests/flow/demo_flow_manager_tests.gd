@@ -12,23 +12,32 @@ const DESTINATION_CONTROL_SCENE: PackedScene = preload(
 
 
 func run(test_runner: Variant, tree: SceneTree) -> void:
-	await _test_initial_and_movement_state(test_runner, tree)
-	await _test_phase_update_contract(test_runner, tree)
-	await _test_pickup_lifecycle(test_runner, tree)
-	await _test_delivery_and_dispatch_order(test_runner, tree)
-	await _test_ui_compatibility(test_runner, tree)
+	await _test_initial_runtime_components(test_runner, tree)
+	await _test_pickup_floor_leave_and_return(test_runner, tree)
+	await _test_dispatch_order_state_isolation_and_signals(test_runner, tree)
+	await _test_ui_manager_injection(test_runner, tree)
 
 
-func _test_initial_and_movement_state(test_runner: Variant, tree: SceneTree) -> void:
+func _test_initial_runtime_components(
+		test_runner: Variant,
+		tree: SceneTree
+) -> void:
 	var manager: DemoFlowManager = await _create_manager(tree)
-	test_runner.assert_equal("DemoFlowManager / 初始楼层正确", "900", manager.get_current_floor())
-	test_runner.assert_false("DemoFlowManager / 初始舱门关闭", manager.is_cabin_door_open())
-	test_runner.assert_false("DemoFlowManager / 初始不处于移动状态", manager.is_elevator_moving())
+	test_runner.assert_equal(
+		"DemoFlowManager / 初始楼层正确",
+		"900",
+		manager.get_current_floor()
+	)
+	test_runner.assert_false(
+		"DemoFlowManager / 初始舱门关闭",
+		manager.is_cabin_door_open()
+	)
 	test_runner.assert_equal(
 		"DemoFlowManager / 第一条派单正常建立",
 		"CASE_001",
 		String(manager.get_active_dispatch().dispatch_id)
 	)
+
 	var runtime_component_count: int = manager.get_child_count()
 	manager._initialize_runtime_components()
 	test_runner.assert_equal(
@@ -36,353 +45,165 @@ func _test_initial_and_movement_state(test_runner: Variant, tree: SceneTree) -> 
 		runtime_component_count,
 		manager.get_child_count()
 	)
-	test_runner.assert_false(
-		"DemoFlowManager / 空目标不能移动",
-		manager.request_elevator_movement("  ")
-	)
-	test_runner.assert_false(
-		"DemoFlowManager / 不存在的楼层不能移动",
-		manager.request_elevator_movement("999999")
-	)
-
-	manager.set_cabin_door_open(true)
-	test_runner.assert_false(
-		"DemoFlowManager / 舱门开启时不能移动",
-		manager.request_elevator_movement("612")
-	)
-	manager.set_cabin_door_open(false)
-
-	test_runner.assert_true(
-		"DemoFlowManager / 接乘前可自由移动到已登记楼层",
-		manager.request_elevator_movement("742")
-	)
-	test_runner.assert_false(
-		"DemoFlowManager / 移动中不能开始第二次移动",
-		manager.request_elevator_movement("612")
-	)
-	await manager.elevator_movement_completed
 	await _destroy_manager(manager, tree)
 
 
-func _test_phase_update_contract(test_runner: Variant, tree: SceneTree) -> void:
+func _test_pickup_floor_leave_and_return(
+		test_runner: Variant,
+		tree: SceneTree
+) -> void:
 	var manager: DemoFlowManager = await _create_manager(tree)
-	var update_counter := {"count": 0}
-	manager.case_updated.connect(
-		func() -> void:
-			update_counter["count"] = int(update_counter["count"]) + 1
-	)
-	var original_phase: String = manager.get_case_phase()
-
-	test_runner.assert_false(
-		"DemoFlowManager / 无效目标阶段被拒绝",
-		manager.try_set_case_phase("NOT_A_DISPATCH_PHASE")
-	)
-	test_runner.assert_equal(
-		"DemoFlowManager / 无效目标不会修改当前阶段",
-		original_phase,
-		manager.get_case_phase()
-	)
-	test_runner.assert_false(
-		"DemoFlowManager / 非法阶段转换被拒绝",
-		manager.try_set_case_phase(DispatchPhase.PASSENGER_ONBOARD)
-	)
-	test_runner.assert_equal(
-		"DemoFlowManager / 非法转换不会修改当前阶段",
-		original_phase,
-		manager.get_case_phase()
-	)
 	test_runner.assert_true(
-		"DemoFlowManager / 同阶段重复设置视为成功",
-		manager.try_set_case_phase(original_phase)
+		"接乘楼层 / 可前往接乘楼层",
+		await _move_to(manager, "612")
 	)
 	test_runner.assert_equal(
-		"DemoFlowManager / 同阶段重复设置不触发更新",
-		0,
-		int(update_counter["count"])
-	)
-	test_runner.assert_true(
-		"DemoFlowManager / 合法阶段转换成功",
-		manager.try_set_case_phase(DispatchPhase.ARRIVED_AT_PICKUP)
-	)
-	test_runner.assert_equal(
-		"DemoFlowManager / 合法转换只触发一次更新",
-		1,
-		int(update_counter["count"])
-	)
-
-	manager.clear_active_dispatch()
-	test_runner.assert_false(
-		"DemoFlowManager / 当前无派单时阶段设置失败",
-		manager.try_set_case_phase(DispatchPhase.WAITING_FOR_PICKUP)
-	)
-	await _destroy_manager(manager, tree)
-
-
-func _test_pickup_lifecycle(test_runner: Variant, tree: SceneTree) -> void:
-	var direct_boarding_manager: DemoFlowManager = await _create_manager(tree)
-	test_runner.assert_true(
-		"接乘生命周期 / 可移动到接乘楼层",
-		await _move_to(direct_boarding_manager, "612")
-	)
-	test_runner.assert_equal(
-		"接乘生命周期 / 抵达后进入接乘到达阶段",
+		"接乘楼层 / 抵达后进入接乘到达阶段",
 		DispatchPhase.ARRIVED_AT_PICKUP,
-		direct_boarding_manager.get_case_phase()
+		manager.get_case_phase()
+	)
+	test_runner.assert_true(
+		"接乘楼层 / 门外确认使用正式命令完成",
+		manager.request_complete_door_greeting().succeeded
 	)
 
-	direct_boarding_manager.set_cabin_door_open(true)
-	direct_boarding_manager.set_passenger_onboard(true)
 	test_runner.assert_true(
-		"接乘生命周期 / 未门外通话仍可直接建立登舱阶段",
-		direct_boarding_manager.try_set_case_phase(
-			DispatchPhase.BOARDING_WAIT_DOOR_CLOSE
-		)
-	)
-	test_runner.assert_true(
-		"接乘生命周期 / 乘客登舱状态可以建立",
-		direct_boarding_manager.is_passenger_onboard()
-	)
-	direct_boarding_manager.set_cabin_door_open(false)
-	direct_boarding_manager.set_cabin_door_closed_after_boarding(true)
-	test_runner.assert_true(
-		"接乘生命周期 / 关门后进入舱内阶段",
-		direct_boarding_manager.try_set_case_phase(DispatchPhase.PASSENGER_ONBOARD)
+		"接乘楼层 / 可离开接乘楼层",
+		await _move_to(manager, "900")
 	)
 	test_runner.assert_equal(
-		"接乘生命周期 / 舱内阶段记录正确",
-		DispatchPhase.PASSENGER_ONBOARD,
-		direct_boarding_manager.get_case_phase()
-	)
-	await _destroy_manager(direct_boarding_manager, tree)
-
-	var greeting_manager: DemoFlowManager = await _create_manager(tree)
-	await _move_to(greeting_manager, "612")
-	greeting_manager.set_door_greeting_done(true)
-	test_runner.assert_true(
-		"接乘生命周期 / 门外确认阶段可以记录",
-		greeting_manager.try_set_case_phase(DispatchPhase.DOOR_GREETING_DONE)
-	)
-	test_runner.assert_true(
-		"接乘生命周期 / 门外确认标记可以记录",
-		greeting_manager.is_door_greeting_done()
-	)
-	await _move_to(greeting_manager, "900")
-	test_runner.assert_equal(
-		"接乘生命周期 / 离开接乘楼层后回到等待阶段",
+		"接乘楼层 / 离开后回到等待阶段",
 		DispatchPhase.WAITING_FOR_PICKUP,
-		greeting_manager.get_case_phase()
+		manager.get_case_phase()
 	)
-	await _move_to(greeting_manager, "612")
+	test_runner.assert_true(
+		"接乘楼层 / 可返回接乘楼层",
+		await _move_to(manager, "612")
+	)
 	test_runner.assert_equal(
-		"接乘生命周期 / 已确认后返回接乘楼层恢复确认阶段",
+		"接乘楼层 / 返回后恢复已完成的门外确认阶段",
 		DispatchPhase.DOOR_GREETING_DONE,
-		greeting_manager.get_case_phase()
+		manager.get_case_phase()
 	)
-	await _destroy_manager(greeting_manager, tree)
+	await _destroy_manager(manager, tree)
 
 
-func _test_delivery_and_dispatch_order(test_runner: Variant, tree: SceneTree) -> void:
-	var manager: DemoFlowManager = await _create_manager(tree)
+func _test_dispatch_order_state_isolation_and_signals(
+		test_runner: Variant,
+		tree: SceneTree
+) -> void:
+	var manager: DemoFlowManager = _new_manager()
+	var started_dispatch_ids: Array[StringName] = []
 	var completed_results: Array[DispatchResult] = []
-	var dispatch_started_counter := {"count": 0}
+	var shift_completed_count := {"value": 0}
+	var case_updated_count := {"value": 0}
+	manager.dispatch_started.connect(
+		func(dispatch_id: StringName) -> void:
+			started_dispatch_ids.append(dispatch_id)
+	)
 	manager.dispatch_completed.connect(
 		func(result: DispatchResult) -> void:
 			completed_results.append(result)
 	)
-	manager.dispatch_started.connect(
-		func(_dispatch_id: StringName) -> void:
-			dispatch_started_counter["count"] = int(dispatch_started_counter["count"]) + 1
+	manager.shift_completed.connect(
+		func() -> void:
+			shift_completed_count["value"] = \
+					int(shift_completed_count["value"]) + 1
 	)
-	await _move_to(manager, "612")
-	_board_passenger(manager)
+	manager.case_updated.connect(
+		func() -> void:
+			case_updated_count["value"] = int(case_updated_count["value"]) + 1
+	)
+	tree.root.add_child(manager)
+	await tree.process_frame
 
 	test_runner.assert_true(
-		"送达流程 / 有效目标可以被验证",
-		manager.set_validated_floor("900")
-	)
-	test_runner.assert_true(
-		"送达流程 / 有效目标可以被选择",
-		manager.select_target_floor("900")
-	)
-	test_runner.assert_true("送达流程 / 可前往所选目标", await _move_to(manager, "900"))
-	test_runner.assert_equal(
-		"送达流程 / 抵达目标后进入目标到达阶段",
-		DispatchPhase.ARRIVED_AT_DESTINATION,
-		manager.get_case_phase()
-	)
-	test_runner.assert_false(
-		"送达流程 / 未完成反馈时不能结算",
-		manager.complete_active_dispatch()
-	)
-	test_runner.assert_true(
-		"送达流程 / 到达本身未触发反馈且首次标记成功",
-		manager.try_mark_arrival_triggered()
-	)
-	test_runner.assert_false(
-		"送达流程 / 到站反馈标记不能重复",
-		manager.try_mark_arrival_triggered()
-	)
-
-	manager.set_cabin_door_open(true)
-	test_runner.assert_true(
-		"送达流程 / 开门后可进入反馈阶段",
-		manager.try_set_case_phase(DispatchPhase.DROPOFF_FEEDBACK)
-	)
-	test_runner.assert_true(
-		"送达流程 / 反馈完成后进入等待关门阶段",
-		manager.mark_dropoff_feedback_finished()
+		"派单顺序 / 第一条派单通过正式流程完成",
+		await _complete_dispatch(manager, "612", "900")
 	)
 	test_runner.assert_equal(
-		"送达流程 / 反馈完成阶段记录正确",
-		DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE,
-		manager.get_case_phase()
-	)
-	test_runner.assert_false(
-		"送达流程 / 舱门开启时不能完成派单",
-		manager.complete_active_dispatch()
-	)
-
-	manager.set_cabin_door_open(false)
-	test_runner.assert_true(
-		"派单顺序 / 第一条派单完成后载入第二条",
-		manager.complete_active_dispatch()
-	)
-	test_runner.assert_equal(
-		"派单顺序 / 第二条派单 ID 正确",
+		"派单顺序 / 第一条完成后载入第二条",
 		"CASE_002",
 		String(manager.get_active_dispatch().dispatch_id)
 	)
-	test_runner.assert_equal(
-		"派单顺序 / 第二条派单继续发送 dispatch_started",
-		1,
-		int(dispatch_started_counter["count"])
-	)
-	test_runner.assert_equal(
-		"派单顺序 / 第二条不继承验证楼层",
-		"",
-		manager.get_validated_floor()
-	)
-	test_runner.assert_equal(
-		"派单顺序 / 第二条不继承选择目标",
-		"",
-		manager.get_selected_target_floor()
-	)
-	test_runner.assert_false(
-		"派单顺序 / 第二条不继承乘客进舱状态",
-		manager.is_passenger_onboard()
-	)
+	_assert_fresh_dispatch_state(test_runner, manager, "第二条")
+
 	test_runner.assert_true(
-		"派单顺序 / 第二条不继承到站反馈标记",
-		manager.try_mark_arrival_triggered()
+		"派单顺序 / 第二条派单通过正式流程完成",
+		await _complete_dispatch(manager, "900", "742")
 	)
-	_board_passenger(manager)
-	test_runner.assert_equal(
-		"派单顺序 / 第二条只保留自身运行时推荐楼层",
-		["742"],
-		manager.get_current_recommended_destinations()
-	)
-	manager.set_door_greeting_done(true)
-
-	var shift_signal_counter := {"count": 0}
-	manager.shift_completed.connect(
-		func() -> void:
-			shift_signal_counter["count"] = int(shift_signal_counter["count"]) + 1
-	)
-	manager.set_validated_floor("742")
-	manager.select_target_floor("742")
-	await _move_to(manager, "742")
-	manager.try_mark_arrival_triggered()
-	manager.set_cabin_door_open(true)
-	manager.try_set_case_phase(DispatchPhase.DROPOFF_FEEDBACK)
-	manager.mark_dropoff_feedback_finished()
-	manager.set_cabin_door_open(false)
-	manager.complete_active_dispatch()
-
 	test_runner.assert_equal(
 		"派单顺序 / 第二条完成后载入第三条",
 		"CASE_003",
 		String(manager.get_active_dispatch().dispatch_id)
 	)
-	test_runner.assert_equal(
-		"派单顺序 / 第三条派单继续发送 dispatch_started",
-		2,
-		int(dispatch_started_counter["count"])
-	)
-	test_runner.assert_equal(
-		"派单顺序 / 第三条开始前已记录两条结果",
-		2,
-		completed_results.size()
-	)
-	test_runner.assert_equal(
-		"派单顺序 / 第三条不继承验证楼层",
-		"",
-		manager.get_validated_floor()
-	)
-	test_runner.assert_equal(
-		"派单顺序 / 第三条不继承选择目标",
-		"",
-		manager.get_selected_target_floor()
-	)
-	test_runner.assert_false(
-		"派单顺序 / 第三条不继承乘客进舱状态",
-		manager.is_passenger_onboard()
-	)
-	test_runner.assert_false(
-		"派单顺序 / 第三条不继承门外确认标记",
-		manager.is_door_greeting_done()
-	)
-	test_runner.assert_false(
-		"派单顺序 / 第三条不继承到站反馈标记",
-		manager.dispatch_lifecycle.is_arrival_triggered()
-	)
-	test_runner.assert_equal(
-		"派单顺序 / 第三条初始推荐仅包含 547",
-		[&"547"],
-		manager.dispatch_lifecycle.get_recommended_floor_ids()
-	)
-	test_runner.assert_equal(
-		"派单顺序 / 第二条完成后值班尚未结束",
-		0,
-		int(shift_signal_counter["count"])
-	)
+	_assert_fresh_dispatch_state(test_runner, manager, "第三条")
 
-	await _move_to(manager, "387")
-	_board_passenger(manager)
-	manager.set_validated_floor("547")
-	manager.select_target_floor("547")
-	await _move_to(manager, "547")
-	manager.try_mark_arrival_triggered()
-	manager.set_cabin_door_open(true)
-	manager.try_set_case_phase(DispatchPhase.DROPOFF_FEEDBACK)
-	manager.mark_dropoff_feedback_finished()
-	manager.set_cabin_door_open(false)
-	manager.complete_active_dispatch()
-
-	test_runner.assert_equal(
-		"派单顺序 / 三条派单结果均已记录",
-		3,
-		completed_results.size()
+	test_runner.assert_true(
+		"派单顺序 / 第三条派单通过正式流程完成",
+		await _complete_dispatch(manager, "387", "547")
 	)
 	test_runner.assert_false(
-		"派单顺序 / 第三条完成后无活动派单",
+		"派单顺序 / 三条派单完成后无活动派单",
 		manager.has_active_dispatch()
 	)
 	test_runner.assert_equal(
-		"派单顺序 / 值班结束后无活动派单",
+		"派单顺序 / 值班结束后进入空闲阶段",
 		DispatchPhase.SHIFT_IDLE,
 		manager.get_case_phase()
 	)
-	manager.finish_shift()
-	manager.finish_shift()
 	test_runner.assert_equal(
-		"派单顺序 / 重复结束不会重复发出值班结束",
+		"流程信号 / 三条派单按顺序发送 dispatch_started",
+		[&"CASE_001", &"CASE_002", &"CASE_003"],
+		started_dispatch_ids
+	)
+	test_runner.assert_equal(
+		"流程信号 / 三条派单各发送一次 dispatch_completed",
+		3,
+		completed_results.size()
+	)
+	test_runner.assert_equal(
+		"流程信号 / 值班结束只发送一次 shift_completed",
 		1,
-		int(shift_signal_counter["count"])
+		int(shift_completed_count["value"])
+	)
+	test_runner.assert_true(
+		"流程信号 / 正式流程持续发送 case_updated",
+		int(case_updated_count["value"]) > 0
 	)
 	await _destroy_manager(manager, tree)
 
 
-func _test_ui_compatibility(test_runner: Variant, tree: SceneTree) -> void:
+func _assert_fresh_dispatch_state(
+		test_runner: Variant,
+		manager: DemoFlowManager,
+		dispatch_label: String
+) -> void:
+	test_runner.assert_equal(
+		"派单隔离 / %s不继承验证楼层" % dispatch_label,
+		"",
+		manager.get_validated_floor()
+	)
+	test_runner.assert_equal(
+		"派单隔离 / %s不继承所选目标" % dispatch_label,
+		"",
+		manager.get_selected_target_floor()
+	)
+	test_runner.assert_false(
+		"派单隔离 / %s不继承乘客状态" % dispatch_label,
+		manager.is_passenger_onboard()
+	)
+	test_runner.assert_false(
+		"派单隔离 / %s不继承门外确认标记" % dispatch_label,
+		manager.is_door_greeting_done()
+	)
+	test_runner.assert_false(
+		"派单隔离 / %s不继承到站反馈标记" % dispatch_label,
+		manager.dispatch_lifecycle.is_arrival_triggered()
+	)
+
+
+func _test_ui_manager_injection(test_runner: Variant, tree: SceneTree) -> void:
 	var manager: DemoFlowManager = await _create_manager(tree)
 	var console_interface = CONSOLE_SCENE.instantiate()
 	var building_terminal_interface = BUILDING_TERMINAL_SCENE.instantiate()
@@ -396,17 +217,17 @@ func _test_ui_compatibility(test_runner: Variant, tree: SceneTree) -> void:
 	building_terminal_interface.set_demo_flow_manager(manager)
 	destination_control_interface.set_demo_flow_manager(manager)
 	test_runner.assert_equal(
-		"UI 兼容 / FRONT 仍通过 DemoFlowManager 接入",
+		"UI 注入 / FRONT 通过 DemoFlowManager 接入",
 		manager,
 		console_interface.demo_flow_manager
 	)
 	test_runner.assert_equal(
-		"UI 兼容 / LEFT 仍通过 DemoFlowManager 接入",
+		"UI 注入 / LEFT 通过 DemoFlowManager 接入",
 		manager,
 		building_terminal_interface.demo_flow_manager
 	)
 	test_runner.assert_equal(
-		"UI 兼容 / RIGHT 仍通过 DemoFlowManager 接入",
+		"UI 注入 / RIGHT 通过 DemoFlowManager 接入",
 		manager,
 		destination_control_interface.demo_flow_manager
 	)
@@ -417,11 +238,16 @@ func _test_ui_compatibility(test_runner: Variant, tree: SceneTree) -> void:
 	await _destroy_manager(manager, tree)
 
 
-func _create_manager(tree: SceneTree) -> DemoFlowManager:
+func _new_manager() -> DemoFlowManager:
 	var manager := DemoFlowManager.new()
 	manager.initial_floor = "900"
 	manager.movement_duration_seconds = 0.01
 	manager.initial_shift = DEMO_SHIFT
+	return manager
+
+
+func _create_manager(tree: SceneTree) -> DemoFlowManager:
+	var manager: DemoFlowManager = _new_manager()
 	tree.root.add_child(manager)
 	await tree.process_frame
 	return manager
@@ -433,18 +259,38 @@ func _destroy_manager(manager: DemoFlowManager, tree: SceneTree) -> void:
 
 
 func _move_to(manager: DemoFlowManager, destination: String) -> bool:
-	if not manager.request_elevator_movement(destination):
+	var result = manager.request_travel_to_floor(destination)
+	if not result.succeeded:
 		return false
 	await manager.elevator_movement_completed
 	return manager.get_current_floor() == destination
 
 
-func _board_passenger(manager: DemoFlowManager) -> void:
-	# 测试通过现有公开状态方法建立门控结果，不复制 UI 内的按钮判断。
-	manager.set_cabin_door_open(true)
-	manager.set_passenger_onboard(true)
-	manager.set_cabin_door_closed_after_boarding(false)
-	manager.try_set_case_phase(DispatchPhase.BOARDING_WAIT_DOOR_CLOSE)
-	manager.set_cabin_door_open(false)
-	manager.set_cabin_door_closed_after_boarding(true)
-	manager.try_set_case_phase(DispatchPhase.PASSENGER_ONBOARD)
+func _prepare_boarding(
+		manager: DemoFlowManager,
+		pickup_floor: String
+) -> bool:
+	if manager.get_current_floor() != pickup_floor:
+		if not await _move_to(manager, pickup_floor):
+			return false
+	if not manager.request_open_cabin_door().succeeded:
+		return false
+	return manager.request_close_cabin_door().succeeded
+
+
+func _complete_dispatch(
+		manager: DemoFlowManager,
+		pickup_floor: String,
+		destination_floor: String
+) -> bool:
+	if not await _prepare_boarding(manager, pickup_floor):
+		return false
+	if not manager.request_validate_destination(destination_floor).succeeded:
+		return false
+	if not await _move_to(manager, destination_floor):
+		return false
+	if not manager.request_open_cabin_door().succeeded:
+		return false
+	if not manager.request_finish_dropoff_feedback().succeeded:
+		return false
+	return manager.request_close_cabin_door().succeeded

@@ -53,7 +53,6 @@ func _connect_runtime() -> void:
 	_main_interface.set_demo_flow_manager(_demo_flow_manager)
 	_left_interface.set_demo_flow_manager(_demo_flow_manager)
 	_right_interface.set_demo_flow_manager(_demo_flow_manager)
-	print("RuntimeConnector3D: 三个操作台已连接演示流程管理器。")
 
 
 func get_demo_flow_manager() -> DemoFlowManager:

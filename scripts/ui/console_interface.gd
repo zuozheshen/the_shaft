@@ -102,8 +102,8 @@ func _connect_front_interaction_signals() -> void:
 		previous_camera_button.pressed.connect(cabin_camera_callback)
 	if not next_camera_button.pressed.is_connected(door_camera_callback):
 		next_camera_button.pressed.connect(door_camera_callback)
-	if not talk_button.pressed.is_connected(_toggle_microphone):
-		talk_button.pressed.connect(_toggle_microphone)
+	if not talk_button.pressed.is_connected(request_toggle_microphone):
+		talk_button.pressed.connect(request_toggle_microphone)
 
 	for choice_index in dialogue_choice_buttons.size():
 		var choice_button := dialogue_choice_buttons[choice_index]
@@ -278,17 +278,10 @@ func request_toggle_microphone() -> void:
 			current_passenger_line = _get_phase_passenger_line()
 	_update_microphone_display()
 
-	if mic_enabled and dm_dialogue_started and not dm_dialogue_finished:
-		_show_system_hint("乘客通话链路已开启。")
-	elif mic_enabled:
+	if mic_enabled:
 		_show_system_hint("乘客通话链路已开启。")
 	else:
 		_show_system_hint("乘客通话链路已关闭。")
-
-
-func _toggle_microphone() -> void:
-	# 2D 按钮和 3D 热点统一从同一个公共入口执行，不复制对话状态逻辑。
-	request_toggle_microphone()
 
 
 func _start_dialogue_manager_passenger() -> bool:
@@ -560,7 +553,6 @@ func _record_system_log(message_text: String) -> void:
 
 func request_open_door() -> void:
 	# 2D 按钮与 3D 实体热点统一调用流程命令；UI 只处理表现效果。
-	print("Door action: 开门")
 	if demo_flow_manager == null:
 		return
 	var result: FlowCommandResultScript = \
@@ -596,7 +588,6 @@ func request_open_door() -> void:
 
 func request_close_door() -> void:
 	# 关闭规则由流程命令处理，UI 仅根据 effects 解锁对应表现。
-	print("Door action: 关门")
 	if demo_flow_manager == null:
 		return
 	var result: FlowCommandResultScript = \

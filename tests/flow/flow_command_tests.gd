@@ -234,7 +234,11 @@ func _test_validation_and_travel_commands(
 	manager.request_open_cabin_door()
 	manager.request_close_cabin_door()
 
-	manager.select_target_floor("900")
+	manager.request_validate_destination("900")
+	test_runner.assert_true(
+		"移动命令 / 已验证目标可通过正式命令写入派单目标",
+		await _travel_and_wait(manager, "900")
+	)
 	var unvalidated_move_result = manager.request_travel_to_floor("742")
 	test_runner.assert_false(
 		"移动命令 / 搭载乘客时必须先验证",

@@ -115,37 +115,13 @@ func is_passenger_inside() -> bool:
 	return _active_dispatch != null and _active_dispatch.passenger_inside
 
 
-func set_passenger_inside(value: bool) -> bool:
-	if _active_dispatch == null:
-		push_warning("DemoFlowManager: 当前无派单，无法修改乘客进舱状态。")
-		return false
-	_active_dispatch.passenger_inside = value
-	return true
-
-
 func is_door_greeting_done() -> bool:
 	return _active_dispatch != null and _active_dispatch.door_greeting_done
-
-
-func set_door_greeting_done(value: bool) -> bool:
-	if _active_dispatch == null:
-		push_warning("DemoFlowManager: 当前无派单，无法修改门外问候状态。")
-		return false
-	_active_dispatch.door_greeting_done = value
-	return true
 
 
 func is_cabin_door_closed_after_boarding() -> bool:
 	return _active_dispatch != null \
 			and _active_dispatch.cabin_door_closed_after_boarding
-
-
-func set_cabin_door_closed_after_boarding(value: bool) -> bool:
-	if _active_dispatch == null:
-		push_warning("DemoFlowManager: 当前无派单，无法修改登舱后的门控状态。")
-		return false
-	_active_dispatch.cabin_door_closed_after_boarding = value
-	return true
 
 
 func set_validated_floor(floor_id: String) -> bool:
@@ -172,13 +148,6 @@ func set_selected_target_floor(floor_id: String) -> bool:
 func get_selected_target_floor() -> String:
 	return String(_active_dispatch.selected_target_floor_id) \
 			if _active_dispatch != null else ""
-
-
-func try_mark_arrival_triggered() -> bool:
-	if _active_dispatch == null or _active_dispatch.arrival_triggered:
-		return false
-	_active_dispatch.arrival_triggered = true
-	return true
 
 
 func is_arrival_triggered() -> bool:

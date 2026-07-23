@@ -12,13 +12,16 @@ func run(test_runner: Variant) -> void:
 	var lifecycle = DispatchLifecycleScript.new()
 	test_runner.assert_true(
 		"DispatchLifecycle / 第一条派单建立",
-		lifecycle.start_dispatch(CASE_001)
+		lifecycle.start_dispatch(CASE_001, DispatchPhase.ARRIVED_AT_PICKUP)
 	)
 	var first_state: ActiveDispatchState = lifecycle.get_active_state()
-	lifecycle.set_passenger_inside(true)
+	lifecycle.complete_door_greeting()
+	lifecycle.board_passenger()
+	lifecycle.secure_passenger_after_door_close()
 	lifecycle.set_validated_floor("900")
 	lifecycle.set_selected_target_floor("900")
-	lifecycle.try_mark_arrival_triggered()
+	lifecycle.try_set_phase(DispatchPhase.ARRIVED_AT_DESTINATION)
+	lifecycle.begin_dropoff_feedback()
 
 	test_runner.assert_true(
 		"DispatchLifecycle / 第二条派单建立",
@@ -53,23 +56,6 @@ func run(test_runner: Variant) -> void:
 		DispatchPhase.ARRIVED_AT_PICKUP,
 		lifecycle.get_phase()
 	)
-	test_runner.assert_true(
-		"DispatchLifecycle / 乘客状态可写入",
-		lifecycle.set_passenger_inside(true)
-	)
-	test_runner.assert_true(
-		"DispatchLifecycle / 乘客状态可查询",
-		lifecycle.is_passenger_inside()
-	)
-	test_runner.assert_true(
-		"DispatchLifecycle / 到站反馈首次标记成功",
-		lifecycle.try_mark_arrival_triggered()
-	)
-	test_runner.assert_false(
-		"DispatchLifecycle / 到站反馈标记幂等",
-		lifecycle.try_mark_arrival_triggered()
-	)
-
 	test_runner.assert_true(
 		"DispatchLifecycle / 推荐楼层首次添加成功",
 		lifecycle.add_recommended_floor(&"900")
@@ -202,9 +188,9 @@ func _test_atomic_commands(test_runner: Variant) -> void:
 	)
 
 	var dropoff = DispatchLifecycleScript.new()
-	dropoff.start_dispatch(CASE_001, DispatchPhase.PASSENGER_ONBOARD)
-	dropoff.set_passenger_inside(true)
-	dropoff.set_cabin_door_closed_after_boarding(true)
+	dropoff.start_dispatch(CASE_001, DispatchPhase.ARRIVED_AT_PICKUP)
+	dropoff.board_passenger()
+	dropoff.secure_passenger_after_door_close()
 	dropoff.try_set_phase(DispatchPhase.ARRIVED_AT_DESTINATION)
 	test_runner.assert_true(
 		"DispatchLifecycle / 到站反馈原子成功",

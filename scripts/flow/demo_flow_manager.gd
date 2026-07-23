@@ -746,29 +746,12 @@ func is_cabin_door_open() -> bool:
 	return elevator_runtime_state.is_cabin_door_open()
 
 
-func set_cabin_door_open(is_open: bool) -> void:
-	# 兼容旧测试与外部脚本；正式 UI 应调用结构化开关门命令。
-	if elevator_runtime_state.set_cabin_door_open(is_open):
-		case_updated.emit()
-
-
-func request_elevator_movement(destination: String) -> bool:
-	# 兼容入口只执行基础移动；正式右台应调用 request_travel_to_floor。
-	var requested_floor: String = destination.strip_edges()
-	if requested_floor.is_empty() or not ContentRegistry.has_floor(requested_floor):
-		return false
-	if not elevator_runtime_state.request_movement(requested_floor):
-		return false
-	set_building_status_hint("电梯正在前往 %s 层。" % requested_floor)
-	return true
-
-
 func _on_elevator_movement_completed(arrived_floor: String) -> void:
 	# 到站后的派单含义仍由协调层判断，电梯模块只报告物理停靠结果。
 	if is_passenger_onboard() \
 			and not get_selected_target_floor().is_empty() \
 			and arrived_floor == get_selected_target_floor():
-		set_case_phase(DispatchPhase.ARRIVED_AT_DESTINATION)
+		_try_transition_case_phase(DispatchPhase.ARRIVED_AT_DESTINATION)
 		set_building_status_hint(
 			"已抵达目标楼层。请开启舱门完成送达。",
 			true,
@@ -778,33 +761,25 @@ func _on_elevator_movement_completed(arrived_floor: String) -> void:
 		var pickup_phase: String = DispatchPhase.DOOR_GREETING_DONE \
 				if is_door_greeting_done() else DispatchPhase.ARRIVED_AT_PICKUP
 		if get_case_phase() != pickup_phase:
-			set_case_phase(pickup_phase)
+			_try_transition_case_phase(pickup_phase)
 		set_building_status_hint(
 			get_pickup_arrival_status_hint(),
 			true,
 			"已抵达接乘楼层。\n等待乘客确认。"
 		)
 	elif not is_passenger_onboard() and get_case_phase() in [
-		DispatchPhase.ARRIVED_AT_PICKUP,
-		DispatchPhase.DOOR_GREETING_DONE,
-	]:
-		set_case_phase(DispatchPhase.WAITING_FOR_PICKUP)
+			DispatchPhase.ARRIVED_AT_PICKUP,
+			DispatchPhase.DOOR_GREETING_DONE,
+		]:
+		_try_transition_case_phase(DispatchPhase.WAITING_FOR_PICKUP)
 		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % arrived_floor)
 	else:
 		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % arrived_floor)
 	elevator_movement_completed.emit(arrived_floor)
 
 
-func get_case_phase() -> String:
-	return dispatch_lifecycle.get_phase()
-
-
-func set_case_phase(phase: String) -> void:
-	# 兼容入口；玩家操作不得再由 UI 连续拼装阶段和其他字段。
-	try_set_case_phase(phase)
-
-
-func try_set_case_phase(next_phase: String) -> bool:
+func _try_transition_case_phase(next_phase: String) -> bool:
+	# 物理停靠引发的阶段变化属于内部流程事件，不暴露低级状态 setter。
 	var previous_phase: String = get_case_phase()
 	var succeeded: bool = dispatch_lifecycle.try_set_phase(next_phase)
 	if succeeded and previous_phase != next_phase:
@@ -812,82 +787,28 @@ func try_set_case_phase(next_phase: String) -> bool:
 	return succeeded
 
 
+func get_case_phase() -> String:
+	return dispatch_lifecycle.get_phase()
+
+
 func is_passenger_onboard() -> bool:
 	return dispatch_lifecycle.is_passenger_inside()
-
-
-func set_passenger_onboard(value: bool) -> void:
-	# 兼容入口；正式接乘使用 request_open_cabin_door。
-	if dispatch_lifecycle.set_passenger_inside(value):
-		case_updated.emit()
 
 
 func is_door_greeting_done() -> bool:
 	return dispatch_lifecycle.is_door_greeting_done()
 
 
-func set_door_greeting_done(value: bool) -> void:
-	# 兼容入口；正式门外确认使用 request_complete_door_greeting。
-	if dispatch_lifecycle.set_door_greeting_done(value):
-		case_updated.emit()
-
-
 func is_cabin_door_closed_after_boarding() -> bool:
 	return dispatch_lifecycle.is_cabin_door_closed_after_boarding()
-
-
-func set_cabin_door_closed_after_boarding(value: bool) -> void:
-	# 兼容入口；正式关门使用 request_close_cabin_door。
-	if dispatch_lifecycle.set_cabin_door_closed_after_boarding(value):
-		case_updated.emit()
-
-
-func set_validated_floor(floor_id: String) -> bool:
-	# 兼容入口；正式右台验证使用 request_validate_destination。
-	if not has_active_dispatch():
-		return dispatch_lifecycle.set_validated_floor(floor_id)
-	var normalized_id: String = floor_id.strip_edges()
-	if not normalized_id.is_empty() and not ContentRegistry.has_floor(normalized_id):
-		push_warning("DemoFlowManager: 无法记录不存在的验证楼层：%s" % normalized_id)
-		return false
-	if not dispatch_lifecycle.set_validated_floor(normalized_id):
-		return false
-	case_updated.emit()
-	return true
 
 
 func get_validated_floor() -> String:
 	return dispatch_lifecycle.get_validated_floor()
 
 
-func select_target_floor(floor_id: String) -> bool:
-	# 兼容入口；正式目标提交使用 request_travel_to_floor。
-	if not has_active_dispatch():
-		return dispatch_lifecycle.set_selected_target_floor(floor_id)
-	var normalized_id: String = floor_id.strip_edges()
-	if normalized_id.is_empty() or not ContentRegistry.has_floor(normalized_id):
-		push_warning("DemoFlowManager: 无法提交不存在的楼层：%s" % normalized_id)
-		return false
-	if not dispatch_lifecycle.set_selected_target_floor(normalized_id):
-		return false
-	case_updated.emit()
-	return true
-
-
 func get_selected_target_floor() -> String:
 	return dispatch_lifecycle.get_selected_target_floor()
-
-
-func try_mark_arrival_triggered() -> bool:
-	if not dispatch_lifecycle.try_mark_arrival_triggered():
-		return false
-	case_updated.emit()
-	return true
-
-
-func mark_dropoff_feedback_finished() -> bool:
-	# 兼容入口保留 bool 返回；正式 UI 使用结构化命令结果。
-	return request_finish_dropoff_feedback().succeeded
 
 
 func get_current_recommended_destinations() -> Array[String]:

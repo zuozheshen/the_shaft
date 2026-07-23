@@ -40,15 +40,6 @@ heightmap_enabled = true
 heightmap_texture = ExtResource("4_cymdg")
 uv1_triplanar = true
 
-[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_bt1c0"]
-albedo_texture = ExtResource("3_gn0la")
-orm_texture = ExtResource("4_0r6a2")
-normal_enabled = true
-normal_texture = ExtResource("5_fkxr1")
-heightmap_enabled = true
-heightmap_texture = ExtResource("4_cymdg")
-uv1_triplanar = true
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jyqdm"]
 albedo_texture = ExtResource("2_gn0la")
 
@@ -133,12 +124,6 @@ size = Vector3(0.03, 1.287, 2.295)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_05vjs"]
 albedo_texture = ExtResource("4_cymdg")
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1mpkw"]
-albedo_texture = ExtResource("13_aod7d")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_svrj7"]
-albedo_texture = ExtResource("4_cymdg")
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_riqys"]
 render_priority = 0
 shader = ExtResource("5_0eoy0")
@@ -173,7 +158,7 @@ size = Vector3(3.8, 2.5, 0.2)
 
 [node name="后墙" type="CSGBox3D" parent="灰盒环境" unique_id=125213659]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 1.8)
-material_override = SubResource("ORMMaterial3D_bt1c0")
+material_override = SubResource("ORMMaterial3D_jyqdm")
 size = Vector3(3.8, 2.5, 0.2)
 
 [node name="左墙" type="CSGBox3D" parent="灰盒环境" unique_id=847244142]
@@ -341,12 +326,12 @@ size = Vector3(0.05, 1, 1.6)
 
 [node name="右台输入区" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=400004086]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.43, 0.95, 0)
-material_override = SubResource("StandardMaterial3D_1mpkw")
+material_override = SubResource("StandardMaterial3D_aod7d")
 size = Vector3(0.25, 0.45, 1.4)
 
 [node name="右台操作沿" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=1288246358]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.38, 0.55, 0)
-material_override = SubResource("StandardMaterial3D_svrj7")
+material_override = SubResource("StandardMaterial3D_05vjs")
 size = Vector3(0.35, 0.15, 1.8)
 
 [node name="灯光" type="Node3D" parent="." unique_id=635936352]
