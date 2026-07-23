@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FloorDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/definitions/floor_definition.gd" id="1_definition"]
+
+[resource]
+script = ExtResource("1_definition")
+floor_id = &"392"
+display_name = "普通通行层"
+description = "普通通行层。楼道狭长，靠近一处鞋底修补窗口和临时饮水点。"
+function_description = "办公通行、短时等待、维修人员换乘。"
+maintenance_history = "通风系统调整完成，饮水点水压仍偏低。"
+book_note = "未发现与当前派单直接相关的纸质标记。"
+book_order = 60

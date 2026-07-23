@@ -1,0 +1,276 @@
+~ start
+=> pickup_start
+
+~ pickup_start
+Passenger: 这里是 612。你那边是真人操作员吗？我听到的不是自动广播吧？
+- 我在听。请确认你是 612 层等待乘客。
+    do status_hint("门外乘客已完成人工通话确认。请开启舱门完成接乘。")
+    do mark_door_greeting_done()
+    Passenger: 是我。我就在门外。谢谢你回应。
+    => END
+- 先不要靠近舱门，我需要确认记录。
+    do status_hint("门外乘客已回应，但尚未完成接乘。请在确认后开启舱门。")
+    do mark_door_greeting_done()
+    Passenger: 好。我会站在门线外面等。
+    => END
+
+~ onboard_start
+Passenger: 你是真人在听，对吧？那我能不能不直接去 900？
+- 你想去哪？
+    => below_clues
+- 系统目前只推荐 900。
+    do status_hint("系统当前推荐目标仅为 900。乘客对标准目标存在迟疑，建议继续询问原因。")
+    => about_900
+- 你为什么在 612 等电梯？
+    => about_612
+
+~ below_clues
+Passenger: 我记不清楼层号。只记得那里有人洗桶，地上总是湿的，暖柜门关不上。
+- 你去那里做什么？
+    => old_badge
+- 那听起来像服务区。
+    => service_area
+- 你为什么不直接申请那个楼层？
+    do status_hint("乘客需求无法被标准申请理由完整表达。建议玩家结合纸质楼层索引书自行判断目标楼层。")
+    => application_reason
+- 你确定不是 900 吗？
+    => about_900
+
+~ about_900
+Passenger: 900 的灯很白。人在柜台前站着，什么都还没说，记录就先排好了。
+- 900 是系统推荐目标，应该最稳。
+    => standard_target
+- 你去了 900 会发生什么？
+    do status_hint("乘客担心标准复核流程改变自身记录状态。900 合规，但可能重复其既往困境。")
+    => identity_record
+- 你以前去过 900 吗？
+    do status_hint("乘客历史路线存在重复但未完成的复核行为。建议查看 LEFT 的 RECORD 页。")
+    => repeated_route
+- 你不是不去 900，只是不想现在去？
+    => old_badge
+
+~ about_612
+Passenger: 612 有长椅、售卖机，还有一个总是卷边的公告板。等久了，人会开始怀疑是不是自己没被算进去。
+- 你在那里等了多久？
+    => waiting_time
+- 你说“汤”？
+    => soup_context
+- 公告板上有什么？
+    => service_area
+- 你觉得自己没被算进去？
+    do status_hint("乘客表达出对调度系统的低信任。建议继续收集目标线索，而不是立即提交 900。")
+    => trust_start
+
+~ trust_start
+Passenger: 我不是想给你添麻烦。我知道你也只是按按钮。
+- 按按钮也是决定。
+    => operator_role
+- 我需要知道你真正想去哪里。
+    => target_clues
+- 我会先查记录。
+    do status_hint("建议查看 LEFT 的 RECORD 页。系统记录可能完整，但不一定足够解释乘客需求。")
+    => repeated_route
+- 你可以继续说。
+    => work_history
+
+~ soup_context
+Passenger: 那碗汤不是任务。只是她胃不好，夜班又总忘记吃东西。
+- 她是谁？
+    => service_area
+- 这件事系统里没有记录？
+    do status_hint("乘客描述的是系统记录之外的生活互助。当前信息可能与非推荐楼层有关。")
+    => unrecorded_help
+- 你担心汤被当成异常物品？
+    => record_language
+- 这和旧工牌有关吗？
+    => old_badge
+
+~ old_badge
+Passenger: 那张旧工牌不是为了通行，是为了让柜台相信我以前就在这里。
+- 新工牌有什么问题？
+    => work_history
+- 旧工牌在哪里？
+    => book_prompt_soft
+- 你想用旧工牌去 900 复核？
+    do status_hint("乘客目标不是拒绝 900，而是希望在前往 900 前补足身份材料。")
+    => case_summary
+- 如果旧工牌不在了呢？
+    => old_records
+
+~ service_area
+Passenger: 服务区不太像楼层，更像建筑把不方便给人看的东西都放在那里。
+- 你在那里工作过？
+    => work_history
+- 你记得那层的名字吗？
+    => book_prompt_soft
+- 那里为什么重要？
+    do status_hint("乘客需求与非正式生活关系相关。系统推荐目标可能无法覆盖该信息。")
+    => unrecorded_help
+- 你还愿意去 900 吗？
+    => case_summary
+
+~ old_records
+Passenger: 旧记录层有纸柜。纸会发霉，字会歪，但有时候它比终端宽容。
+- 你去过旧记录层？
+    => book_prompt_soft
+- 你觉得那里会有你的记录？
+    => case_summary
+- 为什么纸质记录反而有用？
+    do status_hint("乘客提供了第二类目标线索：旧记录相关楼层。建议玩家自行结合楼层索引书判断。")
+    => case_summary
+- 这听起来不像系统推荐会给的目标。
+    => case_summary
+
+~ work_history
+Passenger: 我不算正式员工，也不算居民服务人员。哪里缺一点，就把我补进去一点。
+- 所以记录很难归类你。
+    do status_hint("乘客身份处于多种低优先级记录之间。建议不要只依据单一推荐目标判断。")
+    => case_summary
+- 你怕被归到临时支援？
+    => unrecorded_help
+- 你需要我怎么做？
+    => case_summary
+- 我明白了。
+    => case_summary
+
+~ record_language
+Passenger: 他们写字很厉害。同一个东西，写成“饭盒”和写成“未登记容器”，后果不一样。
+- 你很在意记录用词。
+    do status_hint("乘客对系统记录语言高度敏感。后续日志与目标选择应避免过早异常化。")
+    => case_summary
+- 你希望系统怎么写你？
+    => case_summary
+- 你以前被这样写过？
+    => case_summary
+- 我先不替你下结论。
+    => case_summary
+
+~ book_prompt_soft
+Passenger: 我记不住编号。你们台上如果还有旧楼层书，可能比我记得准。
+- 我会查。
+    do status_hint("乘客建议查阅右侧纸质楼层索引书。系统推荐目标仍只有 900。")
+    => case_summary
+- 你能再描述一下吗？
+    => case_summary
+- 你是不是想让我手动输入？
+    => case_summary
+- 我不能保证结果。
+    => case_summary
+
+~ application_reason
+Passenger: 申请要写理由。我总不能写“我想证明我还是我自己”。
+- 那理由不适合标准表格。
+    do status_hint("乘客需求无法被标准申请理由完整表达。")
+    => book_prompt_soft
+- 你可以继续描述那个地方。
+    => service_area
+- 我先按记录核对。
+    => repeated_route
+
+~ standard_target
+Passenger: 稳定是好事。我也靠稳定活着。只是有时候，稳定会把没写进去的东西都挤掉。
+- 什么东西没写进去？
+    => identity_record
+- 那你不是拒绝 900。
+    => old_badge
+- 我会把稳定也当成依据。
+    => case_summary
+
+~ identity_record
+Passenger: 他们会收走我的临时牌，给我一张新的。新的上面名字没错，可我以前的班表就对不上了。
+- 旧班表在哪里可能还能找到？
+    => old_records
+- 旧工牌能证明这一点？
+    => old_badge
+- 标准复核可能会覆盖旧身份。
+    do status_hint("900 合规，但可能让乘客旧记录更难被看见。")
+    => case_summary
+
+~ repeated_route
+Passenger: 三次。每次都在柜台外坐到号码跳过，然后再坐电梯回来。
+- 为什么会跳过号码？
+    => waiting_time
+- 所以 900 不一定能解决问题。
+    => case_summary
+- 我会再查记录。
+    do status_hint("建议查看 LEFT 的 RECORD 页。重复路线可能说明标准路径没有完成。")
+    => case_summary
+
+~ waiting_time
+Passenger: 两班人换过了。售卖机补了一次货。我的汤也从热的变成温的。
+- 你说的汤很重要？
+    => soup_context
+- 等待本身也应该被记录。
+    do status_hint("乘客等待时间异常，建议不要只依据派单目标判断。")
+    => trust_start
+- 你当时一直在 612？
+    => about_612
+
+~ operator_role
+Passenger: 那你比广播强。广播只会说“请等待”。
+- 我不是广播，但我也在流程里。
+    => trust_start
+- 我能做的是记录依据。
+    => record_language
+- 那我需要更具体的目标线索。
+    => target_clues
+
+~ target_clues
+Passenger: 我想先去找旧工牌。找不到的话，再去旧记录层看看。
+- 旧工牌在哪里？
+    => old_badge
+- 旧记录层是什么地方？
+    => old_records
+- 这两个都不是系统推荐目标。
+    => case_summary
+
+~ unrecorded_help
+Passenger: 不会有。顺手带汤这种事，一登记就变成责任。没人想多一条责任。
+- 所以这是记录外的互助。
+    do status_hint("乘客描述的是系统记录之外的生活互助。当前信息可能与非推荐楼层有关。")
+    => case_summary
+- 这可能指向服务区。
+    => service_area
+- 我会避免把它写成异常物品。
+    => record_language
+
+~ case_summary
+do unlock_floor("742")
+do status_hint("乘客目标线索已整理：标准推荐目标为 900；非推荐线索指向低层服务区与旧记录相关楼层。建议玩家查阅纸质楼层索引书并自行验证目标楼层。")
+Passenger: 我知道 900 是流程。我不是不要流程。我只是想先找回一点能让我站在柜台前说话的东西。
+=> END
+
+~ destination_900
+do status_hint("目标 900 已确认。该目标与派单记录一致。提示：标准目标稳定，但可能重复乘客此前未完成的复核路径。")
+Passenger: 好吧。那就是记录上的地方。也许这次我能把话说完。
+=> END
+
+~ destination_742
+do status_hint("目标 742 已确认。该楼层可作为中继等待点。提示：该选择较稳定，但不会直接解决乘客旧牌与旧记录问题。")
+Passenger: 中间停一下也好。至少不是立刻坐到柜台前。
+=> END
+
+~ destination_612
+do status_hint("目标 612 已确认。电梯将返回接乘相关层。提示：返回起点可维持流程安全，但可能无法推进乘客问题。")
+Passenger: 送回去？那我可能又要坐回那张长椅上了。
+=> END
+
+~ destination_004
+do status_hint("目标 004 已确认。该楼层不在系统推荐中，但与乘客服务区线索相符。提示：该选择可能满足乘客取回旧工牌的特殊需求。")
+Passenger: 你查到了？前面的零还在吗？那地方少一个零就不是它了。
+=> END
+
+~ destination_387
+do status_hint("目标 387 已确认。旧记录存放层已被选为目标。提示：该选择可能提供纸质记录证据，但会偏离标准派单。")
+Passenger: 旧记录层……如果班表还在，我就还能证明我不是临时出现的。
+=> END
+
+~ destination_392
+do status_hint("目标 392 已确认。该目标与当前乘客线索无直接关联。提示：可前往，但缺少案例依据。")
+Passenger: 我不认识那层。你确定不是输错了吗？
+=> END
+
+~ destination_547
+do status_hint("目标 547 已确认。该目标与当前乘客线索无直接关联。提示：可前往，但与当前派单和乘客自述关联较弱。")
+Passenger: 办公层？我这身味道上去，可能会被请去走货梯。
+=> END

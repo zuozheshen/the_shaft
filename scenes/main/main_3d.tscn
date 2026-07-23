@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://cfyr8xo7ro08a"]
+
+[ext_resource type="PackedScene" uid="uid://cgudqo2blq4ri" path="res://scenes/runtime/game_runtime.tscn" id="1_runtime"]
+[ext_resource type="PackedScene" uid="uid://pfkh2fdm64ga" path="res://scenes/elevator/elevator_cabin_3d.tscn" id="2_cabin"]
+[ext_resource type="Script" uid="uid://bl5lw41vv26my" path="res://scripts/runtime/runtime_connector_3d.gd" id="3_connector"]
+
+[node name="三维主场景" type="Node" unique_id=1329777507]
+
+[node name="游戏运行层" parent="." unique_id=983804269 instance=ExtResource("1_runtime")]
+
+[node name="三维操作舱" parent="." unique_id=1736094816 instance=ExtResource("2_cabin")]
+
+[node name="运行层连接器" type="Node" parent="." unique_id=1410257360]
+script = ExtResource("3_connector")

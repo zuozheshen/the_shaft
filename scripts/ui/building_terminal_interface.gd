@@ -5,111 +5,88 @@ class_name BuildingTerminalInterface
 signal return_requested
 
 
-const STATUS_CONTENT: String = """稳定度：62%
-建筑状态：CAUTION
-请求解析：PARTIAL
-路线匹配率：42%
-
-当前判断：
-- 乘客目的地字段不完整。
-- 乘客自述与派单记录存在偏差。
-- 建议：继续询问，保持门控关闭。
-
-系统建议：
-继续复核乘客自述。
-必要时查看 TRANSCRIPT 与 SYSTEM LOG。"""
-
-const FALLBACK_RECORD_CONTENT: String = """乘客记录
-
-姓名：M. ROWAN
-登记状态：UNREGISTERED
-风险标记：LOW
-当前派单：612 → 900
-平均停留：2 MIN
-
-近期路线：
-612 → 900 / APPROVED
-612 → 900 / APPROVED
-612 → 900 / APPROVED
-
-备注：
-该乘客近期路线重复率异常。
-当前自述与历史目的地不完全一致。"""
-
-const EMPTY_TRANSCRIPT_CONTENT: String = """对话转写
+const EMPTY_TRANSCRIPT_CONTENT: String = """对话记录
 
 暂无通话转写。
 请先在 FRONT 主仲裁台开启麦克风并选择对话。"""
 
-const EMPTY_SYSTEM_LOG_CONTENT: String = """系统日志
-
-[19:42] AUDIO LINK STANDBY
-[19:43] REQUEST PARSE PARTIAL
-[19:43] RECORD INCOMPLETE
-[19:44] DOOR HOLD RECOMMENDED
-[19:44] RECORD CONFLICT POSSIBLE"""
+const EMPTY_SYSTEM_LOG_CONTENT: String = "暂无系统通信记录。"
 
 
-# 左侧建筑终端只显示系统复核信息；这些节点均安全查找，避免手工场景缺项时崩溃。
-var title_label: Label
-var access_status_label: Label
-var status_tab_button: Button
-var record_tab_button: Button
-var transcript_tab_button: Button
-var system_log_tab_button: Button
-var terminal_content_label: Label
-var terminal_hint_label: Label
-var return_button: Button
+# 场景结构已固定，直接引用节点，避免运行时按名称遍历整棵节点树。
+@onready var title_label: Label = $TerminalLayout/TitleLabel
+@onready var access_status_label: Label = $TerminalLayout/AccessStatusLabel
+@onready var record_tab_button: Button = $TerminalLayout/TabButtonPanel/RecordTabButton
+@onready var transcript_tab_button: Button = $TerminalLayout/TabButtonPanel/TranscriptTabButton
+@onready var system_log_tab_button: Button = $TerminalLayout/TabButtonPanel/SystemLogTabButton
+@onready var terminal_content_label: Label = $TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/TerminalContentLabel
+@onready var terminal_hint_label: Label = $TerminalLayout/TerminalHintLabel
+@onready var return_button: Button = $TerminalLayout/ReturnButton
 
 var demo_flow_manager: DemoFlowManager
+var embedded_3d_mode: bool = false
 
 
 func _ready() -> void:
-	_cache_terminal_nodes()
+	_apply_terminal_theme()
 	_connect_terminal_signals()
 	_initialize_terminal_text()
-	_show_status_tab()
+	_set_content(EMPTY_SYSTEM_LOG_CONTENT, "等待系统通信。")
 
 
 func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
+	if demo_flow_manager == flow_manager:
+		return
+	_disconnect_demo_flow_manager()
 	demo_flow_manager = flow_manager
 	if demo_flow_manager == null:
 		push_warning("BuildingTerminalInterface: DemoFlowManager is not connected.")
 		return
+	if not demo_flow_manager.dispatch_started.is_connected(_on_dispatch_started):
+		demo_flow_manager.dispatch_started.connect(_on_dispatch_started)
+	if not demo_flow_manager.shift_completed.is_connected(_on_shift_completed):
+		demo_flow_manager.shift_completed.connect(_on_shift_completed)
 	# 父节点完成依赖注入后刷新一次，补上子节点 ready 时尚未取得的共享事件。
-	_show_status_tab()
+	_show_system_log_tab()
+
+
+func _disconnect_demo_flow_manager() -> void:
+	if demo_flow_manager == null:
+		return
+	if demo_flow_manager.dispatch_started.is_connected(_on_dispatch_started):
+		demo_flow_manager.dispatch_started.disconnect(_on_dispatch_started)
+	if demo_flow_manager.shift_completed.is_connected(_on_shift_completed):
+		demo_flow_manager.shift_completed.disconnect(_on_shift_completed)
+
+
+func _on_dispatch_started(_dispatch_id: StringName) -> void:
+	_show_system_log_tab()
+
+
+func _on_shift_completed() -> void:
+	_show_system_log_tab()
 
 
 func show_terminal() -> void:
-	# 每次进入都回到 STATUS，便于玩家先阅读当前建筑判断。
-	_show_status_tab()
+	# 每次进入默认显示系统通信历史，便于复核本轮判断的变化。
+	_show_system_log_tab()
 	show()
-	if status_tab_button != null:
-		status_tab_button.grab_focus()
+	if system_log_tab_button != null:
+		system_log_tab_button.grab_focus()
 
 
-func _cache_terminal_nodes() -> void:
-	title_label = _find_optional_node("TitleLabel") as Label
-	access_status_label = _find_optional_node("AccessStatusLabel") as Label
-	status_tab_button = _find_optional_node("StatusTabButton") as Button
-	record_tab_button = _find_optional_node("RecordTabButton") as Button
-	transcript_tab_button = _find_optional_node("TranscriptTabButton") as Button
-	system_log_tab_button = _find_optional_node("SystemLogTabButton") as Button
-	terminal_content_label = _find_optional_node("TerminalContentLabel") as Label
-	terminal_hint_label = _find_optional_node("TerminalHintLabel") as Label
-	return_button = _find_optional_node("ReturnButton") as Button
-
-
-func _find_optional_node(node_name: String) -> Node:
-	var found_node: Node = find_child(node_name, true, false)
-	if found_node == null:
-		push_warning("BuildingTerminalInterface: Missing optional node '%s'." % node_name)
-	return found_node
+# 旧返回按钮仅在 2D 舱体中使用；3D 实例通过 Q / E 直接切换朝向。
+func set_embedded_3d_mode(is_enabled: bool) -> void:
+	embedded_3d_mode = is_enabled
+	if return_button != null:
+		return_button.visible = not is_enabled
+		return_button.disabled = is_enabled
+		if is_enabled:
+			return_button.release_focus()
 
 
 func _connect_terminal_signals() -> void:
-	# 四个占位页签只切换复核文本，不在本 Issue 中编辑或归档真实日志。
-	_connect_button(status_tab_button, _show_status_tab)
+	# 三个页签分别读取系统通信、乘客资料和对话记录。
 	_connect_button(record_tab_button, _show_record_tab)
 	_connect_button(transcript_tab_button, _show_transcript_tab)
 	_connect_button(system_log_tab_button, _show_system_log_tab)
@@ -122,27 +99,71 @@ func _connect_button(button: Button, callback: Callable) -> void:
 
 
 func _initialize_terminal_text() -> void:
-	_set_label_text(title_label, "建筑终端 / BUILDING TERMINAL")
-	_set_label_text(access_status_label, "访问权限：OPERATOR｜节点：L-612-A｜会话：ACTIVE")
-	_set_button_text(status_tab_button, "STATUS")
-	_set_button_text(record_tab_button, "RECORD")
-	_set_button_text(transcript_tab_button, "TRANSCRIPT")
-	_set_button_text(system_log_tab_button, "SYSTEM LOG")
+	_set_label_text(title_label, "SHAFT FACILITIES // ARCHIVE TERMINAL")
+	_set_label_text(access_status_label, "> 建筑终端 L-612-A  //  OPERATOR ACCESS  //  LINK ACTIVE")
+	_set_button_text(record_tab_button, "[ 乘客档案 ]")
+	_set_button_text(transcript_tab_button, "[ 对话记录 ]")
+	_set_button_text(system_log_tab_button, "[ 系统日志 ]")
 	_set_button_text(return_button, "返回操作间")
 
 
-func _show_status_tab() -> void:
-	# 打开 STATUS 即视为已读；完整提示仍保留在页面中。
-	var status_hint: String = "当前系统提示：\n612 层检测到待接乘客。\n建议前往 612 层完成接乘确认。\n\n当前任务：\n前往接乘楼层。"
-	var submitted_destination: String = ""
-	if demo_flow_manager != null:
-		status_hint = demo_flow_manager.get_current_building_status_hint()
-		submitted_destination = demo_flow_manager.get_submitted_destination()
-		demo_flow_manager.clear_unread_building_status_hint()
-	var content: String = status_hint
-	if not submitted_destination.is_empty():
-		content += "\n\n当前已提交目标：%s" % submitted_destination
-	_set_content(content, "选择一个终端页签查看建筑记录。")
+func _apply_terminal_theme() -> void:
+	# 使用系统等宽字体和高对比绿色，保持中文可回退显示并适配 1152×648 屏幕。
+	var terminal_font := SystemFont.new()
+	terminal_font.font_names = PackedStringArray([
+		"Consolas",
+		"Cascadia Mono",
+		"Noto Sans Mono CJK SC",
+		"Microsoft YaHei UI",
+	])
+	var terminal_theme := Theme.new()
+	terminal_theme.default_font = terminal_font
+	terminal_theme.default_font_size = 19
+	terminal_theme.set_color("font_color", "Label", Color("78f58f"))
+	terminal_theme.set_color("font_shadow_color", "Label", Color(0.05, 0.3, 0.08, 0.8))
+	terminal_theme.set_constant("shadow_offset_x", "Label", 1)
+	terminal_theme.set_constant("shadow_offset_y", "Label", 1)
+	terminal_theme.set_color("font_color", "Button", Color("8cff9d"))
+	terminal_theme.set_color("font_hover_color", "Button", Color("d0ffd5"))
+	terminal_theme.set_color("font_pressed_color", "Button", Color("07140a"))
+	terminal_theme.set_color("font_focus_color", "Button", Color("d0ffd5"))
+	terminal_theme.set_font_size("font_size", "Button", 20)
+
+	var normal_style := _create_terminal_style(Color("07140a"), Color("3d9b52"), 1)
+	var hover_style := _create_terminal_style(Color("102819"), Color("8cff9d"), 2)
+	var pressed_style := _create_terminal_style(Color("78f58f"), Color("b7ffc1"), 2)
+	terminal_theme.set_stylebox("normal", "Button", normal_style)
+	terminal_theme.set_stylebox("hover", "Button", hover_style)
+	terminal_theme.set_stylebox("pressed", "Button", pressed_style)
+	terminal_theme.set_stylebox("focus", "Button", hover_style)
+	terminal_theme.set_stylebox(
+		"panel",
+		"PanelContainer",
+		_create_terminal_style(Color("050d07"), Color("3d9b52"), 1)
+	)
+	theme = terminal_theme
+
+	title_label.add_theme_font_size_override("font_size", 28)
+	title_label.add_theme_color_override("font_color", Color("b7ffc1"))
+	access_status_label.add_theme_font_size_override("font_size", 17)
+	terminal_hint_label.add_theme_font_size_override("font_size", 16)
+	terminal_hint_label.add_theme_color_override("font_color", Color("4fbd65"))
+
+
+func _create_terminal_style(
+		background_color: Color,
+		border_color: Color,
+		border_width: int
+) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = background_color
+	style.border_color = border_color
+	style.set_border_width_all(border_width)
+	style.content_margin_left = 12.0
+	style.content_margin_top = 8.0
+	style.content_margin_right = 12.0
+	style.content_margin_bottom = 8.0
+	return style
 
 
 func _show_record_tab() -> void:
@@ -150,39 +171,20 @@ func _show_record_tab() -> void:
 
 
 func _build_record_content() -> String:
-	# RECORD 从 current_case 生成；流程管理器缺失时才退回旧占位文本。
+	# RECORD 读取乘客永久档案；当前派单号只在显示时替换，不改写资源。
 	if demo_flow_manager == null:
-		return FALLBACK_RECORD_CONTENT
+		return "乘客档案\n\n数据源未连接：无法读取当前乘客记录。"
+	if not demo_flow_manager.has_active_dispatch():
+		return "乘客档案\n\n暂无当前乘客。"
 
-	var passenger_record: Dictionary = demo_flow_manager.get_passenger_record()
-	if passenger_record.is_empty():
-		return FALLBACK_RECORD_CONTENT
+	var archive_text: String = demo_flow_manager.get_passenger_archive_text()
+	if archive_text.is_empty():
+		return "乘客档案\n\n当前案例未提供乘客记录。"
 
-	var record_lines := PackedStringArray([
-		"乘客记录",
-		"",
-		"姓名：%s" % passenger_record.get("name", demo_flow_manager.get_passenger_name()),
-		"常用称呼：%s" % passenger_record.get("display_name", "罗文"),
-		"登记状态：%s" % passenger_record.get("registration_status", "UNKNOWN"),
-		"风险标记：%s" % passenger_record.get("risk_tag", "UNKNOWN"),
-		"当前派单：%s" % demo_flow_manager.get_dispatch_text(),
-		"平均停留：%s" % passenger_record.get("average_stay", "UNKNOWN"),
-		"",
-		"近期路线：",
-	])
-	var recent_routes: Array = passenger_record.get("recent_routes", [])
-	for route in recent_routes:
-		record_lines.append(str(route))
-
-	record_lines.append("")
-	record_lines.append("备注：")
-	record_lines.append(str(passenger_record.get("note", "暂无备注。")))
-
-	var submitted_destination: String = demo_flow_manager.get_submitted_destination()
-	if not submitted_destination.is_empty():
-		record_lines.append("")
-		record_lines.append("当前已提交目标：%s" % submitted_destination)
-	return "\n".join(record_lines)
+	return "乘客档案\n\n%s" % archive_text.replace(
+		"{dispatch}",
+		demo_flow_manager.get_dispatch_text()
+	)
 
 
 func _show_transcript_tab() -> void:
@@ -192,27 +194,27 @@ func _show_transcript_tab() -> void:
 		_set_content(EMPTY_TRANSCRIPT_CONTENT, "暂无可复核的通话转写。")
 		return
 
-	var transcript_lines := PackedStringArray(["对话转写", ""])
+	var transcript_lines := PackedStringArray(["对话记录", ""])
 	for dialogue_line in dialogue_history:
 		transcript_lines.append(dialogue_line)
 	_set_content("\n".join(transcript_lines), "已读取 FRONT 临时对话缓存。")
 
 
 func _show_system_log_tab() -> void:
-	# SYSTEM LOG 只读取玩家操作，不显示操作员台词或乘客回应。
-	var operation_history: Array[String] = _get_front_operation_history()
-	if operation_history.is_empty():
-		_set_content(EMPTY_SYSTEM_LOG_CONTENT, "显示建筑系统日志占位。")
+	# 系统日志记录建筑对操作员的通信，不记录玩家按钮操作。
+	var message_history: Array[String] = _get_system_message_history()
+	if message_history.is_empty():
+		_set_content(EMPTY_SYSTEM_LOG_CONTENT, "暂无需要复核的系统通信。")
 		return
 
 	var log_lines := PackedStringArray(["系统日志", ""])
-	for operation_text in operation_history:
-		log_lines.append("[SYS] %s" % operation_text)
-	_set_content("\n".join(log_lines), "已读取 FRONT / RIGHT 临时操作缓存。")
+	for message_text in message_history:
+		log_lines.append(message_text)
+	_set_content("\n\n".join(log_lines), "已读取本轮系统通信历史。")
 
 
 func _get_front_dialogue_history() -> Array[String]:
-	# dialogue_history 专供 LEFT 的 TRANSCRIPT，后续会由 PassengerCase 替换。
+	# dialogue_history 专供 LEFT 的 TRANSCRIPT，后续由 UIHistoryState 管理。
 	if demo_flow_manager == null:
 		push_warning("BuildingTerminalInterface: Cannot read dialogue without DemoFlowManager.")
 		var empty_history: Array[String] = []
@@ -220,14 +222,12 @@ func _get_front_dialogue_history() -> Array[String]:
 	return demo_flow_manager.get_front_dialogue_history()
 
 
-func _get_front_operation_history() -> Array[String]:
-	# 当前缓存同时接收 FRONT 与 RIGHT 操作，只供 LEFT 的 SYSTEM LOG 读取。
-	# 这是早期桥接，后续会由 PassengerCase 或统一事件系统替换。
+func _get_system_message_history() -> Array[String]:
 	if demo_flow_manager == null:
-		push_warning("BuildingTerminalInterface: Cannot read operations without DemoFlowManager.")
+		push_warning("BuildingTerminalInterface: Cannot read system messages without DemoFlowManager.")
 		var empty_history: Array[String] = []
 		return empty_history
-	return demo_flow_manager.get_front_operation_history()
+	return demo_flow_manager.get_system_message_history()
 
 
 func _set_content(content_text: String, hint_text: String) -> void:
@@ -247,11 +247,13 @@ func _set_button_text(button: Button, new_text: String) -> void:
 
 func _request_return() -> void:
 	# 与 FRONT 相同，界面只通知外层控制器恢复电梯操作间。
+	if embedded_3d_mode:
+		return
 	return_requested.emit()
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not visible:
+	if not visible or embedded_3d_mode:
 		return
 	if event.is_action_pressed("ui_cancel") or _is_key_pressed(event, KEY_S):
 		_request_return()

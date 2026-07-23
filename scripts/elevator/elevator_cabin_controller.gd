@@ -13,12 +13,6 @@ enum FacingDirection {
 const DIRECTION_NAMES: Array[String] = ["FRONT", "RIGHT", "BACK", "LEFT"]
 const FACING_OBJECTS: Array[String] = ["主调度台", "目标楼层控制台", "后方舱壁", "建筑终端"]
 
-const CONSOLE_DESCRIPTIONS: Dictionary = {
-	FacingDirection.FRONT: "这里以后显示派单、路线建议和门控。",
-	FacingDirection.RIGHT: "这里用于确认系统推荐或手动输入的目标楼层。",
-	FacingDirection.LEFT: "这里显示建筑判断、乘客记录、对话转写和系统日志。",
-}
-
 var current_direction: int = FacingDirection.FRONT
 
 # 使用场景中的唯一节点名取得界面引用，集中声明便于新手看清控制器依赖。
@@ -29,10 +23,18 @@ var current_direction: int = FacingDirection.FRONT
 @onready var console_interface: ConsoleInterface = %ConsoleInterface
 @onready var building_terminal_interface: BuildingTerminalInterface = %BuildingTerminalInterface
 @onready var destination_control_interface: DestinationControlInterface = %DestinationControlInterface
-@onready var demo_flow_manager: DemoFlowManager = get_node_or_null("../DemoFlowManager") as DemoFlowManager
+@export var game_runtime_path: NodePath = ^"../游戏运行层"
+
+@onready var game_runtime: GameRuntime = get_node_or_null(game_runtime_path) as GameRuntime
+@onready var demo_flow_manager: DemoFlowManager = game_runtime.get_demo_flow_manager() \
+		if game_runtime != null else null
 
 
 func _ready() -> void:
+	if game_runtime == null:
+		push_error("旧 2D 操作舱找不到游戏运行层：%s" % game_runtime_path)
+	elif demo_flow_manager == null:
+		push_error("旧 2D 操作舱无法取得演示流程管理器。")
 	# 控制器负责把流程管理器交给操作台，并监听操作台发出的退出请求。
 	console_interface.set_demo_flow_manager(demo_flow_manager)
 	console_interface.return_requested.connect(_exit_console)
@@ -91,11 +93,7 @@ func _interact_with_facing_object() -> void:
 		cabin_view.hide()
 		return
 
-	console_interface.show_console(
-		DIRECTION_NAMES[current_direction],
-		FACING_OBJECTS[current_direction],
-		CONSOLE_DESCRIPTIONS[current_direction]
-	)
+	console_interface.show_main_console()
 	cabin_view.hide()
 
 

@@ -1,16 +1,16 @@
 # AGENTS.md
 
-## Project
+## 项目
 
-The Shaft is a Godot 4.7 narrative elevator-operator demo.
+《The Shaft》是一款使用 Godot 4.7 制作的叙事型电梯操作员演示项目。
 
-The player is not a hero exploring the building. The player is an arbitration elevator operator working from inside an elevator control cabin.
+玩家不是探索大楼的英雄，而是一名在电梯控制舱内工作的裁定电梯操作员。
 
-The game is about route judgment, system records, camera evidence, passenger testimony, delayed doors, and logs. The player does not control the whole building. The player temporarily changes how a route is interpreted.
+游戏围绕路线判断、系统记录、监控证据、乘客证词、延迟关门和日志展开。玩家不控制整栋大楼，只能暂时改变系统对一段路线的理解方式。
 
-## Repository Root
+## 仓库根目录
 
-The repository root is the folder that contains:
+仓库根目录应包含以下内容：
 
 - `project.godot`
 - `AGENTS.md`
@@ -20,190 +20,190 @@ The repository root is the folder that contains:
 - `scenes/`
 - `scripts/`
 
-Do not work inside nested duplicate folders such as:
+不要在嵌套的重复目录中工作，例如：
 
 - `the_shaft/the_shaft/`
 
-Do not create a second Godot project inside the repository.
+不要在仓库内创建第二个 Godot 项目。
 
-Do not move `project.godot` unless explicitly requested.
+除非明确要求，否则不要移动 `project.godot`。
 
-## Godot Version Rules
+## Godot 版本规则
 
-- This project uses Godot 4.7.
-- Use Godot 4.7-compatible GDScript.
-- Do not use Godot 3.x APIs.
-- Do not assume older Godot 4.x behavior if Godot 4.7 has a clearer pattern.
-- Prefer simple, readable GDScript over clever engine-specific tricks.
-- Scenes, scripts, and resources must open in Godot 4.7 without conversion warnings.
-- Keep the project friendly to beginner Godot developers.
+- 本项目使用 Godot 4.7。
+- 使用与 Godot 4.7 兼容的 GDScript。
+- 不要使用 Godot 3.x API。
+- 如果 Godot 4.7 有更清晰的实现方式，不要沿用旧版 Godot 4.x 的行为假设。
+- 优先使用简单、易读的 GDScript，而非花哨的引擎技巧。
+- 场景、脚本和资源必须能在 Godot 4.7 中打开，且不出现转换警告。
+- 保持项目对 Godot 初学者友好。
 
-## Demo Goal
+## 演示目标
 
-Build a 10–15 minute vertical slice that proves the core loop:
+构建一个 10–15 分钟的垂直切片，验证以下核心循环：
 
-1. A dispatch appears.
-2. A passenger enters the elevator.
-3. The player reads system records.
-4. The player checks camera evidence.
-5. The player asks or observes.
-6. The player chooses a route reason.
-7. The elevator arrives.
-8. The player writes a log.
-9. The world gives indirect feedback later.
+1. 出现一条调度。
+2. 一名乘客进入电梯。
+3. 玩家查看系统记录。
+4. 玩家查看监控证据。
+5. 玩家询问或观察。
+6. 玩家选择路线理由。
+7. 电梯到达。
+8. 玩家填写日志。
+9. 世界在之后给出间接反馈。
 
-The first demo should prove the feel of the game, not the full scale of the world.
+首个演示应证明游戏的体验与氛围，而非展示世界的完整规模。
 
-## Current Demo Scope
+## 当前演示范围
 
-The first playable demo should focus on:
+首个可玩的演示应聚焦于：
 
-- One elevator operation cabin.
-- A small number of passenger cases.
-- Basic dispatch flow.
-- Basic route choice.
-- Basic log choice.
-- Placeholder or simple camera evidence.
-- Placeholder art where necessary.
-- Minimal but readable UI.
-- Clear development structure.
+- 一个电梯操作舱。
+- 少量乘客事件。
+- 基础调度流程。
+- 基础路线选择。
+- 基础日志选择。
+- 占位或简化的监控证据。
+- 必要时使用占位美术。
+- 最少但可读的 UI。
+- 清晰的开发结构。
 
-Do not implement large systems before the core loop works.
+在核心循环可用前，不要实现大型系统。
 
-Avoid adding:
+避免加入：
 
-- Free-roaming building exploration.
-- Large map systems.
-- Full 3D character controllers.
-- Complex inventory systems.
-- Large branching quest frameworks.
-- Full save/load systems.
-- Procedural generation.
-- Complete relationship systems.
-- Full audio middleware.
-- Unrequested plugins.
+- 可自由漫游的大楼探索。
+- 大型地图系统。
+- 完整的 3D 角色控制器。
+- 复杂的物品栏系统。
+- 大型分支任务框架。
+- 完整的存档/读档系统。
+- 程序化生成。
+- 完整的关系系统。
+- 完整的音频中间件。
+- 未经要求的插件。
 
-## Core Design Rules
+## 核心设计规则
 
-- Do not turn the game into a free-roaming building exploration game.
-- Do not make the building a simple evil villain.
-- System suggestions can be reasonable.
-- Disobedience is not always correct.
-- Stability should sometimes protect people.
-- Deviation should sometimes hurt people.
-- The player changes how a route is interpreted, not just which floor to visit.
-- Small actions should feel meaningful: delaying the door, checking a record, switching a camera, asking one more question, writing a log.
-- The player should feel like a worker inside the running system, not an outside rebel.
-- Every important action should create responsibility, not simple heroism.
-- The game should avoid obvious “system bad, rebellion good” moral structure.
+- 不要把游戏变成可自由漫游的大楼探索游戏。
+- 不要把大楼塑造成简单的邪恶反派。
+- 系统建议可以是合理的。
+- 违背系统并不总是正确。
+- 稳定性有时应当保护人。
+- 偏离流程有时也会伤害人。
+- 玩家改变的是系统对路线的理解，而不只是要去哪个楼层。
+- 小动作应当有意义：延迟关门、查看记录、切换监控、再多问一句、填写日志。
+- 玩家应感觉自己是运行中系统里的工作人员，而不是外部反抗者。
+- 每个重要行动都应带来责任，而非简单的英雄主义。
+- 游戏应避免“系统坏、反抗好”这种显而易见的道德结构。
 
-## Technical Rules
+## 技术规则
 
-- Use Godot 4.7.
-- Use GDScript unless explicitly told otherwise.
-- Keep scenes small and composable.
-- Prefer data-driven passenger cases.
-- Do not hardcode passenger case text inside UI scripts.
-- Do not add large third-party dependencies.
-- Do not rename existing public APIs unless all references are updated.
-- Do not create unnecessary global singletons.
-- Do not reformat the whole project.
-- Do not modify unrelated files.
-- Make the smallest useful change for the current issue.
-- Prefer clear names over short names.
-- Prefer explicit state flow over hidden magic.
-- Keep scripts readable for beginner Godot developers.
+- 使用 Godot 4.7。
+- 除非明确要求，否则使用 GDScript。
+- 保持场景小巧且可组合。
+- 优先采用数据驱动的乘客事件。
+- 不要在 UI 脚本中硬编码乘客事件文本。
+- 不要添加大型第三方依赖。
+- 除非同步更新所有引用，否则不要重命名已有公开 API。
+- 不要创建不必要的全局单例。
+- 不要重新格式化整个项目。
+- 不要修改无关文件。
+- 针对当前 issue 做出最小且有用的改动。
+- 优先使用清晰的名称，而不是简短的名称。
+- 优先使用明确的状态流程，而不是隐藏的魔法逻辑。
+- 保持脚本对 Godot 初学者易读。
 
-## Version Control Rules
+## 版本控制规则
 
-- Do not commit changes unless explicitly asked.
-- Do not push changes unless explicitly asked.
-- Do not modify `.gitignore`, `.gitattributes`, or repository settings unless the current issue asks for it.
-- Do not add generated cache folders to version control.
-- Do not add `.godot/` to version control.
-- Do not add exported builds to version control.
-- Do not add temporary files, logs, or editor backups.
-- Keep each change scoped to the current GitHub issue.
-- After changing files, summarize exactly which files were changed and how to test them.
+- 除非明确要求，否则不要提交改动。
+- 除非明确要求，否则不要推送改动。
+- 除非当前 issue 有要求，否则不要修改 `.gitignore`、`.gitattributes` 或仓库设置。
+- 不要将生成的缓存目录加入版本控制。
+- 不要将 `.godot/` 加入版本控制。
+- 不要将导出的构建产物加入版本控制。
+- 不要将临时文件、日志或编辑器备份加入版本控制。
+- 将每次改动限定在当前 GitHub issue 范围内。
+- 修改文件后，准确说明改动了哪些文件，以及如何测试。
 
-## VS Code / Codex Workflow Rules
+## VS Code / Codex 工作流程规则
 
-- Codex will usually be used inside VS Code.
-- Treat the repository root as the folder containing `project.godot`.
-- Read this file before starting work.
-- Work only on the current GitHub issue.
-- Do not implement extra systems.
-- Do not redesign the whole project.
-- Do not modify unrelated files.
-- Do not reformat the whole project.
-- Do not commit or push.
-- After coding, summarize:
-  - Files changed.
-  - What was implemented.
-  - How to test it in Godot 4.7.
-  - Any known limitations.
+- Codex 通常在 VS Code 中使用。
+- 将包含 `project.godot` 的文件夹视为仓库根目录。
+- 开始工作前先阅读此文件。
+- 只处理当前 GitHub issue。
+- 不要实现额外系统。
+- 不要重构或重新设计整个项目。
+- 不要修改无关文件。
+- 不要重新格式化整个项目。
+- 不要提交或推送。
+- 编码后，请总结：
+  - 改动的文件。
+  - 实现的内容。
+  - 如何在 Godot 4.7 中测试。
+  - 已知限制。
 
-## Folder Structure Rules
+## 文件夹结构规则
 
-Use this general structure:
+使用以下总体结构：
 
-- `assets/art/` for sprites, textures, UI art, and visual assets.
-- `assets/audio/` for music, ambience, and sound effects.
-- `data/passengers/` for passenger case data.
-- `data/routes/` for route data.
-- `docs/` for design notes and implementation notes.
-- `scenes/main/` for main entry scenes.
-- `scenes/elevator/` for elevator cabin and elevator-related scenes.
-- `scenes/passenger/` for passenger scenes.
-- `scenes/ui/` for UI panels.
-- `scripts/core/` for shared utilities and core definitions.
-- `scripts/flow/` for demo flow and state management.
-- `scripts/passenger/` for passenger data and behavior.
-- `scripts/route/` for route options and route logic.
-- `scripts/ui/` for UI scripts.
-- `scripts/camera/` for camera switching and camera effects.
+- `assets/art/`：精灵图、纹理、UI 美术和视觉资源。
+- `assets/audio/`：音乐、环境音和音效。
+- `data/passengers/`：乘客事件数据。
+- `data/routes/`：路线数据。
+- `docs/`：设计说明和实现说明。
+- `scenes/main/`：主入口场景。
+- `scenes/elevator/`：电梯舱及相关场景。
+- `scenes/passenger/`：乘客场景。
+- `scenes/ui/`：UI 面板。
+- `scripts/core/`：共享工具和核心定义。
+- `scripts/flow/`：演示流程与状态管理。
+- `scripts/passenger/`：乘客数据与行为。
+- `scripts/route/`：路线选项与路线逻辑。
+- `scripts/ui/`：UI 脚本。
+- `scripts/camera/`：摄像头切换与摄像头效果。
 
-Do not create new top-level folders unless the current issue requires it.
+除非当前 issue 需要，否则不要新建顶层文件夹。
 
-## Scene Rules
+## 场景规则
 
-- Main entry scenes should live in `scenes/main/`.
-- UI panels should live in `scenes/ui/`.
-- Keep scene responsibility narrow.
-- Do not put all gameplay logic into one large scene script.
-- Do not hardcode passenger content directly in scene nodes when it can be data-driven.
-- Prefer connecting UI to flow managers through clear signals or explicit method calls.
-- Avoid hidden dependencies between unrelated scenes.
-- Keep node names clear and stable.
+- 主入口场景应放在 `scenes/main/`。
+- UI 面板应放在 `scenes/ui/`。
+- 保持每个场景的职责单一。
+- 不要把全部游戏逻辑放进一个庞大的场景脚本中。
+- 可以数据驱动时，不要在场景节点中直接硬编码乘客内容。
+- 优先通过清晰的信号或显式方法调用将 UI 连接到流程管理器。
+- 避免无关场景之间的隐藏依赖。
+- 保持节点名称清晰且稳定。
 
-## GDScript Style Rules
+## GDScript 风格规则
 
-- Use clear class and variable names.
-- Use typed variables where it improves readability.
-- Avoid clever one-liners.
-- Avoid deeply nested logic.
-- Use comments for intent, not for obvious syntax.
-- Use concise Chinese comments for important logic so beginner Godot developers can understand the code.
-- Keep functions short when possible.
-- Prefer simple state machines for demo flow.
-- Print useful debug information for early prototype tasks.
-- Do not introduce complex architecture before the demo needs it.
+- 使用清晰的类名和变量名。
+- 在能提升可读性时使用类型标注。
+- 避免炫技式的一行写法。
+- 避免过深的逻辑嵌套。
+- 注释应说明意图，而非显而易见的语法。
+- 为重要逻辑使用简洁的中文注释，帮助 Godot 初学者理解代码。
+- 尽可能保持函数简短。
+- 演示流程优先采用简单的状态机。
+- 早期原型任务中输出有用的调试信息。
+- 在演示确实需要前，不要引入复杂架构。
 
-## Chinese Comment Rules
+## 中文注释规则
 
-- All important code should retain an appropriate amount of Chinese comments.
-- Chinese comments should help Godot beginners understand the project structure and logic.
-- State machines, input handling, signal connections, UI node references, data structures, and key route, passenger, and log logic should have brief Chinese comments.
-- Comments should explain what the logic is responsible for and why it is implemented that way.
-- Do not comment every line.
-- Do not translate obvious code into Chinese.
-- Keep comments concise; do not turn them into lengthy design documents.
+- 所有重要代码都应保留适量的中文注释。
+- 中文注释应帮助 Godot 初学者理解项目结构和逻辑。
+- 状态机、输入处理、信号连接、UI 节点引用、数据结构以及关键路线、乘客和日志逻辑，都应有简短的中文注释。
+- 注释应说明逻辑负责什么，以及为何如此实现。
+- 不要逐行添加注释。
+- 不要把显而易见的代码逐字翻译成中文注释。
+- 保持注释简洁，不要把它们写成长篇设计文档。
 
-## Data-Driven Passenger Rules
+## 数据驱动的乘客规则
 
-Passenger cases should eventually be represented as data, not hardcoded into UI scripts.
+乘客事件最终应以数据表示，而不是硬编码在 UI 脚本中。
 
-A passenger case may include:
+一个乘客事件可包含：
 
 - `case_id`
 - `display_name`
@@ -216,276 +216,276 @@ A passenger case may include:
 - `log_options`
 - `consequences`
 
-Early prototypes may use simple placeholder data, but keep the structure easy to replace with real resources later.
+早期原型可以使用简单的占位数据，但需保持结构便于后续替换为真实资源。
 
-## Route Design Rules
+## 路线设计规则
 
-The route system is not a large transport simulation.
+路线系统不是大型交通模拟系统。
 
-The player should not manually plan every elevator path.
+玩家不应手动规划每一段电梯路径。
 
-The player chooses how the building should understand this movement.
+玩家选择的是让大楼如何理解这次移动。
 
-Route options may include:
+路线选项可包括：
 
-- Standard delivery.
-- Delayed delivery.
-- Care route.
-- Maintenance detour.
-- Transfer wait.
-- Return route.
-- Non-registered stop.
-- Manual override.
-- Report anomaly.
+- 标准送达。
+- 延迟送达。
+- 照护路线。
+- 维护绕行。
+- 等待换乘。
+- 返回路线。
+- 未登记停靠。
+- 手动覆盖。
+- 报告异常。
 
-The key question is not only “where does the passenger go,” but “what does the system record this movement as?”
+关键问题不仅是“乘客要去哪里”，更是“系统将把这次移动记录为什么”。
 
-## UI Rules
+## UI 规则
 
-The operator console should feel like a work interface, not a fantasy menu.
+操作员控制台应像工作界面，而不是奇幻风格菜单。
 
-Important UI modules may include:
+重要的 UI 模块可包括：
 
-- Dispatch panel.
-- Passenger record panel.
-- Camera panel.
-- Route option panel.
-- Door control panel.
-- Communication panel.
-- Log panel.
-- Stability or system status panel.
+- 调度面板。
+- 乘客记录面板。
+- 监控面板。
+- 路线选项面板。
+- 门控面板。
+- 通信面板。
+- 日志面板。
+- 稳定性或系统状态面板。
 
-Early UI can be simple and ugly, but it must be readable and testable.
+早期 UI 可以简单甚至粗糙，但必须可读、可测试。
 
-Do not spend time on final visual polish before the core loop works.
+在核心循环可用前，不要花时间打磨最终视觉效果。
 
-## Camera Rules
+## 摄像头规则
 
-The camera system is central to the game.
+摄像头系统是游戏的核心。
 
-Cameras should provide evidence, not just decoration.
+摄像头应提供证据，而不只是装饰。
 
-Possible camera views:
+可用的摄像头视角包括：
 
-- Front camera.
-- Side camera.
-- Floor camera.
-- Cargo camera.
-- Door camera.
-- Top-corner camera.
+- 正面摄像头。
+- 侧面摄像头。
+- 地面摄像头。
+- 货舱摄像头。
+- 门口摄像头。
+- 顶角摄像头。
 
-Different cameras should reveal different information:
+不同摄像头应揭示不同信息：
 
-- Face, posture, clothes, badge, speech state.
-- Hands, hidden objects, side posture.
-- Shoes, footprints, liquid, shadows.
-- Bags, carts, forbidden objects, supplies.
-- Doorway slice, corridor state, waiting figures.
+- 面部、姿势、衣物、徽章、说话状态。
+- 双手、隐藏物件、侧身姿态。
+- 鞋子、脚印、液体、阴影。
+- 包、推车、违禁物品、补给物资。
+- 门口切面、走廊状态、等候的人影。
 
-For early implementation, text placeholders are acceptable.
+早期实现可以使用文本占位符。
 
-Later camera visuals may use:
+后续摄像头视觉可采用：
 
-- Low frame rate.
-- Scanlines.
-- Timestamp.
-- Delay.
-- Noise.
-- Compression artifacts.
-- Distortion.
-- Identification boxes.
+- 低帧率。
+- 扫描线。
+- 时间戳。
+- 延迟。
+- 噪点。
+- 压缩伪影。
+- 失真。
+- 识别框。
 
-The player should feel they are seeing compressed system images, not complete people.
+玩家应感觉自己看到的是系统压缩后的影像，而不是完整的人。
 
-## Art Direction Rules
+## 美术方向规则
 
-- Use low-cost paper-person / billboard-style passengers.
-- Do not replace the style with full 3D characters unless explicitly requested.
-- Ordinary passengers can be simple.
-- Key passengers can have more directions and special poses.
-- Passenger clarity is more important than animation smoothness.
-- Cameras must provide different evidence, not just different views.
-- Monitoring visuals can hide low-cost art through style, but must also express the world.
-- The player sees people through the building’s recording system, not through direct human contact.
+- 使用低成本的纸片人 / 广告牌风格乘客。
+- 除非明确要求，否则不要用完整 3D 角色替代这种风格。
+- 普通乘客可以保持简单。
+- 关键乘客可以拥有更多朝向和特殊姿势。
+- 乘客清晰度比动画流畅度更重要。
+- 摄像头必须提供不同证据，而不只是不同视角。
+- 监控视觉可以通过风格化掩盖低成本美术，但也必须表达世界观。
+- 玩家是通过大楼的记录系统看见人，而不是通过直接的人际接触。
 
-## Narrative Rules
+## 叙事规则
 
-- Passenger cases should be about people being partially misread by a process.
-- Avoid writing passengers as abstract victims.
-- Avoid making every deviation heroic.
-- Avoid making every standard route cruel.
-- The building uses ordinary management language:
-  - suggestion
-  - route
-  - risk
-  - maintenance
-  - permission
-  - standard process
-  - non-essential access
-  - stability
-  - record
-  - dispatch
-- Dialogue should be restrained and practical.
-- Characters should not directly explain the whole theme.
-- Passengers should sound like people trying to get somewhere, not like symbols explaining the setting.
-- The player should often face incomplete information.
-- A good passenger case should make the player ask: “Is the process enough to describe this person?”
+- 乘客事件应描写人如何被流程部分地误读。
+- 避免把乘客写成抽象的受害者。
+- 避免把每次偏离流程都写成英雄行为。
+- 避免把每条标准路线都写成残酷行为。
+- 大楼使用日常的管理语言：
+  - 建议
+  - 路线
+  - 风险
+  - 维护
+  - 许可
+  - 标准流程
+  - 非必要访问
+  - 稳定性
+  - 记录
+  - 调度
+- 对话应克制而务实。
+- 角色不应直接解释整个主题。
+- 乘客应像正在设法抵达某处的人，而不是讲解设定的符号。
+- 玩家应经常面对不完整的信息。
+- 好的乘客事件应让玩家思考：“流程足以描述这个人吗？”
 
-## Building Portrayal Rules
+## 大楼呈现规则
 
-The building is not a simple villain.
+大楼不是简单的反派。
 
-The building should not say “obey me.”
+大楼不应说“服从我”。
 
-The building should not act like an angry dictator.
+大楼不应像愤怒的独裁者一样行动。
 
-The building should feel like:
+大楼应让人感到它是：
 
-- infrastructure
-- logistics
-- housing
-- maintenance
-- transport
-- risk control
-- permission
-- records
-- workflow
-- stability management
+- 基础设施
+- 物流
+- 住房
+- 维护
+- 运输
+- 风险控制
+- 许可
+- 记录
+- 工作流程
+- 稳定性管理
 
-The building can be cold, reasonable, useful, protective, harmful, blind, and incomplete at the same time.
+大楼可以同时是冰冷、合理、有用、保护人、有害、盲目且不完整的。
 
-Its horror comes from ordinary process language producing unbearable results.
+它的恐怖来自日常流程语言造成难以承受的结果。
 
-## Choice Design Rules
+## 选择设计规则
 
-Good choices should not have obvious moral answers.
+好的选择不应有显而易见的道德答案。
 
-Stability must sometimes be genuinely useful.
+稳定性有时必须确实有用。
 
-Deviation must sometimes have genuine cost.
+偏离流程有时必须确实有代价。
 
-The player should not learn a simple rule like:
+玩家不应学会如下简单规则：
 
-- “Always obey the system.”
-- “Always disobey the system.”
-- “Always trust the passenger.”
-- “Always trust the record.”
+- “永远服从系统。”
+- “永远违背系统。”
+- “永远相信乘客。”
+- “永远相信记录。”
 
-Each case should depend on specific evidence, specific people, and specific consequences.
+每个事件都应取决于具体证据、具体的人和具体后果。
 
-## Log System Rules
+## 日志系统规则
 
-The log is not just a score screen.
+日志不只是计分界面。
 
-The log decides how the system remembers the event.
+日志决定系统如何记住这一事件。
 
-Possible log actions:
+可用的日志操作包括：
 
-- Record as standard delivery.
-- Record passenger self-report.
-- Mark minor anomaly.
-- Report route conflict.
-- Hide non-critical deviation.
-- Record delay.
-- Leave no additional note.
+- 记录为标准送达。
+- 记录乘客自述。
+- 标记轻微异常。
+- 报告路线冲突。
+- 隐藏非关键偏离。
+- 记录延误。
+- 不添加额外说明。
 
-Logs should feel like responsibility.
+日志应让人感到责任。
 
-Avoid turning logs into simple good/bad scoring.
+避免把日志做成简单的好/坏评分。
 
-## Door Control Rules
+## 门控规则
 
-Door actions should feel meaningful.
+门的操作应有意义。
 
-Important door actions may include:
+重要的门控操作可包括：
 
-- Open door.
-- Close door.
-- Delay closing.
-- Reopen.
-- Refuse entry.
-- Hold at destination.
-- Allow short outside action.
-- Lock down.
+- 开门。
+- 关门。
+- 延迟关闭。
+- 重新打开。
+- 拒绝进入。
+- 在目的地保持开启。
+- 允许短暂的舱外行动。
+- 锁定。
 
-Delaying the door is one of the most important actions in the project.
+延迟关门是项目中最重要的操作之一。
 
-It can mean: “I am willing to wait a few more seconds for this person.”
+它可以意味着：“我愿意为这个人再等几秒。”
 
-## Audio Direction Rules
+## 音频方向规则
 
-The game’s music and sound should support atmosphere, not overwhelm the player.
+游戏的音乐和声音应烘托氛围，而非压倒玩家。
 
-Preferred sound direction:
+推荐的声音方向：
 
-- Ambient guitar.
-- Post-rock.
-- Noise environment.
-- Low mechanical hum.
-- Elevator motor.
-- Relay clicks.
-- Soft UI beeps.
-- Distant broadcasts.
-- Room tone.
-- Short guitar phrases for private moments.
+- 氛围吉他。
+- 后摇滚。
+- 噪声环境。
+- 低沉的机械嗡鸣。
+- 电梯电机。
+- 继电器咔嗒声。
+- 柔和的 UI 提示音。
+- 远处的广播。
+- 室内底噪。
+- 私密时刻的短吉他句。
 
-Avoid:
+避免：
 
-- Overly heroic music.
-- Overly emotional melodrama.
-- Cyberpunk nightclub beats.
-- Generic horror stingers everywhere.
-- Constant loud music.
+- 过于英雄主义的音乐。
+- 过于煽情的情绪戏剧化处理。
+- 赛博朋克夜店节拍。
+- 到处使用通用恐怖音效。
+- 持续的大音量音乐。
 
-## Issue Implementation Rules
+## Issue 实现规则
 
-When implementing a GitHub issue:
+实现 GitHub issue 时：
 
-1. Read this file.
-2. Read the current issue.
-3. Follow the acceptance criteria.
-4. Make the smallest useful change.
-5. Do not implement future systems unless requested.
-6. Do not redesign existing systems unless requested.
-7. Do not modify unrelated files.
-8. Do not commit or push.
-9. Summarize changed files.
-10. Explain how to test in Godot 4.7.
+1. 阅读此文件。
+2. 阅读当前 issue。
+3. 遵循验收标准。
+4. 做出最小且有用的改动。
+5. 除非要求，否则不要实现未来系统。
+6. 除非要求，否则不要重新设计已有系统。
+7. 不要修改无关文件。
+8. 不要提交或推送。
+9. 总结改动的文件。
+10. 说明如何在 Godot 4.7 中测试。
 
-## Testing Rules
+## 测试规则
 
-For every code change, explain how to test it.
+每次修改代码时，都要说明如何测试。
 
-A good test explanation should include:
+好的测试说明应包括：
 
-- Which scene to open.
-- Which button to press, if any.
-- What should appear in the Output panel.
-- What should be visible on screen.
-- What should not happen.
+- 应打开哪个场景。
+- 应按哪个按钮（如有）。
+- Output 面板中应出现什么。
+- 屏幕上应看到什么。
+- 不应发生什么。
 
-For early prototype tasks, simple Output panel prints are acceptable.
+对于早期原型任务，简单地打印 Output 调试信息是可以接受的。
 
-Do not claim a task is finished if the project cannot open in Godot 4.7.
+如果项目无法在 Godot 4.7 中打开，不要宣称任务完成。
 
-## Current First Milestone
+## 当前第一里程碑
 
-The first milestone is to create a basic runnable skeleton.
+第一个里程碑是创建一个可运行的基础骨架。
 
-Minimum target:
+最低目标：
 
 - `scenes/main/Main.tscn`
 - `scripts/flow/demo_flow_manager.gd`
-- A simple demo state machine.
-- The project opens in Godot 4.7.
-- Running the main scene prints the current state.
-- State advancement can be tested.
+- 一个简单的演示状态机。
+- 项目可在 Godot 4.7 中打开。
+- 运行主场景时打印当前状态。
+- 可测试状态推进。
 
-Do not build UI, passengers, camera rendering, or save/load before the current issue asks for them.
+在当前 issue 提出要求前，不要构建 UI、乘客、摄像头渲染或存档/读档。
 
-## First Demo State Suggestions
+## 首个演示状态建议
 
-The basic demo flow may use these states:
+基础演示流程可使用以下状态：
 
 - `BOOT`
 - `WAITING_FOR_DISPATCH`
@@ -495,16 +495,55 @@ The basic demo flow may use these states:
 - `LOGGING`
 - `CASE_COMPLETE`
 
-Keep the first state machine simple.
+保持第一个状态机简单。
 
-## Final Reminder
+## 最后提醒
 
-The Shaft is not about escaping the building.
+《The Shaft》不是关于逃离大楼。
 
-It is about why the building is difficult to refuse.
+它讲的是：为何这栋大楼难以拒绝。
 
-The player is not outside the system.
+玩家不在系统之外。
 
-The player is one of the people making the system feel normal.
+玩家正是让系统显得正常的人之一。
 
-Every implementation decision should protect this core.
+每个实现决策都应守护这一核心。
+
+## 开发日志与飞书同步规则
+
+- 以 GitHub Issue 为单位记录开发日志；没有 Issue 编号时，应明确标记为“未关联 Issue”，不得自行猜测编号。
+- 开发日志必须区分：代码实现、Godot 运行、用户验收、Git 提交和飞书同步。未发生的事项应如实标记为“未执行”或“未知”。
+- 当用户说“整理开发日志”时，只能生成或更新本地日志草稿，不得写入飞书或其他外部服务。
+- 只有当用户明确说“同步开发日志”时，才允许将对应的本地日志写入飞书，并删除本地草稿。
+- Codex 不执行 `git commit` 或 `git push`；日志只能记录已有的、可验证的提交事实。
+- 不允许凭推测、计划或未验证的输出宣称功能已完成、Godot 已运行或用户已验收。
+- 不允许将密钥、Token、App Secret、Cookie 或其他凭据写入仓库、开发日志或同步状态文件。
+- 飞书同步实现必须与具体连接方式解耦；在未配置并获得用户明确授权前，不创建飞书应用、不安装第三方飞书 MCP，也不请求凭据。
+- 已授权的开发日志同步目标为飞书 Wiki「开发日志」：`https://tcn5hkroyoex.feishu.cn/wiki/FwaVwW1Rniy4iEkJycgckZ3unK1`。仅在用户明确要求“同步开发日志”后，才可向该文档追加对应 Issue 的日志区块。
+
+## 飞书 CLI 环境
+
+本项目已配置飞书 CLI。
+
+Windows 环境调用：
+
+lark-cli.cmd
+
+不要使用：
+lark-cli.ps1
+
+原因：
+PowerShell 执行策略可能阻止 ps1 包装器。
+
+飞书 CLI 用途：
+- 读取 The Shaft 开发日志文档
+- 更新指定开发日志文档
+- 搜索相关飞书资料
+
+调用原则：
+- 默认只读；
+- 用户明确输入“同步开发日志”后才允许写入；
+- 写入前必须读取目标文档确认结构；
+- 禁止覆盖整篇文档；
+- 禁止删除已有人工内容；
+- 不保存 Token、Secret 或登录信息到仓库。

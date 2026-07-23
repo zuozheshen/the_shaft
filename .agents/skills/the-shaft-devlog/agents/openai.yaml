@@ -1,0 +1,4 @@
+interface:
+  display_name: "The Shaft Devlog"
+  short_description: "Create evidence-based local development log drafts."
+  default_prompt: "Use $the-shaft-devlog to draft an evidence-based local development log for the current Issue."

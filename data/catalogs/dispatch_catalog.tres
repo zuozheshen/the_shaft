@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="DispatchCatalog" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/catalogs/dispatch_catalog.gd" id="1_catalog"]
+[ext_resource type="Script" path="res://scripts/data/definitions/dispatch_definition.gd" id="2_dispatch"]
+[ext_resource type="Resource" path="res://data/dispatches/case_001.tres" id="3_case_001"]
+[ext_resource type="Resource" path="res://data/dispatches/case_002.tres" id="4_case_002"]
+
+[resource]
+script = ExtResource("1_catalog")
+dispatches = Array[ExtResource("2_dispatch")]([ExtResource("3_case_001"), ExtResource("4_case_002")])
