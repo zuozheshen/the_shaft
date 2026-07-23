@@ -1,10 +1,11 @@
-[gd_resource type="Resource" script_class="PassengerCatalog" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="PassengerCatalog" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/catalogs/passenger_catalog.gd" id="1_catalog"]
 [ext_resource type="Script" path="res://scripts/data/definitions/passenger_definition.gd" id="2_passenger"]
 [ext_resource type="Resource" path="res://data/passengers/passenger_001.tres" id="3_passenger_001"]
 [ext_resource type="Resource" path="res://data/passengers/passenger_002.tres" id="4_passenger_002"]
+[ext_resource type="Resource" path="res://data/passengers/passenger_003.tres" id="5_passenger_003"]
 
 [resource]
 script = ExtResource("1_catalog")
-passengers = Array[ExtResource("2_passenger")]([ExtResource("3_passenger_001"), ExtResource("4_passenger_002")])
+passengers = Array[ExtResource("2_passenger")]([ExtResource("3_passenger_001"), ExtResource("4_passenger_002"), ExtResource("5_passenger_003")])

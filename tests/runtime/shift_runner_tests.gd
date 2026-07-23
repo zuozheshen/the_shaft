@@ -19,6 +19,11 @@ func run(test_runner: Variant) -> void:
 		runner.get_next_dispatch_id()
 	)
 	test_runner.assert_equal(
+		"ShiftRunner / 第三条派单顺序正确",
+		&"CASE_003",
+		runner.get_next_dispatch_id()
+	)
+	test_runner.assert_equal(
 		"ShiftRunner / 派单耗尽后返回空 ID",
 		&"",
 		runner.get_next_dispatch_id()

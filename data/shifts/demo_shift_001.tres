@@ -5,4 +5,4 @@
 [resource]
 script = ExtResource("1_shift")
 shift_id = &"DEMO_SHIFT_001"
-dispatch_ids = Array[StringName]([&"CASE_001", &"CASE_002"])
+dispatch_ids = Array[StringName]([&"CASE_001", &"CASE_002", &"CASE_003"])

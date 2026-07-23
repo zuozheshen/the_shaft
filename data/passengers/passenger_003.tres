@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="PassengerDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/data/definitions/passenger_definition.gd" id="1_passenger"]
+
+[resource]
+script = ExtResource("1_passenger")
+passenger_id = &"passenger_003"
+system_name = "E. DALE"
+display_name = "戴尔"
+archive_text = "姓名：E. DALE
+常用称呼：戴尔
+登记状态：RECORD TRANSFER / 在岗
+风险标记：LOW
+当前派单：{dispatch}
+
+岗位：
+旧记录转运员
+
+本次转运：
+387 旧记录存放层
+→ 547 普通办公层文件窗口
+
+携带物：
+纸质夜班班表一份
+防潮封套编号 R-17
+封套编号与转运单一致
+
+记录异常：
+班表存在三行未签名记录
+其中一行使用不同墨色补写
+乘客申请在正式交付前改送 004 补齐签名
+
+备注：
+该乘客仅拥有纸质记录转运权限。
+非标准改送需要人工操作员确认。"

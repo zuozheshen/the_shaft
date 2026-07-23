@@ -1,0 +1,69 @@
+~ start
+=> pickup_start
+
+~ pickup_start
+Passenger: 387 转运员戴尔。封套编号 R-17。你那边是人工操作吗？
+- 是。请站在门线外等待。
+	do status_hint("门外乘客身份与封套编号已确认。可以开启舱门完成接乘。")
+	do mark_door_greeting_done()
+	do reply_when_open_door("乘客：谢谢。封套别碰水。")
+	Passenger: 明白。我等你开门。
+	=> END
+- 先说明携带物。
+	do status_hint("乘客携带物为纸质夜班班表，标准交付目标为 547。")
+	do mark_door_greeting_done()
+	do reply_when_open_door("乘客：封套里只有纸，没有电子介质。")
+	Passenger: 一份旧夜班班表。转运单写的是 547。
+	=> END
+
+~ onboard_start
+Passenger: 系统写的是 547。但班表还缺签名，我想先去 004。
+- 为什么要先去 004？
+	do unlock_floor("004")
+	do status_hint("乘客提出非标准目标 004：希望在正式交付前补齐夜班人员签名。")
+	Passenger: 夜班的人还在那里。现在过去，他们至少还能认出哪些工时是真的。
+	=> END
+- 班表哪里有问题？
+	do unlock_floor("900")
+	do status_hint("班表存在未签名行与不同墨色补记。900 可执行正式复核，但可能冻结本周期结算。")
+	Passenger: 三行没签，一行墨水颜色不一样。那一行是不是后来补的，我也不能保证。
+	=> END
+- 你只负责把它送到 547，对吗？
+	do status_hint("547 是标准文件交付目标。非标准改送不在乘客原始转运权限内。")
+	Passenger: 对。按规矩我不该改路线。但文件一交进去，没签的工时就只剩一条待核记录。
+	=> END
+
+~ destination_547
+do status_hint("班表已送达 547 文件窗口。未签名记录被标记为待核。")
+Passenger: 他们收下了。没签的几行会单独挂起……至少这份表没有错过交付。
+=> END
+
+~ destination_004
+do status_hint("班表已送达 004。夜班人员开始核对签名，不同墨色补记仍存在争议。")
+Passenger: 人还在。三行能补签，但那条颜色不一样的，没人肯先认。
+=> END
+
+~ destination_900
+do status_hint("班表已进入 900 正式复核。文件被加封，本周期相关结算暂缓。")
+Passenger: 有复核号了。这样最干净……只是这班人的钱还要再等。
+=> END
+
+~ destination_387
+do status_hint("班表已返回 387。正式转运仍未完成。")
+Passenger: 又放回第三排了。它不会丢，只是这次也不会被处理。
+=> END
+
+~ destination_742
+do status_hint("乘客在 742 暂停转运。班表签名时限继续流逝。")
+Passenger: 可以等。但再等一班，004 的人就换完岗了。
+=> END
+
+~ destination_612
+do status_hint("班表被带到 612。这里只找到与其中一名夜班人员有关的手写便条。")
+Passenger: 这里有人认识其中一个名字，但一张便条补不了整份班表。
+=> END
+
+~ destination_392
+do status_hint("392 与班表交付无直接关系。")
+Passenger: 这里没有文件窗口，也没有夜班班组。我们走错了。
+=> END
