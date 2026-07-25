@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="DispatchDefinition" format=3 uid="uid://bvs25gpc2q0gt"]
+[gd_resource type="Resource" script_class="DispatchDefinition" format=3]
 
-[ext_resource type="Script" uid="uid://dbe50mwg4lx0m" path="res://scripts/data/definitions/dispatch_definition.gd" id="1_dispatch"]
-[ext_resource type="Script" uid="uid://ddce5csl28x7p" path="res://scripts/data/definitions/dispatch_floor_relation.gd" id="2_relation"]
+[ext_resource type="Script" path="res://scripts/data/definitions/dispatch_definition.gd" id="1_dispatch"]
+[ext_resource type="Script" path="res://scripts/data/definitions/dispatch_floor_relation.gd" id="2_relation"]
 
 [sub_resource type="Resource" id="DispatchFloorRelation_547"]
 script = ExtResource("2_relation")
@@ -17,6 +17,7 @@ floor_id = &"004"
 relevance = 82
 stability_preview = &"moderate_fluctuation"
 recommendation_eligible = true
+initially_recommended = false
 
 [sub_resource type="Resource" id="DispatchFloorRelation_900"]
 script = ExtResource("2_relation")
@@ -24,30 +25,39 @@ floor_id = &"900"
 relevance = 75
 stability_preview = &"stable"
 recommendation_eligible = true
+initially_recommended = false
 
 [sub_resource type="Resource" id="DispatchFloorRelation_387"]
 script = ExtResource("2_relation")
 floor_id = &"387"
 relevance = 55
 stability_preview = &"minor_fluctuation"
+recommendation_eligible = false
+initially_recommended = false
 
 [sub_resource type="Resource" id="DispatchFloorRelation_612"]
 script = ExtResource("2_relation")
 floor_id = &"612"
 relevance = 40
 stability_preview = &"stable"
+recommendation_eligible = false
+initially_recommended = false
 
 [sub_resource type="Resource" id="DispatchFloorRelation_742"]
 script = ExtResource("2_relation")
 floor_id = &"742"
 relevance = 30
 stability_preview = &"stable"
+recommendation_eligible = false
+initially_recommended = false
 
 [sub_resource type="Resource" id="DispatchFloorRelation_392"]
 script = ExtResource("2_relation")
 floor_id = &"392"
 relevance = 15
 stability_preview = &"stable"
+recommendation_eligible = false
+initially_recommended = false
 
 [resource]
 script = ExtResource("1_dispatch")
