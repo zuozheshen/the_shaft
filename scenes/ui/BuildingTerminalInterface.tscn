@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_terminal")
 
-[node name="TerminalBackground" type="ColorRect" parent="."]
+[node name="TerminalBackground" type="ColorRect" parent="." unique_id=397082433]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -61,7 +61,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "[ 系统日志 ]"
 
-[node name="ContentScrollContainer" type="ScrollContainer" parent="TerminalLayout"]
+[node name="ContentScrollContainer" type="ScrollContainer" parent="TerminalLayout" unique_id=1564751035]
 layout_mode = 2
 size_flags_vertical = 3
 

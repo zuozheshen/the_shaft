@@ -8,6 +8,7 @@ const FlowCommandResultScript := preload(
 
 
 signal return_requested
+signal camera_selected(camera_index: int)
 
 
 const DialogueManagerAdapterScript := preload("res://scripts/dialogue/dialogue_manager_adapter.gd")
@@ -41,6 +42,9 @@ enum DialogueContext {
 @onready var monitor_title_label: Label = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorTitleLabel
 @onready var camera_name_label: Label = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/CameraNameLabel
 @onready var monitor_feed_label: Label = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel/MonitorScreenLayout/MonitorFeedLabel
+@onready var camera_feed_texture_rect: TextureRect = get_node_or_null(
+	^"%CameraFeedTextureRect"
+) as TextureRect
 @onready var passenger_speech_label: Label = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel/MonitorScreenLayout/PassengerSpeechLabel
 @onready var previous_camera_button: Button = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/CameraControlPanel/PrevCameraButton
 @onready var next_camera_button: Button = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/CameraControlPanel/NextCameraButton
@@ -245,6 +249,26 @@ func _select_camera(camera_index: int) -> void:
 	_update_camera_display()
 	_show_system_hint("已切换至 %s。" % CAMERA_NAMES[current_camera_index])
 	_update_dialogue_visibility()
+	camera_selected.emit(current_camera_index)
+
+
+func get_current_camera_index() -> int:
+	return current_camera_index
+
+
+func set_camera_feed_texture(texture: Texture2D) -> void:
+	# 实时画面不可用时恢复最新阶段的文字证据，不让监控模块崩溃。
+	var has_valid_texture: bool = texture != null and is_instance_valid(texture)
+	if camera_feed_texture_rect == null:
+		push_error("主操作台缺少 CameraFeedTextureRect，无法显示实时监控画面。")
+		if monitor_feed_label != null:
+			monitor_feed_label.show()
+		return
+	camera_feed_texture_rect.texture = texture if has_valid_texture else null
+	if monitor_feed_label == null:
+		push_warning("主操作台缺少 MonitorFeedLabel，实时画面失效时没有文字回退。")
+		return
+	monitor_feed_label.visible = not has_valid_texture
 
 
 func _update_camera_display() -> void:

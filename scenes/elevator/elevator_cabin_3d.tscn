@@ -20,6 +20,8 @@
 [ext_resource type="Script" uid="uid://ctsid46bkuw3b" path="res://scripts/ui/left_terminal_screen_3d.gd" id="10_left_screen"]
 [ext_resource type="Texture2D" uid="uid://dl5r0aw4ar1kx" path="res://assets/art/金属划痕.png" id="11_aod7d"]
 [ext_resource type="Texture2D" uid="uid://doccuhoswfb86" path="res://assets/art/metal_plate_02_4k/metal_plate_frac/blue_metal_plate_disp_4k.jpg" id="13_aod7d"]
+[ext_resource type="PackedScene" uid="uid://dqvlv34vy8o8r" path="res://scenes/presentation/monitor_test_stage_3d.tscn" id="21_1mpkw"]
+[ext_resource type="Script" path="res://scripts/presentation/monitor_camera_controller_3d.gd" id="22_monitor"]
 
 [sub_resource type="ORMMaterial3D" id="ORMMaterial3D_cymdg"]
 albedo_texture = ExtResource("2_k80hx")
@@ -346,6 +348,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 [node name="摄像机旋转轴" type="Node3D" parent="玩家视角" unique_id=1544840613]
 
 [node name="玩家摄像机" type="Camera3D" parent="玩家视角/摄像机旋转轴" unique_id=1715136786]
+cull_mask = 1048573
 current = true
 fov = 70.0
 far = 100.0
@@ -448,3 +451,26 @@ grow_horizontal = 2
 grow_vertical = 0
 text = "当前面向电梯门"
 horizontal_alignment = 1
+
+[node name="监控摄影棚定位" type="Node3D" parent="." unique_id=2057755537]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100, 0, 0)
+
+[node name="监控测试摄影棚" parent="监控摄影棚定位" unique_id=1638727553 instance=ExtResource("21_1mpkw")]
+
+[node name="监控渲染系统" type="Node3D" parent="." unique_id=1227825083]
+script = ExtResource("22_monitor")
+monitor_subviewport_path = NodePath("监控视口")
+monitor_camera_path = NodePath("监控视口/监控摄像机")
+cabin_camera_anchor_path = NodePath("../监控摄影棚定位/监控测试摄影棚/摄像机锚点/舱内摄像机锚点")
+door_camera_anchor_path = NodePath("../监控摄影棚定位/监控测试摄影棚/摄像机锚点/门外摄像机锚点")
+
+[node name="监控视口" type="SubViewport" parent="监控渲染系统" unique_id=2050851602]
+size = Vector2i(640, 360)
+render_target_update_mode = 4
+
+[node name="监控摄像机" type="Camera3D" parent="监控渲染系统/监控视口" unique_id=522498465]
+transform = Transform3D(0.9396926, -0.05939117, 0.33682406, 0, 0.9848077, 0.17364818, -0.34202012, -0.16317591, 0.9254165, 101.05, 2, 1.85)
+cull_mask = 2
+current = true
+fov = 60.0
+far = 30.0

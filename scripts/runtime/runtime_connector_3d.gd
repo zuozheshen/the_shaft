@@ -10,6 +10,7 @@ var _demo_flow_manager: DemoFlowManager
 var _main_interface: ConsoleInterface
 var _left_interface: BuildingTerminalInterface
 var _right_interface: DestinationControlInterface
+var _monitor_camera_controller: MonitorCameraController3D
 
 
 func _ready() -> void:
@@ -43,6 +44,15 @@ func _connect_runtime() -> void:
 		push_error("运行层连接器找不到操作台界面路由器。")
 		return
 
+	# 监控属于表现层；缺失时仅退回文字画面，不能阻断三个操作台的业务注入。
+	_monitor_camera_controller = elevator_cabin.find_child(
+		"监控渲染系统",
+		true,
+		false
+	) as MonitorCameraController3D
+	if _monitor_camera_controller == null:
+		push_warning("运行层连接器找不到 MonitorCameraController3D，主台将保留文字监控。")
+
 	_main_interface = interface_router.get_main_interface()
 	_left_interface = interface_router.get_left_interface()
 	_right_interface = interface_router.get_right_interface()
@@ -53,6 +63,8 @@ func _connect_runtime() -> void:
 	_main_interface.set_demo_flow_manager(_demo_flow_manager)
 	_left_interface.set_demo_flow_manager(_demo_flow_manager)
 	_right_interface.set_demo_flow_manager(_demo_flow_manager)
+	if _monitor_camera_controller != null:
+		_monitor_camera_controller.setup(_main_interface, interface_router)
 
 
 func get_demo_flow_manager() -> DemoFlowManager:

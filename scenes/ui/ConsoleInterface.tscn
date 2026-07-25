@@ -62,6 +62,36 @@ layout_mode = 2
 [node name="MonitorScreenLayout" type="VBoxContainer" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel" unique_id=154939956]
 layout_mode = 2
 
+[node name="CameraFeedFrame" type="PanelContainer" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel/MonitorScreenLayout" unique_id=1634928228]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+
+[node name="CameraFeedRoot" type="Control" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel/MonitorScreenLayout/CameraFeedFrame" unique_id=961310789]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="CameraFeedBackground" type="ColorRect" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel/MonitorScreenLayout/CameraFeedFrame/CameraFeedRoot" unique_id=1039838389]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="CameraFeedTextureRect" type="TextureRect" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel/MonitorScreenLayout/CameraFeedFrame/CameraFeedRoot" unique_id=1066254678]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
 [node name="MonitorFeedLabel" type="Label" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel/MonitorScreenLayout" unique_id=2107693035]
 layout_mode = 2
 text = "画面占位：乘客站在舱内。面部、衣物、证件和说话状态等待接入。"

@@ -2,6 +2,9 @@ class_name CabinInterfaceRouter3D
 extends CanvasLayer
 
 
+signal main_console_visibility_changed(is_visible: bool)
+
+
 var _view_controller: CabinViewController3D
 var _main_container: Control
 var _right_container: Control
@@ -9,6 +12,7 @@ var _door_hint: Label
 var _main_interface: ConsoleInterface
 var _left_interface: BuildingTerminalInterface
 var _right_interface: DestinationControlInterface
+var _is_main_console_visible: bool = false
 
 
 func _ready() -> void:
@@ -64,6 +68,10 @@ func get_right_interface() -> DestinationControlInterface:
 	return _right_interface
 
 
+func is_main_console_visible() -> bool:
+	return _is_main_console_visible
+
+
 func _configure_embedded_interfaces() -> void:
 	# 三个实例一直留在场景树中；LEFT 始终渲染，主台和右台仍沿用覆盖层。
 	if _main_interface != null:
@@ -87,10 +95,17 @@ func _on_facing_changed(direction: int, _direction_name: String) -> void:
 
 
 func _show_direction(direction: int) -> void:
-	_hide_all_interfaces()
+	# 先写入目标主台状态，同一朝向重复刷新时不会制造 false/true 双信号。
+	_set_main_console_enabled(
+		direction == CabinViewController3D.FacingDirection.MAIN_CONSOLE
+	)
+	_set_container_enabled(_right_container, false)
+	if _door_hint != null:
+		_door_hint.hide()
+		_door_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	match direction:
 		CabinViewController3D.FacingDirection.MAIN_CONSOLE:
-			_set_container_enabled(_main_container, true)
+			pass
 		CabinViewController3D.FacingDirection.LEFT_CONSOLE:
 			pass
 		CabinViewController3D.FacingDirection.RIGHT_CONSOLE:
@@ -103,7 +118,7 @@ func _show_direction(direction: int) -> void:
 
 
 func _hide_all_interfaces() -> void:
-	_set_container_enabled(_main_container, false)
+	_set_main_console_enabled(false)
 	_set_container_enabled(_right_container, false)
 	if _door_hint != null:
 		_door_hint.hide()
@@ -116,6 +131,15 @@ func _set_container_enabled(container: Control, is_enabled: bool) -> void:
 	container.visible = is_enabled
 	container.mouse_filter = Control.MOUSE_FILTER_STOP if is_enabled \
 			else Control.MOUSE_FILTER_IGNORE
+
+
+func _set_main_console_enabled(is_enabled: bool) -> void:
+	var effective_visibility: bool = is_enabled and _main_container != null
+	_set_container_enabled(_main_container, effective_visibility)
+	if _is_main_console_visible == effective_visibility:
+		return
+	_is_main_console_visible = effective_visibility
+	main_console_visibility_changed.emit(_is_main_console_visible)
 
 
 func _get_required_control(node_path: NodePath) -> Control:
