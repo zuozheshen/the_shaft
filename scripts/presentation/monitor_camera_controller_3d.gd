@@ -46,7 +46,6 @@ func setup(
 	# RuntimeConnector3D 只注入一次，防止按钮和可见性信号重复连接。
 	if _is_setup_complete:
 		return
-	_is_setup_complete = true
 	_main_interface = main_interface
 	_interface_router = interface_router
 
@@ -58,6 +57,8 @@ func setup(
 		_main_interface.set_camera_feed_texture(null)
 		return
 
+	# 只有必要依赖通过验证后才锁定 setup，失败调用仍可在之后重试。
+	_is_setup_complete = true
 	if not _main_interface.camera_selected.is_connected(select_camera):
 		_main_interface.camera_selected.connect(select_camera)
 	if not _interface_router.main_console_visibility_changed.is_connected(

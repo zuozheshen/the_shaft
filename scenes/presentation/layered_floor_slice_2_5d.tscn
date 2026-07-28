@@ -1,0 +1,113 @@
+[gd_scene format=3 uid="uid://ducq07i1l5l7w"]
+
+[ext_resource type="Script" path="res://scripts/presentation/layered_floor_slice_2_5d.gd" id="1_slice"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_riqys"]
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.11764706, 0.19607843, 0.3529412, 0.039215688)
+texture_filter = 0
+
+[sub_resource type="QuadMesh" id="QuadMesh_bhunq"]
+material = SubResource("StandardMaterial3D_riqys")
+size = Vector2(3.4, 2.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6f8o3"]
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.23529412, 0.43137255, 0.3529412, 1)
+texture_filter = 0
+
+[sub_resource type="QuadMesh" id="QuadMesh_sn0t7"]
+material = SubResource("StandardMaterial3D_6f8o3")
+size = Vector2(2.9, 2.25)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1esiv"]
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.47028595, 0.46469432, 8.663535e-07, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_qr0ht"]
+material = SubResource("StandardMaterial3D_1esiv")
+size = Vector2(0.7, 1.45)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xvofd"]
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(2.3102762e-06, 0.53780836, 0.5398008, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_2r0jt"]
+material = SubResource("StandardMaterial3D_xvofd")
+size = Vector2(0.62, 1.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5whnb"]
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.47, 0.1128, 0.1128, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_rkt6e"]
+material = SubResource("StandardMaterial3D_5whnb")
+size = Vector2(2.2, 1.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_c0dwe"]
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.0121183405, 0.0121183405, 0.0121183405, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_jyycw"]
+material = SubResource("StandardMaterial3D_c0dwe")
+size = Vector2(0.26, 2.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x5kjr"]
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.12103007, 0.12103007, 0.12103007, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_78ykq"]
+material = SubResource("StandardMaterial3D_x5kjr")
+size = Vector2(0.2, 1.65)
+
+[node name="门外2_5D楼层切片" type="Node3D" unique_id=1642856753]
+script = ExtResource("1_slice")
+far_layer_path = NodePath("远景层")
+main_layer_path = NodePath("主背景层")
+mid_left_layer_path = NodePath("中景左层")
+mid_right_layer_path = NodePath("中景右层")
+ground_layer_path = NodePath("地面贴片层")
+front_left_layer_path = NodePath("前景左层")
+front_right_layer_path = NodePath("前景右层")
+
+[node name="远景层" type="MeshInstance3D" parent="." unique_id=1761273550]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, -3.45)
+layers = 2
+mesh = SubResource("QuadMesh_bhunq")
+
+[node name="主背景层" type="MeshInstance3D" parent="." unique_id=1006276619]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, -3.1)
+layers = 2
+mesh = SubResource("QuadMesh_sn0t7")
+
+[node name="中景左层" type="MeshInstance3D" parent="." unique_id=329589830]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.92, 0.78, -2.05)
+layers = 2
+mesh = SubResource("QuadMesh_qr0ht")
+
+[node name="中景右层" type="MeshInstance3D" parent="." unique_id=2001211470]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 0.58, -1.65)
+layers = 2
+mesh = SubResource("QuadMesh_2r0jt")
+
+[node name="地面贴片层" type="MeshInstance3D" parent="." unique_id=1295376473]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.012, -1.55)
+layers = 2
+mesh = SubResource("QuadMesh_rkt6e")
+
+[node name="前景左层" type="MeshInstance3D" parent="." unique_id=1322745653]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.16, 1.15, -0.38)
+layers = 2
+mesh = SubResource("QuadMesh_jyycw")
+
+[node name="前景右层" type="MeshInstance3D" parent="." unique_id=1463316320]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.18, 0.82, -0.52)
+layers = 2
+mesh = SubResource("QuadMesh_78ykq")

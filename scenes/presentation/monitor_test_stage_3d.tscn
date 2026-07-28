@@ -1,5 +1,8 @@
 [gd_scene format=3 uid="uid://dqvlv34vy8o8r"]
 
+[ext_resource type="PackedScene" uid="uid://ducq07i1l5l7w" path="res://scenes/presentation/layered_floor_slice_2_5d.tscn" id="1_hsoa6"]
+[ext_resource type="Script" path="res://scripts/presentation/monitor_stage_controller_3d.gd" id="2_stage"]
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bhunq"]
 albedo_color = Color(1, 0, 0, 1)
 
@@ -7,78 +10,102 @@ albedo_color = Color(1, 0, 0, 1)
 albedo_color = Color(0, 1, 1, 1)
 
 [node name="监控测试摄影棚" type="Node3D" unique_id=1638727553]
+script = ExtResource("2_stage")
+floor_slice_mount_path = NodePath("门外楼层区域/门外楼层挂载点")
+initial_floor_slice_path = NodePath("门外楼层区域/门外楼层挂载点/当前楼层切片")
+floor_label_path = NodePath("门外楼层区域/门外楼层编号")
 
-[node name="乘客舱灰盒" type="Node3D" parent="." unique_id=1566578310]
+[node name="固定乘客舱" type="Node3D" parent="." unique_id=1566578310]
 
-[node name="舱内地面" type="CSGBox3D" parent="乘客舱灰盒" unique_id=321001515]
+[node name="舱内地面" type="CSGBox3D" parent="固定乘客舱" unique_id=321001515]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 1.1)
 layers = 2
 size = Vector3(3, 0.1, 2.2)
 
-[node name="舱内后墙" type="CSGBox3D" parent="乘客舱灰盒" unique_id=383717504]
+[node name="舱内后墙" type="CSGBox3D" parent="固定乘客舱" unique_id=383717504]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 2.2)
 layers = 2
 size = Vector3(3, 2.6, 0.1)
 
-[node name="舱内左墙" type="CSGBox3D" parent="乘客舱灰盒" unique_id=660531601]
+[node name="舱内左墙" type="CSGBox3D" parent="固定乘客舱" unique_id=660531601]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 1.3, 1.1)
 layers = 2
 size = Vector3(0.1, 2.6, 2.2)
 
-[node name="舱内右墙" type="CSGBox3D" parent="乘客舱灰盒" unique_id=126593965]
+[node name="舱内右墙" type="CSGBox3D" parent="固定乘客舱" unique_id=126593965]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 1.3, 1.1)
 layers = 2
 size = Vector3(0.1, 2.6, 2.2)
 
-[node name="左门框" type="CSGBox3D" parent="乘客舱灰盒" unique_id=1470046501]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.15, 1.25, 0)
-layers = 2
-size = Vector3(0.25, 2.5, 0.2)
-
-[node name="右门框" type="CSGBox3D" parent="乘客舱灰盒" unique_id=1423737869]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.15, 1.25, 0)
-layers = 2
-size = Vector3(0.25, 2.5, 0.2)
-
-[node name="舱内测试标记" type="CSGBox3D" parent="乘客舱灰盒" unique_id=893206405]
+[node name="舱内测试标记" type="CSGBox3D" parent="固定乘客舱" unique_id=893206405]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0.8)
 layers = 2
 size = Vector3(0.65, 1.3, 0.45)
 material = SubResource("StandardMaterial3D_bhunq")
 
-[node name="门外灰盒" type="Node3D" parent="." unique_id=1314125170]
+[node name="固定门区" type="Node3D" parent="." unique_id=443299903]
 
-[node name="门外地面" type="CSGBox3D" parent="门外灰盒" unique_id=864514015]
+[node name="左门框" type="CSGBox3D" parent="固定门区" unique_id=1470046501]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.15, 1.25, 0)
+layers = 2
+size = Vector3(0.25, 2.5, 0.2)
+
+[node name="右门框" type="CSGBox3D" parent="固定门区" unique_id=1423737869]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.15, 1.25, 0)
+layers = 2
+size = Vector3(0.25, 2.5, 0.2)
+
+[node name="门槛" type="CSGBox3D" parent="固定门区" unique_id=315909104]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
+layers = 2
+size = Vector3(2.05, 0.05, 0.3)
+
+[node name="门外楼层区域" type="Node3D" parent="." unique_id=1314125170]
+
+[node name="门外基础地面" type="CSGBox3D" parent="门外楼层区域" unique_id=864514015]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, -1.75)
 layers = 2
 size = Vector3(3, 0.1, 3.5)
 
-[node name="门外后墙" type="CSGBox3D" parent="门外灰盒" unique_id=1455729031]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, -3.5)
-layers = 2
-size = Vector3(3, 2.6, 0.1)
+[node name="门外楼层挂载点" type="Node3D" parent="门外楼层区域" unique_id=566209316]
+unique_name_in_owner = true
 
-[node name="门外左侧墙" type="CSGBox3D" parent="门外灰盒" unique_id=1694771249]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 1.3, -1.75)
-layers = 2
-size = Vector3(0.1, 2.6, 3.5)
+[node name="当前楼层切片" parent="门外楼层区域/门外楼层挂载点" unique_id=1642856753 instance=ExtResource("1_hsoa6")]
 
-[node name="门外右侧墙" type="CSGBox3D" parent="门外灰盒" unique_id=1164144992]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 1.3, -1.75)
-layers = 2
-size = Vector3(0.1, 2.6, 3.5)
-
-[node name="门外测试标记" type="CSGBox3D" parent="门外灰盒" unique_id=155369437]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, -1.7)
-layers = 2
-size = Vector3(0.65, 1.3, 0.45)
-material = SubResource("StandardMaterial3D_riqys")
-
-[node name="门外楼层编号" type="Label3D" parent="门外灰盒" unique_id=928003148]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -3.35)
+[node name="门外楼层编号" type="Label3D" parent="门外楼层区域" unique_id=928003148]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.05, -3)
 layers = 2
 text = "FLOOR TEST"
 font_size = 64
+
+[node name="门外灰盒参考" type="Node3D" parent="门外楼层区域" unique_id=1347584728]
+visible = false
+
+[node name="门外后墙" type="CSGBox3D" parent="门外楼层区域/门外灰盒参考" unique_id=1455729031]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, -3.5)
+visible = false
+layers = 2
+size = Vector3(3, 2.6, 0.1)
+
+[node name="门外左侧墙" type="CSGBox3D" parent="门外楼层区域/门外灰盒参考" unique_id=1694771249]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 1.3, -1.75)
+visible = false
+layers = 2
+size = Vector3(0.1, 2.6, 3.5)
+
+[node name="门外右侧墙" type="CSGBox3D" parent="门外楼层区域/门外灰盒参考" unique_id=1164144992]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 1.3, -1.75)
+visible = false
+layers = 2
+size = Vector3(0.1, 2.6, 3.5)
+
+[node name="门外测试标记" type="CSGBox3D" parent="门外楼层区域/门外灰盒参考" unique_id=155369437]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, -1.7)
+visible = false
+layers = 2
+size = Vector3(0.65, 1.3, 0.45)
+material = SubResource("StandardMaterial3D_riqys")
 
 [node name="摄像机锚点" type="Node3D" parent="." unique_id=383970982]
 

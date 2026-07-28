@@ -24,6 +24,9 @@ const ContentValidatorTests := preload(
 const Case003ContentTests := preload(
 	"res://tests/content/case_003_content_tests.gd"
 )
+const MonitorStageTests := preload(
+	"res://tests/presentation/monitor_stage_tests.gd"
+)
 
 var passed_count: int = 0
 var failed_count: int = 0
@@ -70,6 +73,9 @@ func _run() -> void:
 
 	var flow_command_tests := FlowCommandTests.new()
 	await flow_command_tests.run(self, get_tree())
+
+	var monitor_stage_tests := MonitorStageTests.new()
+	await monitor_stage_tests.run(self, get_tree())
 
 	print("=== 测试汇总：通过 %d，失败 %d ===" % [passed_count, failed_count])
 	get_tree().quit(0 if failed_count == 0 else 1)
