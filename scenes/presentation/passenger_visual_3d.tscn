@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://pwk8iyr654yu"]
+
+[ext_resource type="Texture2D" uid="uid://cdeqpcuwie2s6" path="res://icon.svg" id="1_i6nem"]
+[ext_resource type="Script" path="res://scripts/presentation/passenger_visual_3d.gd" id="2_visual"]
+[ext_resource type="Resource" path="res://data/presentation/passenger_visuals/passenger_001_visual.tres" id="3_profile"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_riqys"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0, 0, 0, 0)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_bhunq"]
+material = SubResource("StandardMaterial3D_riqys")
+top_radius = 0.28
+bottom_radius = 0.28
+height = 0.01
+radial_segments = 32
+
+[node name="乘客视觉3D" type="Node3D" unique_id=621543251]
+script = ExtResource("2_visual")
+visual_root_path = NodePath("纸片动画根")
+sprite_path = NodePath("纸片动画根/乘客纸片")
+contact_shadow_path = NodePath("接触阴影")
+dialogue_focus_path = NodePath("对话焦点")
+initial_profile = ExtResource("3_profile")
+
+[node name="纸片动画根" type="Node3D" parent="." unique_id=1593573759]
+
+[node name="乘客纸片" type="Sprite3D" parent="纸片动画根" unique_id=1311791468]
+transform = Transform3D(0.55, 0, 0, 0, 1.05, 0, 0, 0, 1, 0, 0.74, 0)
+layers = 2
+billboard = 2
+texture = ExtResource("1_i6nem")
+
+[node name="接触阴影" type="MeshInstance3D" parent="." unique_id=1462370943]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.006, 0)
+layers = 2
+mesh = SubResource("CylinderMesh_bhunq")
+
+[node name="对话焦点" type="Marker3D" parent="." unique_id=1302443480]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 0)

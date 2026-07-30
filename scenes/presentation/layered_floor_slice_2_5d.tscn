@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://ducq07i1l5l7w"]
 
-[ext_resource type="Script" path="res://scripts/presentation/layered_floor_slice_2_5d.gd" id="1_slice"]
+[ext_resource type="Script" uid="uid://bxbajbflcgwij" path="res://scripts/presentation/layered_floor_slice_2_5d.gd" id="1_slice"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_riqys"]
 cull_mode = 2

@@ -39,7 +39,7 @@ func _ready() -> void:
 
 func _run() -> void:
 	await get_tree().process_frame
-	print("=== The Shaft / Issue 34 第三个案例生产试跑测试 ===")
+	print("=== The Shaft 自动测试 ===")
 
 	var content_validation_report_tests := ContentValidationReportTests.new()
 	content_validation_report_tests.run(self)

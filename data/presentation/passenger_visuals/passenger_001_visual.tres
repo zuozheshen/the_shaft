@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="PassengerVisualProfile" load_steps=3 format=3]
+
+[ext_resource type="Texture2D" uid="uid://cdeqpcuwie2s6" path="res://icon.svg" id="1_texture"]
+[ext_resource type="Script" path="res://scripts/presentation/passenger_visual_profile.gd" id="2_profile"]
+
+[resource]
+script = ExtResource("2_profile")
+passenger_id = &"passenger_001"
+texture = ExtResource("1_texture")
+tint = Color(0.82, 0.9, 1, 1)
+visual_scale = Vector2(1, 1)
+idle_amplitude = 0.01
+idle_speed = 1.2
+dialogue_focus_height = 1.35
+shadow_scale = Vector2(1, 1)
