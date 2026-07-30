@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="PassengerVisualProfile" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="PassengerVisualProfile" format=3 uid="uid://gw55fsmksqss"]
 
-[ext_resource type="Texture2D" path="res://assets/art/passenger_placeholder.svg" id="1_texture"]
-[ext_resource type="Script" path="res://scripts/presentation/passenger_visual_profile.gd" id="2_profile"]
+[ext_resource type="Texture2D" uid="uid://cahy21sg2rpp0" path="res://assets/art/passenger_placeholder.svg" id="1_texture"]
+[ext_resource type="Script" uid="uid://bab6xcd6cis7y" path="res://scripts/presentation/passenger_visual_profile.gd" id="2_profile"]
 
 [resource]
 script = ExtResource("2_profile")

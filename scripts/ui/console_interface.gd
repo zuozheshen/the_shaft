@@ -9,6 +9,7 @@ const FlowCommandResultScript := preload(
 
 signal return_requested
 signal camera_selected(camera_index: int)
+signal presentation_effects_requested(effects: Array[StringName])
 
 
 const DialogueManagerAdapterScript := preload("res://scripts/dialogue/dialogue_manager_adapter.gd")
@@ -19,6 +20,8 @@ const CAMERA_NAMES: Array[String] = [
 ]
 const DOOR_PRESENTATION_BUSY_HINT: String = \
 		"舱门机构正在运行，请等待动作完成。"
+const PRESENTATION_BUSY_HINT: String = \
+		"监控表现流程尚未完成，请等待乘客与舱门动作结束。"
 
 enum DialogueContext {
 	NONE,
@@ -64,6 +67,7 @@ enum DialogueContext {
 
 var demo_flow_manager: DemoFlowManager
 var _monitor_stage_controller: MonitorStageController3D
+var _monitor_presentation_coordinator: MonitorPresentationCoordinator3D
 var dialogue_manager_adapter: DialogueManagerAdapter
 var current_camera_index: int = 0
 var mic_enabled: bool = false
@@ -205,6 +209,37 @@ func _disconnect_monitor_stage_controller() -> void:
 			):
 		_monitor_stage_controller.door_presentation_busy_changed.disconnect(
 			_on_door_presentation_busy_changed
+		)
+
+
+func set_monitor_presentation_coordinator(
+		coordinator: MonitorPresentationCoordinator3D
+) -> void:
+	if _monitor_presentation_coordinator == coordinator:
+		_refresh_door_control_availability()
+		return
+	_disconnect_monitor_presentation_coordinator()
+	_monitor_presentation_coordinator = coordinator
+	if is_instance_valid(_monitor_presentation_coordinator) \
+			and not _monitor_presentation_coordinator \
+					.presentation_busy_changed.is_connected(
+						_on_presentation_busy_changed
+					):
+		_monitor_presentation_coordinator.presentation_busy_changed.connect(
+			_on_presentation_busy_changed
+		)
+	_refresh_door_control_availability()
+
+
+func _disconnect_monitor_presentation_coordinator() -> void:
+	if not is_instance_valid(_monitor_presentation_coordinator):
+		return
+	if _monitor_presentation_coordinator \
+			.presentation_busy_changed.is_connected(
+				_on_presentation_busy_changed
+			):
+		_monitor_presentation_coordinator.presentation_busy_changed.disconnect(
+			_on_presentation_busy_changed
 		)
 
 
@@ -505,6 +540,8 @@ func _finish_current_dialogue_context() -> void:
 				demo_flow_manager.request_finish_dropoff_feedback()
 		if not result.succeeded:
 			_show_system_hint(result.message)
+		else:
+			presentation_effects_requested.emit(result.get_effects())
 
 
 func _on_dm_status_hint_requested(text: String) -> void:
@@ -619,8 +656,8 @@ func _record_system_log(message_text: String) -> void:
 
 func request_open_door() -> void:
 	# 2D 按钮与 3D 实体热点统一调用流程命令；UI 只处理表现效果。
-	if _is_door_presentation_busy():
-		_show_system_hint(DOOR_PRESENTATION_BUSY_HINT)
+	if _is_presentation_busy():
+		_show_system_hint(_get_presentation_busy_hint())
 		return
 	if demo_flow_manager == null:
 		return
@@ -632,6 +669,7 @@ func request_open_door() -> void:
 
 	if result.has_effect(FlowCommandResultScript.DOOR_OPENED):
 		_request_door_open_presentation()
+	presentation_effects_requested.emit(result.get_effects())
 
 	if result.has_effect(FlowCommandResultScript.PASSENGER_BOARDED):
 		dm_dialogue_started = false
@@ -660,8 +698,8 @@ func request_open_door() -> void:
 
 func request_close_door() -> void:
 	# 关闭规则由流程命令处理，UI 仅根据 effects 解锁对应表现。
-	if _is_door_presentation_busy():
-		_show_system_hint(DOOR_PRESENTATION_BUSY_HINT)
+	if _is_presentation_busy():
+		_show_system_hint(_get_presentation_busy_hint())
 		return
 	if demo_flow_manager == null:
 		return
@@ -674,6 +712,7 @@ func request_close_door() -> void:
 	# 先触发表现，再处理完成派单等早退分支，保证最后一次关门不漏播。
 	if result.has_effect(FlowCommandResultScript.DOOR_CLOSED):
 		_request_door_close_presentation()
+	presentation_effects_requested.emit(result.get_effects())
 
 	if result.has_effect(FlowCommandResultScript.DISPATCH_COMPLETED):
 		return
@@ -721,6 +760,18 @@ func _is_door_presentation_busy() -> bool:
 			and _monitor_stage_controller.is_door_presentation_busy()
 
 
+func _is_presentation_busy() -> bool:
+	if is_instance_valid(_monitor_presentation_coordinator):
+		return _monitor_presentation_coordinator.is_presentation_busy()
+	return _is_door_presentation_busy()
+
+
+func _get_presentation_busy_hint() -> String:
+	if is_instance_valid(_monitor_presentation_coordinator):
+		return PRESENTATION_BUSY_HINT
+	return DOOR_PRESENTATION_BUSY_HINT
+
+
 func _sync_door_presentation_to_business_state() -> void:
 	if demo_flow_manager == null \
 			or not is_instance_valid(_monitor_stage_controller):
@@ -752,7 +803,7 @@ func _request_door_close_presentation() -> void:
 func _refresh_door_control_availability() -> void:
 	if open_door_button == null or close_door_button == null:
 		return
-	var presentation_busy := _is_door_presentation_busy()
+	var presentation_busy := _is_presentation_busy()
 	open_door_button.disabled = presentation_busy \
 			or demo_flow_manager == null \
 			or demo_flow_manager.is_elevator_moving()
@@ -761,6 +812,10 @@ func _refresh_door_control_availability() -> void:
 
 
 func _on_door_presentation_busy_changed(_is_busy: bool) -> void:
+	_refresh_door_control_availability()
+
+
+func _on_presentation_busy_changed(_is_busy: bool) -> void:
 	_refresh_door_control_availability()
 
 

@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://d4jv71ygqbo5d" path="res://scripts/presentation/monitor_stage_controller_3d.gd" id="2_stage"]
 [ext_resource type="PackedScene" uid="uid://d24sotn8npq7j" path="res://scenes/presentation/elevator_door_visual_3d.tscn" id="3_1rmkh"]
 [ext_resource type="PackedScene" uid="uid://pwk8iyr654yu" path="res://scenes/presentation/passenger_visual_3d.tscn" id="3_q8crp"]
-[ext_resource type="Resource" path="res://data/presentation/passenger_visuals/passenger_001_visual.tres" id="4_profile"]
+[ext_resource type="Resource" uid="uid://qboej4pygmj3" path="res://data/presentation/passenger_visuals/passenger_001_visual.tres" id="4_profile"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bhunq"]
 albedo_color = Color(1, 0, 0, 1)
@@ -22,6 +22,7 @@ initial_passenger_visual_path = NodePath("乘客视觉区域/当前乘客挂载�
 outside_wait_anchor_path = NodePath("乘客视觉区域/位置参考点/门外等待点")
 threshold_anchor_path = NodePath("乘客视觉区域/位置参考点/门槛点")
 cabin_position_anchor_path = NodePath("乘客视觉区域/位置参考点/舱内站位")
+outside_exit_anchor_path = NodePath("乘客视觉区域/位置参考点/门外离场点")
 door_visual_path = NodePath("固定门区/双开门视觉3D")
 initial_passenger_profile = ExtResource("4_profile")
 
@@ -126,7 +127,7 @@ material = SubResource("StandardMaterial3D_riqys")
 transform = Transform3D(0.99999994, 0, 0, 0, 0.99862945, 0.052335955, 0, -0.052335955, 0.99862945, 0, 1.48, 2.05)
 
 [node name="门外摄像机锚点" type="Marker3D" parent="摄像机锚点" unique_id=114335584]
-transform = Transform3D(1, 0, 0, 0, 0.9848077, 0.17364818, 0, -0.17364818, 0.9848077, 0, 2.15, 0.45)
+transform = Transform3D(1, 0, 0, 0, 0.9848077, 0.17364818, 0, -0.17364818, 0.9848077, 0, 2.05, -0.18)
 
 [node name="监控灯光" type="Node3D" parent="." unique_id=138647747]
 
@@ -147,6 +148,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.7)
 
 [node name="舱内站位" type="Marker3D" parent="乘客视觉区域/位置参考点" unique_id=902168401]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.7)
+
+[node name="门外离场点" type="Marker3D" parent="乘客视觉区域/位置参考点" unique_id=1845676476]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.65, 0, -1.85)
 
 [node name="当前乘客挂载点" type="Node3D" parent="乘客视觉区域" unique_id=961598586]
 unique_name_in_owner = true

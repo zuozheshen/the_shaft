@@ -11,6 +11,7 @@ var _main_interface: ConsoleInterface
 var _left_interface: BuildingTerminalInterface
 var _right_interface: DestinationControlInterface
 var _monitor_stage_controller: MonitorStageController3D
+var _monitor_presentation_coordinator: MonitorPresentationCoordinator3D
 var _monitor_camera_controller: MonitorCameraController3D
 
 
@@ -66,6 +67,28 @@ func _connect_runtime() -> void:
 		push_warning("运行层连接器找不到 MonitorStageController3D，舱门将仅更新业务状态。")
 	else:
 		_main_interface.set_monitor_stage_controller(_monitor_stage_controller)
+
+	# 高层协调器聚合门、乘客与等待状态；缺失时沿用已有门表现与纯业务流程。
+	_monitor_presentation_coordinator = elevator_cabin.find_child(
+		"监控表现协调器",
+		true,
+		false
+	) as MonitorPresentationCoordinator3D
+	if _monitor_presentation_coordinator == null:
+		push_warning("运行层连接器找不到 MonitorPresentationCoordinator3D，表现时间线将降级运行。")
+	else:
+		_monitor_presentation_coordinator.setup(
+			_demo_flow_manager,
+			_main_interface,
+			_right_interface,
+			_monitor_stage_controller
+		)
+		_main_interface.set_monitor_presentation_coordinator(
+			_monitor_presentation_coordinator
+		)
+		_right_interface.set_monitor_presentation_coordinator(
+			_monitor_presentation_coordinator
+		)
 
 	# 监控摄像机同样属于表现层，放在业务与门表现注入之后独立接线。
 	_monitor_camera_controller = elevator_cabin.find_child(

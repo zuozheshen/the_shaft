@@ -8,6 +8,11 @@ const FlowCommandResultScript := preload(
 
 
 signal return_requested
+signal presentation_effects_requested(effects: Array[StringName])
+
+
+const PRESENTATION_BUSY_HINT: String = \
+		"乘客或舱门动作尚未完成，暂时无法启动电梯。"
 
 
 # 场景结构已固定，直接引用节点；节点改名或移动时 Godot 会直接报出明确错误。
@@ -48,12 +53,14 @@ signal return_requested
 var current_book_page_index: int = 0
 
 var demo_flow_manager: DemoFlowManager
+var _monitor_presentation_coordinator: MonitorPresentationCoordinator3D
 var embedded_3d_mode: bool = false
 
 
 func _ready() -> void:
 	_connect_destination_signals()
 	_initialize_destination_text()
+	_refresh_travel_availability()
 
 
 func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
@@ -74,6 +81,37 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 		demo_flow_manager.shift_completed.connect(_on_shift_completed)
 	# 子节点 ready 后才注入共享流程，因此这里再次刷新案例相关文字。
 	_initialize_destination_text()
+
+
+func set_monitor_presentation_coordinator(
+		coordinator: MonitorPresentationCoordinator3D
+) -> void:
+	if _monitor_presentation_coordinator == coordinator:
+		_refresh_travel_availability()
+		return
+	_disconnect_monitor_presentation_coordinator()
+	_monitor_presentation_coordinator = coordinator
+	if is_instance_valid(_monitor_presentation_coordinator) \
+			and not _monitor_presentation_coordinator \
+					.presentation_busy_changed.is_connected(
+						_on_presentation_busy_changed
+					):
+		_monitor_presentation_coordinator.presentation_busy_changed.connect(
+			_on_presentation_busy_changed
+		)
+	_refresh_travel_availability()
+
+
+func _disconnect_monitor_presentation_coordinator() -> void:
+	if not is_instance_valid(_monitor_presentation_coordinator):
+		return
+	if _monitor_presentation_coordinator \
+			.presentation_busy_changed.is_connected(
+				_on_presentation_busy_changed
+			):
+		_monitor_presentation_coordinator.presentation_busy_changed.disconnect(
+			_on_presentation_busy_changed
+		)
 
 
 func _disconnect_demo_flow_manager() -> void:
@@ -340,6 +378,10 @@ func _verify_destination() -> void:
 
 
 func _submit_destination() -> void:
+	# 按钮禁用只负责提示；统一入口仍要阻止 3D 热点或测试直接提交。
+	if _is_presentation_busy():
+		_set_label_text(destination_feedback_label, PRESENTATION_BUSY_HINT)
+		return
 	if demo_flow_manager == null:
 		_set_label_text(destination_feedback_label, "电梯位置系统尚未连接。")
 		return
@@ -349,7 +391,23 @@ func _submit_destination() -> void:
 	)
 	_set_label_text(destination_feedback_label, result.message)
 	if result.succeeded:
+		presentation_effects_requested.emit(result.get_effects())
 		_update_dispatch_summary_label()
+
+
+func _is_presentation_busy() -> bool:
+	return is_instance_valid(_monitor_presentation_coordinator) \
+			and _monitor_presentation_coordinator.is_presentation_busy()
+
+
+func _refresh_travel_availability() -> void:
+	if submit_destination_button == null:
+		return
+	submit_destination_button.disabled = _is_presentation_busy()
+
+
+func _on_presentation_busy_changed(_is_busy: bool) -> void:
+	_refresh_travel_availability()
 
 
 func _on_elevator_movement_completed(arrived_floor: String) -> void:

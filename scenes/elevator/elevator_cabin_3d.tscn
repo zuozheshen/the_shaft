@@ -22,6 +22,11 @@
 [ext_resource type="Texture2D" uid="uid://doccuhoswfb86" path="res://assets/art/metal_plate_02_4k/metal_plate_frac/blue_metal_plate_disp_4k.jpg" id="13_aod7d"]
 [ext_resource type="PackedScene" uid="uid://dqvlv34vy8o8r" path="res://scenes/presentation/monitor_test_stage_3d.tscn" id="21_1mpkw"]
 [ext_resource type="Script" path="res://scripts/presentation/monitor_camera_controller_3d.gd" id="22_monitor"]
+[ext_resource type="Script" path="res://scripts/presentation/monitor_presentation_coordinator_3d.gd" id="23_coordinator"]
+[ext_resource type="Script" path="res://scripts/presentation/passenger_visual_profile.gd" id="24_profile_type"]
+[ext_resource type="Resource" path="res://data/presentation/passenger_visuals/passenger_001_visual.tres" id="25_profile_001"]
+[ext_resource type="Resource" path="res://data/presentation/passenger_visuals/passenger_002_visual.tres" id="26_profile_002"]
+[ext_resource type="Resource" path="res://data/presentation/passenger_visuals/passenger_003_visual.tres" id="27_profile_003"]
 
 [sub_resource type="ORMMaterial3D" id="ORMMaterial3D_cymdg"]
 albedo_texture = ExtResource("2_k80hx")
@@ -140,6 +145,10 @@ size = Vector2(2, 2)
 
 [node name="三维操作舱" type="Node3D" unique_id=699471354]
 script = ExtResource("1_wegik")
+
+[node name="监控表现协调器" type="Node" parent="."]
+script = ExtResource("23_coordinator")
+passenger_visual_profiles = Array[ExtResource("24_profile_type")]([ExtResource("25_profile_001"), ExtResource("26_profile_002"), ExtResource("27_profile_003")])
 
 [node name="灰盒环境" type="Node3D" parent="." unique_id=408541640]
 

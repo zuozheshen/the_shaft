@@ -30,6 +30,9 @@ const MonitorStageTests := preload(
 const ElevatorDoorVisualTests := preload(
 	"res://tests/presentation/elevator_door_visual_tests.gd"
 )
+const MonitorPassengerTimelineTests := preload(
+	"res://tests/presentation/monitor_passenger_timeline_tests.gd"
+)
 
 var passed_count: int = 0
 var failed_count: int = 0
@@ -82,6 +85,9 @@ func _run() -> void:
 
 	var elevator_door_visual_tests := ElevatorDoorVisualTests.new()
 	await elevator_door_visual_tests.run(self, get_tree())
+
+	var monitor_passenger_timeline_tests := MonitorPassengerTimelineTests.new()
+	await monitor_passenger_timeline_tests.run(self, get_tree())
 
 	print("=== 测试汇总：通过 %d，失败 %d ===" % [passed_count, failed_count])
 	get_tree().quit(0 if failed_count == 0 else 1)
