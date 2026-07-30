@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://ducq07i1l5l7w" path="res://scenes/presentation/layered_floor_slice_2_5d.tscn" id="1_hsoa6"]
 [ext_resource type="Script" uid="uid://d4jv71ygqbo5d" path="res://scripts/presentation/monitor_stage_controller_3d.gd" id="2_stage"]
+[ext_resource type="PackedScene" uid="uid://d24sotn8npq7j" path="res://scenes/presentation/elevator_door_visual_3d.tscn" id="3_1rmkh"]
 [ext_resource type="PackedScene" uid="uid://pwk8iyr654yu" path="res://scenes/presentation/passenger_visual_3d.tscn" id="3_q8crp"]
 [ext_resource type="Resource" path="res://data/presentation/passenger_visuals/passenger_001_visual.tres" id="4_profile"]
 
@@ -21,6 +22,7 @@ initial_passenger_visual_path = NodePath("乘客视觉区域/当前乘客挂载�
 outside_wait_anchor_path = NodePath("乘客视觉区域/位置参考点/门外等待点")
 threshold_anchor_path = NodePath("乘客视觉区域/位置参考点/门槛点")
 cabin_position_anchor_path = NodePath("乘客视觉区域/位置参考点/舱内站位")
+door_visual_path = NodePath("固定门区/双开门视觉3D")
 initial_passenger_profile = ExtResource("4_profile")
 
 [node name="固定乘客舱" type="Node3D" parent="." unique_id=1566578310]
@@ -68,6 +70,8 @@ size = Vector3(0.25, 2.5, 0.2)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 layers = 2
 size = Vector3(2.05, 0.05, 0.3)
+
+[node name="双开门视觉3D" parent="固定门区" unique_id=850811919 instance=ExtResource("3_1rmkh")]
 
 [node name="门外楼层区域" type="Node3D" parent="." unique_id=1314125170]
 

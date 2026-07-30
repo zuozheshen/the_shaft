@@ -17,6 +17,8 @@ const CAMERA_NAMES: Array[String] = [
 	"CAM 01｜舱内摄像头",
 	"CAM 02｜门外摄像头",
 ]
+const DOOR_PRESENTATION_BUSY_HINT: String = \
+		"舱门机构正在运行，请等待动作完成。"
 
 enum DialogueContext {
 	NONE,
@@ -61,6 +63,7 @@ enum DialogueContext {
 ]
 
 var demo_flow_manager: DemoFlowManager
+var _monitor_stage_controller: MonitorStageController3D
 var dialogue_manager_adapter: DialogueManagerAdapter
 var current_camera_index: int = 0
 var mic_enabled: bool = false
@@ -83,6 +86,7 @@ func _ready() -> void:
 	return_button.pressed.connect(_request_return)
 	_connect_front_interaction_signals()
 	_initialize_front_interaction()
+	_refresh_door_control_availability()
 
 
 func _create_dialogue_manager_adapter() -> void:
@@ -134,11 +138,14 @@ func _initialize_front_interaction() -> void:
 
 func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 	if demo_flow_manager == flow_manager:
+		_sync_door_presentation_to_business_state()
+		_refresh_door_control_availability()
 		return
 	_disconnect_demo_flow_manager()
 	demo_flow_manager = flow_manager
 	if demo_flow_manager == null:
 		push_warning("ConsoleInterface: DemoFlowManager is not connected.")
+		_refresh_door_control_availability()
 		return
 	if not demo_flow_manager.case_updated.is_connected(_refresh_case_display):
 		demo_flow_manager.case_updated.connect(_refresh_case_display)
@@ -151,6 +158,8 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 	_reset_dispatch_ui_state()
 	_update_dialogue_buttons()
 	_refresh_case_display()
+	_sync_door_presentation_to_business_state()
+	_refresh_door_control_availability()
 
 
 func _disconnect_demo_flow_manager() -> void:
@@ -164,6 +173,39 @@ func _disconnect_demo_flow_manager() -> void:
 		demo_flow_manager.dispatch_completed.disconnect(_on_dispatch_completed)
 	if demo_flow_manager.shift_completed.is_connected(_on_shift_completed):
 		demo_flow_manager.shift_completed.disconnect(_on_shift_completed)
+
+
+func set_monitor_stage_controller(
+		stage_controller: MonitorStageController3D
+) -> void:
+	if _monitor_stage_controller == stage_controller:
+		_sync_door_presentation_to_business_state()
+		_refresh_door_control_availability()
+		return
+	_disconnect_monitor_stage_controller()
+	_monitor_stage_controller = stage_controller
+	if _monitor_stage_controller != null \
+			and not _monitor_stage_controller \
+					.door_presentation_busy_changed.is_connected(
+						_on_door_presentation_busy_changed
+					):
+		_monitor_stage_controller.door_presentation_busy_changed.connect(
+			_on_door_presentation_busy_changed
+		)
+	_sync_door_presentation_to_business_state()
+	_refresh_door_control_availability()
+
+
+func _disconnect_monitor_stage_controller() -> void:
+	if not is_instance_valid(_monitor_stage_controller):
+		return
+	if _monitor_stage_controller \
+			.door_presentation_busy_changed.is_connected(
+				_on_door_presentation_busy_changed
+			):
+		_monitor_stage_controller.door_presentation_busy_changed.disconnect(
+			_on_door_presentation_busy_changed
+		)
 
 
 func _on_dispatch_started(_dispatch_id: StringName) -> void:
@@ -577,6 +619,9 @@ func _record_system_log(message_text: String) -> void:
 
 func request_open_door() -> void:
 	# 2D 按钮与 3D 实体热点统一调用流程命令；UI 只处理表现效果。
+	if _is_door_presentation_busy():
+		_show_system_hint(DOOR_PRESENTATION_BUSY_HINT)
+		return
 	if demo_flow_manager == null:
 		return
 	var result: FlowCommandResultScript = \
@@ -584,6 +629,9 @@ func request_open_door() -> void:
 	if not result.succeeded:
 		_show_system_hint(result.message)
 		return
+
+	if result.has_effect(FlowCommandResultScript.DOOR_OPENED):
+		_request_door_open_presentation()
 
 	if result.has_effect(FlowCommandResultScript.PASSENGER_BOARDED):
 		dm_dialogue_started = false
@@ -612,6 +660,9 @@ func request_open_door() -> void:
 
 func request_close_door() -> void:
 	# 关闭规则由流程命令处理，UI 仅根据 effects 解锁对应表现。
+	if _is_door_presentation_busy():
+		_show_system_hint(DOOR_PRESENTATION_BUSY_HINT)
+		return
 	if demo_flow_manager == null:
 		return
 	var result: FlowCommandResultScript = \
@@ -619,6 +670,10 @@ func request_close_door() -> void:
 	if not result.succeeded:
 		_show_system_hint(result.message)
 		return
+
+	# 先触发表现，再处理完成派单等早退分支，保证最后一次关门不漏播。
+	if result.has_effect(FlowCommandResultScript.DOOR_CLOSED):
+		_request_door_close_presentation()
 
 	if result.has_effect(FlowCommandResultScript.DISPATCH_COMPLETED):
 		return
@@ -661,15 +716,62 @@ func _apply_dialogue_door_reply(is_open_action: bool) -> bool:
 	return true
 
 
+func _is_door_presentation_busy() -> bool:
+	return is_instance_valid(_monitor_stage_controller) \
+			and _monitor_stage_controller.is_door_presentation_busy()
+
+
+func _sync_door_presentation_to_business_state() -> void:
+	if demo_flow_manager == null \
+			or not is_instance_valid(_monitor_stage_controller):
+		return
+	if not _monitor_stage_controller.sync_door_presentation(
+			demo_flow_manager.is_cabin_door_open()
+	):
+		push_warning("ConsoleInterface: 双开门表现无法与业务门状态同步。")
+
+
+func _request_door_open_presentation() -> void:
+	if not is_instance_valid(_monitor_stage_controller):
+		return
+	if _monitor_stage_controller.request_door_open_presentation():
+		return
+	push_warning("ConsoleInterface: 业务开门成功，但开门动画未能启动。")
+	_sync_door_presentation_to_business_state()
+
+
+func _request_door_close_presentation() -> void:
+	if not is_instance_valid(_monitor_stage_controller):
+		return
+	if _monitor_stage_controller.request_door_close_presentation():
+		return
+	push_warning("ConsoleInterface: 业务关门成功，但关门动画未能启动。")
+	_sync_door_presentation_to_business_state()
+
+
+func _refresh_door_control_availability() -> void:
+	if open_door_button == null or close_door_button == null:
+		return
+	var presentation_busy := _is_door_presentation_busy()
+	open_door_button.disabled = presentation_busy \
+			or demo_flow_manager == null \
+			or demo_flow_manager.is_elevator_moving()
+	close_door_button.disabled = presentation_busy \
+			or demo_flow_manager == null
+
+
+func _on_door_presentation_busy_changed(_is_busy: bool) -> void:
+	_refresh_door_control_availability()
+
+
 func _refresh_case_display() -> void:
 	_clear_pickup_dialogue_after_departure()
 	_update_dispatch_panel()
 	_update_camera_display()
 	_update_dialogue_buttons()
 	_update_dialogue_visibility()
+	_refresh_door_control_availability()
 	if demo_flow_manager != null:
-		# 即使存在快捷键或旧场景连接，运行中也不能执行开门。
-		open_door_button.disabled = demo_flow_manager.is_elevator_moving()
 		talk_button.disabled = not demo_flow_manager.has_active_dispatch()
 		system_hint_label.text = demo_flow_manager.get_current_building_status_hint()
 

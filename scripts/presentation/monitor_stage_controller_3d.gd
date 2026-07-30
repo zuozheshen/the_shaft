@@ -2,6 +2,12 @@ class_name MonitorStageController3D
 extends Node3D
 
 
+signal door_presentation_state_changed(state: int)
+signal door_presentation_busy_changed(is_busy: bool)
+signal door_presentation_opened
+signal door_presentation_closed
+
+
 const FLOOR_LABEL_FALLBACK: String = "FLOOR ---"
 const CURRENT_SLICE_NAME: String = "当前楼层切片"
 const CURRENT_PASSENGER_VISUAL_NAME: String = "当前乘客视觉"
@@ -17,6 +23,7 @@ const PASSENGER_POSITION_CABIN: StringName = &"cabin"
 @export var outside_wait_anchor_path: NodePath
 @export var threshold_anchor_path: NodePath
 @export var cabin_position_anchor_path: NodePath
+@export var door_visual_path: NodePath
 @export var initial_passenger_profile: PassengerVisualProfile
 
 var _floor_slice_mount: Node3D
@@ -27,14 +34,17 @@ var _current_passenger_visual: PassengerVisual3D
 var _outside_wait_anchor: Marker3D
 var _threshold_anchor: Marker3D
 var _cabin_position_anchor: Marker3D
+var _door_visual: ElevatorDoorVisual3D
 var _is_floor_stage_ready: bool = false
 var _is_passenger_stage_ready: bool = false
+var _is_door_stage_ready: bool = false
 
 
 func _ready() -> void:
-	# 楼层和乘客分别初始化；任一模块接线失败都不会阻断另一模块。
+	# 楼层、乘客与门分别初始化；任一模块失败都不会阻断另外两项。
 	_initialize_floor_stage()
 	_initialize_passenger_stage()
+	_initialize_door_stage()
 
 
 func _initialize_floor_stage() -> void:
@@ -117,12 +127,77 @@ func _initialize_passenger_stage() -> void:
 		_current_passenger_visual.apply_profile(initial_passenger_profile)
 
 
+func _initialize_door_stage() -> void:
+	if door_visual_path.is_empty():
+		push_error("监控摄影棚缺少双开门视觉的 NodePath 配置。")
+		return
+
+	var candidate := get_node_or_null(door_visual_path)
+	if candidate == null:
+		push_error("监控摄影棚找不到双开门视觉：%s" % door_visual_path)
+		return
+	if not candidate is ElevatorDoorVisual3D:
+		push_error("监控摄影棚的门节点必须挂载 ElevatorDoorVisual3D 脚本。")
+		return
+
+	_door_visual = candidate as ElevatorDoorVisual3D
+	if not _door_visual.door_state_changed.is_connected(
+			_on_door_state_changed
+	):
+		_door_visual.door_state_changed.connect(_on_door_state_changed)
+	if not _door_visual.door_busy_changed.is_connected(
+			_on_door_busy_changed
+	):
+		_door_visual.door_busy_changed.connect(_on_door_busy_changed)
+	if not _door_visual.door_opened.is_connected(_on_door_opened):
+		_door_visual.door_opened.connect(_on_door_opened)
+	if not _door_visual.door_closed.is_connected(_on_door_closed):
+		_door_visual.door_closed.connect(_on_door_closed)
+
+	_is_door_stage_ready = _door_visual.is_ready_for_commands()
+	if not _is_door_stage_ready:
+		push_error("监控摄影棚的双开门视觉尚未准备完成。")
+
+
 func get_current_floor_slice() -> LayeredFloorSlice25D:
 	return _current_floor_slice
 
 
 func get_current_passenger_visual() -> PassengerVisual3D:
 	return _current_passenger_visual
+
+
+func get_door_visual() -> ElevatorDoorVisual3D:
+	return _door_visual
+
+
+func request_door_open_presentation() -> bool:
+	if not _is_door_stage_ready or _door_visual == null:
+		push_warning("监控摄影棚的开门表现不可用。")
+		return false
+	return _door_visual.request_open()
+
+
+func request_door_close_presentation() -> bool:
+	if not _is_door_stage_ready or _door_visual == null:
+		push_warning("监控摄影棚的关门表现不可用。")
+		return false
+	return _door_visual.request_close()
+
+
+func is_door_presentation_busy() -> bool:
+	return _door_visual != null and _door_visual.is_busy()
+
+
+func sync_door_presentation(is_open: bool) -> bool:
+	if not _is_door_stage_ready or _door_visual == null:
+		push_warning("监控摄影棚无法同步不可用的双开门视觉。")
+		return false
+	if is_open:
+		_door_visual.snap_open()
+	else:
+		_door_visual.snap_closed()
+	return true
 
 
 func set_floor_display_id(floor_id: StringName) -> bool:
@@ -272,3 +347,21 @@ func _get_typed_node(
 		])
 		return null
 	return candidate
+
+
+func _on_door_state_changed(
+		state: ElevatorDoorVisual3D.DoorPresentationState
+) -> void:
+	door_presentation_state_changed.emit(int(state))
+
+
+func _on_door_busy_changed(is_busy: bool) -> void:
+	door_presentation_busy_changed.emit(is_busy)
+
+
+func _on_door_opened() -> void:
+	door_presentation_opened.emit()
+
+
+func _on_door_closed() -> void:
+	door_presentation_closed.emit()

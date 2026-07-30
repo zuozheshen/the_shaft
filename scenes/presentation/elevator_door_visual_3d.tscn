@@ -1,0 +1,134 @@
+[gd_scene format=3 uid="uid://d24sotn8npq7j"]
+
+[ext_resource type="Script" uid="uid://d1fwxlb7fey8r" path="res://scripts/presentation/elevator_door_visual_3d.gd" id="1_door"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sn0t7"]
+albedo_color = Color(0.39215687, 0.43137255, 0.47058824, 1)
+metallic = 0.25
+roughness = 0.05
+
+[sub_resource type="BoxMesh" id="BoxMesh_bhunq"]
+material = SubResource("StandardMaterial3D_sn0t7")
+size = Vector3(1.04, 2.35, 0.08)
+
+[sub_resource type="BoxMesh" id="BoxMesh_riqys"]
+material = SubResource("StandardMaterial3D_sn0t7")
+size = Vector3(1.04, 2.35, 0.08)
+
+[sub_resource type="Animation" id="Animation_iujvf"]
+resource_name = "RESET"
+length = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("门扇根/左门扇动画根:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(-0.52, 1.2, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("门扇根/右门扇动画根:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(0.52, 1.2, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_vdh4j"]
+resource_name = "door_close"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("门扇根/左门扇动画根:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(-1.55, 1.2, 0), Vector3(-0.52, 1.2, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("门扇根/右门扇动画根:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(1.55, 1.2, 0), Vector3(0.52, 1.2, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_i2igv"]
+resource_name = "door_open"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("门扇根/左门扇动画根:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(-0.52, 1.2, 0), Vector3(-1.55, 1.2, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("门扇根/右门扇动画根:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0.52, 1.2, 0), Vector3(1.55, 1.2, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_i2igv"]
+_data = {
+&"RESET": SubResource("Animation_iujvf"),
+&"door_close": SubResource("Animation_vdh4j"),
+&"door_open": SubResource("Animation_i2igv")
+}
+
+[node name="双开门视觉3D" type="Node3D" unique_id=850811919]
+script = ExtResource("1_door")
+animation_player_path = NodePath("门动画播放器")
+audio_player_path = NodePath("门音效播放器")
+
+[node name="门扇根" type="Node3D" parent="." unique_id=843987570]
+
+[node name="左门扇动画根" type="Node3D" parent="门扇根" unique_id=667339256]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.52, 1.2, 0)
+
+[node name="左门扇" type="MeshInstance3D" parent="门扇根/左门扇动画根" unique_id=1872462857]
+layers = 2
+mesh = SubResource("BoxMesh_bhunq")
+
+[node name="右门扇动画根" type="Node3D" parent="门扇根" unique_id=35818975]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.52, 1.2, 0)
+
+[node name="右门扇" type="MeshInstance3D" parent="门扇根/右门扇动画根" unique_id=1321047058]
+layers = 2
+mesh = SubResource("BoxMesh_riqys")
+
+[node name="门动画播放器" type="AnimationPlayer" parent="." unique_id=510481983]
+unique_name_in_owner = true
+libraries/ = SubResource("AnimationLibrary_i2igv")
+
+[node name="门音效播放器" type="AudioStreamPlayer3D" parent="." unique_id=408775721]
