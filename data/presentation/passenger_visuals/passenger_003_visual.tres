@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="PassengerVisualProfile" load_steps=3 format=3]
 
-[ext_resource type="Texture2D" uid="uid://cdeqpcuwie2s6" path="res://icon.svg" id="1_texture"]
+[ext_resource type="Texture2D" path="res://assets/art/passenger_placeholder.svg" id="1_texture"]
 [ext_resource type="Script" path="res://scripts/presentation/passenger_visual_profile.gd" id="2_profile"]
 
 [resource]

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://pwk8iyr654yu"]
 
-[ext_resource type="Texture2D" uid="uid://cdeqpcuwie2s6" path="res://icon.svg" id="1_i6nem"]
+[ext_resource type="Texture2D" path="res://assets/art/passenger_placeholder.svg" id="1_i6nem"]
 [ext_resource type="Script" path="res://scripts/presentation/passenger_visual_3d.gd" id="2_visual"]
 [ext_resource type="Resource" path="res://data/presentation/passenger_visuals/passenger_001_visual.tres" id="3_profile"]
 
