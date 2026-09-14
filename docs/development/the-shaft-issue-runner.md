@@ -46,9 +46,10 @@ PROJECT_STATE 缺失时说明事实来源缺口；只有 Issue 已授权创建�
 4. 保留用户改动，不自动 stash/reset，不切换无关功能 checkout 开发。记录 base 和合并顺序依赖；不为“从 main 开始”退回旧架构，也不擅自 rebase。
 5. 一次只改一个 Issue；沿用正式数据和现有 Manager。范围外故障记录到当前 Issue，不顺手修业务。
 6. 在 worktree 根执行 `powershell.exe -NoProfile -File .\tests\run_all_tests.ps1`，也支持 pwsh。按 tests/README.md 处理 Godot 路径与失败。
-7. 自动进入 REVIEW：检查相对 base 的 diff，确认测试是否对应最终内容。修改后仅重跑受影响且必要的检查。
-8. 确有需要时创建本地 commit：先 `git diff --check` 和审查文件，显式逐文件暂存，再检查 staged diff，提交信息关联 Issue。失败或工作未完成不得写成已完成。
-9. 不自主 push、merge、force-push、删除远端分支、改共享历史或权限。不得通过 GitHub 写文件工具间接替代 push/commit 绕过限制。
+7. 测试失败先运行最小复现；同一根因最多自动重试 2 次，第 3 次立即停止并写回诊断。单阶段失败不得循环重跑全量入口，重复权限请求、重复命令或阶段重入同样触发停止。
+8. 自动进入 REVIEW：检查相对 base 的 diff，确认测试是否对应最终内容。修改后仅重跑受影响且必要的检查。
+9. 确有需要时创建本地 commit：先 `git diff --check` 和审查文件，显式逐文件暂存，再检查 staged diff，提交信息关联 Issue。失败或工作未完成不得写成已完成。
+10. 不自主 push、merge、force-push、删除远端分支、改共享历史或权限。不得通过 GitHub 写文件工具间接替代 push/commit 绕过限制。
 
 ## REVIEW 与 GitHub 交接
 
@@ -85,6 +86,7 @@ BUILD 后把下列信息写回当前 Issue，供 ChatGPT/用户直接读取：
 | 脏工作区或目标路径已存在且归属不明 | 不覆盖、不 stash/reset，报告隔离问题 |
 | Issue 与真实入口冲突 | 报告冲突，不新建旧入口或第二 Manager |
 | 测试 ERROR / 超时 / 缺引擎 | 非零退出，不写“通过” |
+| 同一失败第 3 次出现或测试循环重入 | 触发 Circuit Breaker，停止变体尝试并回写诊断 |
 | GitHub 请求超时 | 查询是否写入，再决定重试，不写“已同步” |
 | 本地 commit 完成 | 回写 hash 和未 push 状态，停在 push / merge 前 |
 

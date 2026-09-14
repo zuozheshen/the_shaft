@@ -480,6 +480,8 @@
 - 使用 `powershell.exe -NoProfile -File .\tests\run_all_tests.ps1` 运行统一检查；Godot 路径可用 `-GodotPath` 或 `GODOT_BIN` 指定。
 - 若系统禁止执行脚本，按 tests/README.md 在获准后仅对测试进程使用 `-ExecutionPolicy Bypass`，不修改系统策略。
 - 统一检查包括版本/项目根、编辑器解析、GDScript/Scene Contract、已有测试和真实主场景 headless smoke。
+- 同一失败根因最多自动重试 2 次；第 3 次出现时立即停止并报告。先运行最小复现，单个阶段失败时不得从头循环全量检查。
+- 重复权限请求、重复命令或测试阶段重入视为 Circuit Breaker 触发条件；未经新批准不得改用更多变体继续尝试。
 - 失败、未执行、自动通过、用户验收、Git 提交、GitHub 回写必须分别记录；不得把 headless 通过当成视觉验收。
 - Scene Contract 仅检查代码依赖和公共接口，不冻结装饰层级、美术参数，不通过修改正式内容让测试通过。
 - GitHub 回写前读取现有评论以防重复；仅追加/更新本 Agent 对应交接区块，保留用户内容。回写失败如实报告，不伪造远端 commit/PR。
