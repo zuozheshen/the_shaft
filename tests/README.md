@@ -1,9 +1,84 @@
-# 内容契约、统一流程命令与派单流程测试
+# 统一工程检查
+
+仓库根目录执行：
+
+```powershell
+powershell.exe -NoProfile -File .\tests\run_all_tests.ps1
+```
+
+也支持 PowerShell 7 的 `pwsh -NoProfile -File .\tests\run_all_tests.ps1`，不要求安装它。
+如果 Windows 执行策略禁止脚本，在获准后可仅对本次进程使用：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\run_all_tests.ps1
+```
+
+该参数不修改系统执行策略。Godot 解析顺序：显式 `-GodotPath`、环境变量
+`GODOT_BIN`、PATH 中的 `godot.cmd` / `godot` / `godot.exe`。
+找不到或不是 4.7.x 时明确失败，不安装软件，也不使用本机 Steam 路径作为默认值。
+
+```powershell
+powershell.exe -NoProfile -File .\tests\run_all_tests.ps1 -GodotPath "D:\Your Godot Folder\godot.exe"
+```
+
+默认依次执行版本/唯一项目根检查、headless editor 导入、脚本和场景契约检查、
+既有流程/内容/表现层测试、project.godot 配置的真实入口 smoke。
+全部通过输出 `ALL CHECKS PASS` / exit 0；任何失败、ERROR、缺完成标记或超时返回 exit 1。
+不能只看 Godot 子进程退出码：引擎有时输出 ERROR 后仍返回 0。
+依赖阶段失败后剩余阶段标为未执行。每阶段默认 180 秒，可用 `-TimeoutSeconds` 调整。
+日志写入控制台显示的系统临时目录；Warning 计数单列，ERROR 不做宽泛忽略。
+Godot 4.7 在编辑器首次扫描 UID 缓存前可能对 project.godot 当前入口 UID 输出一条
+`Unrecognized UID`；入口只精确允许配置中的这一条，并显示为 `allowed_diagnostics=1`。
+随后 Validator 必须把同一 UID 解析为正式 main_3d 路径，真实入口 smoke 也必须通过，
+否则全量检查仍失败。其他 UID、其他 ERROR 或任一后续失败都不被放行。
+正常导入会生成 .godot 缓存，也可能更新 .import 元数据；不要将这些测试副作用混入提交。
+
+排查时可在已导入项目中使用 `-Check Contracts`、`-Check Existing` 或 `-Check Smoke`
+单独运行一项；输出明确标为 `PARTIAL CHECKS PASS`，不能当成全量通过。
+这仍是同一 shell 入口，不自动修复失败的业务或配置。
+
+## Scene Contract Validator v1
+
+`project_check_runner.tscn` 是独立的最小结构宿主，按已批准约束保持既有
+`run_flow_tests.gd` 不变。它只加载脚本、调用 Validator 和自测，不另建业务或通用测试框架。
+显式加载 scripts/tests/addons 的 GDScript，检查未被主场景触及的脚本编译。
+
+`structure/scene_contract_validator.gd` 从实际 project.godot、正式 PackedScene 和脚本检查：
+
+- 入口 UID 解析、两个必需 Autoload 的名称/脚本/单例设置、重复 Autoload，以及代码使用的转向 action。
+- 主场景 → GameRuntime → 唯一 DemoFlowManager；禁止在 Autoload 另建核心 Manager。
+- 三台 Router 和 UI 的脚本、公共入口，以及固定名称查询实际需要的节点。
+- 视角、交互、左台屏幕与监控 controller 的固定/导出 NodePath、目标类型。
+- 摄影棚的楼层/乘客 mount、门和机位引用；乘客/楼层实例应位于负责移动/替换的 mount 下。
+- 门脚本直接引用的三个动画名称、公共方法和信号。
+
+覆盖主场景、运行层、操作舱、三个 UI、摄影棚、门、乘客、楼层切片共 10 个正式场景。
+实例不加入 SceneTree，不调用业务 setup/getter/_ready。诊断包含场景路径、节点/属性、预期和实际。
+固定路径来自代码，导出路径允许重新配置，Router 查询不固定多余的中间容器。
+不读取 PROJECT_STATE 作为测试配置；不固定装饰、坐标、尺寸、颜色、材质或完整动画轨道。
+方法/信号检查证明入口存在；初始化 smoke 捕获启动错误，二者均不等同于完整按钮交互验证。
+
+`structure/scene_contract_tests.gd` 使用临时未入树实例验证缺节点、缺脚本、错误类型、
+空/无效 NodePath、丢失 unique name、错误 mount、重复 Manager、方法/信号缺失、
+错误入口/Autoload/Input。另验证正常调整导出路径、装饰和布局容器不会误报。
+不在磁盘复制或改写正式乘客、派单、对白或场景。
+
+可单独检验进程失败通路：
+
+```powershell
+godot.cmd --headless --path . --scene res://tests/project_check_runner.tscn -- --negative-control
+```
+
+此诊断仅在内存移除核心 Manager，应输出包含
+`main_3d.tscn | 游戏运行层/演示流程管理器` 的失败信息并返回 exit 1；这不是通过命令。
+唯一 project.godot 检查由 shell 完成，含未跟踪子目录，但不跟随目录链接或扫描 .git/.godot。
+
+## 既有内容契约、统一流程命令与派单流程测试
 
 这组测试保留 Issue 30 的派单流程基线和 Issue 31 的运行时职责拆分保护，
 覆盖 Issue 32 的结构化流程命令入口，并加入 Issue 33 的内容资源契约校验。
-测试只使用 Godot 4.7 自带的 headless 场景入口，不安装 GUT 或其他第三方依赖，
-也不会启动正式 3D 主场景。
+既有测试只使用 Godot 4.7 自带的 headless 场景入口，不安装 GUT 或其他第三方依赖；
+全量入口会另行启动正式 3D 主场景做有限帧 smoke。
 
 测试使用最小的 `tests/flow_test_runner.tscn`，让项目 Autoload 在流程脚本编译前
 完成注册；该场景只挂载测试运行器，不实例化或修改正式主场景。
@@ -33,38 +108,14 @@
 - 前两单关门启动下一单、第三单关门成功结束值班，以及一次最终 `case_updated`。
 - 三个操作台继续通过 `DemoFlowManager` 的兼容 API 接入。
 - 源码边界检查确保主台和右台不再组合被禁止的低级状态写入。
+- 监控摄影棚挂载、分层楼层、纸片乘客、独立双开门及乘客登/离舱表现时间线。
 
 旧基线仍会实例化三个独立 UI 组件确认 `DemoFlowManager` 注入兼容性；命令专项测试
 不会实例化正式 3D 操作台或 Dialogue Manager，也不会复制对话内容或伪装成完整
 按钮交互测试。正式操作台的视觉、焦点、摄像头、麦克风和 Dialogue 上下文仍需手动验收。
 
-## Windows PowerShell 执行
-
-Godot Steam 版可执行文件名为 `godot.windows.opt.tools.64.exe`。
-
-```powershell
-$godotPath = "<Godot安装目录>\godot.windows.opt.tools.64.exe"
-$testLog = Join-Path $env:TEMP "the-shaft-flow-tests.log"
-$startInfo = [System.Diagnostics.ProcessStartInfo]::new()
-$startInfo.FileName = $godotPath
-$startInfo.Arguments = "--headless --path `"F:\the_shaft`" --log-file `"$testLog`" --scene `"res://tests/flow_test_runner.tscn`""
-$startInfo.UseShellExecute = $false
-$process = [System.Diagnostics.Process]::Start($startInfo)
-if (-not $process.WaitForExit(120000)) {
-  $process.Kill()
-  throw "Godot tests exceeded 120 seconds."
-}
-exit $process.ExitCode
-```
-
-`WaitForExit(120000)` 为所有自动测试提供 120 秒超时保护。
-
-退出码：
-
-- `0`：全部测试通过。
-- 非 `0`：至少存在一项失败或脚本加载错误。
-
-运行器会逐项输出测试名称和 `PASS` / `FAIL`，最后输出通过数与失败数。
+既有运行器逐项输出测试名称和 `PASS` / `FAIL`，最后输出通过数与失败数；
+统一入口将详细输出留在 existing-tests.log，控制台展示汇总。
 
 ## 已知限制与手动验证
 
@@ -77,3 +128,8 @@ exit $process.ExitCode
 4. 到达目标本身不触发反馈；首次开门触发反馈，重复开门不重复触发。
 5. 乘客离舱并关门后结算，第一条派单结束后自动进入第二条。
 6. 玩家可见文案、摄像头文本和乘客对白保持不变。
+7. Q/E 转向、左台屏幕点击、主台两机位、门动画及乘客进出保持可用；
+   Output 不应新增解析、缺节点、重复 Manager 或连接错误。无需编辑节点。
+
+Headless 使用无画面驱动，不能证明 D3D12 画面、焦点、字体、音频或体验节奏正确。
+已有材质可能报告 triplanar / height mapping Warning；查看具体日志，不自动改美术来消除它。

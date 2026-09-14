@@ -26,7 +26,7 @@
 
 ### Git 提交
 
-<!-- 只记录已存在的 commit hash；Codex 不执行 commit 或 push。 -->
+<!-- 只记录已存在的 commit hash；日志整理本身不发起 commit 或 push。 -->
 
 ### 飞书同步
 
