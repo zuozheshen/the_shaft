@@ -27,6 +27,9 @@ const Case003ContentTests := preload(
 const MonitorStageTests := preload(
 	"res://tests/presentation/monitor_stage_tests.gd"
 )
+const FloorVisualProfileTests := preload(
+	"res://tests/presentation/floor_visual_profile_tests.gd"
+)
 const ElevatorDoorVisualTests := preload(
 	"res://tests/presentation/elevator_door_visual_tests.gd"
 )
@@ -82,6 +85,8 @@ func _run() -> void:
 
 	var monitor_stage_tests := MonitorStageTests.new()
 	await monitor_stage_tests.run(self, get_tree())
+	var floor_visual_tests := FloorVisualProfileTests.new()
+	await floor_visual_tests.run(self, get_tree())
 
 	var elevator_door_visual_tests := ElevatorDoorVisualTests.new()
 	await elevator_door_visual_tests.run(self, get_tree())

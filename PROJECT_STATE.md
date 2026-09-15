@@ -23,6 +23,8 @@
 - `scenes/ui/` 下 ConsoleInterface、BuildingTerminalInterface、DestinationControlInterface 通过显式注入和流程命令访问业务。
 - ContentRegistry 从 `data/catalogs/` 的四个 Catalog 加载楼层、乘客、派单、值班资源。当前演示有三条正式派单；对白位于 `dialogues/passengers/`，通过 DialogueManagerAdapter 接入现有插件。
 - `scenes/presentation/monitor_test_stage_3d.tscn` 是正式主场景当前使用的监控摄影棚：可替换楼层切片、纸片乘客、双开门。MonitorCameraController3D 使用同一个世界和一台监控摄像机切换两个机位；MonitorPresentationCoordinator3D 协调门与乘客动作。
+- 楼层视觉由独立 FloorVisualProfile Resource 配置，位于 `data/presentation/floor_visuals/`。现有协调器在 setup 和实际到站时先应用楼层视觉，再同步乘客；移动中保持上一楼层。正式 Profile 与 fallback 由操作舱场景显式注入。
+- 监控舱内、固定门区与乘客使用渲染层 2；门外环境使用层 3 和一盏共用门外灯。监控摄像机可见层 2+3，玩家摄像机排除这两层。七层保持 Unshaded，主要依靠 Profile tint 区分楼层。
 
 ## 已实现与冻结职责
 

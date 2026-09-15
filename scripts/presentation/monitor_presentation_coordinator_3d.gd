@@ -6,6 +6,8 @@ signal presentation_busy_changed(is_busy: bool)
 
 
 @export var passenger_visual_profiles: Array[PassengerVisualProfile] = []
+@export var floor_visual_profiles: Array[FloorVisualProfile] = []
+@export var fallback_floor_visual_profile: FloorVisualProfile
 
 var _flow_manager: DemoFlowManager
 var _main_interface: ConsoleInterface
@@ -13,6 +15,7 @@ var _destination_interface: DestinationControlInterface
 var _stage_controller: MonitorStageController3D
 
 var _profile_by_passenger_id: Dictionary = {}
+var _profile_by_floor_id: Dictionary = {}
 var _pending_boarding: bool = false
 var _pending_disembark: bool = false
 var _pending_dispatch_sync_after_door_close: bool = false
@@ -40,6 +43,7 @@ func setup(
 	_pending_dispatch_sync_after_door_close = false
 	_is_setup_complete = false
 	_build_profile_index()
+	_build_floor_profile_index()
 
 	# 流程管理器是唯一必需的业务来源；其余节点缺失时只关闭对应表现能力。
 	if not is_instance_valid(_flow_manager):
@@ -49,6 +53,7 @@ func setup(
 
 	_connect_sources()
 	_is_setup_complete = true
+	_apply_floor_visual(StringName(_flow_manager.get_current_floor()))
 	_apply_active_passenger_profile()
 	_sync_stable_presentation_from_business()
 	_refresh_presentation_busy()
@@ -178,6 +183,34 @@ func _disconnect_sources() -> void:
 			_stage_controller.presentation_busy_changed.disconnect(
 				_on_stage_presentation_busy_changed
 			)
+
+
+func _build_floor_profile_index() -> void:
+	_profile_by_floor_id.clear()
+	for profile: FloorVisualProfile in floor_visual_profiles:
+		if profile == null or String(profile.floor_id).strip_edges().is_empty():
+			push_warning("监控表现协调器跳过了空 Profile 或空 floor_id。")
+			continue
+		if _profile_by_floor_id.has(profile.floor_id):
+			push_warning("监控表现协调器跳过了重复楼层 Profile：%s" % profile.floor_id)
+			continue
+		_profile_by_floor_id[profile.floor_id] = profile
+
+
+func _apply_floor_visual(floor_id: StringName) -> void:
+	if not is_instance_valid(_stage_controller):
+		return
+	var profile := _profile_by_floor_id.get(floor_id) as FloorVisualProfile
+	if profile == null:
+		push_warning("监控表现协调器找不到楼层 Profile：%s，使用 fallback。" % floor_id)
+		# 仅复制表现数据填入真实编号，不污染共享 fallback，也不写业务楼层。
+		profile = fallback_floor_visual_profile.duplicate() as FloorVisualProfile \
+				if fallback_floor_visual_profile != null else FloorVisualProfile.new()
+		profile.floor_id = floor_id
+		profile.display_label = ""
+	if not _stage_controller.apply_floor_visual_profile(profile):
+		_stage_controller.set_floor_display_id(floor_id)
+		push_warning("监控表现协调器未能完整应用楼层 Profile：%s" % floor_id)
 
 
 func _build_profile_index() -> void:
@@ -369,6 +402,8 @@ func _handle_movement_started() -> void:
 func _on_elevator_movement_completed(arrived_floor: String) -> void:
 	if not _is_setup_complete or not is_instance_valid(_stage_controller):
 		return
+	# 同步完成楼层切换后才允许乘客到站显示，覆盖下面所有提前返回分支。
+	_apply_floor_visual(StringName(arrived_floor))
 	if not _flow_manager.has_active_dispatch():
 		_stage_controller.snap_passenger_hidden()
 		return

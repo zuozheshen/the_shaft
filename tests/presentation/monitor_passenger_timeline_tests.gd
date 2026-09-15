@@ -264,6 +264,11 @@ func _test_coordinator_complete_shift(
 		PASSENGER_PROFILE_003,
 	]
 	coordinator.passenger_visual_profiles = profiles
+	var floor_fixture := preload("res://tests/presentation/floor_visual_profile_tests.gd").new()
+	var configured := floor_fixture.configured_coordinator()
+	coordinator.floor_visual_profiles = configured.floor_visual_profiles
+	coordinator.fallback_floor_visual_profile = configured.fallback_floor_visual_profile
+	configured.free()
 
 	test_runner.add_child(manager)
 	test_runner.add_child(stage)
@@ -276,6 +281,11 @@ func _test_coordinator_complete_shift(
 	console.set_monitor_stage_controller(stage)
 	destination.set_demo_flow_manager(manager)
 	coordinator.setup(manager, console, destination, stage)
+	# 每次真实到站都检查业务/视觉一致，覆盖三单接乘与送达。
+	manager.elevator_movement_completed.connect(func(arrived_floor: String) -> void:
+		test_runner.assert_equal("三单流程 / 到站楼层视觉 " + arrived_floor,
+				StringName(arrived_floor), stage.get_current_floor_visual_id())
+	)
 	console.set_monitor_presentation_coordinator(coordinator)
 	destination.set_monitor_presentation_coordinator(coordinator)
 

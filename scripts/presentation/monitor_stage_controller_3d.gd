@@ -34,6 +34,7 @@ const PASSENGER_POSITION_EXIT: StringName = &"exit"
 @export var floor_slice_mount_path: NodePath
 @export var initial_floor_slice_path: NodePath
 @export var floor_label_path: NodePath
+@export var floor_light_path: NodePath
 @export var passenger_mount_path: NodePath
 @export var initial_passenger_visual_path: NodePath
 @export var outside_wait_anchor_path: NodePath
@@ -56,6 +57,10 @@ var disembark_to_exit_duration: float = 0.35
 var _floor_slice_mount: Node3D
 var _current_floor_slice: LayeredFloorSlice25D
 var _floor_label: Label3D
+var _floor_light: Light3D
+var _base_floor_light_energy: float = 1.0
+var _base_floor_light_color: Color = Color.WHITE
+var _current_floor_visual_profile: FloorVisualProfile
 var _passenger_mount: Node3D
 var _current_passenger_visual: PassengerVisual3D
 var _outside_wait_anchor: Marker3D
@@ -81,6 +86,14 @@ func _ready() -> void:
 
 
 func _initialize_floor_stage() -> void:
+	# 只缓存专属门外灯；舱内共用灯、门与乘客不受 Profile 调整影响。
+	if not floor_light_path.is_empty():
+		_floor_light = get_node_or_null(floor_light_path) as Light3D
+	if _floor_light != null:
+		_base_floor_light_energy = _floor_light.light_energy
+		_base_floor_light_color = _floor_light.light_color
+	else:
+		push_warning("监控摄影棚缺少有效门外灯：%s，将仅应用切片和标签。" % floor_light_path)
 	_floor_slice_mount = _get_typed_node(
 		floor_slice_mount_path,
 		"Node3D",
@@ -202,6 +215,42 @@ func _initialize_door_stage() -> void:
 	_is_door_stage_ready = _door_visual.is_ready_for_commands()
 	if not _is_door_stage_ready:
 		push_error("监控摄影棚的双开门视觉尚未准备完成。")
+
+
+func apply_floor_visual_profile(profile: FloorVisualProfile) -> bool:
+	if not _is_floor_stage_ready or not is_instance_valid(_current_floor_slice):
+		push_warning("监控摄影棚的楼层表现尚未准备完成。")
+		return false
+	# 独立的楼层更新入口，绝不借用会停止乘客 Tween 的稳定状态同步。
+	var succeeded := _current_floor_slice.apply_visual_profile(profile)
+	if profile == null or not succeeded:
+		_current_floor_slice.reset_visual_profile()
+		_current_floor_visual_profile = null
+		set_floor_display_id(&"")
+		if is_instance_valid(_floor_light):
+			_floor_light.light_energy = _base_floor_light_energy
+			_floor_light.light_color = _base_floor_light_color
+		return false
+
+	_current_floor_visual_profile = profile
+	set_floor_display_id(profile.floor_id)
+	if not profile.display_label.is_empty():
+		_floor_label.text += " — " + profile.display_label
+	if is_instance_valid(_floor_light):
+		_floor_light.light_energy = (
+			_base_floor_light_energy * profile.get_safe_light_energy_multiplier()
+		)
+		_floor_light.light_color = _base_floor_light_color * profile.ambient_tint
+	return true
+
+
+func get_current_floor_visual_profile() -> FloorVisualProfile:
+	return _current_floor_visual_profile
+
+
+func get_current_floor_visual_id() -> StringName:
+	return _current_floor_visual_profile.floor_id \
+			if _current_floor_visual_profile != null else &""
 
 
 func get_current_floor_slice() -> LayeredFloorSlice25D:

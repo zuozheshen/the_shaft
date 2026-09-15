@@ -45,6 +45,7 @@ const EXPORTED_PATHS := {
 	"MonitorCameraController3D": {"monitor_subviewport_path": "SubViewport", "monitor_camera_path": "Camera3D", "cabin_camera_anchor_path": "Marker3D", "door_camera_anchor_path": "Marker3D"},
 	"MonitorStageController3D": {
 		"floor_slice_mount_path": "Node3D", "initial_floor_slice_path": "LayeredFloorSlice25D", "floor_label_path": "Label3D",
+		"floor_light_path": "Light3D",
 		"passenger_mount_path": "Node3D", "initial_passenger_visual_path": "PassengerVisual3D",
 		"outside_wait_anchor_path": "Marker3D", "threshold_anchor_path": "Marker3D",
 		"cabin_position_anchor_path": "Marker3D", "outside_exit_anchor_path": "Marker3D", "door_visual_path": "ElevatorDoorVisual3D",
@@ -63,7 +64,8 @@ const METHODS := {
 	"DestinationControlInterface": ["set_demo_flow_manager", "set_embedded_3d_mode"],
 	"MonitorCameraController3D": ["setup", "select_camera"],
 	"MonitorPresentationCoordinator3D": ["setup", "is_presentation_busy"],
-	"MonitorStageController3D": ["request_door_open_presentation", "request_door_close_presentation", "request_passenger_boarding", "request_passenger_disembark"],
+	"MonitorStageController3D": ["request_door_open_presentation", "request_door_close_presentation", "request_passenger_boarding", "request_passenger_disembark", "apply_floor_visual_profile", "get_current_floor_visual_profile", "get_current_floor_visual_id"],
+	"LayeredFloorSlice25D": ["apply_visual_profile", "reset_visual_profile"],
 	"ElevatorDoorVisual3D": ["request_open", "request_close", "is_busy", "snap_open", "snap_closed"],
 }
 const SIGNALS := {

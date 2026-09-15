@@ -17,6 +17,7 @@ script = ExtResource("2_stage")
 floor_slice_mount_path = NodePath("门外楼层区域/门外楼层挂载点")
 initial_floor_slice_path = NodePath("门外楼层区域/门外楼层挂载点/当前楼层切片")
 floor_label_path = NodePath("门外楼层区域/门外楼层编号")
+floor_light_path = NodePath("监控灯光/门外楼层灯")
 passenger_mount_path = NodePath("乘客视觉区域/当前乘客挂载点")
 initial_passenger_visual_path = NodePath("乘客视觉区域/当前乘客挂载点/当前乘客视觉")
 outside_wait_anchor_path = NodePath("乘客视觉区域/位置参考点/门外等待点")
@@ -78,7 +79,7 @@ size = Vector3(2.05, 0.05, 0.3)
 
 [node name="门外基础地面" type="CSGBox3D" parent="门外楼层区域" unique_id=864514015]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, -1.75)
-layers = 2
+layers = 4
 size = Vector3(3, 0.1, 3.5)
 
 [node name="门外楼层挂载点" type="Node3D" parent="门外楼层区域" unique_id=566209316]
@@ -89,7 +90,7 @@ unique_name_in_owner = true
 [node name="门外楼层编号" type="Label3D" parent="门外楼层区域" unique_id=928003148]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.05, -3)
-layers = 2
+layers = 4
 text = "FLOOR TEST"
 font_size = 64
 
@@ -99,25 +100,25 @@ visible = false
 [node name="门外后墙" type="CSGBox3D" parent="门外楼层区域/门外灰盒参考" unique_id=1455729031]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, -3.5)
 visible = false
-layers = 2
+layers = 4
 size = Vector3(3, 2.6, 0.1)
 
 [node name="门外左侧墙" type="CSGBox3D" parent="门外楼层区域/门外灰盒参考" unique_id=1694771249]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 1.3, -1.75)
 visible = false
-layers = 2
+layers = 4
 size = Vector3(0.1, 2.6, 3.5)
 
 [node name="门外右侧墙" type="CSGBox3D" parent="门外楼层区域/门外灰盒参考" unique_id=1164144992]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 1.3, -1.75)
 visible = false
-layers = 2
+layers = 4
 size = Vector3(0.1, 2.6, 3.5)
 
 [node name="门外测试标记" type="CSGBox3D" parent="门外楼层区域/门外灰盒参考" unique_id=155369437]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, -1.7)
 visible = false
-layers = 2
+layers = 4
 size = Vector3(0.65, 1.3, 0.45)
 material = SubResource("StandardMaterial3D_riqys")
 
@@ -135,6 +136,12 @@ transform = Transform3D(1, 0, 0, 0, 0.9848077, 0.17364818, 0, -0.17364818, 0.984
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, -0.5)
 light_energy = 3.0
 light_cull_mask = 4293918722
+omni_range = 6.0
+
+[node name="门外楼层灯" type="OmniLight3D" parent="监控灯光"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, -0.5)
+light_energy = 3.0
+light_cull_mask = 4
 omni_range = 6.0
 
 [node name="乘客视觉区域" type="Node3D" parent="." unique_id=568816502]

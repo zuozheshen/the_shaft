@@ -78,6 +78,36 @@ func set_layer_texture(layer_id: StringName, texture: Texture2D) -> bool:
 	return true
 
 
+func apply_visual_profile(profile: FloorVisualProfile) -> bool:
+	if profile == null:
+		push_warning("分层楼层切片收到空 Profile，恢复共享场景默认状态。")
+		reset_visual_profile()
+		return false
+
+	var succeeded := true
+	for layer_id in SUPPORTED_LAYER_IDS:
+		# 固定七层的字段一一对应；null 也是需要覆盖的纹理值。
+		var texture := profile.get(String(layer_id) + "_texture") as Texture2D
+		var texture_applied := set_layer_texture(layer_id, texture)
+		var visibility_applied := set_layer_visible(
+			layer_id, bool(profile.get(String(layer_id) + "_visible"))
+		)
+		succeeded = texture_applied and visibility_applied and succeeded
+		if texture_applied:
+			var material := _runtime_materials[layer_id] as BaseMaterial3D
+			var base_color: Color = _fallback_states[layer_id]["albedo_color"]
+			material.albedo_color = base_color * profile.ambient_tint
+	return succeeded
+
+
+func reset_visual_profile() -> void:
+	# 恢复初始材质入口与显隐，不让空 Profile 沿用上一个楼层的状态。
+	clear_runtime_textures()
+	for layer_id in _layer_nodes:
+		var layer := _layer_nodes[layer_id] as MeshInstance3D
+		layer.visible = bool(_fallback_states[layer_id]["visible"])
+
+
 func clear_runtime_textures() -> void:
 	# 恢复每个节点原有的材质入口，场景中的纯色 fallback 从未被直接修改。
 	for layer_id in _runtime_materials.keys():

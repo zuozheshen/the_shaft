@@ -71,6 +71,22 @@ func run() -> Array[String]:
 	instance.free()
 
 	# 正常调整机位路径、布局容器或装饰，不应被验证器误判为结构损坏。
+	for invalid_path in [NodePath(""), NodePath("缺失灯光"), NodePath("门外楼层区域")]:
+		instance = packed.instantiate()
+		stage = instance.find_child("监控测试摄影棚", true, false)
+		stage.set("floor_light_path", invalid_path)
+		_expect("missing or invalid floor light " + str(invalid_path),
+				_scene_errors(instance).contains("floor_light_path"))
+		instance.free()
+
+	instance = packed.instantiate()
+	stage = instance.find_child("监控测试摄影棚", true, false)
+	var floor_light := stage.get_node(stage.get("floor_light_path"))
+	floor_light.name = "重新配置的门外灯"
+	stage.set("floor_light_path", stage.get_path_to(floor_light))
+	_expect("floor light path permits reconfiguration", _scene_errors(instance).is_empty())
+	instance.free()
+
 	instance = packed.instantiate()
 	var monitor := instance.find_child("监控渲染系统", true, false)
 	camera = monitor.get_node(monitor.get("monitor_camera_path"))

@@ -79,35 +79,35 @@ front_right_layer_path = NodePath("前景右层")
 
 [node name="远景层" type="MeshInstance3D" parent="." unique_id=1761273550]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, -3.45)
-layers = 2
+layers = 4
 mesh = SubResource("QuadMesh_bhunq")
 
 [node name="主背景层" type="MeshInstance3D" parent="." unique_id=1006276619]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, -3.1)
-layers = 2
+layers = 4
 mesh = SubResource("QuadMesh_sn0t7")
 
 [node name="中景左层" type="MeshInstance3D" parent="." unique_id=329589830]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.92, 0.78, -2.05)
-layers = 2
+layers = 4
 mesh = SubResource("QuadMesh_qr0ht")
 
 [node name="中景右层" type="MeshInstance3D" parent="." unique_id=2001211470]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 0.58, -1.65)
-layers = 2
+layers = 4
 mesh = SubResource("QuadMesh_2r0jt")
 
 [node name="地面贴片层" type="MeshInstance3D" parent="." unique_id=1295376473]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.012, -1.55)
-layers = 2
+layers = 4
 mesh = SubResource("QuadMesh_rkt6e")
 
 [node name="前景左层" type="MeshInstance3D" parent="." unique_id=1322745653]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.16, 1.15, -0.38)
-layers = 2
+layers = 4
 mesh = SubResource("QuadMesh_jyycw")
 
 [node name="前景右层" type="MeshInstance3D" parent="." unique_id=1463316320]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.18, 0.82, -0.52)
-layers = 2
+layers = 4
 mesh = SubResource("QuadMesh_78ykq")

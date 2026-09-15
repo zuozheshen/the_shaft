@@ -109,6 +109,8 @@ godot.cmd --headless --path . --scene res://tests/project_check_runner.tscn -- -
 - 三个操作台继续通过 `DemoFlowManager` 的兼容 API 接入。
 - 源码边界检查确保主台和右台不再组合被禁止的低级状态写入。
 - 监控摄影棚挂载、分层楼层、纸片乘客、独立双开门及乘客登/离舱表现时间线。
+- 楼层视觉 Profile 与正式 Catalog/场景配置对应；前导零、重复/空配置、setup、实际到站先视觉后乘客、七层完整覆盖、fallback 与多层往返。
+- Profile 切换保留门动画、乘客 Profile 与登/离舱 Tween；CAM 切换不重置楼层，门外灯倍率不累积且受光层与舱内/乘客隔离。Scene Contract 检查门外灯导出路径和楼层公共 API。
 
 旧基线仍会实例化三个独立 UI 组件确认 `DemoFlowManager` 注入兼容性；命令专项测试
 不会实例化正式 3D 操作台或 Dialogue Manager，也不会复制对话内容或伪装成完整
@@ -132,4 +134,7 @@ godot.cmd --headless --path . --scene res://tests/project_check_runner.tscn -- -
    Output 不应新增解析、缺节点、重复 Manager 或连接错误。无需编辑节点。
 
 Headless 使用无画面驱动，不能证明 D3D12 画面、焦点、字体、音频或体验节奏正确。
+楼层视觉还需人工确认：启动 CAM 02 与实际楼层一致，900→612→900→004→387
+只在抵达后切换，FLOOR 004 编号完整，回访无纹理/显隐/色调残留；
+接乘层先显示正确背景再出现乘客，门与乘客动画连续，CAM 01 舱内照明不受影响。
 已有材质可能报告 triplanar / height mapping Warning；查看具体日志，不自动改美术来消除它。
