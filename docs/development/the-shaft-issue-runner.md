@@ -55,3 +55,25 @@ REVIEW 写回当前 Issue，包含：实际文件和行为、相对 base 的 dif
 
 只有本地 commit 时明确“未 push”，不伪造远端链接。默认不自主 push、merge 或改写历史；
 用户决定体验验收、最终整合和发布。开发日志/飞书同步不由本路由自动触发。
+
+## Post-integration cleanup
+
+清理不是 merge 的隐式副作用：push/merge、删除 worktree、删除本地分支是三个独立动作。
+REVIEW 的停止点不变；只有用户授权整合且整合成功后，才进入本阶段：
+
+1. 记录目标 commit 的完整 SHA，以 `git merge-base --is-ancestor <target-commit> main` 退出码为 0
+   证明 `main` 已包含它，并核实 `main` / `origin/main` 的实际状态。
+2. 用 `git worktree list --porcelain` 核实目标绝对路径、关联分支和 `locked` 状态，排除主工作区及
+   不相关 worktree；用 `git -C "<path>" status --porcelain=v1 --untracked-files=all` 确认没有修改或未跟踪内容。
+3. 检查通过后执行 `git worktree remove "<明确的-worktree-绝对路径>"`；不得默认使用 `--force`。
+   仅当 worktree 已实际不存在而 Git 残留陈旧元数据时才使用 `git worktree prune`，不把它作为常规删除命令。
+4. worktree 已移除且分支完整合入 `main` 后，执行 `git branch -d dev/<issue-number>-<short-name>`；
+   不使用 `-D` 绕过未合并或仍被 worktree 占用的保护。
+
+路径不存在或归属不明、目标是主工作区或其他 Issue worktree、dirty/untracked、locked、目标 commit
+未进入 `main`，或任一安全删除命令失败时，立即停止并报告；不自动 stash/reset/强删。默认只删除
+本地开发分支；远端分支删除必须获得针对该远端分支的单独明确授权。
+
+清理后至少运行 `git worktree list` 和 `git branch --list "dev/<issue-number>-<short-name>"`，并回写
+`main` / `origin/main` 状态、worktree 与本地分支是否已删除、远端分支保留或获授权删除的状态；
+未完成时列出具体阻塞原因及仍保留的路径和分支。

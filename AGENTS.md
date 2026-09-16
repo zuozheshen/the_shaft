@@ -49,6 +49,8 @@ GitHub Issue 是动态任务的唯一真相源；`PROJECT_STATE.md` 只记录慢
 - 保留用户未提交改动，不自动 stash，不为方便而 checkout/reset 覆盖，不在无关 checkout 直接开发。
 - 允许在计划通过风险门后创建仅含当前 Issue 的本地 commit；显式逐文件暂存并审查 staged diff。
 - 不自主 push、merge、force-push、删除远端分支或修改权限；不未经授权 reset/rebase 改写共享历史。
+- REVIEW 仍停在 push/merge 前；整合、删除 worktree 和删除本地分支是独立动作。只有用户授权整合且成功、
+  `main` 已包含目标 commit、目标外部 worktree 归属明确且 clean 后，才安全移除 worktree 和已合并的本地分支；删除远端分支须另行明确授权。
 - 不提交 `.godot/`、导出产物、临时日志、缓存或编辑器备份。
 
 ## 风险门
