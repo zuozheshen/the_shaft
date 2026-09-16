@@ -7,6 +7,7 @@ extends Node3D
 @export var sub_viewport_path: NodePath = ^"左台界面视口"
 @export var player_camera_path: NodePath
 @export var view_controller_path: NodePath
+@export var comm_view_path: NodePath
 @export_flags_3d_physics var interaction_collision_mask: int = 1 << 7
 @export_range(1.0, 50.0, 0.5) var ray_length: float = 10.0
 
@@ -17,9 +18,12 @@ var _player_camera: Camera3D
 var _view_controller: CabinViewController3D
 var _pointer_inside: bool = false
 var _last_viewport_position: Vector2 = Vector2.ZERO
+var _comm_view: FloatingCommUI
+var _forwarded_buttons: Array[int] = []
 
 
 func _ready() -> void:
+	_comm_view = get_node_or_null(comm_view_path) as FloatingCommUI
 	_screen_mesh = _get_required_node(screen_mesh_path, "MeshInstance3D") as MeshInstance3D
 	_interaction_area = _get_required_node(interaction_area_path, "Area3D") as Area3D
 	_sub_viewport = _get_required_node(sub_viewport_path, "SubViewport") as SubViewport
@@ -46,6 +50,11 @@ func _exit_tree() -> void:
 
 func _input(event: InputEvent) -> void:
 	if not event is InputEventMouse:
+		return
+	# COMM 在所有朝向可见；当前矩形/拖动拥有鼠标时，留给 GUI 消费。
+	if is_instance_valid(_comm_view) and _comm_view.blocks_pointer(event.position):
+		_release_forwarded_buttons()
+		_clear_sub_viewport_hover()
 		return
 	if not _can_forward_input():
 		_clear_sub_viewport_hover()
@@ -120,10 +129,28 @@ func _get_viewport_position(mouse_position: Vector2) -> Vector2:
 func _forward_mouse_event(source_event: InputEvent, viewport_position: Vector2) -> void:
 	if _sub_viewport == null:
 		return
+	if source_event is InputEventMouseButton:
+		var index: int = source_event.button_index
+		if source_event.pressed:
+			if index not in _forwarded_buttons and index in [
+				MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT, MOUSE_BUTTON_MIDDLE,
+			]:
+				_forwarded_buttons.append(index)
+		else:
+			_forwarded_buttons.erase(index)
 	var forwarded_event := source_event.duplicate() as InputEventMouse
 	forwarded_event.position = viewport_position
 	forwarded_event.global_position = viewport_position
 	_sub_viewport.push_input(forwarded_event, true)
+
+
+func _release_forwarded_buttons() -> void:
+	# 按下发生在左台、释放发生在浮窗时，屏幕外释放清掉旧 pressed，不能点击旧按钮。
+	for index in _forwarded_buttons.duplicate():
+		var release := InputEventMouseButton.new()
+		release.button_index = index
+		release.pressed = false
+		_forward_mouse_event(release, Vector2(-1.0, -1.0))
 
 
 func _clear_sub_viewport_hover() -> void:
@@ -138,6 +165,7 @@ func _clear_sub_viewport_hover() -> void:
 
 
 func _on_turn_started(_direction: int, _direction_name: String) -> void:
+	_release_forwarded_buttons()
 	_clear_sub_viewport_hover()
 
 

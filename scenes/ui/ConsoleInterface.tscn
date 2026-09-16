@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://dfohd0vych4js" path="res://scripts/ui/console_interface.gd" id="1_console"]
 
+[ext_resource type="PackedScene" path="res://scenes/ui/FloatingCommUI.tscn" id="2_comm"]
+
 [node name="ConsoleInterface" type="Control" unique_id=1275362082]
 layout_mode = 3
 anchors_preset = 15
@@ -96,10 +98,6 @@ stretch_mode = 5
 layout_mode = 2
 text = "画面占位：乘客站在舱内。面部、衣物、证件和说话状态等待接入。"
 
-[node name="PassengerSpeechLabel" type="Label" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel/MonitorScreenLayout" unique_id=1893869011]
-layout_mode = 2
-text = "乘客舱音频链路待机。"
-
 [node name="CameraControlPanel" type="HBoxContainer" parent="ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout" unique_id=991917607]
 layout_mode = 2
 theme_override_constants/separation = 12
@@ -126,33 +124,6 @@ text = "麦克风：关闭"
 [node name="TalkButton" type="Button" parent="ConsoleLayout/IntercomPanel/IntercomLayout" unique_id=1790369420]
 layout_mode = 2
 text = "开启麦克风"
-
-[node name="DialogueChoicePanel" type="PanelContainer" parent="ConsoleLayout" unique_id=46969884]
-visible = false
-layout_mode = 2
-
-[node name="DialogueChoiceLayout" type="VBoxContainer" parent="ConsoleLayout/DialogueChoicePanel" unique_id=329187922]
-layout_mode = 2
-
-[node name="DialoguePromptLabel" type="Label" parent="ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout" unique_id=183330977]
-layout_mode = 2
-text = "选择对乘客的回应："
-
-[node name="DialogueChoiceButton1" type="Button" parent="ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout" unique_id=2143273934]
-layout_mode = 2
-text = "下面是哪一层？"
-
-[node name="DialogueChoiceButton2" type="Button" parent="ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout" unique_id=548388362]
-layout_mode = 2
-text = "你的申请记录显示目标是 900 层。"
-
-[node name="DialogueChoiceButton3" type="Button" parent="ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout" unique_id=1259269779]
-layout_mode = 2
-text = "你看起来不想去系统给你的地方。"
-
-[node name="DialogueChoiceButton4" type="Button" parent="ConsoleLayout/DialogueChoicePanel/DialogueChoiceLayout" unique_id=548381073]
-layout_mode = 2
-text = "先留在舱内，等我确认路线。"
 
 [node name="DispatchPanel" type="VBoxContainer" parent="ConsoleLayout" unique_id=1696309809]
 unique_name_in_owner = true
@@ -196,3 +167,28 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 text = "返回（S / Esc）"
+
+[node name="FloatingCommUI" parent="." instance=ExtResource("2_comm")]
+
+[node name="RejectionToast" type="Label" parent="."]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -330.0
+offset_top = -90.0
+offset_right = 330.0
+offset_bottom = -30.0
+mouse_filter = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ToastTimer" type="Timer" parent="."]
+wait_time = 3.0
+one_shot = true

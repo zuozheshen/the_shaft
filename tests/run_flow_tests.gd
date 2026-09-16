@@ -1,5 +1,7 @@
 extends Node
 
+const MainConsoleTests := preload("res://tests/ui/main_console_tests.gd")
+
 
 const DispatchPhaseTests := preload("res://tests/flow/dispatch_phase_tests.gd")
 const DemoFlowManagerTests := preload("res://tests/flow/demo_flow_manager_tests.gd")
@@ -93,6 +95,8 @@ func _run() -> void:
 
 	var monitor_passenger_timeline_tests := MonitorPassengerTimelineTests.new()
 	await monitor_passenger_timeline_tests.run(self, get_tree())
+
+	await MainConsoleTests.new().run(self, get_tree())
 
 	print("=== 测试汇总：通过 %d，失败 %d ===" % [passed_count, failed_count])
 	get_tree().quit(0 if failed_count == 0 else 1)

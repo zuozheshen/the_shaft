@@ -73,7 +73,7 @@ func is_main_console_visible() -> bool:
 
 
 func _configure_embedded_interfaces() -> void:
-	# 三个实例一直留在场景树中；LEFT 始终渲染，主台和右台仍沿用覆盖层。
+	# 三个业务实例常驻；COMM 位于独立全局容器，转向只隐藏站位面板。
 	if _main_interface != null:
 		_main_interface.set_embedded_3d_mode(true)
 		_main_interface.show()
@@ -86,7 +86,7 @@ func _configure_embedded_interfaces() -> void:
 
 
 func _on_turn_started(_direction: int, _direction_name: String) -> void:
-	# UI 必须在 Tween 开始的同一帧消失，让玩家看见完整的 3D 转身过程。
+	# 站位面板在转身时隐藏；全局通讯窗不参与这个显隐操作。
 	_hide_all_interfaces()
 
 
@@ -135,7 +135,8 @@ func _set_container_enabled(container: Control, is_enabled: bool) -> void:
 
 func _set_main_console_enabled(is_enabled: bool) -> void:
 	var effective_visibility: bool = is_enabled and _main_container != null
-	_set_container_enabled(_main_container, effective_visibility)
+	# 旧主台面板不再显示；此信号只给监控渲染报告主台朝向。
+	_set_container_enabled(_main_container, false)
 	if _is_main_console_visible == effective_visibility:
 		return
 	_is_main_console_visible = effective_visibility

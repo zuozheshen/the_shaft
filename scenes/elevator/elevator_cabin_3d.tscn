@@ -38,6 +38,8 @@
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_547_visual.tres" id="50_floor_547"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_fallback_visual.tres" id="50_floor_fallback"]
 
+[ext_resource type="Script" path="res://scripts/presentation/main_console_presentation_3d.gd" id="52_presentation"]
+
 [sub_resource type="ORMMaterial3D" id="ORMMaterial3D_cymdg"]
 albedo_texture = ExtResource("2_k80hx")
 orm_texture = ExtResource("5_1mpkw")
@@ -152,6 +154,184 @@ shader_parameter/gamma = Vector2(0.99, 0.91)
 material = SubResource("ShaderMaterial_riqys")
 flip_faces = true
 size = Vector2(2, 2)
+
+[sub_resource type="StandardMaterial3D" id="52_dark"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.045, 0.055, 0.065, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_cap"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.15, 0.19, 0.20, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_selected"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.12, 0.40, 0.36, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_hover"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.25, 0.7, 0.58, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_comm"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.2, 0.8, 0.5, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_closed"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.19, 0.25, 0.24, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_moving"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.9, 0.5, 0.09, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_open"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.12, 0.7, 0.26, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_fault"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.85, 0.08, 0.045, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_screen"]
+resource_local_to_scene = true
+shading_mode = 0
+texture_filter = 0
+
+[sub_resource type="StandardMaterial3D" id="52_cam01_dark"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.045, 0.055, 0.065, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_cam02_dark"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.045, 0.055, 0.065, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_cam02_cap_material"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.15, 0.19, 0.20, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_cam02_selected_material"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.12, 0.40, 0.36, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_cam02_hover_material"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.25, 0.7, 0.58, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_comm_housing_material"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.045, 0.055, 0.065, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_door_housing_material"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.045, 0.055, 0.065, 1)
+
+[sub_resource type="StandardMaterial3D" id="52_fault_housing_material"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.045, 0.055, 0.065, 1)
+
+[sub_resource type="QuadMesh" id="52_screen_quad"]
+size = Vector2(1.66, 0.93375)
+
+[sub_resource type="BoxMesh" id="52_status_box"]
+size = Vector3(2.3, 0.14, 0.028)
+
+[sub_resource type="BoxShape3D" id="52_cam01_shape"]
+size = Vector3(0.22, 0.07, 0.22)
+
+[sub_resource type="BoxMesh" id="52_cam01_base"]
+resource_local_to_scene = true
+material = SubResource("52_cam01_dark")
+size = Vector3(0.23, 0.04, 0.23)
+
+[sub_resource type="BoxMesh" id="52_cam01_cap"]
+resource_local_to_scene = true
+material = SubResource("52_cap")
+size = Vector3(0.18, 0.045, 0.17)
+
+[sub_resource type="BoxMesh" id="52_cam01_selected"]
+resource_local_to_scene = true
+material = SubResource("52_selected")
+size = Vector3(0.19, 0.01, 0.025)
+
+[sub_resource type="BoxMesh" id="52_cam01_hover"]
+resource_local_to_scene = true
+material = SubResource("52_hover")
+size = Vector3(0.25, 0.012, 0.25)
+
+[sub_resource type="BoxShape3D" id="52_cam02_shape"]
+size = Vector3(0.22, 0.07, 0.22)
+
+[sub_resource type="BoxMesh" id="52_cam02_base"]
+resource_local_to_scene = true
+material = SubResource("52_cam02_dark")
+size = Vector3(0.23, 0.04, 0.23)
+
+[sub_resource type="BoxMesh" id="52_cam02_cap"]
+resource_local_to_scene = true
+material = SubResource("52_cam02_cap_material")
+size = Vector3(0.18, 0.045, 0.17)
+
+[sub_resource type="BoxMesh" id="52_cam02_selected"]
+resource_local_to_scene = true
+material = SubResource("52_cam02_selected_material")
+size = Vector3(0.19, 0.01, 0.025)
+
+[sub_resource type="BoxMesh" id="52_cam02_hover"]
+resource_local_to_scene = true
+material = SubResource("52_cam02_hover_material")
+size = Vector3(0.25, 0.012, 0.25)
+
+[sub_resource type="CylinderMesh" id="52_comm_housing"]
+resource_local_to_scene = true
+top_radius = 0.033
+bottom_radius = 0.033
+height = 0.02
+
+[sub_resource type="CylinderMesh" id="52_comm_lens"]
+resource_local_to_scene = true
+top_radius = 0.023
+bottom_radius = 0.023
+height = 0.024
+
+[sub_resource type="CylinderMesh" id="52_door_housing"]
+resource_local_to_scene = true
+top_radius = 0.033
+bottom_radius = 0.033
+height = 0.02
+
+[sub_resource type="CylinderMesh" id="52_door_lens"]
+resource_local_to_scene = true
+top_radius = 0.023
+bottom_radius = 0.023
+height = 0.024
+
+[sub_resource type="CylinderMesh" id="52_fault_housing"]
+resource_local_to_scene = true
+top_radius = 0.033
+bottom_radius = 0.033
+height = 0.02
+
+[sub_resource type="CylinderMesh" id="52_fault_lens"]
+resource_local_to_scene = true
+top_radius = 0.023
+bottom_radius = 0.023
+height = 0.024
 
 [node name="三维操作舱" type="Node3D" unique_id=699471354]
 script = ExtResource("1_wegik")
@@ -293,10 +473,196 @@ transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, 0.013560355, -0.
 visible = false
 mesh = SubResource("BoxMesh_efn7a")
 
+[node name="主监视器" type="MeshInstance3D" parent="操作台占位/主操作台定位"]
+position = Vector3(0, 1.69087, -1.529)
+mesh = SubResource("52_screen_quad")
+material_override = SubResource("52_screen")
+
+[node name="设备状态条" type="Node3D" parent="操作台占位/主操作台定位"]
+position = Vector3(0, 1.105, -1.51)
+
+[node name="背景" type="MeshInstance3D" parent="操作台占位/主操作台定位/设备状态条"]
+mesh = SubResource("52_status_box")
+material_override = SubResource("52_dark")
+
+[node name="状态文字" type="Label3D" parent="操作台占位/主操作台定位/设备状态条"]
+position = Vector3(0, 0, 0.019)
+pixel_size = 0.0018
+font_size = 28
+outline_size = 3
+text = "CASE — · 值班待命"
+modulate = Color(0.65, 0.86, 0.79, 1)
+
+[node name="CAM01热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点"]
+position = Vector3(-0.37, 0.94, -1.35)
+rotation = Vector3(-0.76, 0, 0)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"select_camera_01"
+prompt_text = "CAM 01"
+hover_visual_path = NodePath("视觉/悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/CAM01热点"]
+shape = SubResource("52_cam01_shape")
+
+[node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/CAM01热点"]
+
+
+[node name="底座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM01热点/视觉"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("52_cam01_base")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM01热点/视觉"]
+position = Vector3(0, 0.035, 0)
+mesh = SubResource("52_cam01_cap")
+
+[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM01热点/视觉"]
+position = Vector3(0, 0.06, 0.07)
+mesh = SubResource("52_cam01_selected")
+visible = false
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM01热点/视觉"]
+position = Vector3(0, -0.007, 0)
+mesh = SubResource("52_cam01_hover")
+visible = false
+
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/CAM01热点/视觉"]
+position = Vector3(0, 0.061, -0.015)
+rotation = Vector3(-1.5707963, 0, 0)
+pixel_size = 0.0014
+font_size = 25
+text = "CAM 01"
+
+[node name="CAM02热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点"]
+position = Vector3(-0.08, 0.94, -1.35)
+rotation = Vector3(-0.76, 0, 0)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"select_camera_02"
+prompt_text = "CAM 02"
+hover_visual_path = NodePath("视觉/悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/CAM02热点"]
+shape = SubResource("52_cam02_shape")
+
+[node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/CAM02热点"]
+
+
+[node name="底座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM02热点/视觉"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("52_cam02_base")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM02热点/视觉"]
+position = Vector3(0, 0.035, 0)
+mesh = SubResource("52_cam02_cap")
+
+[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM02热点/视觉"]
+position = Vector3(0, 0.06, 0.07)
+mesh = SubResource("52_cam02_selected")
+visible = false
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM02热点/视觉"]
+position = Vector3(0, -0.007, 0)
+mesh = SubResource("52_cam02_hover")
+visible = false
+
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/CAM02热点/视觉"]
+position = Vector3(0, 0.061, -0.015)
+rotation = Vector3(-1.5707963, 0, 0)
+pixel_size = 0.0014
+font_size = 25
+text = "CAM 02"
+
+[node name="COMM指示灯" type="Node3D" parent="操作台占位/主操作台定位"]
+position = Vector3(-0.93, 1.005, -1.32)
+rotation = Vector3(-0.76, 0, 0)
+
+[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/COMM指示灯"]
+mesh = SubResource("52_comm_housing")
+material_override = SubResource("52_comm_housing_material")
+
+[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/COMM指示灯"]
+position = Vector3(0, 0.011, 0)
+mesh = SubResource("52_comm_lens")
+material_override = SubResource("52_comm")
+visible = false
+
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/COMM指示灯"]
+position = Vector3(0, 0.015, 0.064)
+rotation = Vector3(-1.5707963, 0, 0)
+pixel_size = 0.0014
+font_size = 24
+text = "COMM"
+
+[node name="DOOR指示灯" type="Node3D" parent="操作台占位/主操作台定位"]
+position = Vector3(0.35, 1.005, -1.6)
+rotation = Vector3(-0.76, 0, 0)
+
+[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/DOOR指示灯"]
+mesh = SubResource("52_door_housing")
+material_override = SubResource("52_door_housing_material")
+
+[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/DOOR指示灯"]
+position = Vector3(0, 0.011, 0)
+mesh = SubResource("52_door_lens")
+material_override = SubResource("52_closed")
+
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/DOOR指示灯"]
+position = Vector3(0, 0.015, 0.064)
+rotation = Vector3(-1.5707963, 0, 0)
+pixel_size = 0.0014
+font_size = 24
+text = "DOOR"
+
+[node name="FAULT指示灯" type="Node3D" parent="操作台占位/主操作台定位"]
+position = Vector3(1.03, 1.005, -1.42)
+rotation = Vector3(-0.76, 0, 0)
+
+[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/FAULT指示灯"]
+mesh = SubResource("52_fault_housing")
+material_override = SubResource("52_fault_housing_material")
+
+[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/FAULT指示灯"]
+position = Vector3(0, 0.011, 0)
+mesh = SubResource("52_fault_lens")
+material_override = SubResource("52_fault")
+visible = false
+
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/FAULT指示灯"]
+position = Vector3(0, 0.015, 0.064)
+rotation = Vector3(-1.5707963, 0, 0)
+pixel_size = 0.0014
+font_size = 24
+text = "FAULT"
+
+[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点"]
+position = Vector3(0, 0.14, 0.065)
+rotation = Vector3(-1.5707963, 0, 0)
+pixel_size = 0.002
+font_size = 28
+text = "MIC"
+
+[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点"]
+position = Vector3(0, 0.14, 0.065)
+rotation = Vector3(-1.5707963, 0, 0)
+pixel_size = 0.002
+font_size = 28
+text = "OPEN"
+
+[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点"]
+position = Vector3(0, 0.14, 0.065)
+rotation = Vector3(-1.5707963, 0, 0)
+pixel_size = 0.002
+font_size = 28
+text = "CLOSE"
+
 [node name="左操作台定位" type="Node3D" parent="操作台占位" unique_id=1852062320]
 script = ExtResource("10_left_screen")
 player_camera_path = NodePath("../../玩家视角/摄像机旋转轴/玩家摄像机")
 view_controller_path = NodePath("../..")
+comm_view_path = NodePath("../../操作台界面层/操作台界面根/全局通讯容器/ConsoleInterface/FloatingCommUI")
 
 [node name="左台背板" type="CSGBox3D" parent="操作台占位/左操作台定位" unique_id=1923443643]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.64, 1.3555053, 0)
@@ -384,7 +750,7 @@ mesh = SubResource("QuadMesh_bhunq")
 script = ExtResource("9_interaction")
 player_camera_path = NodePath("../玩家视角/摄像机旋转轴/玩家摄像机")
 view_controller_path = NodePath("..")
-console_interface_path = NodePath("../操作台界面层/操作台界面根/主操作台界面容器/ConsoleInterface")
+console_interface_path = NodePath("../操作台界面层/操作台界面根/全局通讯容器/ConsoleInterface")
 interaction_hint_label_path = NodePath("../调试界面/操作提示文本")
 
 [node name="观察方向" type="Node3D" parent="." unique_id=1741820516]
@@ -439,9 +805,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="ConsoleInterface" parent="操作台界面层/操作台界面根/主操作台界面容器" unique_id=1275362082 instance=ExtResource("2_laov4")]
-layout_mode = 1
-
 [node name="右操作台界面容器" type="Control" parent="操作台界面层/操作台界面根" unique_id=864153351]
 visible = false
 clip_contents = true
@@ -456,6 +819,19 @@ mouse_filter = 2
 
 [node name="DestinationControlInterface" parent="操作台界面层/操作台界面根/右操作台界面容器" unique_id=1185287254 instance=ExtResource("4_rx0mt")]
 layout_mode = 1
+
+[node name="全局通讯容器" type="Control" parent="操作台界面层/操作台界面根"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ConsoleInterface" parent="操作台界面层/操作台界面根/全局通讯容器" instance=ExtResource("2_laov4")]
+layout_mode = 1
+mouse_filter = 2
 
 [node name="门区提示" type="Label" parent="操作台界面层" unique_id=308266697]
 visible = false
@@ -495,3 +871,19 @@ cull_mask = 6
 current = true
 fov = 60.0
 far = 30.0
+
+[node name="主台展示绑定" type="Node" parent="."]
+script = ExtResource("52_presentation")
+console_interface_path = NodePath("../操作台界面层/操作台界面根/全局通讯容器/ConsoleInterface")
+stage_controller_path = NodePath("../监控摄影棚定位/监控测试摄影棚")
+monitor_subviewport_path = NodePath("../监控渲染系统/监控视口")
+screen_mesh_path = NodePath("../操作台占位/主操作台定位/主监视器")
+cam_01_backlight_path = NodePath("../操作台占位/主操作台定位/主台交互热点/CAM01热点/视觉/选中背光")
+cam_02_backlight_path = NodePath("../操作台占位/主操作台定位/主台交互热点/CAM02热点/视觉/选中背光")
+comm_light_path = NodePath("../操作台占位/主操作台定位/COMM指示灯/灯面")
+door_light_path = NodePath("../操作台占位/主操作台定位/DOOR指示灯/灯面")
+fault_light_path = NodePath("../操作台占位/主操作台定位/FAULT指示灯/灯面")
+status_label_path = NodePath("../操作台占位/主操作台定位/设备状态条/状态文字")
+door_closed_material = SubResource("52_closed")
+door_moving_material = SubResource("52_moving")
+door_open_material = SubResource("52_open")

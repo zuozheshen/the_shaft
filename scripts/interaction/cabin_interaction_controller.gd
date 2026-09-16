@@ -4,6 +4,8 @@ extends Node
 
 const OPEN_MICROPHONE_ACTION: StringName = &"open_microphone"
 const OPEN_DOOR_ACTION: StringName = &"open_door"
+const CAM_01_ACTION: StringName = &"select_camera_01"
+const CAM_02_ACTION: StringName = &"select_camera_02"
 const CLOSE_DOOR_ACTION: StringName = &"close_door"
 
 
@@ -163,6 +165,9 @@ func _execute_action(action_id: StringName) -> void:
 		OPEN_DOOR_ACTION:
 			if _console_interface != null:
 				_console_interface.request_open_door()
+		CAM_01_ACTION, CAM_02_ACTION:
+			if _console_interface != null:
+				_console_interface.request_select_camera(0 if action_id == CAM_01_ACTION else 1)
 		CLOSE_DOOR_ACTION:
 			if _console_interface != null:
 				_console_interface.request_close_door()

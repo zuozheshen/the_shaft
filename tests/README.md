@@ -39,8 +39,8 @@ Godot 4.7 在编辑器首次扫描 UID 缓存前可能对 project.godot 当前�
 
 ## Scene Contract Validator v1
 
-`project_check_runner.tscn` 是独立的最小结构宿主，按已批准约束保持既有
-`run_flow_tests.gd` 不变。它只加载脚本、调用 Validator 和自测，不另建业务或通用测试框架。
+`project_check_runner.tscn` 是独立的最小结构宿主；`run_flow_tests.gd` 继续用
+既有 preload + run 模式注册功能测试。结构宿主只加载脚本、调用 Validator 和自测，不另建业务或通用测试框架。
 显式加载 scripts/tests/addons 的 GDScript，检查未被主场景触及的脚本编译。
 
 `structure/scene_contract_validator.gd` 从实际 project.godot、正式 PackedScene 和脚本检查：
@@ -51,8 +51,9 @@ Godot 4.7 在编辑器首次扫描 UID 缓存前可能对 project.godot 当前�
 - 视角、交互、左台屏幕与监控 controller 的固定/导出 NodePath、目标类型。
 - 摄影棚的楼层/乘客 mount、门和机位引用；乘客/楼层实例应位于负责移动/替换的 mount 下。
 - 门脚本直接引用的三个动画名称、公共方法和信号。
+- 主台展示绑定、全局通讯窗和左台输入避让的路径、类型、方法及信号；关键实例唯一性。
 
-覆盖主场景、运行层、操作舱、三个 UI、摄影棚、门、乘客、楼层切片共 10 个正式场景。
+覆盖主场景、运行层、操作舱、三个操作台 UI、通讯窗、摄影棚、门、乘客、楼层切片共 11 个正式场景。
 实例不加入 SceneTree，不调用业务 setup/getter/_ready。诊断包含场景路径、节点/属性、预期和实际。
 固定路径来自代码，导出路径允许重新配置，Router 查询不固定多余的中间容器。
 不读取 PROJECT_STATE 作为测试配置；不固定装饰、坐标、尺寸、颜色、材质或完整动画轨道。
@@ -81,7 +82,7 @@ godot.cmd --headless --path . --scene res://tests/project_check_runner.tscn -- -
 全量入口会另行启动正式 3D 主场景做有限帧 smoke。
 
 测试使用最小的 `tests/flow_test_runner.tscn`，让项目 Autoload 在流程脚本编译前
-完成注册；该场景只挂载测试运行器，不实例化或修改正式主场景。
+完成注册；该场景只挂载测试运行器。主台专项会在内存实例化正式主场景，不改写磁盘场景和内容。
 
 ## 覆盖范围
 
@@ -111,18 +112,21 @@ godot.cmd --headless --path . --scene res://tests/project_check_runner.tscn -- -
 - 监控摄影棚挂载、分层楼层、纸片乘客、独立双开门及乘客登/离舱表现时间线。
 - 楼层视觉 Profile 与正式 Catalog/场景配置对应；前导零、重复/空配置、setup、实际到站先视觉后乘客、七层完整覆盖、fallback 与多层往返。
 - Profile 切换保留门动画、乘客 Profile 与登/离舱 Tween；CAM 切换不重置楼层，门外灯倍率不累积且受光层与舱内/乘客隔离。Scene Contract 检查门外灯导出路径和楼层公共 API。
+- `ui/main_console_tests.gd` 使用正式 main_3d、原 DialogueManagerAdapter 与三单对白，验证五个热点射线/动作、原监控纹理和机位、CAM 背光、MIC/COMM、真实门四态、FAULT 默认熄灭及拒绝提示。
+- 全局通讯窗的四方向/转身保持、动态选项文本/顺序/允许状态与单次回调、最小化保留会话、拖动及缩放夹紧、左台输入避让与补齐释放、监控启停独立性。
+- 正式接线的三单接乘/询问/到站反馈/离舱结算、日志记录；CAM 切换保留门动画和乘客 Tween，状态刷新保留手调主屏 Transform/Mesh。
 
 旧基线仍会实例化三个独立 UI 组件确认 `DemoFlowManager` 注入兼容性；命令专项测试
-不会实例化正式 3D 操作台或 Dialogue Manager，也不会复制对话内容或伪装成完整
-按钮交互测试。正式操作台的视觉、焦点、摄像头、麦克风和 Dialogue 上下文仍需手动验收。
+不会实例化正式 3D 操作台或 Dialogue Manager。新增主台专项使用正式实例和原对白补充上述覆盖，
+不复制对话内容；测试仅在内存缩短等待时间。画面、真实鼠标手感和体验节奏仍需手动验收。
 
 既有运行器逐项输出测试名称和 `PASS` / `FAIL`，最后输出通过数与失败数；
 统一入口将详细输出留在 existing-tests.log，控制台展示汇总。
 
 ## 已知限制与手动验证
 
-自动测试不实例化正式 3D 操作台和 Dialogue Manager 对话，因此仍需在 Godot 4.7
-中运行 `scenes/main/main_3d.tscn`，手动确认：
+自动测试已覆盖正式操作台与 Dialogue 会话的指定行为；仍需在 Godot 4.7
+中运行 `scenes/main/main_3d.tscn`，手动确认画面与完整操作体验：
 
 1. 到达接乘楼层后，无需门外通话也能直接开门接乘。
 2. 摄像头切换不会限制麦克风开关。
@@ -132,6 +136,10 @@ godot.cmd --headless --path . --scene res://tests/project_check_runner.tscn -- -
 6. 玩家可见文案、摄像头文本和乘客对白保持不变。
 7. Q/E 转向、左台屏幕点击、主台两机位、门动画及乘客进出保持可用；
    Output 不应新增解析、缺节点、重复 Manager 或连接错误。无需编辑节点。
+8. 纯监控画面、五个实体件、COMM/DOOR/FAULT 和窄状态条清晰可辨；通讯窗在左右台
+   重叠处点击/滚轮/拖动/释放不穿透，移开或收起后底层可用，转向不丢会话或位置。
+9. Inspector 调整主屏、CAM 碰撞/外形、三灯和状态条后，运行时仅更新纹理/状态，
+   不覆盖几何；分别调整 CAM 的材质不会连带改变另一按钮。
 
 Headless 使用无画面驱动，不能证明 D3D12 画面、焦点、字体、音频或体验节奏正确。
 楼层视觉还需人工确认：启动 CAM 02 与实际楼层一致，900→612→900→004→387

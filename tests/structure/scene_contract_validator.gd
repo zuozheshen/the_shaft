@@ -3,6 +3,8 @@ extends RefCounted
 
 const MAIN_SCENE := "res://scenes/main/main_3d.tscn"
 const SCRIPTS := {
+	"FloatingCommUI": "res://scripts/ui/floating_comm_ui.gd",
+	"MainConsolePresentation3D": "res://scripts/presentation/main_console_presentation_3d.gd",
 	"GameRuntime": "res://scripts/runtime/game_runtime.gd",
 	"DemoFlowManager": "res://scripts/flow/demo_flow_manager.gd",
 	"RuntimeConnector3D": "res://scripts/runtime/runtime_connector_3d.gd",
@@ -21,6 +23,7 @@ const SCRIPTS := {
 	"LayeredFloorSlice25D": "res://scripts/presentation/layered_floor_slice_2_5d.gd",
 }
 const SCENES := {
+	"res://scenes/ui/FloatingCommUI.tscn": "FloatingCommUI",
 	MAIN_SCENE: "Node",
 	"res://scenes/runtime/game_runtime.tscn": "GameRuntime",
 	"res://scenes/elevator/elevator_cabin_3d.tscn": "CabinViewController3D",
@@ -39,9 +42,16 @@ const AUTOLOADS := {
 
 # 导出路径允许重新配置和移动节点；只要求目标能解析且类型正确。
 const EXPORTED_PATHS := {
+	"MainConsolePresentation3D": {
+		"console_interface_path": "ConsoleInterface", "stage_controller_path": "MonitorStageController3D",
+		"monitor_subviewport_path": "SubViewport", "screen_mesh_path": "MeshInstance3D",
+		"cam_01_backlight_path": "Node3D", "cam_02_backlight_path": "Node3D",
+		"comm_light_path": "Node3D", "door_light_path": "MeshInstance3D",
+		"fault_light_path": "Node3D", "status_label_path": "Label3D",
+	},
 	"RuntimeConnector3D": {"game_runtime_path": "GameRuntime", "elevator_cabin_path": "CabinViewController3D"},
 	"CabinInteractionController3D": {"player_camera_path": "Camera3D", "view_controller_path": "CabinViewController3D", "console_interface_path": "ConsoleInterface", "interaction_hint_label_path": "Label"},
-	"LeftTerminalScreen3D": {"screen_mesh_path": "MeshInstance3D", "interaction_area_path": "Area3D", "sub_viewport_path": "SubViewport", "player_camera_path": "Camera3D", "view_controller_path": "CabinViewController3D"},
+	"LeftTerminalScreen3D": {"comm_view_path": "FloatingCommUI", "screen_mesh_path": "MeshInstance3D", "interaction_area_path": "Area3D", "sub_viewport_path": "SubViewport", "player_camera_path": "Camera3D", "view_controller_path": "CabinViewController3D"},
 	"MonitorCameraController3D": {"monitor_subviewport_path": "SubViewport", "monitor_camera_path": "Camera3D", "cabin_camera_anchor_path": "Marker3D", "door_camera_anchor_path": "Marker3D"},
 	"MonitorStageController3D": {
 		"floor_slice_mount_path": "Node3D", "initial_floor_slice_path": "LayeredFloorSlice25D", "floor_label_path": "Label3D",
@@ -55,11 +65,13 @@ const EXPORTED_PATHS := {
 	"LayeredFloorSlice25D": {"far_layer_path": "MeshInstance3D", "main_layer_path": "MeshInstance3D", "mid_left_layer_path": "MeshInstance3D", "mid_right_layer_path": "MeshInstance3D", "ground_layer_path": "MeshInstance3D", "front_left_layer_path": "MeshInstance3D", "front_right_layer_path": "MeshInstance3D"},
 }
 const METHODS := {
+	"FloatingCommUI": ["present", "set_minimized", "is_minimized", "blocks_pointer"],
+	"MainConsolePresentation3D": ["set_fault_active"],
 	"GameRuntime": ["get_demo_flow_manager"],
 	"RuntimeConnector3D": ["get_demo_flow_manager"],
 	"CabinViewController3D": ["get_current_direction", "is_turning"],
 	"CabinInterfaceRouter3D": ["get_main_interface", "get_left_interface", "get_right_interface", "is_main_console_visible"],
-	"ConsoleInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "set_camera_feed_texture", "get_current_camera_index", "request_open_door", "request_close_door"],
+	"ConsoleInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "set_camera_feed_texture", "get_current_camera_index", "request_open_door", "request_close_door", "request_toggle_microphone", "request_select_camera", "get_case_phase_display_text"],
 	"BuildingTerminalInterface": ["set_demo_flow_manager", "set_embedded_3d_mode"],
 	"DestinationControlInterface": ["set_demo_flow_manager", "set_embedded_3d_mode"],
 	"MonitorCameraController3D": ["setup", "select_camera"],
@@ -69,10 +81,11 @@ const METHODS := {
 	"ElevatorDoorVisual3D": ["request_open", "request_close", "is_busy", "snap_open", "snap_closed"],
 }
 const SIGNALS := {
+	"FloatingCommUI": ["choice_selected"],
 	"DemoFlowManager": ["case_updated", "dispatch_started", "dispatch_completed", "shift_completed", "elevator_movement_completed"],
 	"CabinViewController3D": ["turn_started", "facing_changed"],
 	"CabinInterfaceRouter3D": ["main_console_visibility_changed"],
-	"ConsoleInterface": ["camera_selected", "presentation_effects_requested", "return_requested"],
+	"ConsoleInterface": ["camera_selected", "mic_enabled_changed", "case_phase_display_changed", "presentation_effects_requested", "return_requested"],
 	"BuildingTerminalInterface": ["return_requested"],
 	"DestinationControlInterface": ["presentation_effects_requested", "return_requested"],
 	"MonitorPresentationCoordinator3D": ["presentation_busy_changed"],
@@ -192,6 +205,10 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 			_expect_named(node, "监控渲染系统", "MonitorCameraController3D")
 			_expect_named(node, "交互控制器", "CabinInteractionController3D")
 			_check_unique_script("LeftTerminalScreen3D")
+			_check_unique_script("ConsoleInterface")
+			_check_unique_script("FloatingCommUI")
+			_check_unique_script("MonitorCameraController3D")
+			_check_unique_script("MainConsolePresentation3D")
 		"CabinInterfaceRouter3D":
 			_expect(node, "..", "CabinViewController3D")
 			_expect(node, "门区提示", "Label")
@@ -199,7 +216,23 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 			_expect_named(node, "右操作台界面容器", "Control")
 			_expect_named(node, "ConsoleInterface", "ConsoleInterface")
 			_expect_named(node, "DestinationControlInterface", "DestinationControlInterface")
+		"FloatingCommUI":
+			_expect(node, "%PassengerSpeechLabel", "Label")
+			_expect(node, "%DialogueChoices", "VBoxContainer")
+			_expect(node, "%ContentScroll", "ScrollContainer")
+			_expect(node, "%TitleBar", "Control")
+			_expect(node, "%MinimizeButton", "Button")
+		"MainConsolePresentation3D":
+			for property: String in ["door_closed_material", "door_moving_material", "door_open_material"]:
+				if not node.get(property) is StandardMaterial3D:
+					_report(node, property, "StandardMaterial3D", "missing or wrong type")
+			var screen := node.get_node_or_null(node.get("screen_mesh_path")) as MeshInstance3D
+			if screen != null and not screen.material_override is StandardMaterial3D:
+				_report(node, "screen_mesh_path/material_override", "StandardMaterial3D", "missing or wrong type")
 		"ConsoleInterface":
+			_expect(node, "FloatingCommUI", "FloatingCommUI")
+			_expect(node, "RejectionToast", "Label")
+			_expect(node, "ToastTimer", "Timer")
 			_expect(node, "%OpenDoorButton", "Button")
 			_expect(node, "%CloseDoorButton", "Button")
 			_expect(node, "%CameraFeedTextureRect", "TextureRect")

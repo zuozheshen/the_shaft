@@ -102,17 +102,45 @@ func run() -> Array[String]:
 
 	instance = packed.instantiate()
 	var router := instance.find_child("操作台界面层", true, false)
-	var main_container := router.find_child("主操作台界面容器", true, false)
+	var comm_container := router.find_child("全局通讯容器", true, false)
 	var wrapper := Control.new()
 	wrapper.name = "可调整布局"
 	router.get_node("操作台界面根").add_child(wrapper)
-	# 交互控制器有独立导出路径，正常重组时必须同步该引用。
-	main_container.owner = null
-	main_container.reparent(wrapper, false)
+	# 真正移动唯一主台实例，并同步全部显式接线；不只移动空的兼容容器。
+	comm_container.owner = null
+	comm_container.reparent(wrapper, false)
 	var interaction := instance.find_child("交互控制器", true, false)
-	ui = main_container.find_child("ConsoleInterface", true, false)
+	ui = router.find_child("ConsoleInterface", true, false)
 	interaction.set("console_interface_path", interaction.get_path_to(ui))
+	var binding := instance.find_child("主台展示绑定", true, false)
+	binding.set("console_interface_path", binding.get_path_to(ui))
+	var left_controller := instance.find_child("左操作台定位", true, false)
+	left_controller.set("comm_view_path", left_controller.get_path_to(ui.get_node("FloatingCommUI")))
 	_expect("router permits layout wrapper with updated references", _scene_errors(instance).is_empty())
+	instance.free()
+
+	# 新设备引用仍允许用户重配；缺失关键视图/屏幕应给出明确诊断。
+	instance = packed.instantiate()
+	var presentation := instance.find_child("主台展示绑定", true, false)
+	presentation.set("screen_mesh_path", NodePath("不存在的屏幕"))
+	_expect("missing main screen", _scene_errors(instance).contains("screen_mesh_path"))
+	instance.free()
+
+	instance = packed.instantiate()
+	var left_screen := instance.find_child("左操作台定位", true, false)
+	left_screen.set("comm_view_path", NodePath(""))
+	_expect("missing COMM input guard", _scene_errors(instance).contains("comm_view_path"))
+	instance.free()
+
+	instance = packed.instantiate()
+	presentation = instance.find_child("主台展示绑定", true, false)
+	var screen := presentation.get_node(presentation.get("screen_mesh_path")) as MeshInstance3D
+	screen.name = "手调后的主屏"
+	screen.position += Vector3(0.1, 0.2, 0.3)
+	screen.mesh = screen.mesh.duplicate()
+	(screen.mesh as QuadMesh).size *= 0.9
+	presentation.set("screen_mesh_path", presentation.get_path_to(screen))
+	_expect("main screen permits Inspector edits and exported path", _scene_errors(instance).is_empty())
 	instance.free()
 
 	var validator := Validator.new()
