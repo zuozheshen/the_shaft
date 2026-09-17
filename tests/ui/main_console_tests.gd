@@ -43,6 +43,26 @@ func run(t: Variant, tree: SceneTree) -> void:
 				not button.is_visible_in_tree() and button.disabled and button.focus_mode == Control.FOCUS_NONE)
 	t.assert_true("主台 / 初始通讯与故障灯熄灭", not comm_light.visible and not fault.visible)
 	t.assert_equal("主台 / 状态条复用展示数据", console.get_case_phase_display_text(), status.text)
+	var microphone := main.find_child("麦克风热点", true, false) as InteractionHotspot3D
+	var surface_root := main.find_child("斜台面新增控件根", true, false) as Node3D
+	t.assert_true("主台 / 新增控件根精确复用 MIC 斜面 Basis",
+			surface_root.transform.basis.is_equal_approx(microphone.transform.basis))
+	var microphone_label := microphone.get_node("设备标识") as Label3D
+	for device_name in ["CAM01热点", "CAM02热点", "COMM指示灯", "DOOR指示灯", "FAULT指示灯"]:
+		var device := surface_root.get_node(device_name) as Node3D
+		t.assert_true("主台 / 斜面设备局部旋转归零 " + device_name,
+				device.transform.basis.is_equal_approx(Basis.IDENTITY))
+		t.assert_true("主台 / 斜面设备落在公共局部平面 " + device_name,
+				is_zero_approx(device.position.y))
+		var label := device.find_child("标识", true, false) as Label3D
+		t.assert_true("主台 / 斜面设备文字与旧控件朝向一致 " + device_name,
+				label.global_transform.basis.is_equal_approx(microphone_label.global_transform.basis))
+	for camera_name in ["CAM01热点", "CAM02热点"]:
+		var camera_hotspot := surface_root.get_node(camera_name) as InteractionHotspot3D
+		var collision := camera_hotspot.get_node("CollisionShape3D") as CollisionShape3D
+		var base := camera_hotspot.get_node("视觉/底座") as MeshInstance3D
+		t.assert_true("主台 / CAM Mesh 与碰撞使用同一斜面 Basis " + camera_name,
+				collision.global_transform.basis.is_equal_approx(base.global_transform.basis))
 	var cam_01_visual := main.find_child("CAM01热点", true, false).get_node("视觉")
 	var cam_02_visual := main.find_child("CAM02热点", true, false).get_node("视觉")
 	for part in ["底座", "按钮帽", "选中背光", "悬停高亮"]:

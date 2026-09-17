@@ -493,9 +493,11 @@ outline_size = 3
 text = "CASE — · 值班待命"
 modulate = Color(0.65, 0.86, 0.79, 1)
 
-[node name="CAM01热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点"]
-position = Vector3(-0.37, 0.94, -1.35)
-rotation = Vector3(-0.76, 0, 0)
+[node name="斜台面新增控件根" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点"]
+transform = Transform3D(1, 0, 0, 0, 0.725374, -0.688355, 0, 0.688355, 0.725374, 0, 0.93, -1.35)
+
+[node name="CAM01热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
+position = Vector3(-0.37, 0, -0.00688355)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -503,40 +505,39 @@ action_id = &"select_camera_01"
 prompt_text = "CAM 01"
 hover_visual_path = NodePath("视觉/悬停高亮")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/CAM01热点"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点"]
 shape = SubResource("52_cam01_shape")
 
-[node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/CAM01热点"]
+[node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点"]
 
 
-[node name="底座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM01热点/视觉"]
+[node name="底座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉"]
 position = Vector3(0, 0, 0)
 mesh = SubResource("52_cam01_base")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM01热点/视觉"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉"]
 position = Vector3(0, 0.035, 0)
 mesh = SubResource("52_cam01_cap")
 
-[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM01热点/视觉"]
+[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉"]
 position = Vector3(0, 0.06, 0.07)
 mesh = SubResource("52_cam01_selected")
 visible = false
 
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM01热点/视觉"]
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉"]
 position = Vector3(0, -0.007, 0)
 mesh = SubResource("52_cam01_hover")
 visible = false
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/CAM01热点/视觉"]
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉"]
 position = Vector3(0, 0.061, -0.015)
 rotation = Vector3(-1.5707963, 0, 0)
 pixel_size = 0.0014
 font_size = 25
 text = "CAM 01"
 
-[node name="CAM02热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点"]
-position = Vector3(-0.08, 0.94, -1.35)
-rotation = Vector3(-0.76, 0, 0)
+[node name="CAM02热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
+position = Vector3(-0.08, 0, -0.00688355)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -544,93 +545,90 @@ action_id = &"select_camera_02"
 prompt_text = "CAM 02"
 hover_visual_path = NodePath("视觉/悬停高亮")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/CAM02热点"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点"]
 shape = SubResource("52_cam02_shape")
 
-[node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/CAM02热点"]
+[node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点"]
 
 
-[node name="底座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM02热点/视觉"]
+[node name="底座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉"]
 position = Vector3(0, 0, 0)
 mesh = SubResource("52_cam02_base")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM02热点/视觉"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉"]
 position = Vector3(0, 0.035, 0)
 mesh = SubResource("52_cam02_cap")
 
-[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM02热点/视觉"]
+[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉"]
 position = Vector3(0, 0.06, 0.07)
 mesh = SubResource("52_cam02_selected")
 visible = false
 
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/CAM02热点/视觉"]
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉"]
 position = Vector3(0, -0.007, 0)
 mesh = SubResource("52_cam02_hover")
 visible = false
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/CAM02热点/视觉"]
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉"]
 position = Vector3(0, 0.061, -0.015)
 rotation = Vector3(-1.5707963, 0, 0)
 pixel_size = 0.0014
 font_size = 25
 text = "CAM 02"
 
-[node name="COMM指示灯" type="Node3D" parent="操作台占位/主操作台定位"]
-position = Vector3(-0.93, 1.005, -1.32)
-rotation = Vector3(-0.76, 0, 0)
+[node name="COMM指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
+position = Vector3(-0.93, 0, -0.029865405)
 
-[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/COMM指示灯"]
+[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯"]
 mesh = SubResource("52_comm_housing")
 material_override = SubResource("52_comm_housing_material")
 
-[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/COMM指示灯"]
+[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯"]
 position = Vector3(0, 0.011, 0)
 mesh = SubResource("52_comm_lens")
 material_override = SubResource("52_comm")
 visible = false
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/COMM指示灯"]
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯"]
 position = Vector3(0, 0.015, 0.064)
 rotation = Vector3(-1.5707963, 0, 0)
 pixel_size = 0.0014
 font_size = 24
 text = "COMM"
 
-[node name="DOOR指示灯" type="Node3D" parent="操作台占位/主操作台定位"]
-position = Vector3(0.35, 1.005, -1.6)
-rotation = Vector3(-0.76, 0, 0)
+[node name="DOOR指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
+position = Vector3(0.35, 0, -0.232970125)
 
-[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/DOOR指示灯"]
+[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯"]
 mesh = SubResource("52_door_housing")
 material_override = SubResource("52_door_housing_material")
 
-[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/DOOR指示灯"]
+[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯"]
 position = Vector3(0, 0.011, 0)
 mesh = SubResource("52_door_lens")
 material_override = SubResource("52_closed")
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/DOOR指示灯"]
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯"]
 position = Vector3(0, 0.015, 0.064)
 rotation = Vector3(-1.5707963, 0, 0)
 pixel_size = 0.0014
 font_size = 24
 text = "DOOR"
 
-[node name="FAULT指示灯" type="Node3D" parent="操作台占位/主操作台定位"]
-position = Vector3(1.03, 1.005, -1.42)
-rotation = Vector3(-0.76, 0, 0)
+[node name="FAULT指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
+position = Vector3(1.03, 0, -0.102402805)
 
-[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/FAULT指示灯"]
+[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯"]
 mesh = SubResource("52_fault_housing")
 material_override = SubResource("52_fault_housing_material")
 
-[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/FAULT指示灯"]
+[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯"]
 position = Vector3(0, 0.011, 0)
 mesh = SubResource("52_fault_lens")
 material_override = SubResource("52_fault")
 visible = false
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/FAULT指示灯"]
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯"]
 position = Vector3(0, 0.015, 0.064)
 rotation = Vector3(-1.5707963, 0, 0)
 pixel_size = 0.0014
@@ -878,11 +876,11 @@ console_interface_path = NodePath("../操作台界面层/操作台界面根/全�
 stage_controller_path = NodePath("../监控摄影棚定位/监控测试摄影棚")
 monitor_subviewport_path = NodePath("../监控渲染系统/监控视口")
 screen_mesh_path = NodePath("../操作台占位/主操作台定位/主监视器")
-cam_01_backlight_path = NodePath("../操作台占位/主操作台定位/主台交互热点/CAM01热点/视觉/选中背光")
-cam_02_backlight_path = NodePath("../操作台占位/主操作台定位/主台交互热点/CAM02热点/视觉/选中背光")
-comm_light_path = NodePath("../操作台占位/主操作台定位/COMM指示灯/灯面")
-door_light_path = NodePath("../操作台占位/主操作台定位/DOOR指示灯/灯面")
-fault_light_path = NodePath("../操作台占位/主操作台定位/FAULT指示灯/灯面")
+cam_01_backlight_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/选中背光")
+cam_02_backlight_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/选中背光")
+comm_light_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯/灯面")
+door_light_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯/灯面")
+fault_light_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯/灯面")
 status_label_path = NodePath("../操作台占位/主操作台定位/设备状态条/状态文字")
 door_closed_material = SubResource("52_closed")
 door_moving_material = SubResource("52_moving")
