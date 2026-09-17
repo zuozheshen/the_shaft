@@ -83,8 +83,14 @@ func run(t: Variant, tree: SceneTree) -> void:
 		_action(main, interaction, "CAM0%d热点" % (index + 1))
 		var anchor := cabin.get_node("监控摄影棚定位/监控测试摄影棚/摄像机锚点/" +
 				("舱内摄像机锚点" if index == 0 else "门外摄像机锚点")) as Marker3D
+		var passenger_anchor := stage.get_node(
+				stage.cabin_position_anchor_path if index == 0 else stage.outside_wait_anchor_path
+		) as Marker3D
 		t.assert_equal("主台 / 实体 CAM 选择 " + str(index), index, console.get_current_camera_index())
 		t.assert_true("主台 / 原摄像机跟随机位", camera.global_transform.is_equal_approx(anchor.global_transform))
+		t.assert_true("主台 / CAM 平视 " + str(index),
+				is_zero_approx(anchor.global_transform.basis.z.y))
+		_assert_passenger_framing(t, camera, passenger_anchor.global_position, index)
 		t.assert_equal("主台 / CAM 不改变阶段", phase, manager.get_case_phase())
 		t.assert_equal("主台 / CAM 背光", index == 0,
 				(presentation.get_node(presentation.cam_01_backlight_path) as Node3D).visible)
@@ -382,6 +388,21 @@ func _test_resize(t: Variant, tree: SceneTree, console: ConsoleInterface) -> voi
 			window.size.y < window.expanded_size.y and window.size.x <= viewport.size.x)
 	viewport.queue_free()
 	await _frames(tree)
+
+
+func _assert_passenger_framing(t: Variant, camera: Camera3D,
+		passenger_position: Vector3, camera_index: int) -> void:
+	# 1.47m 覆盖三个 Profile 的最大 Y 缩放及待机起伏；只校验留在画面内，
+	# 最终构图和观感仍由 Godot 人工视觉验收决定。
+	var frame_size := Vector2(camera.get_viewport().get_visible_rect().size)
+	var feet := camera.unproject_position(passenger_position)
+	var head := camera.unproject_position(passenger_position + Vector3.UP * 1.47)
+	var center := camera.unproject_position(passenger_position + Vector3.UP * 0.74)
+	t.assert_true("主台 / CAM 人物完整入画 " + str(camera_index),
+			head.y >= 4.0 and feet.y <= frame_size.y - 4.0 and head.y < feet.y)
+	t.assert_true("主台 / CAM 人物位于中央附近 " + str(camera_index),
+			absf(center.x - frame_size.x * 0.5) <= frame_size.x * 0.1
+			and absf(center.y - frame_size.y * 0.5) <= frame_size.y * 0.15)
 
 
 func _action(main: Node, interaction: CabinInteractionController3D, hotspot_name: String) -> void:
