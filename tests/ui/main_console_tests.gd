@@ -91,6 +91,14 @@ func run(t: Variant, tree: SceneTree) -> void:
 		t.assert_true("主台 / CAM 平视 " + str(index),
 				is_zero_approx(anchor.global_transform.basis.z.y))
 		_assert_passenger_framing(t, camera, passenger_anchor.global_position, index)
+		if index == 1:
+			var door := stage.get_door_visual()
+			var door_leaf := door.get_node(
+					"门扇根/左门扇动画根/左门扇"
+			) as MeshInstance3D
+			var door_half_depth := (door_leaf.mesh as BoxMesh).size.z * 0.5
+			t.assert_true("主台 / CAM02 位于关闭门扇外侧",
+					door.to_local(anchor.global_position).z < -door_half_depth)
 		t.assert_equal("主台 / CAM 不改变阶段", phase, manager.get_case_phase())
 		t.assert_equal("主台 / CAM 背光", index == 0,
 				(presentation.get_node(presentation.cam_01_backlight_path) as Node3D).visible)

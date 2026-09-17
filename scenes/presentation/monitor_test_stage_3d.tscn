@@ -128,7 +128,7 @@ material = SubResource("StandardMaterial3D_riqys")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.74, 2.1)
 
 [node name="门外摄像机锚点" type="Marker3D" parent="摄像机锚点" unique_id=114335584]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.82, 0.15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.74, -0.18)
 
 [node name="监控灯光" type="Node3D" parent="." unique_id=138647747]
 
