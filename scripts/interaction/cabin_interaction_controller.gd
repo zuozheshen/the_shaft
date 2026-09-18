@@ -7,11 +7,18 @@ const OPEN_DOOR_ACTION: StringName = &"open_door"
 const CAM_01_ACTION: StringName = &"select_camera_01"
 const CAM_02_ACTION: StringName = &"select_camera_02"
 const CLOSE_DOOR_ACTION: StringName = &"close_door"
+const DESTINATION_DIGIT_PREFIX: String = "destination_digit_"
+const DESTINATION_CLEAR_ACTION: StringName = &"destination_clear"
+const DESTINATION_BACKSPACE_ACTION: StringName = &"destination_backspace"
+const DESTINATION_VERIFY_ACTION: StringName = &"destination_verify"
+const DESTINATION_SUBMIT_ACTION: StringName = &"destination_submit"
 
 
 @export var player_camera_path: NodePath
 @export var view_controller_path: NodePath
 @export var console_interface_path: NodePath
+@export var destination_interface_path: NodePath
+@export var right_console_presentation_path: NodePath
 @export var interaction_hint_label_path: NodePath
 @export_flags_3d_physics var interaction_collision_mask: int = 1 << 7
 @export_range(1.0, 50.0, 0.5) var ray_length: float = 10.0
@@ -19,6 +26,8 @@ const CLOSE_DOOR_ACTION: StringName = &"close_door"
 var _player_camera: Camera3D
 var _view_controller: CabinViewController3D
 var _console_interface: ConsoleInterface
+var _destination_interface: DestinationControlInterface
+var _right_console_presentation: RightConsolePresentation3D
 var _interaction_hint_label: Label
 var _default_hint_text: String = ""
 var _hovered_hotspot: InteractionHotspot3D
@@ -33,6 +42,12 @@ func _ready() -> void:
 			as CabinViewController3D
 	_console_interface = _get_required_node(console_interface_path, "Control") \
 			as ConsoleInterface
+	_destination_interface = _get_required_node(destination_interface_path, "Control") \
+			as DestinationControlInterface
+	_right_console_presentation = _get_required_node(
+		right_console_presentation_path,
+		"Node"
+	) as RightConsolePresentation3D
 	_interaction_hint_label = _get_required_node(interaction_hint_label_path, "Label") as Label
 	if _interaction_hint_label != null:
 		_default_hint_text = _interaction_hint_label.text
@@ -40,6 +55,10 @@ func _ready() -> void:
 		push_error("3D 交互控制器的视角节点没有挂载 CabinViewController3D 脚本。")
 	if _console_interface == null:
 		push_error("3D 交互控制器的主台界面节点不是 ConsoleInterface。")
+	if _destination_interface == null:
+		push_error("3D 交互控制器的右台界面节点不是 DestinationControlInterface。")
+	if _right_console_presentation == null:
+		push_error("3D 交互控制器找不到右台实体展示绑定。")
 
 	if _view_controller != null:
 		if not _view_controller.turn_started.is_connected(_on_turn_started):
@@ -171,7 +190,25 @@ func _execute_action(action_id: StringName) -> void:
 		CLOSE_DOOR_ACTION:
 			if _console_interface != null:
 				_console_interface.request_close_door()
+		DESTINATION_CLEAR_ACTION:
+			if _destination_interface != null:
+				_destination_interface.clear_destination_input()
+		DESTINATION_BACKSPACE_ACTION:
+			if _destination_interface != null:
+				_destination_interface.backspace_destination_input()
+		DESTINATION_VERIFY_ACTION:
+			if _destination_interface != null:
+				_destination_interface.request_verify_destination()
+		DESTINATION_SUBMIT_ACTION:
+			if _right_console_presentation != null:
+				_right_console_presentation.request_submit()
 		_:
+			var action_text := String(action_id)
+			if action_text.begins_with(DESTINATION_DIGIT_PREFIX):
+				var digit := action_text.trim_prefix(DESTINATION_DIGIT_PREFIX)
+				if _destination_interface != null:
+					_destination_interface.append_destination_digit(digit)
+				return
 			if not _warned_action_ids.has(action_id):
 				_warned_action_ids[action_id] = true
 				push_warning("未注册的 3D 交互动作：%s" % action_id)

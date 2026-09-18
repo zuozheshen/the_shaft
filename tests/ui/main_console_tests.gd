@@ -52,8 +52,10 @@ func run(t: Variant, tree: SceneTree) -> void:
 		var device := surface_root.get_node(device_name) as Node3D
 		t.assert_true("主台 / 斜面设备局部旋转归零 " + device_name,
 				device.transform.basis.is_equal_approx(Basis.IDENTITY))
-		t.assert_true("主台 / 斜面设备落在公共局部平面 " + device_name,
-				is_zero_approx(device.position.y))
+		# DOOR 指示灯由用户在 Inspector 中单独抬高；其余新增设备仍共享基准面。
+		if device_name != "DOOR指示灯":
+			t.assert_true("主台 / 斜面设备落在公共局部平面 " + device_name,
+					is_zero_approx(device.position.y))
 		var label := device.find_child("标识", true, false) as Label3D
 		t.assert_true("主台 / 斜面设备文字与旧控件朝向一致 " + device_name,
 				label.global_transform.basis.is_equal_approx(microphone_label.global_transform.basis))
@@ -119,7 +121,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_true("主台 / 状态刷新保留手调 Transform", screen.transform == transform_before)
 	t.assert_equal("主台 / 状态刷新保留手调 Mesh", size_before, quad.size)
 
-	await _test_global_comm(t, tree, cabin, router, console, viewport)
+	await _test_global_comm(t, tree, cabin, router, console, interaction, viewport)
 	var destination := router.get_right_interface()
 	var completed: Array[StringName] = []
 	manager.dispatch_completed.connect(func(result: DispatchResult) -> void:
@@ -235,7 +237,8 @@ func _test_dialogue(t: Variant, tree: SceneTree, console: ConsoleInterface,
 
 
 func _test_global_comm(t: Variant, tree: SceneTree, cabin: CabinViewController3D,
-		router: CabinInterfaceRouter3D, console: ConsoleInterface, monitor: SubViewport) -> void:
+		router: CabinInterfaceRouter3D, console: ConsoleInterface,
+		interaction: CabinInteractionController3D, monitor: SubViewport) -> void:
 	var comm := console.comm_view
 	comm.set_minimized(false)
 	comm.move_window_to(Vector2(-200, -200))
@@ -265,8 +268,9 @@ func _test_global_comm(t: Variant, tree: SceneTree, cabin: CabinViewController3D
 		if direction == 1:
 			await _test_left_input(t, tree, cabin, comm)
 		if direction == 3:
-			t.assert_true("COMM / 右台界面仍可见", router.get_right_interface().is_visible_in_tree())
-			await _test_right_input(t, tree, router.get_right_interface(), comm)
+			t.assert_false("COMM / 右台旧界面保持隐藏",
+				router.find_child("右操作台界面容器", true, false).visible)
+			await _test_right_input(t, tree, cabin, interaction, comm)
 	comm.set_minimized(true)
 	var blank := comm.global_position + Vector2(10, 170)
 	t.assert_false("COMM / 最小化不留下隐形拦截区域", comm.blocks_pointer(blank))
@@ -320,40 +324,36 @@ func _test_left_input(t: Variant, tree: SceneTree, cabin: CabinViewController3D,
 	comm.move_window_to(Vector2(28, 100))
 
 
-func _test_right_input(t: Variant, tree: SceneTree, right: DestinationControlInterface,
-		comm: FloatingCommUI) -> void:
-	# 用索引书按钮的实际打开行为验证输入恢复。
-	var field := right.open_floor_book_button
-	var pointer := field.get_global_rect().get_center()
-	field.release_focus()
-	comm.move_window_to(pointer - Vector2(30, 90))
+func _test_right_input(t: Variant, tree: SceneTree, cabin: CabinViewController3D,
+		interaction: CabinInteractionController3D, comm: FloatingCommUI) -> void:
+	var key := cabin.get_node(
+		"操作台占位/右操作台定位/数字键盘/数字5"
+	) as InteractionHotspot3D
+	var shape := key.get_node("CollisionShape3D") as CollisionShape3D
+	var player := cabin.get_node(
+		"玩家视角/摄像机旋转轴/玩家摄像机"
+	) as Camera3D
+	var pointer := player.unproject_position(shape.global_position)
+	await tree.physics_frame
+	t.assert_equal("COMM / 右台实体键射线可命中", key,
+			interaction._raycast_hotspot(pointer))
+	comm.move_window_to(pointer - Vector2(30, 70))
+	var motion := InputEventMouseMotion.new()
+	motion.position = pointer
+	motion.global_position = pointer
+	comm.get_viewport().push_input(motion, true)
 	await _frames(tree)
-	var received: Array[InputEvent] = []
-	var record := func(event: InputEvent) -> void: received.append(event)
-	field.gui_input.connect(record)
-	_click(comm.get_viewport(), pointer)
-	var wheel := InputEventMouseButton.new()
-	wheel.position = pointer
-	wheel.global_position = pointer
-	wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN
-	wheel.pressed = true
-	comm.get_viewport().push_input(wheel, true)
-	# 合成滚轮也要补齐释放，避免测试自身把 GUI 的 mouse focus 留在浮窗。
-	wheel = wheel.duplicate()
-	wheel.pressed = false
-	comm.get_viewport().push_input(wheel, true)
-	await _frames(tree)
-	t.assert_true("COMM / 覆盖右台时点击和滚轮不穿透",
-			received.is_empty() and not right.floor_book_page.is_visible_in_tree())
+	interaction._update_hovered_hotspot()
+	t.assert_true("COMM / 覆盖右台时阻止实体热点",
+			interaction._is_pointer_over_blocking_gui()
+			and interaction._hovered_hotspot == null)
 	comm.move_window_to(Vector2(0, 0))
+	comm.get_viewport().push_input(motion, true)
 	await _frames(tree)
-	_click(comm.get_viewport(), pointer)
-	await _frames(tree)
-	t.assert_true("COMM / 移开后右台按钮实际打开索引书",
-			not received.is_empty() and right.floor_book_page.is_visible_in_tree())
-	right.close_floor_book_button.pressed.emit()
-	field.gui_input.disconnect(record)
-	field.release_focus()
+	t.assert_true("COMM / 移开后不遮挡右台实体键", not comm.blocks_pointer(pointer))
+	t.assert_equal("COMM / 移开后右台实体键仍可射线命中", key,
+			interaction._raycast_hotspot(pointer))
+	interaction._clear_hovered_hotspot()
 	comm.move_window_to(Vector2(28, 100))
 
 

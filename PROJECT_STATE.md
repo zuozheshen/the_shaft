@@ -19,9 +19,10 @@
 - 玩家是操作员：接调度 → 到接乘楼层 → 查看记录/监控/通话 → 开门接乘并关门 → 判断目的地与路线 → 到站开门反馈 → 离舱关门结算 → 后续记录反馈。日志和记录承担责任，不是好坏计分。
 - `scenes/main/main_3d.tscn` 组合游戏运行层、三维操作舱和 RuntimeConnector3D。入口 UID 由 Godot 解析。
 - `scenes/runtime/game_runtime.tscn` / GameRuntime 持有唯一 DemoFlowManager；后者协调 ElevatorRuntimeState、DispatchLifecycle、ShiftRunner 和 UIHistoryState。
-- `scenes/elevator/elevator_cabin_3d.tscn` 提供固定视角/交互。CabinInterfaceRouter3D 暴露主、左、右三台；左台位于 3D 屏幕 SubViewport，右台使用覆盖 UI。主台使用实体监视器、MIC/CAM/门按钮、三灯与 CASE/PHASE 状态条。
+- `scenes/elevator/elevator_cabin_3d.tscn` 提供固定视角/交互。CabinInterfaceRouter3D 暴露主、左、右三台；左台位于 3D 屏幕 SubViewport。主台使用实体监视器、MIC/CAM/门按钮、三灯与 CASE/PHASE 状态条；右台使用实体信息屏、独立 LCD、验证键、4×3 键盘、静态楼层书和执行拨杆。
 - MainConsolePresentation3D 将原监控 SubViewport 纹理绑定到主屏 Mesh，并订阅现有摄像头、MIC、门表现与派单展示数据；几何、碰撞、材质和布局保存在场景中，可在 Inspector 调整。MonitorCameraController3D 继续只负责原监控摄像机、机位和视口启停。
 - 唯一 ConsoleInterface 位于 CanvasLayer 的全局通讯容器中，持有原 DialogueManagerAdapter；其 FloatingCommUI 只呈现当前发言和动态选项，可拖动/最小化，四个朝向及转身时持续可见。左台转发鼠标前避让通讯窗，主台旧大面板及旧按钮在 3D 模式禁用；拒绝原因使用短暂提示。
+- 右台旧 DestinationControlInterface 在 3D 模式隐藏并禁用输入，但继续作为唯一目的地业务适配层；RightConsolePresentation3D 只把其展示快照映射到实体屏幕，并负责拨杆回位动画。CabinInteractionController3D 将右台热点转发到同一输入、验证和行驶入口。
 - `scenes/ui/` 下 ConsoleInterface、BuildingTerminalInterface、DestinationControlInterface 通过显式注入和流程命令访问业务。
 - ContentRegistry 从 `data/catalogs/` 的四个 Catalog 加载楼层、乘客、派单、值班资源。当前演示有三条正式派单；对白位于 `dialogues/passengers/`，通过 DialogueManagerAdapter 接入现有插件。
 - `scenes/presentation/monitor_test_stage_3d.tscn` 是正式主场景当前使用的监控摄影棚：可替换楼层切片、纸片乘客、双开门。MonitorCameraController3D 使用同一个世界和一台监控摄像机切换两个机位；MonitorPresentationCoordinator3D 协调门与乘客动作。

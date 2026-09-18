@@ -37,6 +37,7 @@
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_fallback_visual.tres" id="50_floor_fallback"]
 [ext_resource type="Script" uid="uid://bf4fhxjlwlla6" path="res://scripts/presentation/floor_visual_profile.gd" id="50_floor_type"]
 [ext_resource type="Script" uid="uid://cjs2vtxivfkth" path="res://scripts/presentation/main_console_presentation_3d.gd" id="52_presentation"]
+[ext_resource type="Script" path="res://scripts/presentation/right_console_presentation_3d.gd" id="53_right_presentation"]
 
 [sub_resource type="ORMMaterial3D" id="ORMMaterial3D_cymdg"]
 albedo_texture = ExtResource("2_k80hx")
@@ -330,6 +331,106 @@ albedo_color = Color(0.9, 0.5, 0.09, 1)
 resource_local_to_scene = true
 shading_mode = 0
 albedo_color = Color(0.12, 0.7, 0.26, 1)
+
+[sub_resource type="StandardMaterial3D" id="53_body"]
+resource_local_to_scene = true
+albedo_color = Color(0.075, 0.09, 0.1, 1)
+metallic = 0.7
+roughness = 0.38
+
+[sub_resource type="StandardMaterial3D" id="53_screen"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.035, 0.09, 0.085, 1)
+
+[sub_resource type="StandardMaterial3D" id="53_lcd"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.36, 0.43, 0.32, 1)
+
+[sub_resource type="StandardMaterial3D" id="53_key"]
+resource_local_to_scene = true
+albedo_color = Color(0.16, 0.18, 0.19, 1)
+metallic = 0.3
+roughness = 0.55
+
+[sub_resource type="StandardMaterial3D" id="53_verify"]
+resource_local_to_scene = true
+albedo_color = Color(0.82, 0.82, 0.76, 1)
+roughness = 0.42
+
+[sub_resource type="StandardMaterial3D" id="53_hover"]
+resource_local_to_scene = true
+shading_mode = 0
+transparency = 1
+albedo_color = Color(0.35, 0.9, 0.72, 0.42)
+
+[sub_resource type="StandardMaterial3D" id="53_book_cover"]
+resource_local_to_scene = true
+albedo_color = Color(0.22, 0.08, 0.055, 1)
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="53_pages"]
+resource_local_to_scene = true
+albedo_color = Color(0.72, 0.68, 0.55, 1)
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="53_metal"]
+resource_local_to_scene = true
+albedo_color = Color(0.38, 0.42, 0.44, 1)
+metallic = 0.9
+roughness = 0.24
+
+[sub_resource type="BoxShape3D" id="53_key_shape"]
+size = Vector3(0.15, 0.16, 0.25)
+
+[sub_resource type="BoxMesh" id="53_key_mesh"]
+material = SubResource("53_key")
+size = Vector3(0.12, 0.14, 0.22)
+
+[sub_resource type="BoxMesh" id="53_verify_mesh"]
+material = SubResource("53_verify")
+size = Vector3(0.12, 0.16, 0.38)
+
+[sub_resource type="BoxMesh" id="53_hover_mesh"]
+material = SubResource("53_hover")
+size = Vector3(0.135, 0.155, 0.235)
+
+[sub_resource type="BoxMesh" id="53_verify_hover_mesh"]
+material = SubResource("53_hover")
+size = Vector3(0.135, 0.175, 0.4)
+
+[sub_resource type="BoxShape3D" id="53_verify_shape"]
+size = Vector3(0.15, 0.19, 0.42)
+
+[sub_resource type="BoxShape3D" id="53_lever_shape"]
+size = Vector3(0.32, 0.28, 0.5)
+
+[sub_resource type="BoxMesh" id="53_book_pages_mesh"]
+material = SubResource("53_pages")
+size = Vector3(0.09, 0.46, 0.62)
+
+[sub_resource type="BoxMesh" id="53_book_cover_mesh"]
+material = SubResource("53_book_cover")
+size = Vector3(0.105, 0.49, 0.65)
+
+[sub_resource type="BoxMesh" id="53_lever_base_mesh"]
+material = SubResource("53_metal")
+size = Vector3(0.13, 0.34, 0.48)
+
+[sub_resource type="CylinderMesh" id="53_lever_handle_mesh"]
+material = SubResource("53_metal")
+top_radius = 0.065
+bottom_radius = 0.085
+height = 0.42
+radial_segments = 16
+
+[sub_resource type="SphereMesh" id="53_lever_grip_mesh"]
+material = SubResource("53_key")
+radius = 0.11
+height = 0.22
+radial_segments = 16
+rings = 8
 
 [node name="三维操作舱" type="Node3D" unique_id=699471354]
 script = ExtResource("1_wegik")
@@ -689,23 +790,510 @@ size = Vector3(2.2, 2.7, 0.15)
 [node name="右操作台定位" type="Node3D" parent="操作台占位" unique_id=1554468139]
 
 [node name="右台背板" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=1643159438]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.64, 1.2850586, 0)
-material_override = SubResource("StandardMaterial3D_k80hx")
-size = Vector3(0.1, 2.1, 3)
+position = Vector3(1.62, 1.38, 0)
+material_override = SubResource("53_body")
+size = Vector3(0.14, 2.45, 2.35)
 
-[node name="右台屏幕框" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=563705914]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.56, 1.65, 0)
-size = Vector3(0.05, 1, 1.6)
+[node name="验证信息屏" type="Node3D" parent="操作台占位/右操作台定位"]
 
-[node name="右台输入区" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=400004086]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.43, 0.95, 0)
-material_override = SubResource("StandardMaterial3D_aod7d")
-size = Vector3(0.25, 0.45, 1.4)
+[node name="屏幕框" type="CSGBox3D" parent="操作台占位/右操作台定位/验证信息屏"]
+position = Vector3(1.525, 2.04, 0)
+material_override = SubResource("53_metal")
+size = Vector3(0.08, 0.72, 1.86)
 
-[node name="右台操作沿" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=1288246358]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.38, 0.55, 0)
-material_override = SubResource("StandardMaterial3D_05vjs")
-size = Vector3(0.35, 0.15, 1.8)
+[node name="屏面" type="CSGBox3D" parent="操作台占位/右操作台定位/验证信息屏"]
+position = Vector3(1.475, 2.04, 0)
+material_override = SubResource("53_screen")
+size = Vector3(0.025, 0.63, 1.74)
+
+[node name="信息文字" type="Label3D" parent="操作台占位/右操作台定位/验证信息屏"]
+position = Vector3(1.455, 2.04, 0.73)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.00165
+text = "当前楼层：---\n系统推荐：—\n目标楼层：---\n地址状态：未验证\n派单关联度：—\n稳定度影响：—"
+font_size = 27
+outline_size = 5
+horizontal_alignment = 0
+
+[node name="数字显示组" type="Node3D" parent="操作台占位/右操作台定位"]
+
+[node name="LCD外框" type="CSGBox3D" parent="操作台占位/右操作台定位/数字显示组"]
+position = Vector3(1.505, 1.56, 0.31)
+material_override = SubResource("53_metal")
+size = Vector3(0.1, 0.25, 1.0)
+
+[node name="LCD屏面" type="CSGBox3D" parent="操作台占位/右操作台定位/数字显示组"]
+position = Vector3(1.445, 1.56, 0.31)
+material_override = SubResource("53_lcd")
+size = Vector3(0.025, 0.19, 0.9)
+
+[node name="输入数字" type="Label3D" parent="操作台占位/右操作台定位/数字显示组"]
+position = Vector3(1.425, 1.56, 0.7)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0022
+font_size = 42
+outline_size = 2
+horizontal_alignment = 2
+
+[node name="验证楼层热点" type="Area3D" parent="操作台占位/右操作台定位/数字显示组"]
+position = Vector3(1.44, 1.56, -0.58)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"destination_verify"
+prompt_text = "验证楼层"
+station_id = &"right_console"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
+shape = SubResource("53_verify_shape")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
+position = Vector3(-0.035, 0, 0)
+mesh = SubResource("53_verify_mesh")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_verify_hover_mesh")
+
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
+position = Vector3(-0.105, 0, 0.15)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.00125
+text = "验证楼层"
+font_size = 24
+modulate = Color(0.08, 0.09, 0.09, 1)
+
+[node name="反馈文字" type="Label3D" parent="操作台占位/右操作台定位/数字显示组"]
+position = Vector3(1.43, 1.36, 0.82)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0012
+text = "请输入目标楼层"
+font_size = 20
+outline_size = 4
+horizontal_alignment = 0
+
+[node name="数字键盘" type="Node3D" parent="操作台占位/右操作台定位"]
+
+[node name="数字1" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
+position = Vector3(1.44, 1.17, 0.43)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"destination_digit_1"
+prompt_text = "输入 1"
+station_id = &"right_console"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
+shape = SubResource("53_key_shape")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
+position = Vector3(-0.035, 0, 0)
+mesh = SubResource("53_key_mesh")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_hover_mesh")
+
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
+position = Vector3(-0.105, 0, 0.055)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0018
+text = "1"
+font_size = 30
+
+[node name="数字2" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
+position = Vector3(1.44, 1.17, 0)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"destination_digit_2"
+prompt_text = "输入 2"
+station_id = &"right_console"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
+shape = SubResource("53_key_shape")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
+position = Vector3(-0.035, 0, 0)
+mesh = SubResource("53_key_mesh")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_hover_mesh")
+
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
+position = Vector3(-0.105, 0, 0.055)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0018
+text = "2"
+font_size = 30
+
+[node name="数字3" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
+position = Vector3(1.44, 1.17, -0.43)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"destination_digit_3"
+prompt_text = "输入 3"
+station_id = &"right_console"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
+shape = SubResource("53_key_shape")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
+position = Vector3(-0.035, 0, 0)
+mesh = SubResource("53_key_mesh")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_hover_mesh")
+
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
+position = Vector3(-0.105, 0, 0.055)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0018
+text = "3"
+font_size = 30
+
+[node name="数字4" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
+position = Vector3(1.44, 0.96, 0.43)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"destination_digit_4"
+prompt_text = "输入 4"
+station_id = &"right_console"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
+shape = SubResource("53_key_shape")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
+position = Vector3(-0.035, 0, 0)
+mesh = SubResource("53_key_mesh")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_hover_mesh")
+
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
+position = Vector3(-0.105, 0, 0.055)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0018
+text = "4"
+font_size = 30
+
+[node name="数字5" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
+position = Vector3(1.44, 0.96, 0)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"destination_digit_5"
+prompt_text = "输入 5"
+station_id = &"right_console"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
+shape = SubResource("53_key_shape")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
+position = Vector3(-0.035, 0, 0)
+mesh = SubResource("53_key_mesh")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_hover_mesh")
+
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
+position = Vector3(-0.105, 0, 0.055)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0018
+text = "5"
+font_size = 30
+
+[node name="数字6" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
+position = Vector3(1.44, 0.96, -0.43)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"destination_digit_6"
+prompt_text = "输入 6"
+station_id = &"right_console"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
+shape = SubResource("53_key_shape")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
+position = Vector3(-0.035, 0, 0)
+mesh = SubResource("53_key_mesh")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_hover_mesh")
+
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
+position = Vector3(-0.105, 0, 0.055)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0018
+text = "6"
+font_size = 30
+
+[node name="数字7" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
+position = Vector3(1.44, 0.75, 0.43)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"destination_digit_7"
+prompt_text = "输入 7"
+station_id = &"right_console"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
+shape = SubResource("53_key_shape")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
+position = Vector3(-0.035, 0, 0)
+mesh = SubResource("53_key_mesh")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_hover_mesh")
+
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
+position = Vector3(-0.105, 0, 0.055)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0018
+text = "7"
+font_size = 30
+
+[node name="数字8" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
+position = Vector3(1.44, 0.75, 0)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"destination_digit_8"
+prompt_text = "输入 8"
+station_id = &"right_console"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
+shape = SubResource("53_key_shape")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
+position = Vector3(-0.035, 0, 0)
+mesh = SubResource("53_key_mesh")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_hover_mesh")
+
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
+position = Vector3(-0.105, 0, 0.055)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0018
+text = "8"
+font_size = 30
+
+[node name="数字9" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
+position = Vector3(1.44, 0.75, -0.43)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"destination_digit_9"
+prompt_text = "输入 9"
+station_id = &"right_console"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
+shape = SubResource("53_key_shape")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
+position = Vector3(-0.035, 0, 0)
+mesh = SubResource("53_key_mesh")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_hover_mesh")
+
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
+position = Vector3(-0.105, 0, 0.055)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0018
+text = "9"
+font_size = 30
+
+[node name="清空" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
+position = Vector3(1.44, 0.54, 0.43)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"destination_clear"
+prompt_text = "清空输入"
+station_id = &"right_console"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
+shape = SubResource("53_key_shape")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
+position = Vector3(-0.035, 0, 0)
+mesh = SubResource("53_key_mesh")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_hover_mesh")
+
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
+position = Vector3(-0.105, 0, 0.075)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0013
+text = "CLR"
+font_size = 24
+
+[node name="数字0" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
+position = Vector3(1.44, 0.54, 0)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"destination_digit_0"
+prompt_text = "输入 0"
+station_id = &"right_console"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
+shape = SubResource("53_key_shape")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
+position = Vector3(-0.035, 0, 0)
+mesh = SubResource("53_key_mesh")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_hover_mesh")
+
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
+position = Vector3(-0.105, 0, 0.055)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0018
+text = "0"
+font_size = 30
+
+[node name="退格" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
+position = Vector3(1.44, 0.54, -0.43)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"destination_backspace"
+prompt_text = "删除末位"
+station_id = &"right_console"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
+shape = SubResource("53_key_shape")
+
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
+position = Vector3(-0.035, 0, 0)
+mesh = SubResource("53_key_mesh")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_hover_mesh")
+
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
+position = Vector3(-0.105, 0, 0.055)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0018
+text = "←"
+font_size = 30
+
+[node name="下部斜面根" type="Node3D" parent="操作台占位/右操作台定位"]
+position = Vector3(1.53, 0.16, 0)
+rotation = Vector3(0, 0, 0.349066)
+
+[node name="斜面板" type="CSGBox3D" parent="操作台占位/右操作台定位/下部斜面根"]
+material_override = SubResource("53_body")
+size = Vector3(0.16, 0.5, 2.05)
+
+[node name="楼层导引书" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根"]
+position = Vector3(-0.13, 0.01, 0.48)
+
+[node name="封面" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
+mesh = SubResource("53_book_cover_mesh")
+
+[node name="书页" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
+position = Vector3(-0.012, 0, 0)
+mesh = SubResource("53_book_pages_mesh")
+
+[node name="封面标题" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
+position = Vector3(-0.075, 0, 0.23)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0014
+text = "楼层导引书"
+font_size = 23
+outline_size = 3
+
+[node name="执行拨杆热点" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根"]
+position = Vector3(-0.12, 0, -0.5)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"destination_submit"
+prompt_text = "拨动：前往楼层"
+station_id = &"right_console"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
+shape = SubResource("53_lever_shape")
+
+[node name="安装底座" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
+mesh = SubResource("53_lever_base_mesh")
+
+[node name="拨杆转轴" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
+
+[node name="金属短柄" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴"]
+position = Vector3(-0.2, 0, 0)
+rotation = Vector3(0, 0, 1.5707963)
+mesh = SubResource("53_lever_handle_mesh")
+
+[node name="握柄" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴"]
+position = Vector3(-0.43, 0, 0)
+mesh = SubResource("53_lever_grip_mesh")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_verify_hover_mesh")
+
+[node name="执行标识" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
+position = Vector3(-0.1, -0.22, 0.2)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0014
+text = "前往楼层"
+font_size = 23
+outline_size = 3
+
+[node name="底缘挡条" type="CSGBox3D" parent="操作台占位/右操作台定位/下部斜面根"]
+position = Vector3(-0.18, -0.3, 0)
+material_override = SubResource("53_metal")
+size = Vector3(0.24, 0.1, 2.12)
 
 [node name="灯光" type="Node3D" parent="." unique_id=635936352]
 
@@ -735,6 +1323,8 @@ script = ExtResource("9_interaction")
 player_camera_path = NodePath("../玩家视角/摄像机旋转轴/玩家摄像机")
 view_controller_path = NodePath("..")
 console_interface_path = NodePath("../操作台界面层/操作台界面根/全局通讯容器/ConsoleInterface")
+destination_interface_path = NodePath("../操作台界面层/操作台界面根/右操作台界面容器/DestinationControlInterface")
+right_console_presentation_path = NodePath("../右台展示绑定")
 interaction_hint_label_path = NodePath("../调试界面/操作提示文本")
 
 [node name="观察方向" type="Node3D" parent="." unique_id=1741820516]
@@ -871,3 +1461,11 @@ status_label_path = NodePath("../操作台占位/主操作台定位/设备状态
 door_closed_material = SubResource("52_closed")
 door_moving_material = SubResource("52_moving")
 door_open_material = SubResource("52_open")
+
+[node name="右台展示绑定" type="Node" parent="."]
+script = ExtResource("53_right_presentation")
+destination_interface_path = NodePath("../操作台界面层/操作台界面根/右操作台界面容器/DestinationControlInterface")
+information_label_path = NodePath("../操作台占位/右操作台定位/验证信息屏/信息文字")
+input_label_path = NodePath("../操作台占位/右操作台定位/数字显示组/输入数字")
+feedback_label_path = NodePath("../操作台占位/右操作台定位/数字显示组/反馈文字")
+lever_pivot_path = NodePath("../操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴")

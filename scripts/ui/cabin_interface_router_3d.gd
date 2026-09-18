@@ -109,7 +109,8 @@ func _show_direction(direction: int) -> void:
 		CabinViewController3D.FacingDirection.LEFT_CONSOLE:
 			pass
 		CabinViewController3D.FacingDirection.RIGHT_CONSOLE:
-			_set_container_enabled(_right_container, true)
+			# 右台已实体化；旧 Control 只常驻承载唯一业务状态，不再覆盖 3D 设备。
+			pass
 		CabinViewController3D.FacingDirection.ELEVATOR_DOOR:
 			if _door_hint != null:
 				_door_hint.show()
