@@ -21,24 +21,22 @@
 [ext_resource type="Texture2D" uid="uid://dl5r0aw4ar1kx" path="res://assets/art/金属划痕.png" id="11_aod7d"]
 [ext_resource type="Texture2D" uid="uid://doccuhoswfb86" path="res://assets/art/metal_plate_02_4k/metal_plate_frac/blue_metal_plate_disp_4k.jpg" id="13_aod7d"]
 [ext_resource type="PackedScene" uid="uid://dqvlv34vy8o8r" path="res://scenes/presentation/monitor_test_stage_3d.tscn" id="21_1mpkw"]
-[ext_resource type="Script" path="res://scripts/presentation/monitor_camera_controller_3d.gd" id="22_monitor"]
-[ext_resource type="Script" path="res://scripts/presentation/monitor_presentation_coordinator_3d.gd" id="23_coordinator"]
-[ext_resource type="Script" path="res://scripts/presentation/passenger_visual_profile.gd" id="24_profile_type"]
-[ext_resource type="Resource" path="res://data/presentation/passenger_visuals/passenger_001_visual.tres" id="25_profile_001"]
-[ext_resource type="Resource" path="res://data/presentation/passenger_visuals/passenger_002_visual.tres" id="26_profile_002"]
-[ext_resource type="Resource" path="res://data/presentation/passenger_visuals/passenger_003_visual.tres" id="27_profile_003"]
-
-[ext_resource type="Script" path="res://scripts/presentation/floor_visual_profile.gd" id="50_floor_type"]
-[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_900_visual.tres" id="50_floor_900"]
-[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_742_visual.tres" id="50_floor_742"]
-[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_612_visual.tres" id="50_floor_612"]
+[ext_resource type="Script" uid="uid://dueo2abjakhgp" path="res://scripts/presentation/monitor_camera_controller_3d.gd" id="22_monitor"]
+[ext_resource type="Script" uid="uid://c133bgm4b8y6o" path="res://scripts/presentation/monitor_presentation_coordinator_3d.gd" id="23_coordinator"]
+[ext_resource type="Script" uid="uid://bab6xcd6cis7y" path="res://scripts/presentation/passenger_visual_profile.gd" id="24_profile_type"]
+[ext_resource type="Resource" uid="uid://qboej4pygmj3" path="res://data/presentation/passenger_visuals/passenger_001_visual.tres" id="25_profile_001"]
+[ext_resource type="Resource" uid="uid://gw55fsmksqss" path="res://data/presentation/passenger_visuals/passenger_002_visual.tres" id="26_profile_002"]
+[ext_resource type="Resource" uid="uid://cx6gtb1u7v8xq" path="res://data/presentation/passenger_visuals/passenger_003_visual.tres" id="27_profile_003"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_004_visual.tres" id="50_floor_004"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_387_visual.tres" id="50_floor_387"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_392_visual.tres" id="50_floor_392"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_547_visual.tres" id="50_floor_547"]
+[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_612_visual.tres" id="50_floor_612"]
+[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_742_visual.tres" id="50_floor_742"]
+[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_900_visual.tres" id="50_floor_900"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_fallback_visual.tres" id="50_floor_fallback"]
-
-[ext_resource type="Script" path="res://scripts/presentation/main_console_presentation_3d.gd" id="52_presentation"]
+[ext_resource type="Script" uid="uid://bf4fhxjlwlla6" path="res://scripts/presentation/floor_visual_profile.gd" id="50_floor_type"]
+[ext_resource type="Script" uid="uid://cjs2vtxivfkth" path="res://scripts/presentation/main_console_presentation_3d.gd" id="52_presentation"]
 
 [sub_resource type="ORMMaterial3D" id="ORMMaterial3D_cymdg"]
 albedo_texture = ExtResource("2_k80hx")
@@ -127,6 +125,174 @@ radial_segments = 12
 material = SubResource("StandardMaterial3D_qr0ht")
 size = Vector3(0.38802147, 0.014404297, 0.34222412)
 
+[sub_resource type="BoxShape3D" id="52_cam01_shape"]
+size = Vector3(0.22, 0.07, 0.22)
+
+[sub_resource type="StandardMaterial3D" id="52_cam01_dark"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.045, 0.055, 0.065, 1)
+
+[sub_resource type="BoxMesh" id="52_cam01_base"]
+resource_local_to_scene = true
+material = SubResource("52_cam01_dark")
+size = Vector3(0.23, 0.04, 0.23)
+
+[sub_resource type="StandardMaterial3D" id="52_cap"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.15, 0.19, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="52_cam01_cap"]
+resource_local_to_scene = true
+material = SubResource("52_cap")
+size = Vector3(0.18, 0.045, 0.17)
+
+[sub_resource type="StandardMaterial3D" id="52_selected"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.12, 0.4, 0.36, 1)
+
+[sub_resource type="BoxMesh" id="52_cam01_selected"]
+resource_local_to_scene = true
+material = SubResource("52_selected")
+size = Vector3(0.19, 0.01, 0.025)
+
+[sub_resource type="StandardMaterial3D" id="52_hover"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.25, 0.7, 0.58, 1)
+
+[sub_resource type="BoxMesh" id="52_cam01_hover"]
+resource_local_to_scene = true
+material = SubResource("52_hover")
+size = Vector3(0.25, 0.012, 0.25)
+
+[sub_resource type="BoxShape3D" id="52_cam02_shape"]
+size = Vector3(0.22, 0.07, 0.22)
+
+[sub_resource type="StandardMaterial3D" id="52_cam02_dark"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.045, 0.055, 0.065, 1)
+
+[sub_resource type="BoxMesh" id="52_cam02_base"]
+resource_local_to_scene = true
+material = SubResource("52_cam02_dark")
+size = Vector3(0.23, 0.04, 0.23)
+
+[sub_resource type="StandardMaterial3D" id="52_cam02_cap_material"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.15, 0.19, 0.2, 1)
+
+[sub_resource type="BoxMesh" id="52_cam02_cap"]
+resource_local_to_scene = true
+material = SubResource("52_cam02_cap_material")
+size = Vector3(0.18, 0.045, 0.17)
+
+[sub_resource type="StandardMaterial3D" id="52_cam02_selected_material"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.12, 0.4, 0.36, 1)
+
+[sub_resource type="BoxMesh" id="52_cam02_selected"]
+resource_local_to_scene = true
+material = SubResource("52_cam02_selected_material")
+size = Vector3(0.19, 0.01, 0.025)
+
+[sub_resource type="StandardMaterial3D" id="52_cam02_hover_material"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.25, 0.7, 0.58, 1)
+
+[sub_resource type="BoxMesh" id="52_cam02_hover"]
+resource_local_to_scene = true
+material = SubResource("52_cam02_hover_material")
+size = Vector3(0.25, 0.012, 0.25)
+
+[sub_resource type="StandardMaterial3D" id="52_comm_housing_material"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.045, 0.055, 0.065, 1)
+
+[sub_resource type="CylinderMesh" id="52_comm_housing"]
+resource_local_to_scene = true
+top_radius = 0.033
+bottom_radius = 0.033
+height = 0.02
+
+[sub_resource type="StandardMaterial3D" id="52_comm"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.2, 0.8, 0.5, 1)
+
+[sub_resource type="CylinderMesh" id="52_comm_lens"]
+resource_local_to_scene = true
+top_radius = 0.023
+bottom_radius = 0.023
+height = 0.024
+
+[sub_resource type="StandardMaterial3D" id="52_door_housing_material"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.045, 0.055, 0.065, 1)
+
+[sub_resource type="CylinderMesh" id="52_door_housing"]
+resource_local_to_scene = true
+top_radius = 0.033
+bottom_radius = 0.033
+height = 0.02
+
+[sub_resource type="StandardMaterial3D" id="52_closed"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.19, 0.25, 0.24, 1)
+
+[sub_resource type="CylinderMesh" id="52_door_lens"]
+resource_local_to_scene = true
+top_radius = 0.023
+bottom_radius = 0.023
+height = 0.024
+
+[sub_resource type="StandardMaterial3D" id="52_fault_housing_material"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.045, 0.055, 0.065, 1)
+
+[sub_resource type="CylinderMesh" id="52_fault_housing"]
+resource_local_to_scene = true
+top_radius = 0.033
+bottom_radius = 0.033
+height = 0.02
+
+[sub_resource type="StandardMaterial3D" id="52_fault"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.85, 0.08, 0.045, 1)
+
+[sub_resource type="CylinderMesh" id="52_fault_lens"]
+resource_local_to_scene = true
+top_radius = 0.023
+bottom_radius = 0.023
+height = 0.024
+
+[sub_resource type="StandardMaterial3D" id="52_screen"]
+resource_local_to_scene = true
+shading_mode = 0
+texture_filter = 0
+
+[sub_resource type="QuadMesh" id="52_screen_quad"]
+size = Vector2(1.66, 0.93375)
+
+[sub_resource type="StandardMaterial3D" id="52_dark"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.045, 0.055, 0.065, 1)
+
+[sub_resource type="BoxMesh" id="52_status_box"]
+size = Vector3(2.3, 0.14, 0.028)
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_aod7d"]
 albedo_texture = ExtResource("13_aod7d")
 
@@ -155,36 +321,6 @@ material = SubResource("ShaderMaterial_riqys")
 flip_faces = true
 size = Vector2(2, 2)
 
-[sub_resource type="StandardMaterial3D" id="52_dark"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.045, 0.055, 0.065, 1)
-
-[sub_resource type="StandardMaterial3D" id="52_cap"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.15, 0.19, 0.20, 1)
-
-[sub_resource type="StandardMaterial3D" id="52_selected"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.12, 0.40, 0.36, 1)
-
-[sub_resource type="StandardMaterial3D" id="52_hover"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.25, 0.7, 0.58, 1)
-
-[sub_resource type="StandardMaterial3D" id="52_comm"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.2, 0.8, 0.5, 1)
-
-[sub_resource type="StandardMaterial3D" id="52_closed"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.19, 0.25, 0.24, 1)
-
 [sub_resource type="StandardMaterial3D" id="52_moving"]
 resource_local_to_scene = true
 shading_mode = 0
@@ -195,148 +331,10 @@ resource_local_to_scene = true
 shading_mode = 0
 albedo_color = Color(0.12, 0.7, 0.26, 1)
 
-[sub_resource type="StandardMaterial3D" id="52_fault"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.85, 0.08, 0.045, 1)
-
-[sub_resource type="StandardMaterial3D" id="52_screen"]
-resource_local_to_scene = true
-shading_mode = 0
-texture_filter = 0
-
-[sub_resource type="StandardMaterial3D" id="52_cam01_dark"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.045, 0.055, 0.065, 1)
-
-[sub_resource type="StandardMaterial3D" id="52_cam02_dark"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.045, 0.055, 0.065, 1)
-
-[sub_resource type="StandardMaterial3D" id="52_cam02_cap_material"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.15, 0.19, 0.20, 1)
-
-[sub_resource type="StandardMaterial3D" id="52_cam02_selected_material"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.12, 0.40, 0.36, 1)
-
-[sub_resource type="StandardMaterial3D" id="52_cam02_hover_material"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.25, 0.7, 0.58, 1)
-
-[sub_resource type="StandardMaterial3D" id="52_comm_housing_material"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.045, 0.055, 0.065, 1)
-
-[sub_resource type="StandardMaterial3D" id="52_door_housing_material"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.045, 0.055, 0.065, 1)
-
-[sub_resource type="StandardMaterial3D" id="52_fault_housing_material"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.045, 0.055, 0.065, 1)
-
-[sub_resource type="QuadMesh" id="52_screen_quad"]
-size = Vector2(1.66, 0.93375)
-
-[sub_resource type="BoxMesh" id="52_status_box"]
-size = Vector3(2.3, 0.14, 0.028)
-
-[sub_resource type="BoxShape3D" id="52_cam01_shape"]
-size = Vector3(0.22, 0.07, 0.22)
-
-[sub_resource type="BoxMesh" id="52_cam01_base"]
-resource_local_to_scene = true
-material = SubResource("52_cam01_dark")
-size = Vector3(0.23, 0.04, 0.23)
-
-[sub_resource type="BoxMesh" id="52_cam01_cap"]
-resource_local_to_scene = true
-material = SubResource("52_cap")
-size = Vector3(0.18, 0.045, 0.17)
-
-[sub_resource type="BoxMesh" id="52_cam01_selected"]
-resource_local_to_scene = true
-material = SubResource("52_selected")
-size = Vector3(0.19, 0.01, 0.025)
-
-[sub_resource type="BoxMesh" id="52_cam01_hover"]
-resource_local_to_scene = true
-material = SubResource("52_hover")
-size = Vector3(0.25, 0.012, 0.25)
-
-[sub_resource type="BoxShape3D" id="52_cam02_shape"]
-size = Vector3(0.22, 0.07, 0.22)
-
-[sub_resource type="BoxMesh" id="52_cam02_base"]
-resource_local_to_scene = true
-material = SubResource("52_cam02_dark")
-size = Vector3(0.23, 0.04, 0.23)
-
-[sub_resource type="BoxMesh" id="52_cam02_cap"]
-resource_local_to_scene = true
-material = SubResource("52_cam02_cap_material")
-size = Vector3(0.18, 0.045, 0.17)
-
-[sub_resource type="BoxMesh" id="52_cam02_selected"]
-resource_local_to_scene = true
-material = SubResource("52_cam02_selected_material")
-size = Vector3(0.19, 0.01, 0.025)
-
-[sub_resource type="BoxMesh" id="52_cam02_hover"]
-resource_local_to_scene = true
-material = SubResource("52_cam02_hover_material")
-size = Vector3(0.25, 0.012, 0.25)
-
-[sub_resource type="CylinderMesh" id="52_comm_housing"]
-resource_local_to_scene = true
-top_radius = 0.033
-bottom_radius = 0.033
-height = 0.02
-
-[sub_resource type="CylinderMesh" id="52_comm_lens"]
-resource_local_to_scene = true
-top_radius = 0.023
-bottom_radius = 0.023
-height = 0.024
-
-[sub_resource type="CylinderMesh" id="52_door_housing"]
-resource_local_to_scene = true
-top_radius = 0.033
-bottom_radius = 0.033
-height = 0.02
-
-[sub_resource type="CylinderMesh" id="52_door_lens"]
-resource_local_to_scene = true
-top_radius = 0.023
-bottom_radius = 0.023
-height = 0.024
-
-[sub_resource type="CylinderMesh" id="52_fault_housing"]
-resource_local_to_scene = true
-top_radius = 0.033
-bottom_radius = 0.033
-height = 0.02
-
-[sub_resource type="CylinderMesh" id="52_fault_lens"]
-resource_local_to_scene = true
-top_radius = 0.023
-bottom_radius = 0.023
-height = 0.024
-
 [node name="三维操作舱" type="Node3D" unique_id=699471354]
 script = ExtResource("1_wegik")
 
-[node name="监控表现协调器" type="Node" parent="."]
+[node name="监控表现协调器" type="Node" parent="." unique_id=333989727]
 script = ExtResource("23_coordinator")
 passenger_visual_profiles = Array[ExtResource("24_profile_type")]([ExtResource("25_profile_001"), ExtResource("26_profile_002"), ExtResource("27_profile_003")])
 floor_visual_profiles = Array[ExtResource("50_floor_type")]([ExtResource("50_floor_900"), ExtResource("50_floor_742"), ExtResource("50_floor_612"), ExtResource("50_floor_004"), ExtResource("50_floor_387"), ExtResource("50_floor_392"), ExtResource("50_floor_547")])
@@ -396,7 +394,7 @@ size = Vector3(2.55, 1, 0.05)
 [node name="主台交互热点" type="Node3D" parent="操作台占位/主操作台定位" unique_id=266902568]
 
 [node name="麦克风热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=1122092151]
-transform = Transform3D(1, 0, 0, 0, 0.725374, -0.688355, 0, 0.688355, 0.725374, -0.72, 0.93, -1.35)
+transform = Transform3D(1, 0, 0, 0, 0.725374, -0.688355, 0, 0.688355, 0.725374, -0.6979811, 0.8963205, -1.279757)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -418,8 +416,14 @@ transform = Transform3D(1.0943732, 0, 0, 0, 0.95570934, -1.1920929e-07, 0, 0, 1.
 visible = false
 mesh = SubResource("BoxMesh_sn0t7")
 
+[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点" unique_id=1206620932]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.14, 0.065)
+pixel_size = 0.002
+text = "MIC"
+font_size = 28
+
 [node name="开门热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=227531788]
-transform = Transform3D(0.62513196, 0, 0, 0, 0.3640323, -0.32701334, 0, 0.3454542, 0.34459975, 0.14766312, 0.93, -1.35)
+transform = Transform3D(0.62513196, 0, 0, 0, 0.3640323, -0.32701334, 0, 0.3454542, 0.34459975, 0.23426473, 0.93, -1.35)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -444,6 +448,12 @@ mesh = SubResource("CylinderMesh_bhunq")
 transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, 0.006237045, -0.020806313, -0.06995964)
 visible = false
 mesh = SubResource("BoxMesh_6f8o3")
+
+[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点" unique_id=1263783487]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.14, 0.065)
+pixel_size = 0.002
+text = "OPEN"
+font_size = 28
 
 [node name="关门热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=116356286]
 transform = Transform3D(0.62513196, 0, 0, 0, 0.3640323, -0.32701334, 0, 0.3454542, 0.34459975, 0.5420569, 0.93, -1.35)
@@ -473,31 +483,17 @@ transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, 0.013560355, -0.
 visible = false
 mesh = SubResource("BoxMesh_efn7a")
 
-[node name="主监视器" type="MeshInstance3D" parent="操作台占位/主操作台定位"]
-position = Vector3(0, 1.69087, -1.529)
-mesh = SubResource("52_screen_quad")
-material_override = SubResource("52_screen")
-
-[node name="设备状态条" type="Node3D" parent="操作台占位/主操作台定位"]
-position = Vector3(0, 1.105, -1.51)
-
-[node name="背景" type="MeshInstance3D" parent="操作台占位/主操作台定位/设备状态条"]
-mesh = SubResource("52_status_box")
-material_override = SubResource("52_dark")
-
-[node name="状态文字" type="Label3D" parent="操作台占位/主操作台定位/设备状态条"]
-position = Vector3(0, 0, 0.019)
-pixel_size = 0.0018
+[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点" unique_id=109319742]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.14, 0.065)
+pixel_size = 0.002
+text = "CLOSE"
 font_size = 28
-outline_size = 3
-text = "CASE — · 值班待命"
-modulate = Color(0.65, 0.86, 0.79, 1)
 
-[node name="斜台面新增控件根" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点"]
+[node name="斜台面新增控件根" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=371646672]
 transform = Transform3D(1, 0, 0, 0, 0.725374, -0.688355, 0, 0.688355, 0.725374, 0, 0.93, -1.35)
 
-[node name="CAM01热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(-0.37, 0, -0.00688355)
+[node name="CAM01热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=41703191]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.37, 0, -0.00688355)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -505,39 +501,36 @@ action_id = &"select_camera_01"
 prompt_text = "CAM 01"
 hover_visual_path = NodePath("视觉/悬停高亮")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点" unique_id=867613664]
 shape = SubResource("52_cam01_shape")
 
-[node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点"]
+[node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点" unique_id=1264001608]
 
-
-[node name="底座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉"]
-position = Vector3(0, 0, 0)
+[node name="底座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉" unique_id=338578856]
 mesh = SubResource("52_cam01_base")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉"]
-position = Vector3(0, 0.035, 0)
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉" unique_id=23402942]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.035, 0)
 mesh = SubResource("52_cam01_cap")
 
-[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉"]
-position = Vector3(0, 0.06, 0.07)
+[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉" unique_id=349256868]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0.07)
+visible = false
 mesh = SubResource("52_cam01_selected")
-visible = false
 
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉"]
-position = Vector3(0, -0.007, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉" unique_id=1017574438]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.007, 0)
+visible = false
 mesh = SubResource("52_cam01_hover")
-visible = false
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉"]
-position = Vector3(0, 0.061, -0.015)
-rotation = Vector3(-1.5707963, 0, 0)
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉" unique_id=276286809]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.061, -0.015)
 pixel_size = 0.0014
-font_size = 25
 text = "CAM 01"
+font_size = 25
 
-[node name="CAM02热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(-0.08, 0, -0.00688355)
+[node name="CAM02热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=1623914680]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.08, 0, -0.00688355)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -545,116 +538,109 @@ action_id = &"select_camera_02"
 prompt_text = "CAM 02"
 hover_visual_path = NodePath("视觉/悬停高亮")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点" unique_id=109370934]
 shape = SubResource("52_cam02_shape")
 
-[node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点"]
+[node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点" unique_id=546314487]
 
-
-[node name="底座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉"]
-position = Vector3(0, 0, 0)
+[node name="底座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉" unique_id=393387087]
 mesh = SubResource("52_cam02_base")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉"]
-position = Vector3(0, 0.035, 0)
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉" unique_id=227449085]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.035, 0)
 mesh = SubResource("52_cam02_cap")
 
-[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉"]
-position = Vector3(0, 0.06, 0.07)
+[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉" unique_id=529810830]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0.07)
+visible = false
 mesh = SubResource("52_cam02_selected")
-visible = false
 
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉"]
-position = Vector3(0, -0.007, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉" unique_id=1142936713]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.007, 0)
+visible = false
 mesh = SubResource("52_cam02_hover")
-visible = false
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉"]
-position = Vector3(0, 0.061, -0.015)
-rotation = Vector3(-1.5707963, 0, 0)
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉" unique_id=866050923]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.061, -0.015)
 pixel_size = 0.0014
-font_size = 25
 text = "CAM 02"
+font_size = 25
 
-[node name="COMM指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(-0.93, 0, -0.029865405)
+[node name="COMM指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=100710776]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0466043, 5.9604645e-08, -0.029865384)
 
-[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯"]
-mesh = SubResource("52_comm_housing")
+[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯" unique_id=1120080488]
 material_override = SubResource("52_comm_housing_material")
+mesh = SubResource("52_comm_housing")
 
-[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯"]
-position = Vector3(0, 0.011, 0)
-mesh = SubResource("52_comm_lens")
+[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯" unique_id=1227417893]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.011, 0)
+visible = false
 material_override = SubResource("52_comm")
-visible = false
+mesh = SubResource("52_comm_lens")
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯"]
-position = Vector3(0, 0.015, 0.064)
-rotation = Vector3(-1.5707963, 0, 0)
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯" unique_id=1826541840]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.015, 0.064)
 pixel_size = 0.0014
-font_size = 24
 text = "COMM"
+font_size = 24
 
-[node name="DOOR指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(0.35, 0, -0.232970125)
+[node name="DOOR指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=1439120145]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.70065343, 0.038273096, -0.0697608)
 
-[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯"]
-mesh = SubResource("52_door_housing")
+[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯" unique_id=891701865]
 material_override = SubResource("52_door_housing_material")
+mesh = SubResource("52_door_housing")
 
-[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯"]
-position = Vector3(0, 0.011, 0)
-mesh = SubResource("52_door_lens")
+[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯" unique_id=999195658]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.011, 0)
 material_override = SubResource("52_closed")
+mesh = SubResource("52_door_lens")
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯"]
-position = Vector3(0, 0.015, 0.064)
-rotation = Vector3(-1.5707963, 0, 0)
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯" unique_id=753427199]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.015, 0.064)
 pixel_size = 0.0014
-font_size = 24
 text = "DOOR"
-
-[node name="FAULT指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(1.03, 0, -0.102402805)
-
-[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯"]
-mesh = SubResource("52_fault_housing")
-material_override = SubResource("52_fault_housing_material")
-
-[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯"]
-position = Vector3(0, 0.011, 0)
-mesh = SubResource("52_fault_lens")
-material_override = SubResource("52_fault")
-visible = false
-
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯"]
-position = Vector3(0, 0.015, 0.064)
-rotation = Vector3(-1.5707963, 0, 0)
-pixel_size = 0.0014
 font_size = 24
+
+[node name="FAULT指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=1859006211]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.03, 0, -0.10240281)
+
+[node name="灯座" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯" unique_id=282395613]
+material_override = SubResource("52_fault_housing_material")
+mesh = SubResource("52_fault_housing")
+
+[node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯" unique_id=503477047]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.011, 0)
+visible = false
+material_override = SubResource("52_fault")
+mesh = SubResource("52_fault_lens")
+
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯" unique_id=40269106]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.015, 0.064)
+pixel_size = 0.0014
 text = "FAULT"
+font_size = 24
 
-[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点"]
-position = Vector3(0, 0.14, 0.065)
-rotation = Vector3(-1.5707963, 0, 0)
-pixel_size = 0.002
-font_size = 28
-text = "MIC"
+[node name="主监视器" type="MeshInstance3D" parent="操作台占位/主操作台定位" unique_id=933225609]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69087, -1.529)
+material_override = SubResource("52_screen")
+mesh = SubResource("52_screen_quad")
 
-[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点"]
-position = Vector3(0, 0.14, 0.065)
-rotation = Vector3(-1.5707963, 0, 0)
-pixel_size = 0.002
-font_size = 28
-text = "OPEN"
+[node name="设备状态条" type="Node3D" parent="操作台占位/主操作台定位" unique_id=13673703]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.105, -1.51)
 
-[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点"]
-position = Vector3(0, 0.14, 0.065)
-rotation = Vector3(-1.5707963, 0, 0)
-pixel_size = 0.002
+[node name="背景" type="MeshInstance3D" parent="操作台占位/主操作台定位/设备状态条" unique_id=1438256047]
+material_override = SubResource("52_dark")
+mesh = SubResource("52_status_box")
+
+[node name="状态文字" type="Label3D" parent="操作台占位/主操作台定位/设备状态条" unique_id=1478401597]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.019)
+pixel_size = 0.0018
+modulate = Color(0.65, 0.86, 0.79, 1)
+text = "CASE — · 值班待命"
 font_size = 28
-text = "CLOSE"
+outline_size = 3
 
 [node name="左操作台定位" type="Node3D" parent="操作台占位" unique_id=1852062320]
 script = ExtResource("10_left_screen")
@@ -818,7 +804,7 @@ mouse_filter = 2
 [node name="DestinationControlInterface" parent="操作台界面层/操作台界面根/右操作台界面容器" unique_id=1185287254 instance=ExtResource("4_rx0mt")]
 layout_mode = 1
 
-[node name="全局通讯容器" type="Control" parent="操作台界面层/操作台界面根"]
+[node name="全局通讯容器" type="Control" parent="操作台界面层/操作台界面根" unique_id=1987099047]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -827,7 +813,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="ConsoleInterface" parent="操作台界面层/操作台界面根/全局通讯容器" instance=ExtResource("2_laov4")]
+[node name="ConsoleInterface" parent="操作台界面层/操作台界面根/全局通讯容器" unique_id=1656012971 instance=ExtResource("2_laov4")]
 layout_mode = 1
 mouse_filter = 2
 
@@ -870,7 +856,7 @@ current = true
 fov = 60.0
 far = 30.0
 
-[node name="主台展示绑定" type="Node" parent="."]
+[node name="主台展示绑定" type="Node" parent="." unique_id=820328079]
 script = ExtResource("52_presentation")
 console_interface_path = NodePath("../操作台界面层/操作台界面根/全局通讯容器/ConsoleInterface")
 stage_controller_path = NodePath("../监控摄影棚定位/监控测试摄影棚")
