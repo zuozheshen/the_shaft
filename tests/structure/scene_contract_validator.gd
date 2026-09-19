@@ -41,6 +41,10 @@ const AUTOLOADS := {
 	"DialogueManager": "res://addons/dialogue_manager/dialogue_manager.gd",
 	"ContentRegistry": "res://scripts/data/content_registry.gd",
 }
+const GODOT_AI_PLUGIN := "res://addons/godot_ai/plugin.cfg"
+const GODOT_AI_VERSION := "4.1.0"
+const GODOT_AI_AUTOLOAD_NAME := "_mcp_game_helper"
+const GODOT_AI_AUTOLOAD := "res://addons/godot_ai/runtime/game_helper.gd"
 
 # 导出路径允许重新配置和移动节点；只要求目标能解析且类型正确。
 const EXPORTED_PATHS := {
@@ -147,6 +151,26 @@ func validate_configuration(config: ConfigFile) -> void:
 		var count := resolved_autoloads.values().count(AUTOLOADS[name])
 		if count != 1:
 			_problem("res://project.godot", "autoload/" + name, "one script instance", str(count))
+	if resolved_autoloads.get(GODOT_AI_AUTOLOAD_NAME, "") != GODOT_AI_AUTOLOAD:
+		_problem("res://project.godot", "autoload/" + GODOT_AI_AUTOLOAD_NAME,
+			GODOT_AI_AUTOLOAD, str(resolved_autoloads.get(GODOT_AI_AUTOLOAD_NAME, "missing")))
+	var helper_value := str(config.get_value("autoload", GODOT_AI_AUTOLOAD_NAME, ""))
+	if not helper_value.begins_with("*"):
+		_problem("res://project.godot", "autoload/" + GODOT_AI_AUTOLOAD_NAME,
+			"enabled development helper", helper_value)
+	var enabled_plugins: PackedStringArray = config.get_value(
+		"editor_plugins", "enabled", PackedStringArray()
+	)
+	for plugin_path: String in ["res://addons/dialogue_manager/plugin.cfg", GODOT_AI_PLUGIN]:
+		if plugin_path not in enabled_plugins:
+			_problem("res://project.godot", "editor_plugins/enabled", plugin_path, "missing")
+	var godot_ai_config := ConfigFile.new()
+	var plugin_load_result := godot_ai_config.load(GODOT_AI_PLUGIN)
+	if plugin_load_result != OK:
+		_problem(GODOT_AI_PLUGIN, ".", "readable Godot AI plugin configuration", str(plugin_load_result))
+	elif str(godot_ai_config.get_value("plugin", "version", "")) != GODOT_AI_VERSION:
+		_problem(GODOT_AI_PLUGIN, "plugin/version", GODOT_AI_VERSION,
+			str(godot_ai_config.get_value("plugin", "version", "missing")))
 	for action: String in ["turn_left", "turn_right"]:
 		if not config.has_section_key("input", action):
 			_problem("res://project.godot", "input/" + action, "script-referenced action", "missing")

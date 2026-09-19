@@ -8,6 +8,13 @@ exports/
 build/
 builds/
 
+# Godot AI 的官方树包含一个 export 插件；只放行这一条基础设施路径。
+!addons/godot_ai/export/
+!addons/godot_ai/export/**
+
+# Godot AI 自更新的 stage、backup、lock 与恢复标记均为本机状态。
+addons/.godot_ai_update/
+
 # Temporary files
 *.tmp
 *.bak

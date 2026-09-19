@@ -36,6 +36,17 @@ PLAN 只补充 Issue 尚未说明、但实施必须知道的内容：目标与�
   REVIEW 前运行一次 `tests/run_all_tests.ps1`。文档-only 默认不跑游戏全量测试。
 - commit 前检查 diff、显式暂存当前 Issue 文件、检查 staged diff；失败或未完成不写成成功。
 
+### Visual preflight 与 BUILD loop
+
+视觉类 Issue 在修改前默认只保留当前 Issue worktree 对应的一个活动 Godot Editor，并按
+[`godot-ai.md`](godot-ai.md) 完成 branch/HEAD/worktree、server connected、client 调用、live project path、
+Scene Tree 和真实 game view 检查。project path 或 live session 身份不一致时立即停止；不得等到多实例冲突后才处理，
+也不得改用文本猜画面或自行补 helper。
+
+BUILD 按“小步修改 → 运行正式场景 → 截图 / runtime Scene Tree / 属性 / 日志（按需）→ 对照冻结要求”循环。
+纯 Transform、Inspector 和视觉布局优先视觉复查，不因此反复跑全量；输入、signal、presentation refresh、wrapper、
+业务逻辑与数据契约变化仍先跑受影响测试。正式结构或公共行为变化时，REVIEW 前统一入口只跑一次。
+
 ## Circuit Breaker
 
 这是测试重试的唯一权威定义：
@@ -51,6 +62,8 @@ PLAN 只补充 Issue 尚未说明、但实施必须知道的内容：目标与�
 
 REVIEW 写回当前 Issue，包含：实际文件和行为、相对 base 的 diff、各验证结果与退出码、
 计划偏差、已知限制、人工体验点、base/branch/commit/PR，以及未执行事项。
+视觉类 REVIEW 另分为 Automated logic verification、Godot AI visual/runtime verification 和 Human validation；
+前两者不能写成用户人工验收已通过。
 写回前读取最新评论避免重复；失败时标记“未同步”，恢复后先查询是否已写入。
 
 只有本地 commit 时明确“未 push”，不伪造远端链接。默认不自主 push、merge 或改写历史；
