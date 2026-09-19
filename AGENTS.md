@@ -75,6 +75,13 @@ GitHub Issue 是动态任务的唯一真相源；`PROJECT_STATE.md` 只记录慢
 - REVIEW 如实区分实现、自动测试、人工验收、commit、push/merge 和外部同步，列出文件、结果与限制。
 - 默认停在 push/merge 前，由用户决定最终整合和发布。
 
+## Godot AI 视觉验证
+
+- `addons/godot_ai/` 是固定版本的项目开发基础设施；普通 Issue 不删除、替换、降级或顺手更新它，也不提交用户级 Codex 配置、认证 capability、`.godot/`、截图或日志。
+- 3D、UI、Camera、Interaction、布局、字体与可读性等视觉 BUILD 开始前，默认只保留当前 Issue worktree 对应的一个活动 Godot Editor，再按 [`docs/development/godot-ai.md`](docs/development/godot-ai.md) 执行 preflight。Godot AI 报告的 project path 或 live session 身份与 worktree 不一致时立即停止，不等待多实例歧义实际发生。
+- 视觉修改采用“小步修改 → 真实正式场景 → 截图 / runtime Scene Tree / 属性 / 日志 → 对照冻结要求”的循环。纯视觉调整不反复跑全量测试；逻辑变化仍先跑受影响测试，REVIEW 前的统一测试规则不变。
+- REVIEW 分开记录自动逻辑验证、Godot AI 视觉/运行时自检和用户人工体验验收；任何一项不得冒充另一项。
+
 ## 开发日志与外部同步
 
 开发日志和飞书操作遵循

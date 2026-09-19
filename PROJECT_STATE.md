@@ -9,7 +9,8 @@
   "main_scene": "res://scenes/main/main_3d.tscn",
   "autoloads": {
     "DialogueManager": "res://addons/dialogue_manager/dialogue_manager.gd",
-    "ContentRegistry": "res://scripts/data/content_registry.gd"
+    "ContentRegistry": "res://scripts/data/content_registry.gd",
+    "_mcp_game_helper": "res://addons/godot_ai/runtime/game_helper.gd"
   }
 }
 ```
@@ -35,6 +36,7 @@
 - 正式业务状态归运行层；表现层不另存派单数据库或决定业务结果。摄像头提供证据，乘客内容来自资源而非 UI 硬编码。
 - 不重复创建 GameRuntime、DemoFlowManager、ContentRegistry、DialogueManager、第二套业务状态机或第二 Godot 项目。
 - 测试基础设施只验证项目，不参与游戏运行时。测试入口与限制见 `tests/README.md`。
+- `addons/godot_ai/` 固定为官方 Godot AI v4.1.0 开发基础设施；`_mcp_game_helper` 只为编辑器启动的游戏进程提供截图、日志和运行时检查，不是 gameplay Manager，导出时由插件剥离。
 
 ## 已知技术债与验证边界
 
