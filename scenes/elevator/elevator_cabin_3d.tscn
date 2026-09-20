@@ -788,6 +788,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 2.85)
 size = Vector3(2.2, 2.7, 0.15)
 
 [node name="右操作台定位" type="Node3D" parent="操作台占位" unique_id=1554468139]
+position = Vector3(0.4608, 0.8, 0)
+scale = Vector3(0.68, 0.68, 0.68)
 
 [node name="右台背板" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=1643159438]
 position = Vector3(1.62, 1.38, 0)
@@ -807,28 +809,29 @@ material_override = SubResource("53_screen")
 size = Vector3(0.025, 0.63, 1.74)
 
 [node name="信息文字" type="Label3D" parent="操作台占位/右操作台定位/验证信息屏"]
-position = Vector3(1.455, 2.04, 0.73)
+position = Vector3(1.455, 2.04, -0.73)
 rotation = Vector3(0, -1.5707963, 0)
-pixel_size = 0.00165
+pixel_size = 0.0025
 text = "当前楼层：---\n系统推荐：—\n目标楼层：---\n地址状态：未验证\n派单关联度：—\n稳定度影响：—"
-font_size = 27
+font_size = 30
 outline_size = 5
 horizontal_alignment = 0
+width = 600.0
 
 [node name="数字显示组" type="Node3D" parent="操作台占位/右操作台定位"]
 
 [node name="LCD外框" type="CSGBox3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.505, 1.56, 0.31)
+position = Vector3(1.505, 1.56, -0.31)
 material_override = SubResource("53_metal")
 size = Vector3(0.1, 0.25, 1.0)
 
 [node name="LCD屏面" type="CSGBox3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.445, 1.56, 0.31)
+position = Vector3(1.445, 1.56, -0.31)
 material_override = SubResource("53_lcd")
 size = Vector3(0.025, 0.19, 0.9)
 
 [node name="输入数字" type="Label3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.425, 1.56, 0.7)
+position = Vector3(1.425, 1.56, 0.08)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0022
 font_size = 42
@@ -836,7 +839,7 @@ outline_size = 2
 horizontal_alignment = 2
 
 [node name="验证楼层热点" type="Area3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.44, 1.56, -0.58)
+position = Vector3(1.44, 1.56, 0.58)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -858,26 +861,28 @@ visible = false
 mesh = SubResource("53_verify_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
-position = Vector3(-0.105, 0, 0.15)
+position = Vector3(-0.105, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
-pixel_size = 0.00125
+pixel_size = 0.0022
 text = "验证楼层"
-font_size = 24
+font_size = 26
+outline_size = 2
 modulate = Color(0.08, 0.09, 0.09, 1)
 
 [node name="反馈文字" type="Label3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.43, 1.36, 0.82)
+position = Vector3(1.43, 1.36, -0.82)
 rotation = Vector3(0, -1.5707963, 0)
-pixel_size = 0.0012
+pixel_size = 0.0015
 text = "请输入目标楼层"
-font_size = 20
+font_size = 22
 outline_size = 4
 horizontal_alignment = 0
+width = 800.0
 
 [node name="数字键盘" type="Node3D" parent="操作台占位/右操作台定位"]
 
 [node name="数字1" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 1.17, 0.43)
+position = Vector3(1.44, 1.17, -0.43)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -935,7 +940,7 @@ text = "2"
 font_size = 30
 
 [node name="数字3" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 1.17, -0.43)
+position = Vector3(1.44, 1.17, 0.43)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -964,7 +969,7 @@ text = "3"
 font_size = 30
 
 [node name="数字4" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.96, 0.43)
+position = Vector3(1.44, 0.96, -0.43)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1022,7 +1027,7 @@ text = "5"
 font_size = 30
 
 [node name="数字6" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.96, -0.43)
+position = Vector3(1.44, 0.96, 0.43)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1051,7 +1056,7 @@ text = "6"
 font_size = 30
 
 [node name="数字7" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.75, 0.43)
+position = Vector3(1.44, 0.75, -0.43)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1109,7 +1114,7 @@ text = "8"
 font_size = 30
 
 [node name="数字9" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.75, -0.43)
+position = Vector3(1.44, 0.75, 0.43)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1138,7 +1143,7 @@ text = "9"
 font_size = 30
 
 [node name="清空" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.54, 0.43)
+position = Vector3(1.44, 0.54, -0.43)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1196,7 +1201,7 @@ text = "0"
 font_size = 30
 
 [node name="退格" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.54, -0.43)
+position = Vector3(1.44, 0.54, 0.43)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1233,7 +1238,7 @@ material_override = SubResource("53_body")
 size = Vector3(0.16, 0.5, 2.05)
 
 [node name="楼层导引书" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根"]
-position = Vector3(-0.13, 0.01, 0.48)
+position = Vector3(-0.13, 0.01, -0.48)
 
 [node name="封面" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
 mesh = SubResource("53_book_cover_mesh")
@@ -1243,15 +1248,15 @@ position = Vector3(-0.012, 0, 0)
 mesh = SubResource("53_book_pages_mesh")
 
 [node name="封面标题" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
-position = Vector3(-0.075, 0, 0.23)
+position = Vector3(-0.075, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
-pixel_size = 0.0014
+pixel_size = 0.0022
 text = "楼层导引书"
-font_size = 23
+font_size = 28
 outline_size = 3
 
 [node name="执行拨杆热点" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根"]
-position = Vector3(-0.12, 0, -0.5)
+position = Vector3(-0.12, 0, 0.5)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1285,9 +1290,9 @@ mesh = SubResource("53_verify_hover_mesh")
 [node name="执行标识" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
 position = Vector3(-0.1, -0.22, 0.2)
 rotation = Vector3(0, -1.5707963, 0)
-pixel_size = 0.0014
+pixel_size = 0.0018
 text = "前往楼层"
-font_size = 23
+font_size = 24
 outline_size = 3
 
 [node name="底缘挡条" type="CSGBox3D" parent="操作台占位/右操作台定位/下部斜面根"]
