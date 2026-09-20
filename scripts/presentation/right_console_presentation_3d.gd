@@ -7,6 +7,7 @@ extends Node
 @export var information_label_path: NodePath
 @export var input_label_path: NodePath
 @export var feedback_label_path: NodePath
+@export var verify_attention_visual_path: NodePath
 @export var lever_pivot_path: NodePath
 @export_range(2.0, 35.0, 1.0) var lever_travel_degrees: float = 16.0
 @export_range(0.03, 0.5, 0.01) var lever_forward_duration: float = 0.12
@@ -16,10 +17,13 @@ var _destination: DestinationControlInterface
 var _information_label: Label3D
 var _input_label: Label3D
 var _feedback_label: Label3D
+var _verify_attention_visual: MeshInstance3D
 var _lever_pivot: Node3D
 var _lever_rest_rotation: Vector3
 var _lever_tween: Tween
 var _lever_animating: bool = false
+var _verify_attention_tween: Tween
+var _verify_attention_active: bool = false
 
 
 func _ready() -> void:
@@ -31,17 +35,28 @@ func _bind_presentation() -> void:
 	_information_label = get_node_or_null(information_label_path) as Label3D
 	_input_label = get_node_or_null(input_label_path) as Label3D
 	_feedback_label = get_node_or_null(feedback_label_path) as Label3D
+	_verify_attention_visual = get_node_or_null(
+		verify_attention_visual_path
+	) as MeshInstance3D
 	_lever_pivot = get_node_or_null(lever_pivot_path) as Node3D
 	if _destination == null or _information_label == null or _input_label == null \
-			or _feedback_label == null or _lever_pivot == null:
+			or _feedback_label == null or _verify_attention_visual == null \
+			or _lever_pivot == null:
 		push_error("右台实体展示缺少关键导出路径或节点类型错误。")
 		return
+	_verify_attention_visual.visible = false
 	_lever_rest_rotation = _lever_pivot.rotation
 	if not _destination.destination_presentation_changed.is_connected(
 			_on_destination_presentation_changed
 	):
 		_destination.destination_presentation_changed.connect(
 			_on_destination_presentation_changed
+		)
+	if not _destination.destination_travel_result.is_connected(
+			_on_destination_travel_result
+	):
+		_destination.destination_travel_result.connect(
+			_on_destination_travel_result
 		)
 	_on_destination_presentation_changed(
 		_destination.get_destination_presentation()
@@ -80,10 +95,50 @@ func is_lever_animating() -> bool:
 	return _lever_animating
 
 
+func is_verify_attention_active() -> bool:
+	return _verify_attention_active
+
+
 func _finish_lever_animation() -> void:
 	if _lever_pivot != null:
 		_lever_pivot.rotation = _lever_rest_rotation
 	_lever_animating = false
+
+
+func _on_destination_travel_result(result: FlowCommandResult) -> void:
+	if result.code != &"DESTINATION_NOT_VALIDATED":
+		return
+	_pulse_verify_attention()
+
+
+func _pulse_verify_attention() -> void:
+	if _verify_attention_visual == null:
+		return
+	if _verify_attention_tween != null and _verify_attention_tween.is_valid():
+		_verify_attention_tween.kill()
+	_verify_attention_active = true
+	_verify_attention_visual.visible = true
+	_verify_attention_tween = create_tween()
+	for _pulse_index in 3:
+		_verify_attention_tween.tween_interval(0.12)
+		_verify_attention_tween.tween_callback(
+			_set_verify_attention_visible.bind(false)
+		)
+		_verify_attention_tween.tween_interval(0.08)
+		_verify_attention_tween.tween_callback(
+			_set_verify_attention_visible.bind(true)
+		)
+	_verify_attention_tween.tween_callback(_finish_verify_attention)
+
+
+func _set_verify_attention_visible(is_visible: bool) -> void:
+	if _verify_attention_visual != null:
+		_verify_attention_visual.visible = is_visible
+
+
+func _finish_verify_attention() -> void:
+	_set_verify_attention_visible(false)
+	_verify_attention_active = false
 
 
 func _on_destination_presentation_changed(snapshot: Dictionary) -> void:

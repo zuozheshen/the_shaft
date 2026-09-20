@@ -10,6 +10,7 @@ const FlowCommandResultScript := preload(
 signal return_requested
 signal presentation_effects_requested(effects: Array[StringName])
 signal destination_presentation_changed(snapshot: Dictionary)
+signal destination_travel_result(result: FlowCommandResult)
 
 
 const PRESENTATION_BUSY_HINT: String = \
@@ -437,10 +438,13 @@ func _submit_destination() -> void:
 		_get_current_destination()
 	)
 	_set_label_text(destination_feedback_label, result.message)
+	if result.code == &"DESTINATION_NOT_VALIDATED":
+		_address_status = "未验证｜请先验证楼层"
 	if result.succeeded:
 		presentation_effects_requested.emit(result.get_effects())
 		_update_dispatch_summary_label()
 	_notify_destination_presentation_changed()
+	destination_travel_result.emit(result)
 
 
 func _is_presentation_busy() -> bool:

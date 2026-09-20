@@ -88,6 +88,37 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_equal("右台 / 旧推荐入口不能填入", "",
 			destination.manual_destination_line_edit.text)
 
+	var manager := destination.demo_flow_manager
+	var pickup_result := manager.request_travel_to_floor(manager.get_pickup_floor())
+	t.assert_true("右台 / 可推进到乘客接乘层", pickup_result.succeeded)
+	if manager.is_elevator_moving():
+		await manager.elevator_movement_completed
+	var open_result := manager.request_open_cabin_door()
+	var close_result := manager.request_close_cabin_door()
+	t.assert_true("右台 / 测试乘客已进舱", open_result.succeeded \
+			and close_result.succeeded and manager.is_passenger_onboard())
+	for digit: String in ["9", "0", "0"]:
+		destination.append_destination_digit(digit)
+	interaction._execute_action(&"destination_submit")
+	await _frames(tree, 2)
+	var rejection_snapshot := destination.get_destination_presentation()
+	t.assert_false("右台 / 未验证提交不启动移动", manager.is_elevator_moving())
+	t.assert_equal("右台 / 未验证拒绝写入上屏状态",
+			"未验证｜请先验证楼层", str(rejection_snapshot.address_status))
+	t.assert_true("右台 / 上屏显示未验证拒绝",
+			"地址状态：未验证｜请先验证楼层" in information.text)
+	t.assert_true("右台 / 未验证拒绝触发 Verify 提示",
+			presentation.is_verify_attention_active())
+	await tree.create_timer(
+		presentation.lever_forward_duration + presentation.lever_return_duration + 0.05
+	).timeout
+	interaction._execute_action(&"destination_verify")
+	await _frames(tree, 2)
+	t.assert_equal("右台 / 验证成功恢复地址状态", "已验证",
+			str(destination.get_destination_presentation().address_status))
+	destination.request_submit_destination()
+	t.assert_true("右台 / 验证后可沿既有流程移动", manager.is_elevator_moving())
+
 	var slope := right_root.get_node("下部斜面根") as Node3D
 	t.assert_true("右台 / 斜面初始约 20 度",
 			is_equal_approx(rad_to_deg(absf(slope.rotation.z)), 20.0))
@@ -103,7 +134,10 @@ func run(t: Variant, tree: SceneTree) -> void:
 	interaction._execute_action(&"destination_submit")
 	interaction._execute_action(&"destination_submit")
 	t.assert_true("右台 / 拨杆动作期间防重复触发", presentation.is_lever_animating())
-	await _frames(tree, 45)
+	await tree.create_timer(
+		presentation.lever_forward_duration + presentation.lever_return_duration + 0.05
+	).timeout
+	await _frames(tree, 2)
 	t.assert_false("右台 / 拨杆自动回位后解锁", presentation.is_lever_animating())
 	t.assert_true("右台 / 拨杆精确返回 Inspector 姿态",
 			pivot.rotation.is_equal_approx(rest_rotation))

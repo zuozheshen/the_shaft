@@ -860,6 +860,11 @@ position = Vector3(-0.075, 0, 0)
 visible = false
 mesh = SubResource("53_verify_hover_mesh")
 
+[node name="拒绝提示高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
+position = Vector3(-0.075, 0, 0)
+visible = false
+mesh = SubResource("53_verify_hover_mesh")
+
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
 position = Vector3(-0.105, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
@@ -1474,4 +1479,5 @@ destination_interface_path = NodePath("../操作台界面层/操作台界面根/
 information_label_path = NodePath("../操作台占位/右操作台定位/验证信息屏/信息文字")
 input_label_path = NodePath("../操作台占位/右操作台定位/数字显示组/输入数字")
 feedback_label_path = NodePath("../操作台占位/右操作台定位/数字显示组/反馈文字")
+verify_attention_visual_path = NodePath("../操作台占位/右操作台定位/数字显示组/验证楼层热点/拒绝提示高亮")
 lever_pivot_path = NodePath("../操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴")
