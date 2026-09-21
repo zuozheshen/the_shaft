@@ -44,6 +44,15 @@ func run(t: Variant, tree: SceneTree) -> void:
 				collision.global_transform.basis.is_equal_approx(
 					cap.global_transform.basis
 				))
+	# 左视角中 z 从大到小对应画面从左到右；人工验收冻结为 FILE、TRANSCRIPT、SYSTEM、滚轮。
+	var passenger_key := control_root.get_node("乘客档案") as Node3D
+	var transcript_key := control_root.get_node("对话记录") as Node3D
+	var system_key := control_root.get_node("系统日志") as Node3D
+	var scroll_root := left.get_node("滚轮根") as Node3D
+	t.assert_true("左台 / 实体件从左到右顺序固定",
+			passenger_key.position.z > transcript_key.position.z
+			and transcript_key.position.z > system_key.position.z
+			and system_key.position.z > scroll_root.position.z)
 
 	# 首单在主台启动：SYSTEM 与新档案都未被玩家实际查看。
 	t.assert_false("左台 / 初始不在左台视角", terminal.is_actively_viewed())
@@ -99,13 +108,20 @@ func run(t: Variant, tree: SceneTree) -> void:
 	terminal.terminal_content_label.text = "\n".join(long_lines)
 	await _frames(tree, 3)
 	var wheel_visual := left.get_node(left.scroll_wheel_visual_path) as Node3D
-	var wheel_rotation_before := wheel_visual.rotation.z
+	var wheel_basis_before := wheel_visual.transform.basis
+	var wheel_axis_before := wheel_basis_before.y.normalized()
 	interaction._execute_left_scroll(1)
 	await _frames(tree, 2)
 	t.assert_true("左台 / 实体滚轮改变当前阅读位置",
 			terminal.content_scroll_container.scroll_vertical > 0)
 	t.assert_not_equal("左台 / 滚轮视觉产生机械步进",
-			wheel_rotation_before, wheel_visual.rotation.z)
+			wheel_basis_before, wheel_visual.transform.basis)
+	t.assert_true("左台 / 滚轮只绕自身轴旋转",
+			wheel_axis_before.is_equal_approx(
+				wheel_visual.transform.basis.y.normalized()
+			))
+	t.assert_equal("左台 / 滚轮包含可观察轴向刻线", 4,
+			wheel_visual.find_children("轴向刻线*", "MeshInstance3D", false, false).size())
 	t.assert_equal("左台 / 滚轮不修改系统日志", system_history_before,
 			manager.get_system_message_history())
 	t.assert_equal("左台 / 滚轮不修改对话内容", transcript_before,

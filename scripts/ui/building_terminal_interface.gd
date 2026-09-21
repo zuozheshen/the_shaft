@@ -273,7 +273,7 @@ func _initialize_terminal_text() -> void:
 
 
 func _apply_terminal_theme() -> void:
-	# 使用系统等宽字体和低饱和绿色，保持中文回退与工业终端可读性。
+	# 沿用右台深青屏面与浅色字体系；仍保留系统等宽字体和中文回退。
 	var terminal_font := SystemFont.new()
 	terminal_font.font_names = PackedStringArray([
 		"Consolas",
@@ -284,31 +284,31 @@ func _apply_terminal_theme() -> void:
 	var terminal_theme := Theme.new()
 	terminal_theme.default_font = terminal_font
 	terminal_theme.default_font_size = 19
-	terminal_theme.set_color("font_color", "Label", Color("78f58f"))
-	terminal_theme.set_color("font_shadow_color", "Label", Color(0.05, 0.3, 0.08, 0.8))
+	terminal_theme.set_color("font_color", "Label", Color("edf4f1"))
+	terminal_theme.set_color("font_shadow_color", "Label", Color(0.0, 0.04, 0.04, 0.85))
 	terminal_theme.set_constant("shadow_offset_x", "Label", 1)
 	terminal_theme.set_constant("shadow_offset_y", "Label", 1)
-	terminal_theme.set_color("font_color", "Button", Color("8cff9d"))
-	terminal_theme.set_color("font_hover_color", "Button", Color("d0ffd5"))
-	terminal_theme.set_color("font_pressed_color", "Button", Color("07140a"))
-	terminal_theme.set_color("font_focus_color", "Button", Color("d0ffd5"))
+	terminal_theme.set_color("font_color", "Button", Color("edf4f1"))
+	terminal_theme.set_color("font_hover_color", "Button", Color("ffffff"))
+	terminal_theme.set_color("font_pressed_color", "Button", Color("142c2a"))
+	terminal_theme.set_color("font_focus_color", "Button", Color("ffffff"))
 	terminal_theme.set_font_size("font_size", "Button", 20)
-	var normal_style := _create_terminal_style(Color("07140a"), Color("3d9b52"), 1)
-	var hover_style := _create_terminal_style(Color("102819"), Color("8cff9d"), 2)
-	var pressed_style := _create_terminal_style(Color("78f58f"), Color("b7ffc1"), 2)
+	var normal_style := _create_terminal_style(Color("092321"), Color("607b75"), 1)
+	var hover_style := _create_terminal_style(Color("143531"), Color("b8cbc5"), 2)
+	var pressed_style := _create_terminal_style(Color("b8cbc5"), Color("edf4f1"), 2)
 	terminal_theme.set_stylebox("normal", "Button", normal_style)
 	terminal_theme.set_stylebox("hover", "Button", hover_style)
 	terminal_theme.set_stylebox("pressed", "Button", pressed_style)
 	terminal_theme.set_stylebox("focus", "Button", hover_style)
 	terminal_theme.set_stylebox("panel", "PanelContainer", _create_terminal_style(
-		Color("050d07"), Color("3d9b52"), 1
+		Color("092321"), Color("607b75"), 1
 	))
 	theme = terminal_theme
 	title_label.add_theme_font_size_override("font_size", 28)
-	title_label.add_theme_color_override("font_color", Color("b7ffc1"))
+	title_label.add_theme_color_override("font_color", Color("ffffff"))
 	access_status_label.add_theme_font_size_override("font_size", 17)
 	terminal_hint_label.add_theme_font_size_override("font_size", 16)
-	terminal_hint_label.add_theme_color_override("font_color", Color("4fbd65"))
+	terminal_hint_label.add_theme_color_override("font_color", Color("b8cbc5"))
 
 
 func _create_terminal_style(

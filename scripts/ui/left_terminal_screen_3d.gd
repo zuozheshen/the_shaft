@@ -68,8 +68,11 @@ func _ready() -> void:
 func rotate_scroll_wheel(direction: int) -> void:
 	if _scroll_wheel_visual == null or direction == 0:
 		return
-	# 只转动滚轮视觉子节点；根、碰撞和 Inspector 布局保持不变。
-	_scroll_wheel_visual.rotation.z += deg_to_rad(scroll_tick_degrees * direction)
+	# CylinderMesh 的本地 Y 是实体轴；只绕自身轴步进，根、碰撞和 Inspector 布局保持不变。
+	_scroll_wheel_visual.rotate_object_local(
+		Vector3.UP,
+		deg_to_rad(scroll_tick_degrees * direction)
+	)
 
 
 func _configure_screen_material() -> void:
