@@ -114,8 +114,6 @@ func run() -> Array[String]:
 	interaction.set("console_interface_path", interaction.get_path_to(ui))
 	var binding := instance.find_child("主台展示绑定", true, false)
 	binding.set("console_interface_path", binding.get_path_to(ui))
-	var left_controller := instance.find_child("左操作台定位", true, false)
-	left_controller.set("comm_view_path", left_controller.get_path_to(ui.get_node("FloatingCommUI")))
 	_expect("router permits layout wrapper with updated references", _scene_errors(instance).is_empty())
 	instance.free()
 
@@ -128,8 +126,8 @@ func run() -> Array[String]:
 
 	instance = packed.instantiate()
 	var left_screen := instance.find_child("左操作台定位", true, false)
-	left_screen.set("comm_view_path", NodePath(""))
-	_expect("missing COMM input guard", _scene_errors(instance).contains("comm_view_path"))
+	left_screen.set("terminal_interface_path", NodePath(""))
+	_expect("missing left terminal presentation", _scene_errors(instance).contains("terminal_interface_path"))
 	instance.free()
 
 	instance = packed.instantiate()

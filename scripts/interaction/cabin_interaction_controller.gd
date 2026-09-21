@@ -7,6 +7,10 @@ const OPEN_DOOR_ACTION: StringName = &"open_door"
 const CAM_01_ACTION: StringName = &"select_camera_01"
 const CAM_02_ACTION: StringName = &"select_camera_02"
 const CLOSE_DOOR_ACTION: StringName = &"close_door"
+const LEFT_SYSTEM_LOG_ACTION: StringName = &"left_system_log"
+const LEFT_PASSENGER_RECORD_ACTION: StringName = &"left_passenger_record"
+const LEFT_TRANSCRIPT_ACTION: StringName = &"left_transcript"
+const LEFT_SCROLL_ACTION: StringName = &"left_scroll"
 const DESTINATION_DIGIT_PREFIX: String = "destination_digit_"
 const DESTINATION_CLEAR_ACTION: StringName = &"destination_clear"
 const DESTINATION_BACKSPACE_ACTION: StringName = &"destination_backspace"
@@ -17,6 +21,8 @@ const DESTINATION_SUBMIT_ACTION: StringName = &"destination_submit"
 @export var player_camera_path: NodePath
 @export var view_controller_path: NodePath
 @export var console_interface_path: NodePath
+@export var building_terminal_interface_path: NodePath
+@export var left_console_presentation_path: NodePath
 @export var destination_interface_path: NodePath
 @export var right_console_presentation_path: NodePath
 @export var interaction_hint_label_path: NodePath
@@ -26,6 +32,8 @@ const DESTINATION_SUBMIT_ACTION: StringName = &"destination_submit"
 var _player_camera: Camera3D
 var _view_controller: CabinViewController3D
 var _console_interface: ConsoleInterface
+var _building_terminal_interface: BuildingTerminalInterface
+var _left_console_presentation: LeftTerminalScreen3D
 var _destination_interface: DestinationControlInterface
 var _right_console_presentation: RightConsolePresentation3D
 var _interaction_hint_label: Label
@@ -42,6 +50,14 @@ func _ready() -> void:
 			as CabinViewController3D
 	_console_interface = _get_required_node(console_interface_path, "Control") \
 			as ConsoleInterface
+	_building_terminal_interface = _get_required_node(
+		building_terminal_interface_path,
+		"Control"
+	) as BuildingTerminalInterface
+	_left_console_presentation = _get_required_node(
+		left_console_presentation_path,
+		"Node3D"
+	) as LeftTerminalScreen3D
 	_destination_interface = _get_required_node(destination_interface_path, "Control") \
 			as DestinationControlInterface
 	_right_console_presentation = _get_required_node(
@@ -55,6 +71,10 @@ func _ready() -> void:
 		push_error("3D 交互控制器的视角节点没有挂载 CabinViewController3D 脚本。")
 	if _console_interface == null:
 		push_error("3D 交互控制器的主台界面节点不是 ConsoleInterface。")
+	if _building_terminal_interface == null:
+		push_error("3D 交互控制器找不到左台 BuildingTerminalInterface。")
+	if _left_console_presentation == null:
+		push_error("3D 交互控制器找不到左台实体展示根。")
 	if _destination_interface == null:
 		push_error("3D 交互控制器的右台界面节点不是 DestinationControlInterface。")
 	if _right_console_presentation == null:
@@ -76,11 +96,9 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# 使用未处理输入，让真正的 2D Button 优先消费点击，避免同时触发背后的 3D 热点。
+	# 使用未处理输入，让 Floating COMM 优先消费点击/滚轮，避免穿透到实体控件。
 	var mouse_event := event as InputEventMouseButton
-	if mouse_event == null \
-			or mouse_event.button_index != MOUSE_BUTTON_LEFT \
-			or not mouse_event.pressed:
+	if mouse_event == null or not mouse_event.pressed:
 		return
 	if not _can_use_hotspots() or _hovered_hotspot == null:
 		return
@@ -94,7 +112,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		_clear_hovered_hotspot()
 		return
 
-	_execute_action(clicked_hotspot.get_action_id())
+	var action_id := clicked_hotspot.get_action_id()
+	if mouse_event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+		if action_id != LEFT_SCROLL_ACTION:
+			return
+		_execute_left_scroll(-1 if mouse_event.button_index == MOUSE_BUTTON_WHEEL_UP else 1)
+	elif mouse_event.button_index == MOUSE_BUTTON_LEFT:
+		_execute_action(action_id)
+	else:
+		return
 	get_viewport().set_input_as_handled()
 
 
@@ -190,6 +216,18 @@ func _execute_action(action_id: StringName) -> void:
 		CLOSE_DOOR_ACTION:
 			if _console_interface != null:
 				_console_interface.request_close_door()
+		LEFT_SYSTEM_LOG_ACTION:
+			if _building_terminal_interface != null:
+				_building_terminal_interface.show_system_log()
+		LEFT_PASSENGER_RECORD_ACTION:
+			if _building_terminal_interface != null:
+				_building_terminal_interface.show_passenger_record()
+		LEFT_TRANSCRIPT_ACTION:
+			if _building_terminal_interface != null:
+				_building_terminal_interface.show_transcript()
+		LEFT_SCROLL_ACTION:
+			# 滚轮热点只响应鼠标滚轮，不把左键误当成滚动。
+			pass
 		DESTINATION_CLEAR_ACTION:
 			if _destination_interface != null:
 				_destination_interface.clear_destination_input()
@@ -212,6 +250,13 @@ func _execute_action(action_id: StringName) -> void:
 			if not _warned_action_ids.has(action_id):
 				_warned_action_ids[action_id] = true
 				push_warning("未注册的 3D 交互动作：%s" % action_id)
+
+
+func _execute_left_scroll(direction: int) -> void:
+	if _building_terminal_interface != null:
+		_building_terminal_interface.scroll_current_content(direction)
+	if _left_console_presentation != null:
+		_left_console_presentation.rotate_scroll_wheel(direction)
 
 
 func _on_turn_started(_direction: int, _direction_name: String) -> void:

@@ -8,6 +8,14 @@ signal elevator_movement_completed(arrived_floor: String)
 signal dispatch_started(dispatch_id: StringName)
 signal dispatch_completed(result: DispatchResult)
 signal shift_completed
+# 左台只订阅“既有内容已变化”的窄通知；业务内容仍由 UIHistoryState / Resource 唯一持有。
+signal left_terminal_section_updated(section_id: StringName)
+signal left_terminal_session_reset(has_active_dispatch: bool)
+
+
+const LEFT_SECTION_SYSTEM_LOG: StringName = &"system_log"
+const LEFT_SECTION_PASSENGER_RECORD: StringName = &"passenger_record"
+const LEFT_SECTION_TRANSCRIPT: StringName = &"transcript"
 
 
 const ElevatorRuntimeStateScript := preload(
@@ -86,6 +94,7 @@ func _start_dispatch_internal(
 		initial_hint = "新派单已建立。\n%s 层检测到等待乘客。\n请前往接乘楼层。" \
 				% String(dispatch.pickup_floor_id)
 	ui_history_state.reset_for_new_dispatch(initial_hint)
+	left_terminal_session_reset.emit(true)
 	if should_emit_case_updated:
 		case_updated.emit()
 	return true
@@ -173,6 +182,8 @@ func _finish_shift_internal(should_emit_case_updated: bool) -> bool:
 	dispatch_lifecycle.clear()
 	elevator_runtime_state.clear_target_floor()
 	ui_history_state.finish_shift()
+	left_terminal_session_reset.emit(false)
+	left_terminal_section_updated.emit(LEFT_SECTION_SYSTEM_LOG)
 	shift_completed.emit()
 	if should_emit_case_updated:
 		case_updated.emit()
@@ -182,6 +193,7 @@ func _finish_shift_internal(should_emit_case_updated: bool) -> bool:
 func clear_active_dispatch() -> void:
 	dispatch_lifecycle.clear()
 	ui_history_state.clear_active_dispatch()
+	left_terminal_session_reset.emit(false)
 	case_updated.emit()
 
 
@@ -190,11 +202,13 @@ func has_active_dispatch() -> bool:
 
 
 func add_front_transcript_operator(operator_text: String) -> void:
-	ui_history_state.add_operator_transcript(operator_text)
+	if ui_history_state.add_operator_transcript(operator_text):
+		left_terminal_section_updated.emit(LEFT_SECTION_TRANSCRIPT)
 
 
 func add_front_transcript_passenger(passenger_text: String) -> void:
-	ui_history_state.add_passenger_transcript(passenger_text)
+	if ui_history_state.add_passenger_transcript(passenger_text):
+		left_terminal_section_updated.emit(LEFT_SECTION_TRANSCRIPT)
 
 
 func get_front_dialogue_history() -> Array[String]:
@@ -215,11 +229,14 @@ func set_building_status_hint(
 		include_in_history,
 		history_text
 	):
+		if include_in_history:
+			left_terminal_section_updated.emit(LEFT_SECTION_SYSTEM_LOG)
 		case_updated.emit()
 
 
 func add_system_log_message(message_text: String) -> void:
 	if ui_history_state.add_system_log_message(message_text):
+		left_terminal_section_updated.emit(LEFT_SECTION_SYSTEM_LOG)
 		case_updated.emit()
 
 
@@ -458,6 +475,7 @@ func request_close_cabin_door() -> FlowCommandResultScript:
 			get_after_close_status_hint(),
 			true
 		)
+		left_terminal_section_updated.emit(LEFT_SECTION_SYSTEM_LOG)
 	elif previous_phase == DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE:
 		# 结算前先确认静态派单仍有效，避免关门后才发现无法创建结果。
 		if get_active_dispatch() == null:
@@ -680,6 +698,7 @@ func request_travel_to_floor(floor_id: String) -> FlowCommandResultScript:
 		"电梯正在前往 %s 层。" % normalized_floor_id,
 		true
 	)
+	left_terminal_section_updated.emit(LEFT_SECTION_SYSTEM_LOG)
 	var result_effects: Array[StringName] = [
 		FlowCommandResultScript.MOVEMENT_STARTED,
 	]
@@ -712,6 +731,7 @@ func request_finish_dropoff_feedback() -> FlowCommandResultScript:
 		true,
 		"乘客已离舱，等待关门结算。"
 	)
+	left_terminal_section_updated.emit(LEFT_SECTION_SYSTEM_LOG)
 	var result_effects: Array[StringName] = [
 		FlowCommandResultScript.DROPOFF_FEEDBACK_FINISHED,
 	]

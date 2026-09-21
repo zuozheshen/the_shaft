@@ -279,30 +279,32 @@ func _test_global_comm(t: Variant, tree: SceneTree, cabin: CabinViewController3D
 
 
 func _test_left_input(t: Variant, tree: SceneTree, cabin: CabinViewController3D, comm: FloatingCommUI) -> void:
-	var left := cabin.get_node("操作台占位/左操作台定位") as LeftTerminalScreen3D
+	var interaction := cabin.get_node("交互控制器") as CabinInteractionController3D
+	var key := cabin.get_node(
+		"操作台占位/左操作台定位/栏目控制区/乘客档案"
+	) as InteractionHotspot3D
+	var shape := key.get_node("CollisionShape3D") as CollisionShape3D
 	var player := cabin.get_node("玩家视角/摄像机旋转轴/玩家摄像机") as Camera3D
-	var screen := left.get_node(left.screen_mesh_path) as MeshInstance3D
-	var pointer := player.unproject_position(screen.global_position)
+	var pointer := player.unproject_position(shape.global_position)
 	await tree.physics_frame
-	comm.move_window_to(pointer - Vector2(30, 20))
-	await _frames(tree)
+	t.assert_equal("COMM / 左台实体键射线可命中", key,
+			interaction._raycast_hotspot(pointer))
+	comm.move_window_to(pointer - Vector2(30, 70))
 	var motion := InputEventMouseMotion.new()
 	motion.position = pointer
-	left._input(motion)
-	t.assert_false("COMM / 覆盖左台时不转发 hover", left._pointer_inside)
-	# 先在无遮挡屏幕按下，再由浮窗覆盖，验证左台 pressed 收尾。
+	motion.global_position = pointer
+	comm.get_viewport().push_input(motion, true)
+	await _frames(tree)
+	interaction._update_hovered_hotspot()
+	t.assert_true("COMM / 覆盖左台时阻止实体热点",
+			interaction._is_pointer_over_blocking_gui()
+			and interaction._hovered_hotspot == null)
 	comm.move_window_to(Vector2(0, 0))
-	left._input(motion)
-	t.assert_true("COMM / 窗外仍可命中左台", left._pointer_inside)
-	var press := InputEventMouseButton.new()
-	press.position = pointer
-	press.button_index = MOUSE_BUTTON_LEFT
-	press.pressed = true
-	left._input(press)
-	t.assert_true("COMM / 左台记录已转发按下", MOUSE_BUTTON_LEFT in left._forwarded_buttons)
-	comm.move_window_to(pointer - Vector2(30, 20))
-	left._input(motion)
-	t.assert_true("COMM / 覆盖后清理左台 pressed 与 hover", left._forwarded_buttons.is_empty() and not left._pointer_inside)
+	comm.get_viewport().push_input(motion, true)
+	await _frames(tree)
+	t.assert_true("COMM / 移开后不遮挡左台实体键", not comm.blocks_pointer(pointer))
+	t.assert_equal("COMM / 移开后左台实体键仍可射线命中", key,
+			interaction._raycast_hotspot(pointer))
 	var old_minimized := comm.is_minimized()
 	_click(comm.get_viewport(), comm.minimize_button.get_global_rect().get_center())
 	await _frames(tree)
@@ -320,7 +322,8 @@ func _test_left_input(t: Variant, tree: SceneTree, cabin: CabinViewController3D,
 	_mouse_button(comm.get_viewport(), drag.position, false)
 	await _frames(tree)
 	t.assert_true("COMM / 标题栏拖动实际移动窗口", comm.global_position != before_drag)
-	t.assert_true("COMM / 拖动释放不穿透左台", left._forwarded_buttons.is_empty() and not comm._dragging)
+	t.assert_true("COMM / 拖动释放不穿透左台", not comm._dragging)
+	interaction._clear_hovered_hotspot()
 	comm.move_window_to(Vector2(28, 100))
 
 

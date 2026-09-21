@@ -61,8 +61,8 @@ const EXPORTED_PATHS := {
 		"feedback_label_path": "Label3D", "lever_pivot_path": "Node3D",
 	},
 	"RuntimeConnector3D": {"game_runtime_path": "GameRuntime", "elevator_cabin_path": "CabinViewController3D"},
-	"CabinInteractionController3D": {"player_camera_path": "Camera3D", "view_controller_path": "CabinViewController3D", "console_interface_path": "ConsoleInterface", "destination_interface_path": "DestinationControlInterface", "right_console_presentation_path": "RightConsolePresentation3D", "interaction_hint_label_path": "Label"},
-	"LeftTerminalScreen3D": {"comm_view_path": "FloatingCommUI", "screen_mesh_path": "MeshInstance3D", "interaction_area_path": "Area3D", "sub_viewport_path": "SubViewport", "player_camera_path": "Camera3D", "view_controller_path": "CabinViewController3D"},
+	"CabinInteractionController3D": {"player_camera_path": "Camera3D", "view_controller_path": "CabinViewController3D", "console_interface_path": "ConsoleInterface", "building_terminal_interface_path": "BuildingTerminalInterface", "left_console_presentation_path": "LeftTerminalScreen3D", "destination_interface_path": "DestinationControlInterface", "right_console_presentation_path": "RightConsolePresentation3D", "interaction_hint_label_path": "Label"},
+	"LeftTerminalScreen3D": {"screen_mesh_path": "MeshInstance3D", "sub_viewport_path": "SubViewport", "terminal_interface_path": "BuildingTerminalInterface", "player_camera_path": "Camera3D", "view_controller_path": "CabinViewController3D", "system_key_selected_path": "Node3D", "record_key_selected_path": "Node3D", "transcript_key_selected_path": "Node3D", "system_unread_light_path": "Node3D", "record_unread_light_path": "Node3D", "transcript_unread_light_path": "Node3D", "scroll_wheel_visual_path": "Node3D"},
 	"MonitorCameraController3D": {"monitor_subviewport_path": "SubViewport", "monitor_camera_path": "Camera3D", "cabin_camera_anchor_path": "Marker3D", "door_camera_anchor_path": "Marker3D"},
 	"MonitorStageController3D": {
 		"floor_slice_mount_path": "Node3D", "initial_floor_slice_path": "LayeredFloorSlice25D", "floor_label_path": "Label3D",
@@ -84,7 +84,8 @@ const METHODS := {
 	"CabinViewController3D": ["get_current_direction", "is_turning"],
 	"CabinInterfaceRouter3D": ["get_main_interface", "get_left_interface", "get_right_interface", "is_main_console_visible"],
 	"ConsoleInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "set_camera_feed_texture", "get_current_camera_index", "request_open_door", "request_close_door", "request_toggle_microphone", "request_select_camera", "get_case_phase_display_text"],
-	"BuildingTerminalInterface": ["set_demo_flow_manager", "set_embedded_3d_mode"],
+	"BuildingTerminalInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "set_actively_viewed", "show_system_log", "show_passenger_record", "show_transcript", "scroll_current_content", "get_current_section", "get_unread_snapshot"],
+	"LeftTerminalScreen3D": ["rotate_scroll_wheel"],
 	"DestinationControlInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "append_destination_digit", "backspace_destination_input", "clear_destination_input", "request_verify_destination", "request_submit_destination", "get_destination_presentation"],
 	"MonitorCameraController3D": ["setup", "select_camera"],
 	"MonitorPresentationCoordinator3D": ["setup", "is_presentation_busy"],
@@ -94,11 +95,11 @@ const METHODS := {
 }
 const SIGNALS := {
 	"FloatingCommUI": ["choice_selected"],
-	"DemoFlowManager": ["case_updated", "dispatch_started", "dispatch_completed", "shift_completed", "elevator_movement_completed"],
+	"DemoFlowManager": ["case_updated", "dispatch_started", "dispatch_completed", "shift_completed", "elevator_movement_completed", "left_terminal_section_updated", "left_terminal_session_reset"],
 	"CabinViewController3D": ["turn_started", "facing_changed"],
 	"CabinInterfaceRouter3D": ["main_console_visibility_changed"],
 	"ConsoleInterface": ["camera_selected", "mic_enabled_changed", "case_phase_display_changed", "presentation_effects_requested", "return_requested"],
-	"BuildingTerminalInterface": ["return_requested"],
+	"BuildingTerminalInterface": ["return_requested", "section_changed", "unread_state_changed"],
 	"DestinationControlInterface": ["presentation_effects_requested", "destination_presentation_changed", "return_requested"],
 	"MonitorPresentationCoordinator3D": ["presentation_busy_changed"],
 	"MonitorStageController3D": ["door_presentation_state_changed", "door_presentation_opened", "door_presentation_closed", "passenger_boarded", "passenger_exited", "presentation_busy_changed"],
@@ -277,6 +278,19 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 					_expect(right_root, "数字键盘/" + key_name, "InteractionHotspot3D")
 				_expect(right_root, "数字显示组/验证楼层热点", "InteractionHotspot3D")
 				_expect(right_root, "下部斜面根/执行拨杆热点", "InteractionHotspot3D")
+		"LeftTerminalScreen3D":
+			_expect(node, "左台屏幕", "MeshInstance3D")
+			_expect(node, "左台界面视口", "SubViewport")
+			_expect(node, "左台界面视口/BuildingTerminalInterface", "BuildingTerminalInterface")
+			_expect(node, "栏目控制区", "Node3D")
+			for section_name: String in ["系统日志", "乘客档案", "对话记录"]:
+				_expect(node, "栏目控制区/" + section_name, "InteractionHotspot3D")
+				_expect(node, "栏目控制区/" + section_name + "/CollisionShape3D", "CollisionShape3D")
+				_expect(node, "栏目控制区/" + section_name + "/按钮帽", "MeshInstance3D")
+				_expect(node, "栏目控制区/" + section_name + "/状态灯", "Node3D")
+			_expect(node, "滚轮根", "InteractionHotspot3D")
+			_expect(node, "滚轮根/CollisionShape3D", "CollisionShape3D")
+			_expect(node, "滚轮根/滚轮视觉", "Node3D")
 		"ConsoleInterface":
 			_expect(node, "FloatingCommUI", "FloatingCommUI")
 			_expect(node, "RejectionToast", "Label")
@@ -288,6 +302,8 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 			_expect(node, panel + "PrevCameraButton", "Button")
 			_expect(node, panel + "NextCameraButton", "Button")
 		"BuildingTerminalInterface":
+			_expect(node, "TerminalLayout/TabButtonPanel", "HBoxContainer")
+			_expect(node, "TerminalLayout/ContentScrollContainer", "ScrollContainer")
 			_expect(node, "TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/TerminalContentLabel", "Label")
 		"DestinationControlInterface":
 			_expect(node, "RootMargin/DestinationLayout/ManualInputPanel/ManualInputLayout/ManualDestinationLineEdit", "LineEdit")
