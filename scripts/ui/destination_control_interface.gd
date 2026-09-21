@@ -443,6 +443,8 @@ func _submit_destination() -> void:
 	if result.succeeded:
 		presentation_effects_requested.emit(result.get_effects())
 		_update_dispatch_summary_label()
+		# 行驶已经接收后只清空 LCD 输入缓存；保留本次验证状态供移动流程使用。
+		_set_destination_input("", false, false)
 	_notify_destination_presentation_changed()
 	destination_travel_result.emit(result)
 
@@ -534,7 +536,11 @@ func get_destination_presentation() -> Dictionary:
 	}
 
 
-func _set_destination_input(new_text: String, invalidate_validation: bool) -> void:
+func _set_destination_input(
+		new_text: String,
+		invalidate_validation: bool,
+		notify_change: bool = true
+) -> void:
 	if manual_destination_line_edit == null or manual_destination_line_edit.text == new_text:
 		return
 	manual_destination_line_edit.set_block_signals(true)
@@ -542,7 +548,7 @@ func _set_destination_input(new_text: String, invalidate_validation: bool) -> vo
 	manual_destination_line_edit.set_block_signals(false)
 	if invalidate_validation:
 		_on_destination_text_changed(new_text)
-	else:
+	elif notify_change:
 		_notify_destination_presentation_changed()
 
 

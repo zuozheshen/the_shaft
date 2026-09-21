@@ -103,6 +103,8 @@ func run(t: Variant, tree: SceneTree) -> void:
 	await _frames(tree, 2)
 	var rejection_snapshot := destination.get_destination_presentation()
 	t.assert_false("右台 / 未验证提交不启动移动", manager.is_elevator_moving())
+	t.assert_equal("右台 / 未验证拒绝保留输入以便重试", "900",
+			str(rejection_snapshot.input))
 	t.assert_equal("右台 / 未验证拒绝写入上屏状态",
 			"未验证｜请先验证楼层", str(rejection_snapshot.address_status))
 	t.assert_true("右台 / 上屏显示未验证拒绝",
@@ -118,6 +120,11 @@ func run(t: Variant, tree: SceneTree) -> void:
 			str(destination.get_destination_presentation().address_status))
 	destination.request_submit_destination()
 	t.assert_true("右台 / 验证后可沿既有流程移动", manager.is_elevator_moving())
+	var accepted_snapshot := destination.get_destination_presentation()
+	t.assert_equal("右台 / 行驶请求成功后清空 LCD 输入", "",
+			str(accepted_snapshot.input))
+	t.assert_equal("右台 / 清空 LCD 不清除本次验证", "900",
+			str(accepted_snapshot.validated_floor))
 
 	var slope := right_root.get_node("下部斜面根") as Node3D
 	t.assert_true("右台 / 斜面初始约 20 度",
