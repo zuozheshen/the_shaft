@@ -110,12 +110,18 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var wheel_visual := left.get_node(left.scroll_wheel_visual_path) as Node3D
 	var wheel_basis_before := wheel_visual.transform.basis
 	var wheel_axis_before := wheel_basis_before.y.normalized()
+	var expected_wheel_basis := wheel_basis_before * Basis(
+			Vector3.UP,
+			deg_to_rad(-left.scroll_tick_degrees)
+	)
 	interaction._execute_left_scroll(1)
 	await _frames(tree, 2)
 	t.assert_true("左台 / 实体滚轮改变当前阅读位置",
 			terminal.content_scroll_container.scroll_vertical > 0)
 	t.assert_not_equal("左台 / 滚轮视觉产生机械步进",
 			wheel_basis_before, wheel_visual.transform.basis)
+	t.assert_true("左台 / 向下阅读时滚轮视觉方向正确",
+			expected_wheel_basis.is_equal_approx(wheel_visual.transform.basis))
 	t.assert_true("左台 / 滚轮只绕自身轴旋转",
 			wheel_axis_before.is_equal_approx(
 				wheel_visual.transform.basis.y.normalized()

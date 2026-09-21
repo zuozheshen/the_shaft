@@ -71,7 +71,7 @@ func rotate_scroll_wheel(direction: int) -> void:
 	# CylinderMesh 的本地 Y 是实体轴；只绕自身轴步进，根、碰撞和 Inspector 布局保持不变。
 	_scroll_wheel_visual.rotate_object_local(
 		Vector3.UP,
-		deg_to_rad(scroll_tick_degrees * direction)
+		deg_to_rad(-scroll_tick_degrees * direction)
 	)
 
 
