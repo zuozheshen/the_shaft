@@ -129,7 +129,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var slope := right_root.get_node("下部斜面根") as Node3D
 	t.assert_true("右台 / 斜面初始约 20 度",
 			is_equal_approx(rad_to_deg(absf(slope.rotation.z)), 20.0))
-	t.assert_equal("右台 / 静态书继承斜面根", slope,
+	t.assert_equal("右台 / 导引书常态继承斜面根", slope,
 			right_root.get_node("下部斜面根/楼层导引书").get_parent())
 	var lever := right_root.get_node(
 		"下部斜面根/执行拨杆热点"

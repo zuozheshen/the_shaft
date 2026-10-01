@@ -16,6 +16,10 @@ const DESTINATION_CLEAR_ACTION: StringName = &"destination_clear"
 const DESTINATION_BACKSPACE_ACTION: StringName = &"destination_backspace"
 const DESTINATION_VERIFY_ACTION: StringName = &"destination_verify"
 const DESTINATION_SUBMIT_ACTION: StringName = &"destination_submit"
+const FLOOR_BOOK_OPEN_ACTION: StringName = &"floor_book_open"
+const FLOOR_BOOK_PREVIOUS_ACTION: StringName = &"floor_book_previous"
+const FLOOR_BOOK_NEXT_ACTION: StringName = &"floor_book_next"
+const FLOOR_BOOK_CLOSE_ACTION: StringName = &"floor_book_close"
 const FOCUS_LEFT_ACTION: StringName = &"focus_left"
 const FOCUS_RIGHT_ACTION: StringName = &"focus_right"
 const FOCUS_UP_ACTION: StringName = &"focus_up"
@@ -39,6 +43,7 @@ enum InputMode {
 @export var left_console_presentation_path: NodePath
 @export var destination_interface_path: NodePath
 @export var right_console_presentation_path: NodePath
+@export var floor_guide_book_path: NodePath
 @export var interaction_hint_label_path: NodePath
 @export_flags_3d_physics var interaction_collision_mask: int = 1 << 7
 @export_range(1.0, 50.0, 0.5) var ray_length: float = 10.0
@@ -54,6 +59,7 @@ var _building_terminal_interface: BuildingTerminalInterface
 var _left_console_presentation: LeftTerminalScreen3D
 var _destination_interface: DestinationControlInterface
 var _right_console_presentation: RightConsolePresentation3D
+var _floor_guide_book: FloorGuideBook3D
 var _interaction_hint_label: Label
 var _default_hint_text: String = ""
 var _hovered_hotspot: InteractionHotspot3D
@@ -87,6 +93,8 @@ func _ready() -> void:
 		right_console_presentation_path,
 		"Node"
 	) as RightConsolePresentation3D
+	_floor_guide_book = _get_required_node(floor_guide_book_path, "Node3D") \
+			as FloorGuideBook3D
 	_interaction_hint_label = _get_required_node(interaction_hint_label_path, "Label") as Label
 	if _interaction_hint_label != null:
 		_default_hint_text = CabinViewController3D.OPERATION_HINT_TEXT
@@ -102,6 +110,12 @@ func _ready() -> void:
 		push_error("3D 交互控制器的右台界面节点不是 DestinationControlInterface。")
 	if _right_console_presentation == null:
 		push_error("3D 交互控制器找不到右台实体展示绑定。")
+	if _floor_guide_book == null:
+		push_error("3D 交互控制器找不到楼层导引书组件。")
+	else:
+		_floor_guide_book.bind_destination(_destination_interface)
+		if not _floor_guide_book.inspection_closed.is_connected(_on_book_closed):
+			_floor_guide_book.inspection_closed.connect(_on_book_closed)
 
 	if _view_controller != null:
 		if not _view_controller.turn_started.is_connected(_on_turn_started):
@@ -124,6 +138,19 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	# 读书时的键盘方向与 Esc 在 GUI 之前消费；Q/E 仍由通用转向锁处理。
+	if event is InputEventKey:
+		if _floor_guide_book != null and _floor_guide_book.is_inspection_active():
+			if event.is_action_pressed(&"ui_cancel"):
+				_floor_guide_book.close_book()
+				get_viewport().set_input_as_handled()
+			elif event.is_action_pressed(&"ui_left"):
+				_floor_guide_book.turn_page(-1)
+				get_viewport().set_input_as_handled()
+			elif event.is_action_pressed(&"ui_right"):
+				_floor_guide_book.turn_page(1)
+				get_viewport().set_input_as_handled()
+		return
 	# 在 GUI 之前仲裁手柄动作，防止 Control 的 ui_accept 消费 A 后绕过实体/COMM 优先级。
 	if event is InputEventMouseMotion or event is InputEventMouseButton:
 		_switch_to_mouse_mode()
@@ -151,6 +178,12 @@ func _input(event: InputEvent) -> void:
 			_switch_to_gamepad_mode()
 			_reset_gamepad_repeat_state()
 			_establish_default_gamepad_focus()
+			get_viewport().set_input_as_handled()
+			return
+		if _floor_guide_book != null and _floor_guide_book.is_inspection_active():
+			_switch_to_gamepad_mode()
+			_floor_guide_book.close_book()
+			_reset_gamepad_repeat_state()
 			get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed(INTERACT_CONFIRM_ACTION):
@@ -227,9 +260,27 @@ func _can_use_hotspots() -> bool:
 			and not _view_controller.is_turning()
 
 
+# 视角控制器只依赖这个通用交互上下文查询，不认识具体的书组件。
+func is_station_turn_locked() -> bool:
+	return _floor_guide_book != null and _floor_guide_book.is_inspection_active()
+
+
 func _is_hotspot_allowed(hotspot: InteractionHotspot3D) -> bool:
-	return hotspot.can_interact() \
-			and hotspot.get_station_id() == _view_controller.get_current_station_id()
+	if not hotspot.can_interact() \
+			or hotspot.get_station_id() != _view_controller.get_current_station_id():
+		return false
+	var action_id := hotspot.get_action_id()
+	if _floor_guide_book != null and _floor_guide_book.is_inspection_active():
+		return _floor_guide_book.is_open() and action_id in [
+			FLOOR_BOOK_PREVIOUS_ACTION, FLOOR_BOOK_NEXT_ACTION, FLOOR_BOOK_CLOSE_ACTION,
+		]
+	if action_id in [FLOOR_BOOK_PREVIOUS_ACTION, FLOOR_BOOK_NEXT_ACTION,
+			FLOOR_BOOK_CLOSE_ACTION]:
+		return false
+	if action_id == FLOOR_BOOK_OPEN_ACTION:
+		var comm := _get_comm_view()
+		return comm == null or not comm.has_controller_choice_context()
+	return true
 
 
 func _switch_to_mouse_mode() -> void:
@@ -289,6 +340,10 @@ func _handle_gamepad_navigation(direction: Vector2i) -> void:
 		if direction.y != 0:
 			comm.focus_controller_choice(direction.y)
 		return
+	if _floor_guide_book != null and _floor_guide_book.is_inspection_active():
+		if direction.x != 0:
+			_floor_guide_book.turn_page(direction.x)
+		return
 	if not _has_hovered_hotspot or not _is_gamepad_focus_valid(_hovered_hotspot):
 		_establish_default_gamepad_focus()
 	if not _has_hovered_hotspot:
@@ -304,6 +359,8 @@ func _handle_gamepad_confirm() -> bool:
 	var comm := _get_comm_view()
 	if comm != null and comm.has_controller_choice_context():
 		return comm.confirm_controller_choice()
+	if _floor_guide_book != null and _floor_guide_book.is_inspection_active():
+		return true
 	if not _has_hovered_hotspot or not _is_gamepad_focus_valid(_hovered_hotspot):
 		_establish_default_gamepad_focus()
 	if not _has_hovered_hotspot or not _is_gamepad_focus_valid(_hovered_hotspot):
@@ -321,7 +378,7 @@ func _validate_gamepad_focus() -> void:
 		if not comm.has_controller_choice_focus():
 			comm.focus_controller_choice(0)
 		return
-	if not _can_use_hotspots():
+	if not _can_use_hotspots() or is_station_turn_locked():
 		_clear_hovered_hotspot()
 		return
 	if _has_hovered_hotspot and not _is_gamepad_focus_valid(_hovered_hotspot):
@@ -330,6 +387,9 @@ func _validate_gamepad_focus() -> void:
 
 func _establish_default_gamepad_focus() -> void:
 	if _input_mode != InputMode.GAMEPAD or not _can_use_hotspots():
+		return
+	if is_station_turn_locked():
+		_clear_hovered_hotspot()
 		return
 	var comm := _get_comm_view()
 	if comm != null and comm.has_controller_choice_context():
@@ -384,7 +444,7 @@ func _find_directional_hotspot(
 
 func _get_gamepad_candidates() -> Array[InteractionHotspot3D]:
 	var candidates: Array[InteractionHotspot3D] = []
-	if _view_controller == null or _player_camera == null:
+	if is_station_turn_locked() or _view_controller == null or _player_camera == null:
 		return candidates
 	_collect_gamepad_candidates(_view_controller, candidates)
 	return candidates
@@ -454,7 +514,8 @@ func _update_context_scroll(delta: float) -> void:
 
 
 func _can_use_gamepad_context_scroll() -> bool:
-	if not _can_use_hotspots() or _view_controller.get_current_station_id() != &"left_console":
+	if is_station_turn_locked() or not _can_use_hotspots() \
+			or _view_controller.get_current_station_id() != &"left_console":
 		return false
 	var comm := _get_comm_view()
 	return comm == null or not comm.has_controller_choice_context()
@@ -513,6 +574,27 @@ func _restore_default_hint() -> void:
 
 
 func _execute_action(action_id: StringName) -> void:
+	# BOOK_INSPECT 拦截所有背后设备动作，即使调用方持有旧热点引用。
+	if _floor_guide_book != null and _floor_guide_book.is_inspection_active():
+		match action_id:
+			FLOOR_BOOK_PREVIOUS_ACTION:
+				_floor_guide_book.turn_page(-1)
+			FLOOR_BOOK_NEXT_ACTION:
+				_floor_guide_book.turn_page(1)
+			FLOOR_BOOK_CLOSE_ACTION:
+				_floor_guide_book.close_book()
+		return
+	if action_id == FLOOR_BOOK_OPEN_ACTION:
+		var comm := _get_comm_view()
+		if comm != null and comm.has_controller_choice_context():
+			return
+		if _floor_guide_book != null and _floor_guide_book.open_book():
+			_clear_hovered_hotspot()
+			_reset_gamepad_repeat_state()
+		return
+	if action_id in [FLOOR_BOOK_PREVIOUS_ACTION, FLOOR_BOOK_NEXT_ACTION,
+			FLOOR_BOOK_CLOSE_ACTION]:
+		return
 	match action_id:
 		OPEN_MICROPHONE_ACTION:
 			if _console_interface != null:
@@ -567,6 +649,13 @@ func _execute_left_scroll(direction: int) -> void:
 		_building_terminal_interface.scroll_current_content(direction)
 	if _left_console_presentation != null:
 		_left_console_presentation.rotate_scroll_wheel(direction)
+
+
+func _on_book_closed() -> void:
+	_clear_hovered_hotspot()
+	_reset_gamepad_repeat_state()
+	if _input_mode == InputMode.GAMEPAD:
+		_establish_default_gamepad_focus()
 
 
 func _on_turn_started(_direction: int, _direction_name: String) -> void:

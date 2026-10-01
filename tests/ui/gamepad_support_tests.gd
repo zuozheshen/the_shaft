@@ -177,7 +177,7 @@ func _test_right_console(
 		&"destination_digit_3", &"destination_digit_4", &"destination_digit_5",
 		&"destination_digit_6", &"destination_digit_7", &"destination_digit_8",
 		&"destination_digit_9", &"destination_clear", &"destination_digit_0",
-		&"destination_backspace", &"destination_submit",
+		&"destination_backspace", &"destination_submit", &"floor_book_open",
 	])
 	var digit_two := _hotspot_for_action(interaction, &"destination_digit_2")
 	digit_two.interaction_enabled = false

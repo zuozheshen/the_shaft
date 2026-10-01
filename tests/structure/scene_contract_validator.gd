@@ -6,6 +6,7 @@ const SCRIPTS := {
 	"FloatingCommUI": "res://scripts/ui/floating_comm_ui.gd",
 	"MainConsolePresentation3D": "res://scripts/presentation/main_console_presentation_3d.gd",
 	"RightConsolePresentation3D": "res://scripts/presentation/right_console_presentation_3d.gd",
+	"FloorGuideBook3D": "res://scripts/presentation/floor_guide_book_3d.gd",
 	"GameRuntime": "res://scripts/runtime/game_runtime.gd",
 	"DemoFlowManager": "res://scripts/flow/demo_flow_manager.gd",
 	"RuntimeConnector3D": "res://scripts/runtime/runtime_connector_3d.gd",
@@ -61,7 +62,7 @@ const EXPORTED_PATHS := {
 		"feedback_label_path": "Label3D", "lever_pivot_path": "Node3D",
 	},
 	"RuntimeConnector3D": {"game_runtime_path": "GameRuntime", "elevator_cabin_path": "CabinViewController3D"},
-	"CabinInteractionController3D": {"player_camera_path": "Camera3D", "view_controller_path": "CabinViewController3D", "console_interface_path": "ConsoleInterface", "building_terminal_interface_path": "BuildingTerminalInterface", "left_console_presentation_path": "LeftTerminalScreen3D", "destination_interface_path": "DestinationControlInterface", "right_console_presentation_path": "RightConsolePresentation3D", "interaction_hint_label_path": "Label"},
+	"CabinInteractionController3D": {"player_camera_path": "Camera3D", "view_controller_path": "CabinViewController3D", "console_interface_path": "ConsoleInterface", "building_terminal_interface_path": "BuildingTerminalInterface", "left_console_presentation_path": "LeftTerminalScreen3D", "destination_interface_path": "DestinationControlInterface", "right_console_presentation_path": "RightConsolePresentation3D", "floor_guide_book_path": "FloorGuideBook3D", "interaction_hint_label_path": "Label"},
 	"LeftTerminalScreen3D": {"screen_mesh_path": "MeshInstance3D", "sub_viewport_path": "SubViewport", "terminal_interface_path": "BuildingTerminalInterface", "player_camera_path": "Camera3D", "view_controller_path": "CabinViewController3D", "system_key_selected_path": "Node3D", "record_key_selected_path": "Node3D", "transcript_key_selected_path": "Node3D", "system_unread_light_path": "Node3D", "record_unread_light_path": "Node3D", "transcript_unread_light_path": "Node3D", "scroll_wheel_visual_path": "Node3D"},
 	"MonitorCameraController3D": {"monitor_subviewport_path": "SubViewport", "monitor_camera_path": "Camera3D", "cabin_camera_anchor_path": "Marker3D", "door_camera_anchor_path": "Marker3D"},
 	"MonitorStageController3D": {
@@ -79,6 +80,8 @@ const METHODS := {
 	"FloatingCommUI": ["present", "set_minimized", "is_minimized", "blocks_pointer", "toggle_from_controller", "cancel_controller_context", "has_controller_choice_context", "focus_controller_choice", "confirm_controller_choice"],
 	"MainConsolePresentation3D": ["set_fault_active"],
 	"RightConsolePresentation3D": ["request_submit", "is_lever_animating"],
+	"FloorGuideBook3D": ["open_book", "close_book", "turn_page", "get_page_index", "is_inspection_active"],
+	"CabinInteractionController3D": ["is_station_turn_locked"],
 	"GameRuntime": ["get_demo_flow_manager"],
 	"RuntimeConnector3D": ["get_demo_flow_manager"],
 	"CabinViewController3D": ["get_current_direction", "is_turning"],
@@ -86,7 +89,7 @@ const METHODS := {
 	"ConsoleInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "set_camera_feed_texture", "get_current_camera_index", "request_open_door", "request_close_door", "request_toggle_microphone", "request_select_camera", "get_case_phase_display_text"],
 	"BuildingTerminalInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "set_actively_viewed", "show_system_log", "show_passenger_record", "show_transcript", "scroll_current_content", "get_current_section", "get_unread_snapshot"],
 	"LeftTerminalScreen3D": ["rotate_scroll_wheel"],
-	"DestinationControlInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "append_destination_digit", "backspace_destination_input", "clear_destination_input", "request_verify_destination", "request_submit_destination", "get_destination_presentation"],
+	"DestinationControlInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "append_destination_digit", "backspace_destination_input", "clear_destination_input", "request_verify_destination", "request_submit_destination", "get_destination_presentation", "get_floor_book_page_count", "get_floor_book_snapshot"],
 	"MonitorCameraController3D": ["setup", "select_camera"],
 	"MonitorPresentationCoordinator3D": ["setup", "is_presentation_busy"],
 	"MonitorStageController3D": ["request_door_open_presentation", "request_door_close_presentation", "request_passenger_boarding", "request_passenger_disembark", "apply_floor_visual_profile", "get_current_floor_visual_profile", "get_current_floor_visual_id"],
@@ -97,6 +100,7 @@ const SIGNALS := {
 	"FloatingCommUI": ["choice_selected"],
 	"DemoFlowManager": ["case_updated", "dispatch_started", "dispatch_completed", "shift_completed", "elevator_movement_completed", "left_terminal_section_updated", "left_terminal_session_reset"],
 	"CabinViewController3D": ["turn_started", "facing_changed"],
+	"FloorGuideBook3D": ["inspection_closed"],
 	"CabinInterfaceRouter3D": ["main_console_visibility_changed"],
 	"ConsoleInterface": ["camera_selected", "mic_enabled_changed", "case_phase_display_changed", "presentation_effects_requested", "return_requested"],
 	"BuildingTerminalInterface": ["return_requested", "section_changed", "unread_state_changed"],
@@ -273,7 +277,18 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 				_report(node, "右操作台定位", "Node3D", "missing")
 			else:
 				_expect(right_root, "下部斜面根", "Node3D")
-				_expect(right_root, "下部斜面根/楼层导引书", "Node3D")
+				_expect(right_root, "下部斜面根/楼层导引书", "FloorGuideBook3D")
+				var book := right_root.get_node_or_null("下部斜面根/楼层导引书")
+				if book != null:
+					for marker_name: String in ["RestPose", "InspectPose"]:
+						_expect(book, marker_name, "Marker3D")
+					for page_name: String in ["LeftPageViewport", "RightPageViewport"]:
+						_expect(book, page_name, "SubViewport")
+					for hotspot_name: String in [
+						"BookHotspot", "PrevPageHotspot",
+						"NextPageHotspot", "CloseBookHotspot",
+					]:
+						_expect(book, "BookRoot/" + hotspot_name, "InteractionHotspot3D")
 				_expect(right_root, "下部斜面根/底缘挡条", "CSGBox3D")
 				for key_name: String in [
 					"数字1", "数字2", "数字3", "数字4", "数字5", "数字6",

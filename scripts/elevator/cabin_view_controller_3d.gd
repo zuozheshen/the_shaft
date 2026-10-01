@@ -53,6 +53,7 @@ var _camera_pivot: Node3D
 var _player_camera: Camera3D
 var _current_direction_label: Label
 var _operation_hint_label: Label
+var _station_turn_lock_provider: Node
 var _direction_anchors: Array[Marker3D] = []
 
 
@@ -62,6 +63,7 @@ func _ready() -> void:
 	_player_camera = _get_required_node(^"玩家视角/摄像机旋转轴/玩家摄像机", "Camera3D") as Camera3D
 	_current_direction_label = _get_required_node(^"调试界面/当前方向文本", "Label") as Label
 	_operation_hint_label = _get_required_node(^"调试界面/操作提示文本", "Label") as Label
+	_station_turn_lock_provider = get_node_or_null(^"交互控制器")
 
 	_direction_anchors.resize(FacingDirection.size())
 	for direction: int in range(FacingDirection.size()):
@@ -85,8 +87,12 @@ func _input(event: InputEvent) -> void:
 	else:
 		return
 
-	# 转向期间消费但不排队新的 Q / E 输入，避免快速按键造成角度错乱。
+	# 转向输入仍被消费；近景交互可通过通用查询冻结固定台位方向。
 	get_viewport().set_input_as_handled()
+	if _station_turn_lock_provider != null \
+			and _station_turn_lock_provider.has_method("is_station_turn_locked") \
+			and bool(_station_turn_lock_provider.call("is_station_turn_locked")):
+		return
 	if _is_turning:
 		return
 	_start_turn(turn_step)
