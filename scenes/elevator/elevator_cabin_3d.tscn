@@ -1571,11 +1571,11 @@ scale = Vector3(1.25, 1.25, 1.25)
 position = Vector3(0, 0, -0.325)
 
 [node name="封面" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CoverPivot"]
-position = Vector3(-0.04, 0, 0.325)
+position = Vector3(-0.08, 0, 0.325)
 mesh = SubResource("53_book_cover_mesh")
 
 [node name="封面标题" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CoverPivot"]
-position = Vector3(-0.11, 0, 0.325)
+position = Vector3(-0.15, 0, 0.325)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0022
 text = "楼层导引 / FLOOR DIRECTORY"

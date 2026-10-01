@@ -5,8 +5,8 @@ signal inspection_closed
 
 enum State { CLOSED, OPENING, OPEN, TURNING, CLOSING }
 
-@export_range(0.1, 1.0, 0.01) var open_duration: float = 0.35
-@export_range(0.1, 1.0, 0.01) var close_duration: float = 0.35
+@export_range(0.1, 1.0, 0.01) var open_duration: float = 0.56
+@export_range(0.1, 1.0, 0.01) var close_duration: float = 0.56
 @export_range(0.1, 1.0, 0.01) var page_turn_duration: float = 0.28
 
 @onready var _rest_pose: Marker3D = $RestPose
@@ -44,6 +44,7 @@ func _ready() -> void:
 	_bind_page_texture(_right_page, _right_viewport)
 	_book_root.transform = _rest_pose.transform
 	_cover_pivot.rotation.y = 0.0
+	_cover_pivot.scale = Vector3.ONE
 	_left_page.visible = false
 	_right_page.visible = false
 	_left_page_base.visible = false
@@ -85,23 +86,37 @@ func open_book() -> bool:
 	_page_index = clampi(_page_index, 0, count - 1)
 	_state = State.OPENING
 	_set_hotspot(_closed_hotspot, false)
+	# 合着封面先到阅读位置，再露出内页并翻开；两段共用总时长。
 	_show_page(_page_index)
-	_left_page.visible = true
-	_right_page.visible = true
-	_left_page_base.visible = true
 	_animation = create_tween()
 	_animation.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_animation.tween_property(_book_root, "transform", _inspect_pose.transform, open_duration * 0.5)
+	_animation.tween_callback(_begin_open_cover)
+	var cover_mid_scale := Vector3(1.0, 0.55, 0.65)
+	# 封面向读者一侧翻过书脊；中段收窄以避免近景透视放大出屏。
 	_animation.set_parallel(true)
-	_animation.tween_property(_book_root, "transform", _inspect_pose.transform, open_duration)
-	_animation.tween_property(_cover_pivot, "rotation:y", PI, open_duration)
+	_animation.tween_property(_cover_pivot, "rotation:y", -PI * 0.5, open_duration * 0.25)
+	_animation.tween_property(_cover_pivot, "scale", cover_mid_scale, open_duration * 0.25)
+	_animation.set_parallel(false)
+	_animation.tween_property(_cover_pivot, "rotation:y", -PI, open_duration * 0.25)
+	_animation.set_parallel(true)
+	_animation.tween_property(_cover_pivot, "scale", Vector3.ONE, open_duration * 0.25)
 	_animation.set_parallel(false)
 	_animation.tween_callback(_finish_open)
 	return true
 
 
+func _begin_open_cover() -> void:
+	_book_root.transform = _inspect_pose.transform
+	_left_page.visible = true
+	_right_page.visible = true
+	_left_page_base.visible = true
+
+
 func _finish_open() -> void:
 	_book_root.transform = _inspect_pose.transform
-	_cover_pivot.rotation.y = PI
+	_cover_pivot.rotation.y = -PI
+	_cover_pivot.scale = Vector3.ONE
 	_cover_pivot.visible = false
 	_state = State.OPEN
 	_set_reading_hotspots(true)
@@ -116,20 +131,32 @@ func close_book() -> bool:
 	_set_reading_hotspots(false)
 	_animation = create_tween()
 	_animation.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	# 先在阅读位置沿原路径合好封面，再把合上的书放回斜面。
+	var cover_mid_scale := Vector3(1.0, 0.55, 0.65)
 	_animation.set_parallel(true)
-	_animation.tween_property(_cover_pivot, "rotation:y", 0.0, close_duration)
-	_animation.tween_property(_book_root, "transform", _rest_pose.transform, close_duration)
+	_animation.tween_property(_cover_pivot, "rotation:y", -PI * 0.5, close_duration * 0.25)
+	_animation.tween_property(_cover_pivot, "scale", cover_mid_scale, close_duration * 0.25)
 	_animation.set_parallel(false)
+	_animation.tween_property(_cover_pivot, "rotation:y", 0.0, close_duration * 0.25)
+	_animation.set_parallel(true)
+	_animation.tween_property(_cover_pivot, "scale", Vector3.ONE, close_duration * 0.25)
+	_animation.set_parallel(false)
+	_animation.tween_callback(_finish_close_cover)
+	_animation.tween_property(_book_root, "transform", _rest_pose.transform, close_duration * 0.5)
 	_animation.tween_callback(_finish_close)
 	return true
 
 
-func _finish_close() -> void:
+func _finish_close_cover() -> void:
 	_cover_pivot.rotation.y = 0.0
-	_book_root.transform = _rest_pose.transform
+	_cover_pivot.scale = Vector3.ONE
 	_left_page.visible = false
 	_right_page.visible = false
 	_left_page_base.visible = false
+
+
+func _finish_close() -> void:
+	_book_root.transform = _rest_pose.transform
 	_left_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	_right_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	_state = State.CLOSED

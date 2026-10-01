@@ -58,6 +58,13 @@ func run(t: Variant, tree: SceneTree) -> void:
 			CabinViewController3D.FacingDirection.RIGHT_CONSOLE,
 			cabin.get_current_direction())
 	var closed_hotspot := book.get_node("BookRoot/BookHotspot") as InteractionHotspot3D
+	var book_root := book.get_node("BookRoot") as Node3D
+	var cover_pivot := book.get_node("BookRoot/CoverPivot") as Node3D
+	var cover_mesh := book.get_node("BookRoot/CoverPivot/封面") as MeshInstance3D
+	var left_page := book.get_node("BookRoot/LeftPageMesh") as MeshInstance3D
+	var right_sheet := book.get_node("BookRoot/RightPageMesh") as MeshInstance3D
+	var rest_pose := book.get_node("RestPose") as Marker3D
+	var inspect_pose := book.get_node("InspectPose") as Marker3D
 	t.assert_true("楼层书 / 合书热点可用", closed_hotspot.can_interact())
 	var camera := cabin.get_node("玩家视角/摄像机旋转轴/玩家摄像机") as Camera3D
 	t.assert_equal("楼层书 / 鼠标射线命中合书实体", closed_hotspot,
@@ -89,9 +96,24 @@ func run(t: Variant, tree: SceneTree) -> void:
 			interaction._hovered_hotspot)
 	t.assert_false("楼层书 / 展开时拒绝重复开书", book.open_book())
 	t.assert_false("楼层书 / 展开时拒绝翻页", book.turn_page(1))
-	await tree.create_timer(book.open_duration + 0.05).timeout
+	await tree.create_timer(book.open_duration * 0.3).timeout
+	t.assert_true("楼层书 / 先移动合上的封面",
+			is_zero_approx(cover_pivot.rotation.y) and not left_page.visible
+			and book_root.transform.origin.distance_to(rest_pose.transform.origin) > 0.05)
+	t.assert_true("楼层书 / 拿起时封面遮住右页",
+			camera.to_local(cover_mesh.global_position).z
+			> camera.to_local(right_sheet.global_position).z + 0.005)
+	await tree.create_timer(book.open_duration * 0.4).timeout
+	t.assert_true("楼层书 / 到阅读位置后才展开",
+			book_root.transform.is_equal_approx(inspect_pose.transform)
+			and left_page.visible and cover_pivot.rotation.y < -0.1)
+	t.assert_true("楼层书 / 展开封面在可读页前方",
+			camera.to_local(cover_mesh.global_position).z
+			> camera.to_local(right_sheet.global_position).z + 0.02)
+	await tree.create_timer(book.open_duration * 0.35 + 0.05).timeout
 	t.assert_true("楼层书 / 已展开", book.is_open())
-	var book_root := book.get_node("BookRoot") as Node3D
+	t.assert_true("楼层书 / 展开后封面缩放复位",
+			cover_pivot.scale.is_equal_approx(Vector3.ONE))
 	var spread_center := camera.unproject_position(
 			book_root.to_global(Vector3(-0.065, 0.0, -0.325))
 	)
@@ -137,7 +159,6 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_false("楼层书 / 动画中第二次翻页被拒", book.turn_page(1))
 	await tree.create_timer(book.page_turn_duration * 0.35).timeout
 	var turning_sheet := book.get_node("BookRoot/TurnPagePivot/TurnPage") as MeshInstance3D
-	var right_sheet := book.get_node("BookRoot/RightPageMesh") as MeshInstance3D
 	t.assert_true("楼层书 / 翻页面在可读页前方",
 			camera.to_local(turning_sheet.global_position).z
 			> camera.to_local(right_sheet.global_position).z + 0.02)
@@ -168,7 +189,16 @@ func run(t: Variant, tree: SceneTree) -> void:
 
 	t.assert_true("楼层书 / 合书开始", book.close_book())
 	t.assert_false("楼层书 / 合书期间拒绝重入", book.close_book())
-	await tree.create_timer(book.close_duration + 0.05).timeout
+	await tree.create_timer(book.close_duration * 0.3).timeout
+	t.assert_true("楼层书 / 先在阅读位置合上封面",
+			book_root.transform.is_equal_approx(inspect_pose.transform)
+			and left_page.visible and cover_pivot.rotation.y > -PI + 0.1)
+	await tree.create_timer(book.close_duration * 0.4).timeout
+	t.assert_true("楼层书 / 合上后才放回",
+			is_zero_approx(cover_pivot.rotation.y) and not left_page.visible
+			and cover_pivot.scale.is_equal_approx(Vector3.ONE)
+			and not book_root.transform.is_equal_approx(rest_pose.transform))
+	await tree.create_timer(book.close_duration * 0.35 + 0.05).timeout
 	t.assert_false("楼层书 / 合书释放转向锁", interaction.is_station_turn_locked())
 	t.assert_true("楼层书 / 返回 RestPose",
 			book.get_node("BookRoot").transform.is_equal_approx(
