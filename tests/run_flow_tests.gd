@@ -3,6 +3,7 @@ extends Node
 const MainConsoleTests := preload("res://tests/ui/main_console_tests.gd")
 const LeftConsoleTests := preload("res://tests/ui/left_console_tests.gd")
 const RightConsoleTests := preload("res://tests/ui/right_console_tests.gd")
+const GamepadSupportTests := preload("res://tests/ui/gamepad_support_tests.gd")
 
 
 const DispatchPhaseTests := preload("res://tests/flow/dispatch_phase_tests.gd")
@@ -101,6 +102,7 @@ func _run() -> void:
 	await MainConsoleTests.new().run(self, get_tree())
 	await LeftConsoleTests.new().run(self, get_tree())
 	await RightConsoleTests.new().run(self, get_tree())
+	await GamepadSupportTests.new().run(self, get_tree())
 
 	print("=== 测试汇总：通过 %d，失败 %d ===" % [passed_count, failed_count])
 	get_tree().quit(0 if failed_count == 0 else 1)

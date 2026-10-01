@@ -18,6 +18,7 @@ var _minimized: bool = true
 var _manually_minimized: bool = false
 var _dragging: bool = false
 var _drag_offset: Vector2
+var _controller_focus_index: int = -1
 
 
 func _ready() -> void:
@@ -48,6 +49,7 @@ func present(mic_on: bool, line: String, choices: Array[Dictionary],
 		button.text = str(choices[index].get("text", ""))
 		button.disabled = not can_choose or not bool(choices[index].get("is_allowed", true))
 	choice_container.visible = can_choose and not choices.is_empty()
+	_sync_controller_focus()
 	if not mic_on:
 		set_minimized(true, false)
 	elif has_dialogue and not _manually_minimized:
@@ -62,12 +64,68 @@ func _toggle_minimized() -> void:
 	set_minimized(not _minimized)
 
 
+func toggle_from_controller() -> void:
+	# 手柄只改变通讯窗表现，不触碰 MIC、对话选项或 DialogueManager 状态。
+	set_minimized(not _minimized)
+	if has_controller_choice_context():
+		focus_controller_choice(0)
+
+
+func cancel_controller_context() -> bool:
+	# B / ○ 仅在展开的 COMM 中表示“返回设备”，其他上下文保持无动作。
+	if _minimized:
+		return false
+	set_minimized(true)
+	return true
+
+
+func has_controller_choice_context() -> bool:
+	return is_visible_in_tree() and not _minimized and choice_container.visible \
+			and _find_enabled_choice(0, 1) >= 0
+
+
+func focus_controller_choice(direction: int) -> bool:
+	if not has_controller_choice_context():
+		_release_controller_focus()
+		return false
+	var next_index := _controller_focus_index
+	if not _is_enabled_choice(next_index):
+		next_index = _find_enabled_choice(0, 1)
+	elif direction != 0:
+		var candidate := _find_enabled_choice(next_index + direction, direction)
+		if candidate >= 0:
+			next_index = candidate
+	if not _is_enabled_choice(next_index):
+		return false
+	_controller_focus_index = next_index
+	var button := choice_container.get_child(_controller_focus_index) as Button
+	button.grab_focus()
+	return true
+
+
+func confirm_controller_choice() -> bool:
+	if not has_controller_choice_context():
+		return false
+	var focused := get_viewport().gui_get_focus_owner() as Button
+	if focused != null and focused.get_parent() == choice_container:
+		_controller_focus_index = focused.get_index()
+	if not _is_enabled_choice(_controller_focus_index):
+		focus_controller_choice(0)
+	if not _is_enabled_choice(_controller_focus_index):
+		return false
+	var button := choice_container.get_child(_controller_focus_index) as Button
+	button.pressed.emit()
+	return true
+
+
 func set_minimized(value: bool, by_player: bool = true) -> void:
 	if by_player:
 		_manually_minimized = value
 	if _minimized == value:
 		return
 	_minimized = value
+	if _minimized:
+		_release_controller_focus()
 	_fit_window()
 
 
@@ -131,3 +189,43 @@ func _fit_window() -> void:
 func _clamp_current_position() -> void:
 	# 不能把排队时的坐标带入回调，否则会覆盖玩家这期间完成的拖动。
 	move_window_to(global_position)
+
+
+func _sync_controller_focus() -> void:
+	if not has_controller_choice_context():
+		_release_controller_focus()
+		return
+	var focus_owner := get_viewport().gui_get_focus_owner()
+	var had_choice_focus := focus_owner != null and focus_owner.get_parent() == choice_container
+	if had_choice_focus:
+		_controller_focus_index = focus_owner.get_index()
+	if not _is_enabled_choice(_controller_focus_index):
+		_controller_focus_index = _find_enabled_choice(0, 1)
+	if had_choice_focus and _is_enabled_choice(_controller_focus_index):
+		var button := choice_container.get_child(_controller_focus_index) as Button
+		button.grab_focus()
+
+
+func _release_controller_focus() -> void:
+	var focus_owner := get_viewport().gui_get_focus_owner()
+	if focus_owner != null and focus_owner.get_parent() == choice_container:
+		focus_owner.release_focus()
+	_controller_focus_index = -1
+
+
+func _is_enabled_choice(index: int) -> bool:
+	if index < 0 or index >= choice_container.get_child_count():
+		return false
+	var button := choice_container.get_child(index) as Button
+	return button != null and button.visible and not button.disabled
+
+
+func _find_enabled_choice(start: int, step: int) -> int:
+	if step == 0:
+		return -1
+	var index := start
+	while index >= 0 and index < choice_container.get_child_count():
+		if _is_enabled_choice(index):
+			return index
+		index += step
+	return -1

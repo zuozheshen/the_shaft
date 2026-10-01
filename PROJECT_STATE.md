@@ -25,6 +25,7 @@
 - 唯一 ConsoleInterface 位于 CanvasLayer 的全局通讯容器中，持有原 DialogueManagerAdapter；其 FloatingCommUI 只呈现当前发言和动态选项，可拖动/最小化，四个朝向及转身时持续可见。左台转发鼠标前避让通讯窗，主台旧大面板及旧按钮在 3D 模式禁用；拒绝原因使用短暂提示。
 - 左台唯一 BuildingTerminalInterface 继续读取 DemoFlowManager 的系统日志、乘客档案和对话记录；实体键只切换栏目，滚轮只改变当前阅读位置。新派单只把已有内容标为未读，且仅当玩家实际朝向左台并打开对应栏目时清除该栏目未读状态。
 - 右台旧 DestinationControlInterface 在 3D 模式隐藏并禁用输入，但继续作为唯一目的地业务适配层；RightConsolePresentation3D 只把其展示快照映射到实体屏幕，并负责拨杆回位动画。CabinInteractionController3D 将右台热点转发到同一输入、验证和行驶入口。
+- 标准手柄通过语义 Input Actions 复用固定转向与唯一业务动作；CabinInteractionController3D 依据当前台位热点的相机投影维护互斥的 3D 焦点，FloatingCommUI 有选项时优先使用 Control focus。左台滚轮不进入 A 键焦点，只由鼠标滚轮或限速的右摇杆上下驱动。
 - `scenes/ui/` 下 ConsoleInterface、BuildingTerminalInterface、DestinationControlInterface 通过显式注入和流程命令访问业务。
 - ContentRegistry 从 `data/catalogs/` 的四个 Catalog 加载楼层、乘客、派单、值班资源。当前演示有三条正式派单；对白位于 `dialogues/passengers/`，通过 DialogueManagerAdapter 接入现有插件。
 - `scenes/presentation/monitor_test_stage_3d.tscn` 是正式主场景当前使用的监控摄影棚：可替换楼层切片、纸片乘客、双开门。MonitorCameraController3D 使用同一个世界和一台监控摄像机切换两个机位；MonitorPresentationCoordinator3D 协调门与乘客动作。

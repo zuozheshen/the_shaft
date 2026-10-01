@@ -17,6 +17,14 @@ enum FacingDirection {
 
 const TURN_LEFT_ACTION: StringName = &"turn_left"
 const TURN_RIGHT_ACTION: StringName = &"turn_right"
+const REQUIRED_GAMEPAD_ACTIONS: Array[StringName] = [
+	&"focus_left", &"focus_right", &"focus_up", &"focus_down",
+	&"interact_confirm", &"interact_cancel", &"comm_toggle",
+	&"context_scroll_up", &"context_scroll_down",
+]
+const OPERATION_HINT_TEXT: String = (
+	"Q/E 或 LB/RB 转向　十字键/左摇杆选择　A 确认　Y 通讯　右摇杆滚动"
+)
 const DIRECTION_NAMES: Array[String] = [
 	"主操作台",
 	"左操作台",
@@ -161,7 +169,7 @@ func _update_debug_interface() -> void:
 	if _current_direction_label != null:
 		_current_direction_label.text = "当前方向：%s" % get_current_direction_name()
 	if _operation_hint_label != null:
-		_operation_hint_label.text = "Q 左转　E 右转"
+		_operation_hint_label.text = OPERATION_HINT_TEXT
 
 
 func _validate_input_actions() -> void:
@@ -169,6 +177,9 @@ func _validate_input_actions() -> void:
 		push_warning("缺少 Input Map 动作：turn_left（预期绑定 Q）。")
 	if not InputMap.has_action(TURN_RIGHT_ACTION):
 		push_warning("缺少 Input Map 动作：turn_right（预期绑定 E）。")
+	for action in REQUIRED_GAMEPAD_ACTIONS:
+		if not InputMap.has_action(action):
+			push_warning("缺少手柄 Input Map 动作：%s。" % action)
 
 
 func _get_required_node(node_path: NodePath, expected_type: String) -> Node:

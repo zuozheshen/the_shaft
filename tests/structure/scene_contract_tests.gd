@@ -186,6 +186,12 @@ func run() -> Array[String]:
 	validator = Validator.new()
 	validator.validate_configuration(config)
 	_expect("required input action", str(validator.errors).contains("input/turn_left"))
+	config.load("res://project.godot")
+	config.erase_section_key("input", "interact_confirm")
+	validator = Validator.new()
+	validator.validate_configuration(config)
+	_expect("required gamepad input action",
+			str(validator.errors).contains("input/interact_confirm"))
 	_expect("unknown UID diagnosed", validator.resolve_resource_path("uid://bbbbbbbbbbbbb").begins_with("unresolved:"))
 	return failures.duplicate()
 

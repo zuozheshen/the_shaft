@@ -76,7 +76,7 @@ const EXPORTED_PATHS := {
 	"LayeredFloorSlice25D": {"far_layer_path": "MeshInstance3D", "main_layer_path": "MeshInstance3D", "mid_left_layer_path": "MeshInstance3D", "mid_right_layer_path": "MeshInstance3D", "ground_layer_path": "MeshInstance3D", "front_left_layer_path": "MeshInstance3D", "front_right_layer_path": "MeshInstance3D"},
 }
 const METHODS := {
-	"FloatingCommUI": ["present", "set_minimized", "is_minimized", "blocks_pointer"],
+	"FloatingCommUI": ["present", "set_minimized", "is_minimized", "blocks_pointer", "toggle_from_controller", "cancel_controller_context", "has_controller_choice_context", "focus_controller_choice", "confirm_controller_choice"],
 	"MainConsolePresentation3D": ["set_fault_active"],
 	"RightConsolePresentation3D": ["request_submit", "is_lever_animating"],
 	"GameRuntime": ["get_demo_flow_manager"],
@@ -172,7 +172,11 @@ func validate_configuration(config: ConfigFile) -> void:
 	elif str(godot_ai_config.get_value("plugin", "version", "")) != GODOT_AI_VERSION:
 		_problem(GODOT_AI_PLUGIN, "plugin/version", GODOT_AI_VERSION,
 			str(godot_ai_config.get_value("plugin", "version", "missing")))
-	for action: String in ["turn_left", "turn_right"]:
+	for action: String in [
+		"turn_left", "turn_right", "focus_left", "focus_right", "focus_up",
+		"focus_down", "interact_confirm", "interact_cancel", "comm_toggle",
+		"context_scroll_up", "context_scroll_down",
+	]:
 		if not config.has_section_key("input", action):
 			_problem("res://project.godot", "input/" + action, "script-referenced action", "missing")
 
