@@ -146,14 +146,23 @@ func turn_page(direction: int) -> bool:
 	_state = State.TURNING
 	_set_reading_hotspots(false)
 	_turn_page.visible = true
-	_turn_page_pivot.rotation.y = 0.0 if direction > 0 else PI
-	var midpoint: float = PI * 0.5
-	var end_angle: float = PI if direction > 0 else 0.0
+	# 负向转过书脊，让薄页朝读者一侧掠过，而不是藏到书的背后。
+	_turn_page_pivot.rotation.y = 0.0 if direction > 0 else -PI
+	_turn_page_pivot.scale = Vector3.ONE
+	var midpoint: float = -PI * 0.5
+	var end_angle: float = -PI if direction > 0 else 0.0
+	var mid_scale := Vector3(1.0, 0.6, 0.35)
 	_animation = create_tween()
 	_animation.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_animation.set_parallel(true)
 	_animation.tween_property(_turn_page_pivot, "rotation:y", midpoint, page_turn_duration * 0.5)
+	_animation.tween_property(_turn_page_pivot, "scale", mid_scale, page_turn_duration * 0.5)
+	_animation.set_parallel(false)
 	_animation.tween_callback(_turn_midpoint.bind(target))
+	_animation.set_parallel(true)
 	_animation.tween_property(_turn_page_pivot, "rotation:y", end_angle, page_turn_duration * 0.5)
+	_animation.tween_property(_turn_page_pivot, "scale", Vector3.ONE, page_turn_duration * 0.5)
+	_animation.set_parallel(false)
 	_animation.tween_callback(_finish_turn)
 	return true
 
@@ -167,6 +176,7 @@ func _turn_midpoint(target: int) -> void:
 func _finish_turn() -> void:
 	_turn_page.visible = false
 	_turn_page_pivot.rotation.y = 0.0
+	_turn_page_pivot.scale = Vector3.ONE
 	_state = State.OPEN
 	_set_reading_hotspots(true)
 

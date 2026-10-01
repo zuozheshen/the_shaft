@@ -91,6 +91,17 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_false("楼层书 / 展开时拒绝翻页", book.turn_page(1))
 	await tree.create_timer(book.open_duration + 0.05).timeout
 	t.assert_true("楼层书 / 已展开", book.is_open())
+	var book_root := book.get_node("BookRoot") as Node3D
+	var spread_center := camera.unproject_position(
+			book_root.to_global(Vector3(-0.065, 0.0, -0.325))
+	)
+	var screen_center := camera.get_viewport().get_visible_rect().size * 0.5
+	t.assert_true("楼层书 / 阅读跨页位于屏幕中央",
+			absf(spread_center.x - screen_center.x) < screen_center.x * 0.06)
+	t.assert_true("楼层书 / 阅读页接近平行且略后倾",
+			(-book_root.global_transform.basis.x.normalized()).dot(
+				camera.global_transform.basis.z.normalized()
+			) > 0.98)
 	for hotspot_name: String in [
 		"PrevPageHotspot", "NextPageHotspot", "CloseBookHotspot",
 	]:
@@ -124,8 +135,19 @@ func run(t: Variant, tree: SceneTree) -> void:
 
 	t.assert_true("楼层书 / 向后翻页开始", book.turn_page(1))
 	t.assert_false("楼层书 / 动画中第二次翻页被拒", book.turn_page(1))
-	await tree.create_timer(book.page_turn_duration + 0.05).timeout
+	await tree.create_timer(book.page_turn_duration * 0.35).timeout
+	var turning_sheet := book.get_node("BookRoot/TurnPagePivot/TurnPage") as MeshInstance3D
+	var right_sheet := book.get_node("BookRoot/RightPageMesh") as MeshInstance3D
+	t.assert_true("楼层书 / 翻页面在可读页前方",
+			camera.to_local(turning_sheet.global_position).z
+			> camera.to_local(right_sheet.global_position).z + 0.02)
+	await tree.create_timer(book.page_turn_duration * 0.7 + 0.05).timeout
 	t.assert_equal("楼层书 / 落定后是第二页", 1, book.get_page_index())
+	t.assert_false("楼层书 / 落定后薄页隐藏", turning_sheet.visible)
+	t.assert_true("楼层书 / 落定后薄页缩放复位",
+			(book.get_node("BookRoot/TurnPagePivot") as Node3D).scale.is_equal_approx(
+				Vector3.ONE
+			))
 	interaction._handle_gamepad_navigation(Vector2i.LEFT)
 	await tree.create_timer(book.page_turn_duration + 0.05).timeout
 	t.assert_equal("楼层书 / 手柄左导航上一页", 0, book.get_page_index())

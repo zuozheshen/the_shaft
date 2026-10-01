@@ -1561,7 +1561,8 @@ script = ExtResource("57_book")
 [node name="RestPose" type="Marker3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
 
 [node name="InspectPose" type="Marker3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
-position = Vector3(-1.5, 0.7, 0.7)
+position = Vector3(-1.5, 0.7, 0.9)
+rotation = Vector3(0, 0, 0.20944)
 scale = Vector3(1.25, 1.25, 1.25)
 
 [node name="BookRoot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
@@ -1607,10 +1608,10 @@ visible = false
 mesh = SubResource("57_page_mesh")
 
 [node name="TurnPagePivot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
-position = Vector3(0, 0, -0.325)
+position = Vector3(-0.09, 0, -0.325)
 
 [node name="TurnPage" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/TurnPagePivot"]
-position = Vector3(-0.083, 0, 0.325)
+position = Vector3(0, 0, 0.325)
 rotation = Vector3(0, -1.5707963, 0)
 visible = false
 mesh = SubResource("57_turn_page_mesh")
