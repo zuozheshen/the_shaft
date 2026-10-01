@@ -77,20 +77,38 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_true("楼层书 / 手柄可聚焦实体书", &"floor_book_open" in candidate_actions)
 
 	var comm := router.get_main_interface().comm_view as FloatingCommUI
+	var selected_choices: Array[int] = []
+	comm.choice_selected.connect(func(index: int) -> void:
+		selected_choices.append(index)
+	)
 	comm.present(true, "书本优先级测试", [
 		{"text": "继续", "is_allowed": true},
 	], true, true)
 	await _frames(tree, 2)
 	t.assert_true("楼层书 / COMM 选项上下文存在",
 			comm.has_controller_choice_context())
+	t.assert_false("楼层书 / COMM 选项排除手柄开书焦点",
+			interaction._is_hotspot_allowed(closed_hotspot))
+	t.assert_true("楼层书 / COMM 选项允许鼠标命中书",
+			interaction._is_hotspot_allowed(closed_hotspot, true))
+	t.assert_true("楼层书 / COMM 面板区域阻止鼠标穿透",
+			interaction._is_pointer_over_blocking_gui(comm.get_global_rect().get_center()))
+	interaction._switch_to_gamepad_mode()
+	interaction._set_hovered_hotspot(closed_hotspot)
 	interaction._execute_action(&"floor_book_open")
-	t.assert_false("楼层书 / COMM 选项阻止 3D 开书", book.is_inspection_active())
+	t.assert_false("楼层书 / COMM 选项阻止手柄开书", book.is_inspection_active())
+	var book_click := InputEventMouseButton.new()
+	book_click.button_index = MOUSE_BUTTON_LEFT
+	book_click.position = camera.unproject_position(closed_hotspot.global_position)
+	book_click.pressed = true
+	interaction._unhandled_input(book_click)
+	t.assert_true("楼层书 / 鼠标点击时 COMM 与阅读并存",
+			book.is_inspection_active() and comm.has_controller_choice_context())
+	t.assert_true("楼层书 / 鼠标开书不选择对话", selected_choices.is_empty())
 	comm.set_minimized(true, false)
 	await _frames(tree, 2)
 
 	interaction._switch_to_gamepad_mode()
-	interaction._set_hovered_hotspot(closed_hotspot)
-	interaction._execute_action(&"floor_book_open")
 	t.assert_true("楼层书 / 开书开始即锁转向", interaction.is_station_turn_locked())
 	t.assert_equal("楼层书 / 开书清除旧手柄焦点", null,
 			interaction._hovered_hotspot)
@@ -112,6 +130,14 @@ func run(t: Variant, tree: SceneTree) -> void:
 			> camera.to_local(right_sheet.global_position).z + 0.02)
 	await tree.create_timer(book.open_duration * 0.35 + 0.05).timeout
 	t.assert_true("楼层书 / 已展开", book.is_open())
+	comm.set_minimized(false, false)
+	interaction._handle_gamepad_navigation(Vector2i.RIGHT)
+	t.assert_equal("楼层书 / COMM 可选时手柄右导航不翻页", 0,
+			book.get_page_index())
+	interaction._handle_gamepad_navigation(Vector2i.DOWN)
+	t.assert_true("楼层书 / COMM 可选时手柄焦点留在对话",
+			comm.has_controller_choice_focus())
+	comm.set_minimized(true, false)
 	t.assert_true("楼层书 / 展开后封面缩放复位",
 			cover_pivot.scale.is_equal_approx(Vector3.ONE))
 	var spread_center := camera.unproject_position(

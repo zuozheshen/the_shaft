@@ -201,12 +201,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if mouse_event == null or not mouse_event.pressed:
 		return
 	_switch_to_mouse_mode()
-	if not _can_use_hotspots() or _is_pointer_over_blocking_gui():
+	if not _can_use_hotspots() or _is_pointer_over_blocking_gui(mouse_event.position):
 		return
 
 	# 点击时只信任当前事件坐标的射线，不能执行任何旧缓存热点。
 	var clicked_hotspot := _raycast_hotspot(mouse_event.position)
-	if clicked_hotspot == null or not _is_hotspot_allowed(clicked_hotspot):
+	if clicked_hotspot == null or not _is_hotspot_allowed(clicked_hotspot, true):
 		_clear_hovered_hotspot()
 		return
 	_set_hovered_hotspot(clicked_hotspot)
@@ -217,19 +217,20 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		_execute_left_scroll(-1 if mouse_event.button_index == MOUSE_BUTTON_WHEEL_UP else 1)
 	elif mouse_event.button_index == MOUSE_BUTTON_LEFT:
-		_execute_action(action_id)
+		_execute_action(action_id, true)
 	else:
 		return
 	get_viewport().set_input_as_handled()
 
 
 func _update_hovered_hotspot() -> void:
-	if not _can_use_hotspots() or _is_pointer_over_blocking_gui():
+	if not _can_use_hotspots() or _is_pointer_over_blocking_gui(
+			get_viewport().get_mouse_position()):
 		_clear_hovered_hotspot()
 		return
 
 	var hotspot := _raycast_hotspot(get_viewport().get_mouse_position())
-	if hotspot == null or not _is_hotspot_allowed(hotspot):
+	if hotspot == null or not _is_hotspot_allowed(hotspot, true):
 		_clear_hovered_hotspot()
 		return
 	_set_hovered_hotspot(hotspot)
@@ -265,7 +266,8 @@ func is_station_turn_locked() -> bool:
 	return _floor_guide_book != null and _floor_guide_book.is_inspection_active()
 
 
-func _is_hotspot_allowed(hotspot: InteractionHotspot3D) -> bool:
+func _is_hotspot_allowed(hotspot: InteractionHotspot3D,
+		from_mouse: bool = false) -> bool:
 	if not hotspot.can_interact() \
 			or hotspot.get_station_id() != _view_controller.get_current_station_id():
 		return false
@@ -279,7 +281,8 @@ func _is_hotspot_allowed(hotspot: InteractionHotspot3D) -> bool:
 		return false
 	if action_id == FLOOR_BOOK_OPEN_ACTION:
 		var comm := _get_comm_view()
-		return comm == null or not comm.has_controller_choice_context()
+		# COMM 选项保持手柄优先；鼠标仍可点击未被 COMM 面板遮住的书。
+		return from_mouse or comm == null or not comm.has_controller_choice_context()
 	return true
 
 
@@ -534,7 +537,12 @@ func _reset_gamepad_repeat_state() -> void:
 	_scroll_repeat_remaining = 0.0
 
 
-func _is_pointer_over_blocking_gui() -> bool:
+func _is_pointer_over_blocking_gui(pointer_position: Vector2 = Vector2(-1, -1)) -> bool:
+	if pointer_position == Vector2(-1, -1):
+		pointer_position = get_viewport().get_mouse_position()
+	var comm := _get_comm_view()
+	if comm != null and comm.blocks_pointer(pointer_position):
+		return true
 	var hovered_control := get_viewport().gui_get_hovered_control()
 	return hovered_control != null \
 			and hovered_control.mouse_filter != Control.MOUSE_FILTER_IGNORE
@@ -573,7 +581,7 @@ func _restore_default_hint() -> void:
 		_interaction_hint_label.text = _default_hint_text
 
 
-func _execute_action(action_id: StringName) -> void:
+func _execute_action(action_id: StringName, from_mouse: bool = false) -> void:
 	# BOOK_INSPECT 拦截所有背后设备动作，即使调用方持有旧热点引用。
 	if _floor_guide_book != null and _floor_guide_book.is_inspection_active():
 		match action_id:
@@ -586,7 +594,7 @@ func _execute_action(action_id: StringName) -> void:
 		return
 	if action_id == FLOOR_BOOK_OPEN_ACTION:
 		var comm := _get_comm_view()
-		if comm != null and comm.has_controller_choice_context():
+		if not from_mouse and comm != null and comm.has_controller_choice_context():
 			return
 		if _floor_guide_book != null and _floor_guide_book.open_book():
 			_clear_hovered_hotspot()
