@@ -617,6 +617,28 @@ func _get_dispatch_floor_relation(floor_id: String) -> DispatchFloorRelation:
 	return demo_flow_manager.get_dispatch_floor_relation(floor_id)
 
 
+# 3D 纸质书只读取楼层固有资料；不接入当前派单或目的地验证状态。
+func get_floor_book_page_count() -> int:
+	return _get_floor_definitions().size()
+
+
+func get_floor_book_snapshot(page_index: int) -> Dictionary:
+	var floors: Array[FloorDefinition] = _get_floor_definitions()
+	if page_index < 0 or page_index >= floors.size():
+		return {}
+	var floor: FloorDefinition = floors[page_index]
+	return {
+		"floor_id": String(floor.floor_id),
+		"display_name": floor.display_name,
+		"description": floor.description,
+		"function_description": floor.function_description,
+		"maintenance_history": floor.maintenance_history,
+		"book_note": floor.book_note,
+		"page_number": page_index + 1,
+		"page_count": floors.size(),
+	}
+
+
 func _get_floor_definitions() -> Array[FloorDefinition]:
 	return ContentRegistry.get_all_floors()
 

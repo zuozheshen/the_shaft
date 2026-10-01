@@ -31,7 +31,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var status := presentation.get_node(presentation.status_label_path) as Label3D
 	t.assert_equal("主台 / 唯一 ConsoleInterface", 1, main.find_children("ConsoleInterface", "", true, false).size())
 	t.assert_equal("主台 / 唯一 DialogueManagerAdapter", 1, main.find_children("DialogueManagerAdapter", "", true, false).size())
-	t.assert_equal("主台 / 仅原监控和左台两个视口", 2, main.find_children("*", "SubViewport", true, false).size())
+	t.assert_equal("主台 / 原监控、左台及楼层书两页共四个视口", 4, main.find_children("*", "SubViewport", true, false).size())
 	t.assert_equal("主台 / 监控只有原摄像机", 1, viewport.find_children("*", "Camera3D", true, false).size())
 	t.assert_equal("主台 / Mesh 直接使用原 ViewportTexture", viewport.get_texture(),
 			(screen.material_override as StandardMaterial3D).albedo_texture)

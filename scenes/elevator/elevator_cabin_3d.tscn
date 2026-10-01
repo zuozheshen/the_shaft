@@ -38,6 +38,7 @@
 [ext_resource type="Script" uid="uid://bf4fhxjlwlla6" path="res://scripts/presentation/floor_visual_profile.gd" id="50_floor_type"]
 [ext_resource type="Script" uid="uid://cjs2vtxivfkth" path="res://scripts/presentation/main_console_presentation_3d.gd" id="52_presentation"]
 [ext_resource type="Script" path="res://scripts/presentation/right_console_presentation_3d.gd" id="53_right_presentation"]
+[ext_resource type="Script" path="res://scripts/presentation/floor_guide_book_3d.gd" id="57_book"]
 
 [sub_resource type="ORMMaterial3D" id="ORMMaterial3D_cymdg"]
 albedo_texture = ExtResource("2_k80hx")
@@ -507,6 +508,41 @@ size = Vector3(0.09, 0.46, 0.62)
 [sub_resource type="BoxMesh" id="53_book_cover_mesh"]
 material = SubResource("53_book_cover")
 size = Vector3(0.105, 0.49, 0.65)
+
+[sub_resource type="BoxMesh" id="57_book_spine_mesh"]
+material = SubResource("53_book_cover")
+size = Vector3(0.12, 0.5, 0.06)
+
+[sub_resource type="BoxMesh" id="57_left_page_base_mesh"]
+material = SubResource("53_pages")
+size = Vector3(0.09, 0.46, 0.62)
+
+[sub_resource type="QuadMesh" id="57_page_mesh"]
+size = Vector2(0.6, 0.44)
+
+[sub_resource type="StandardMaterial3D" id="57_turn_page_material"]
+shading_mode = 0
+albedo_color = Color(0.92, 0.88, 0.75, 1)
+roughness = 1.0
+cull_mode = 2
+
+[sub_resource type="QuadMesh" id="57_turn_page_mesh"]
+material = SubResource("57_turn_page_material")
+size = Vector2(0.6, 0.44)
+
+[sub_resource type="BoxShape3D" id="57_closed_book_shape"]
+size = Vector3(0.15, 0.5, 0.66)
+
+[sub_resource type="BoxShape3D" id="57_page_hotspot_shape"]
+size = Vector3(0.1, 0.46, 0.18)
+
+[sub_resource type="BoxMesh" id="57_book_hover_mesh"]
+material = SubResource("53_hover")
+size = Vector3(0.11, 0.51, 0.68)
+
+[sub_resource type="BoxMesh" id="57_page_hover_mesh"]
+material = SubResource("53_hover")
+size = Vector3(0.015, 0.44, 0.17)
 
 [sub_resource type="BoxMesh" id="53_lever_base_mesh"]
 material = SubResource("53_metal")
@@ -1520,21 +1556,280 @@ size = Vector3(0.16, 0.5, 2.05)
 
 [node name="楼层导引书" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根"]
 position = Vector3(-0.13, 0.01, -0.48)
+script = ExtResource("57_book")
 
-[node name="封面" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
+[node name="RestPose" type="Marker3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
+
+[node name="InspectPose" type="Marker3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
+position = Vector3(-1.5, 0.7, 0.7)
+scale = Vector3(1.25, 1.25, 1.25)
+
+[node name="BookRoot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
+
+[node name="CoverPivot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
+position = Vector3(0, 0, -0.325)
+
+[node name="封面" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CoverPivot"]
+position = Vector3(-0.04, 0, 0.325)
 mesh = SubResource("53_book_cover_mesh")
 
-[node name="书页" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
+[node name="封面标题" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CoverPivot"]
+position = Vector3(-0.11, 0, 0.325)
+rotation = Vector3(0, -1.5707963, 0)
+pixel_size = 0.0022
+text = "楼层导引 / FLOOR DIRECTORY"
+font_size = 22
+outline_size = 3
+
+[node name="Spine" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
+position = Vector3(-0.012, 0, -0.325)
+mesh = SubResource("57_book_spine_mesh")
+
+[node name="PageStack" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
 position = Vector3(-0.012, 0, 0)
 mesh = SubResource("53_book_pages_mesh")
 
-[node name="封面标题" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
-position = Vector3(-0.075, 0, 0)
+[node name="LeftPageBase" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
+position = Vector3(-0.012, 0, -0.65)
+visible = false
+mesh = SubResource("57_left_page_base_mesh")
+
+[node name="LeftPageMesh" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
+position = Vector3(-0.065, 0, -0.65)
 rotation = Vector3(0, -1.5707963, 0)
-pixel_size = 0.0022
-text = "楼层导引书"
-font_size = 28
-outline_size = 3
+visible = false
+mesh = SubResource("57_page_mesh")
+
+[node name="RightPageMesh" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
+position = Vector3(-0.065, 0, 0)
+rotation = Vector3(0, -1.5707963, 0)
+visible = false
+mesh = SubResource("57_page_mesh")
+
+[node name="TurnPagePivot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
+position = Vector3(0, 0, -0.325)
+
+[node name="TurnPage" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/TurnPagePivot"]
+position = Vector3(-0.083, 0, 0.325)
+rotation = Vector3(0, -1.5707963, 0)
+visible = false
+mesh = SubResource("57_turn_page_mesh")
+
+[node name="BookHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
+position = Vector3(-0.14, 0, 0)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"floor_book_open"
+prompt_text = "拿起楼层导引书"
+station_id = &"right_console"
+hover_visual_path = NodePath("Hover")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/BookHotspot"]
+shape = SubResource("57_closed_book_shape")
+
+[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/BookHotspot"]
+position = Vector3(0.095, 0, 0)
+visible = false
+mesh = SubResource("57_book_hover_mesh")
+
+[node name="PrevPageHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
+position = Vector3(-0.14, 0, -0.91)
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"floor_book_previous"
+prompt_text = "上一页"
+station_id = &"right_console"
+interaction_enabled = false
+hover_visual_path = NodePath("Hover")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/PrevPageHotspot"]
+shape = SubResource("57_page_hotspot_shape")
+
+[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/PrevPageHotspot"]
+position = Vector3(-0.052, 0, 0)
+visible = false
+mesh = SubResource("57_page_hover_mesh")
+
+[node name="NextPageHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
+position = Vector3(-0.14, 0, 0.27)
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"floor_book_next"
+prompt_text = "下一页"
+station_id = &"right_console"
+interaction_enabled = false
+hover_visual_path = NodePath("Hover")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/NextPageHotspot"]
+shape = SubResource("57_page_hotspot_shape")
+
+[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/NextPageHotspot"]
+position = Vector3(-0.052, 0, 0)
+visible = false
+mesh = SubResource("57_page_hover_mesh")
+
+[node name="CloseBookHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
+position = Vector3(-0.14, 0, -0.325)
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"floor_book_close"
+prompt_text = "合上导引书"
+station_id = &"right_console"
+interaction_enabled = false
+hover_visual_path = NodePath("Hover")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CloseBookHotspot"]
+shape = SubResource("57_page_hotspot_shape")
+
+[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CloseBookHotspot"]
+position = Vector3(-0.052, 0, 0)
+visible = false
+mesh = SubResource("57_page_hover_mesh")
+
+[node name="LeftPageViewport" type="SubViewport" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
+disable_3d = true
+size = Vector2i(1024, 768)
+render_target_update_mode = 0
+
+[node name="Page" type="Control" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport"]
+layout_mode = 3
+offset_right = 1024.0
+offset_bottom = 768.0
+mouse_filter = 2
+
+[node name="Paper" type="ColorRect" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page"]
+layout_mode = 0
+offset_right = 1024.0
+offset_bottom = 768.0
+mouse_filter = 2
+color = Color(0.93, 0.9, 0.81, 1)
+
+[node name="Number" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page"]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 35.0
+offset_right = 950.0
+offset_bottom = 125.0
+theme_override_colors/font_color = Color(0.15, 0.19, 0.19, 1)
+theme_override_font_sizes/font_size = 80
+text = "900"
+
+[node name="Name" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page"]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 150.0
+offset_right = 950.0
+offset_bottom = 230.0
+theme_override_colors/font_color = Color(0.15, 0.19, 0.19, 1)
+theme_override_font_sizes/font_size = 50
+text = "楼层名称"
+
+[node name="Description" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page"]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 275.0
+offset_right = 950.0
+offset_bottom = 690.0
+theme_override_colors/font_color = Color(0.19, 0.22, 0.22, 1)
+theme_override_font_sizes/font_size = 42
+text = "楼层介绍"
+autowrap_mode = 3
+
+[node name="RightPageViewport" type="SubViewport" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
+disable_3d = true
+size = Vector2i(1024, 768)
+render_target_update_mode = 0
+
+[node name="Page" type="Control" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport"]
+layout_mode = 3
+offset_right = 1024.0
+offset_bottom = 768.0
+mouse_filter = 2
+
+[node name="Paper" type="ColorRect" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+layout_mode = 0
+offset_right = 1024.0
+offset_bottom = 768.0
+mouse_filter = 2
+color = Color(0.93, 0.9, 0.81, 1)
+
+[node name="FunctionHeading" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 32.0
+offset_right = 960.0
+offset_bottom = 80.0
+theme_override_colors/font_color = Color(0.2, 0.34, 0.33, 1)
+theme_override_font_sizes/font_size = 36
+text = "主要功能"
+
+[node name="FunctionText" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 90.0
+offset_right = 960.0
+offset_bottom = 205.0
+theme_override_colors/font_color = Color(0.19, 0.22, 0.22, 1)
+theme_override_font_sizes/font_size = 38
+text = "主要功能正文"
+autowrap_mode = 3
+
+[node name="HistoryHeading" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 238.0
+offset_right = 960.0
+offset_bottom = 286.0
+theme_override_colors/font_color = Color(0.2, 0.34, 0.33, 1)
+theme_override_font_sizes/font_size = 36
+text = "维修历史"
+
+[node name="HistoryText" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 296.0
+offset_right = 960.0
+offset_bottom = 425.0
+theme_override_colors/font_color = Color(0.19, 0.22, 0.22, 1)
+theme_override_font_sizes/font_size = 38
+text = "维修历史正文"
+autowrap_mode = 3
+
+[node name="NoteHeading" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 456.0
+offset_right = 960.0
+offset_bottom = 504.0
+theme_override_colors/font_color = Color(0.2, 0.34, 0.33, 1)
+theme_override_font_sizes/font_size = 36
+text = "备注"
+
+[node name="NoteText" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 514.0
+offset_right = 960.0
+offset_bottom = 655.0
+theme_override_colors/font_color = Color(0.19, 0.22, 0.22, 1)
+theme_override_font_sizes/font_size = 38
+text = "备注正文"
+autowrap_mode = 3
+
+[node name="PageCount" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 690.0
+offset_right = 960.0
+offset_bottom = 748.0
+theme_override_colors/font_color = Color(0.2, 0.34, 0.33, 1)
+theme_override_font_sizes/font_size = 38
+text = "01 / 07"
+horizontal_alignment = 2
 
 [node name="执行拨杆热点" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根"]
 position = Vector3(-0.12, 0, 0.5)
@@ -1613,6 +1908,7 @@ building_terminal_interface_path = NodePath("../操作台占位/左操作台定�
 left_console_presentation_path = NodePath("../操作台占位/左操作台定位")
 destination_interface_path = NodePath("../操作台界面层/操作台界面根/右操作台界面容器/DestinationControlInterface")
 right_console_presentation_path = NodePath("../右台展示绑定")
+floor_guide_book_path = NodePath("../操作台占位/右操作台定位/下部斜面根/楼层导引书")
 interaction_hint_label_path = NodePath("../调试界面/操作提示文本")
 
 [node name="观察方向" type="Node3D" parent="." unique_id=1741820516]
