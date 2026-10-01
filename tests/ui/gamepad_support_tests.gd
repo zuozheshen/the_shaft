@@ -53,6 +53,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	interaction._switch_to_mouse_mode()
 	t.assert_equal("手柄 / 切回鼠标清除手柄焦点", null, interaction._hovered_hotspot)
 
+	await _test_comm_auto_focus(t, tree, interaction, comm)
 	await _test_navigation_repeat(t, tree, interaction)
 	await _test_left_console(t, tree, cabin, interaction, router)
 	await _test_right_console(t, tree, cabin, interaction, router, manager)
@@ -230,6 +231,53 @@ func _test_right_console(
 			manager.get_current_floor())
 	t.assert_equal("手柄 / 行驶启动后沿用原清空规则", "",
 			destination.manual_destination_line_edit.text)
+
+
+func _test_comm_auto_focus(
+		t: Variant,
+		tree: SceneTree,
+		interaction: CabinInteractionController3D,
+		comm: FloatingCommUI
+) -> void:
+	t.assert_true("手柄 / 自动展开前 COMM 为最小化状态", comm.is_minimized())
+	interaction._switch_to_gamepad_mode()
+	interaction._establish_default_gamepad_focus()
+	t.assert_true("手柄 / 自动展开前 3D 热点有焦点", interaction._hovered_hotspot != null)
+	comm.present(true, "自动展开焦点测试", [
+		{"text": "首项", "is_allowed": true},
+		{"text": "次项", "is_allowed": true},
+	], true, true)
+	await tree.process_frame
+	t.assert_true("手柄 / 新对话自动展开后取得选项上下文",
+			comm.has_controller_choice_context())
+	t.assert_equal("手柄 / 自动展开立即清除 3D 焦点", null,
+			interaction._hovered_hotspot)
+	t.assert_equal("手柄 / 首个 enabled 选项自动显示焦点",
+			comm.choice_container.get_child(0), comm.get_viewport().gui_get_focus_owner())
+	comm.focus_controller_choice(1)
+	await _frames(tree, 3)
+	t.assert_equal("手柄 / 后续帧保留玩家移到的有效选项",
+			comm.choice_container.get_child(1), comm.get_viewport().gui_get_focus_owner())
+	comm.set_minimized(true, false)
+	interaction._establish_default_gamepad_focus()
+	t.assert_true("手柄 / COMM 最小化后恢复 3D 焦点",
+			interaction._hovered_hotspot != null)
+	comm.present(true, "禁用首项焦点测试", [
+		{"text": "禁用首项", "is_allowed": false},
+		{"text": "首个可用项", "is_allowed": true},
+	], true, true)
+	await tree.process_frame
+	t.assert_equal("手柄 / 自动展开跳过 disabled 首项",
+			comm.choice_container.get_child(1), comm.get_viewport().gui_get_focus_owner())
+	comm.set_minimized(true, false)
+	interaction._switch_to_mouse_mode()
+	comm.present(true, "鼠标模式焦点测试", [
+		{"text": "鼠标选项", "is_allowed": true},
+	], true, true)
+	await tree.process_frame
+	t.assert_false("手柄 / 鼠标模式自动展开不抢 controller 焦点",
+			comm.has_controller_choice_focus())
+	comm.present(false, "", [], false, false)
 
 
 func _test_comm_priority(

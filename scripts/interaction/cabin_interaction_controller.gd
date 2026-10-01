@@ -313,11 +313,15 @@ func _handle_gamepad_confirm() -> bool:
 
 
 func _validate_gamepad_focus() -> void:
-	if not _can_use_hotspots():
-		_clear_hovered_hotspot()
-		return
 	var comm := _get_comm_view()
 	if comm != null and comm.has_controller_choice_context():
+		_clear_hovered_hotspot()
+		# 自动展开时，COMM 已接管输入，但 present() 当时可能仍处于最小化状态。
+		# 只补建缺失的选项焦点，不覆盖玩家后来选中的有效按钮。
+		if not comm.has_controller_choice_focus():
+			comm.focus_controller_choice(0)
+		return
+	if not _can_use_hotspots():
 		_clear_hovered_hotspot()
 		return
 	if _has_hovered_hotspot and not _is_gamepad_focus_valid(_hovered_hotspot):

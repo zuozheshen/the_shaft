@@ -84,6 +84,14 @@ func has_controller_choice_context() -> bool:
 			and _find_enabled_choice(0, 1) >= 0
 
 
+func has_controller_choice_focus() -> bool:
+	# 只读取 GUI 当前焦点；输入设备和 3D/COMM 优先级由交互控制器决定。
+	var focused := get_viewport().gui_get_focus_owner() as Button
+	return has_controller_choice_context() and focused != null \
+			and focused.get_parent() == choice_container \
+			and _is_enabled_choice(focused.get_index())
+
+
 func focus_controller_choice(direction: int) -> bool:
 	if not has_controller_choice_context():
 		_release_controller_focus()
