@@ -55,10 +55,10 @@ func run() -> Array[String]:
 	instance.free()
 
 	instance = packed.instantiate()
-	var ui := instance.find_child("ConsoleInterface", true, false)
-	var button := ui.get_node("%OpenDoorButton")
+	var ui := instance.find_child("FloatingCommUI", true, false)
+	var button := ui.get_node("%PassengerSpeechLabel")
 	button.unique_name_in_owner = false
-	_expect("lost unique name used by code", _scene_errors(instance).contains("%OpenDoorButton"))
+	_expect("lost unique name used by code", _scene_errors(instance).contains("%PassengerSpeechLabel"))
 	instance.free()
 
 	instance = packed.instantiate()

@@ -23,9 +23,8 @@ func run(t: Variant, tree: SceneTree) -> void:
 	) as Control
 
 	t.assert_false("右台 / 旧 2D 覆盖入口隐藏", legacy_container.visible)
-	t.assert_false("右台 / 旧 LineEdit 不可编辑", destination.manual_destination_line_edit.editable)
-	for button: Button in destination.recommended_destination_buttons:
-		t.assert_true("右台 / 推荐楼层只显示不可点击 " + button.name, button.disabled)
+	t.assert_equal("右台 / 旧 LineEdit 已移除", 0, destination.find_children("*", "LineEdit", true, false).size())
+	t.assert_equal("右台 / 旧推荐和提交按钮已移除", 0, destination.find_children("*", "Button", true, false).size())
 
 	var expected_actions: Array[String] = [
 		"destination_digit_1", "destination_digit_2", "destination_digit_3",
@@ -41,7 +40,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 		var key := right_root.get_node("数字键盘/" + key_names[index]) \
 				as InteractionHotspot3D
 		var collision := key.get_node("CollisionShape3D") as CollisionShape3D
-		var cap := key.get_node("按钮帽") as MeshInstance3D
+		var cap := key.get_node("视觉资产/按钮帽") as MeshInstance3D
 		t.assert_equal("右台 / 4x3 动作映射 " + key_names[index],
 				StringName(expected_actions[index]), key.get_action_id())
 		t.assert_equal("右台 / 热点属于右台 " + key_names[index],
@@ -58,7 +57,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 		interaction._execute_action(action)
 	await _frames(tree, 2)
 	t.assert_equal("右台 / 实体数字键复用原输入并保留 004", "004",
-			destination.manual_destination_line_edit.text)
+			str(destination.get_destination_presentation().input))
 	t.assert_equal("右台 / LCD 读取同一字符串", "004",
 			str(destination.get_destination_presentation().input))
 	interaction._execute_action(&"destination_verify")
@@ -80,13 +79,10 @@ func run(t: Variant, tree: SceneTree) -> void:
 			str(destination.get_destination_presentation().validated_floor))
 	interaction._execute_action(&"destination_backspace")
 	t.assert_equal("右台 / 退格删除末位", "004",
-			destination.manual_destination_line_edit.text)
+			str(destination.get_destination_presentation().input))
 	interaction._execute_action(&"destination_clear")
 	t.assert_equal("右台 / CLR 清空输入", "",
-			destination.manual_destination_line_edit.text)
-	destination._select_recommended_destination(0)
-	t.assert_equal("右台 / 旧推荐入口不能填入", "",
-			destination.manual_destination_line_edit.text)
+			str(destination.get_destination_presentation().input))
 
 	var manager := destination.demo_flow_manager
 	var pickup_result := manager.request_travel_to_floor(manager.get_pickup_floor())

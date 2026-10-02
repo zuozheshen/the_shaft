@@ -33,35 +33,11 @@ enum DialogueContext {
 }
 
 
-# 这些引用对应操作台场景中的界面模块，统一声明便于看清显示与按钮依赖。
-@onready var title_label: Label = %TitleLabel
-@onready var description_label: Label = %DescriptionLabel
-@onready var dispatch_panel: Control = %DispatchPanel
-@onready var state_label: Label = %StateLabel
-@onready var door_control_panel: Control = %DoorControlPanel
-@onready var open_door_button: Button = %OpenDoorButton
-@onready var close_door_button: Button = %CloseDoorButton
-@onready var system_hint_label: Label = %SystemHintLabel
-@onready var return_button: Button = %ReturnButton
-
-@onready var passenger_monitor_panel: Control = $ConsoleLayout/PassengerMonitorPanel
-@onready var dispatch_info_label: Label = $ConsoleLayout/DispatchPanel/DispatchInfoLabel
-@onready var monitor_title_label: Label = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorTitleLabel
-@onready var camera_name_label: Label = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/CameraNameLabel
-@onready var monitor_feed_label: Label = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/MonitorScreenPanel/MonitorScreenLayout/MonitorFeedLabel
-@onready var camera_feed_texture_rect: TextureRect = get_node_or_null(
-	^"%CameraFeedTextureRect"
-) as TextureRect
+# 业务状态不再依赖旧 2D 控件；通讯窗保留玩家实际使用的 UI。
 @onready var comm_view: FloatingCommUI = $FloatingCommUI
 @onready var passenger_speech_label: Label = comm_view.speech_label
 @onready var rejection_toast: Label = $RejectionToast
 @onready var toast_timer: Timer = $ToastTimer
-@onready var previous_camera_button: Button = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/CameraControlPanel/PrevCameraButton
-@onready var next_camera_button: Button = $ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/CameraControlPanel/NextCameraButton
-@onready var intercom_panel: Control = $ConsoleLayout/IntercomPanel
-@onready var mic_status_label: Label = $ConsoleLayout/IntercomPanel/IntercomLayout/MicStatusLabel
-@onready var talk_button: Button = $ConsoleLayout/IntercomPanel/IntercomLayout/TalkButton
-
 var demo_flow_manager: DemoFlowManager
 var _monitor_stage_controller: MonitorStageController3D
 var _monitor_presentation_coordinator: MonitorPresentationCoordinator3D
@@ -78,19 +54,13 @@ var current_dialogue_context: DialogueContext = DialogueContext.NONE
 var current_dialogue_context_finished: bool = false
 var embedded_3d_mode: bool = false
 var _choice_in_progress: bool = false
+var _system_hint: String = ""
 
 func _ready() -> void:
 	_create_dialogue_manager_adapter()
 	comm_view.choice_selected.connect(_select_dialogue_manager_choice)
 	toast_timer.timeout.connect(rejection_toast.hide)
-	# 三个门控按钮共用处理函数，同时把操作同步给 LEFT 的临时事件缓存。
-	open_door_button.pressed.connect(request_open_door)
-	close_door_button.pressed.connect(request_close_door)
-	# 推进按钮调用流程管理器；返回按钮通过信号通知舱体控制器退出界面。
-	return_button.pressed.connect(_request_return)
-	_connect_front_interaction_signals()
 	_initialize_front_interaction()
-	_refresh_door_control_availability()
 
 
 func _create_dialogue_manager_adapter() -> void:
@@ -106,18 +76,6 @@ func _create_dialogue_manager_adapter() -> void:
 	dialogue_manager_adapter.door_greeting_done_requested.connect(_on_dm_door_greeting_done_requested)
 
 
-func _connect_front_interaction_signals() -> void:
-	# 两个摄像头按钮现在是直接选择，不再按上一台/下一台循环。
-	var cabin_camera_callback: Callable = _select_camera.bind(0)
-	var door_camera_callback: Callable = _select_camera.bind(1)
-	if not previous_camera_button.pressed.is_connected(cabin_camera_callback):
-		previous_camera_button.pressed.connect(cabin_camera_callback)
-	if not next_camera_button.pressed.is_connected(door_camera_callback):
-		next_camera_button.pressed.connect(door_camera_callback)
-	if not talk_button.pressed.is_connected(request_toggle_microphone):
-		talk_button.pressed.connect(request_toggle_microphone)
-
-
 func _initialize_front_interaction() -> void:
 	current_camera_index = 0
 	mic_enabled = false
@@ -126,8 +84,6 @@ func _initialize_front_interaction() -> void:
 	dm_choices.clear()
 	current_passenger_line = "乘客舱音频链路待机。"
 
-	monitor_title_label.text = "乘客舱主监控 / PASSENGER CABIN FEED"
-	_update_camera_display()
 	_update_microphone_display()
 	_update_dialogue_buttons()
 	_update_dispatch_panel()
@@ -136,13 +92,11 @@ func _initialize_front_interaction() -> void:
 func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 	if demo_flow_manager == flow_manager:
 		_sync_door_presentation_to_business_state()
-		_refresh_door_control_availability()
 		return
 	_disconnect_demo_flow_manager()
 	demo_flow_manager = flow_manager
 	if demo_flow_manager == null:
 		push_warning("ConsoleInterface: DemoFlowManager is not connected.")
-		_refresh_door_control_availability()
 		return
 	if not demo_flow_manager.case_updated.is_connected(_refresh_case_display):
 		demo_flow_manager.case_updated.connect(_refresh_case_display)
@@ -156,7 +110,6 @@ func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 	_update_dialogue_buttons()
 	_refresh_case_display()
 	_sync_door_presentation_to_business_state()
-	_refresh_door_control_availability()
 
 
 func _disconnect_demo_flow_manager() -> void:
@@ -172,68 +125,13 @@ func _disconnect_demo_flow_manager() -> void:
 		demo_flow_manager.shift_completed.disconnect(_on_shift_completed)
 
 
-func set_monitor_stage_controller(
-		stage_controller: MonitorStageController3D
-) -> void:
-	if _monitor_stage_controller == stage_controller:
-		_sync_door_presentation_to_business_state()
-		_refresh_door_control_availability()
-		return
-	_disconnect_monitor_stage_controller()
+func set_monitor_stage_controller(stage_controller: MonitorStageController3D) -> void:
 	_monitor_stage_controller = stage_controller
-	if _monitor_stage_controller != null \
-			and not _monitor_stage_controller \
-					.door_presentation_busy_changed.is_connected(
-						_on_door_presentation_busy_changed
-					):
-		_monitor_stage_controller.door_presentation_busy_changed.connect(
-			_on_door_presentation_busy_changed
-		)
 	_sync_door_presentation_to_business_state()
-	_refresh_door_control_availability()
 
 
-func _disconnect_monitor_stage_controller() -> void:
-	if not is_instance_valid(_monitor_stage_controller):
-		return
-	if _monitor_stage_controller \
-			.door_presentation_busy_changed.is_connected(
-				_on_door_presentation_busy_changed
-			):
-		_monitor_stage_controller.door_presentation_busy_changed.disconnect(
-			_on_door_presentation_busy_changed
-		)
-
-
-func set_monitor_presentation_coordinator(
-		coordinator: MonitorPresentationCoordinator3D
-) -> void:
-	if _monitor_presentation_coordinator == coordinator:
-		_refresh_door_control_availability()
-		return
-	_disconnect_monitor_presentation_coordinator()
+func set_monitor_presentation_coordinator(coordinator: MonitorPresentationCoordinator3D) -> void:
 	_monitor_presentation_coordinator = coordinator
-	if is_instance_valid(_monitor_presentation_coordinator) \
-			and not _monitor_presentation_coordinator \
-					.presentation_busy_changed.is_connected(
-						_on_presentation_busy_changed
-					):
-		_monitor_presentation_coordinator.presentation_busy_changed.connect(
-			_on_presentation_busy_changed
-		)
-	_refresh_door_control_availability()
-
-
-func _disconnect_monitor_presentation_coordinator() -> void:
-	if not is_instance_valid(_monitor_presentation_coordinator):
-		return
-	if _monitor_presentation_coordinator \
-			.presentation_busy_changed.is_connected(
-				_on_presentation_busy_changed
-			):
-		_monitor_presentation_coordinator.presentation_busy_changed.disconnect(
-			_on_presentation_busy_changed
-		)
 
 
 func _on_dispatch_started(_dispatch_id: StringName) -> void:
@@ -268,57 +166,15 @@ func _reset_dispatch_ui_state() -> void:
 
 
 func show_main_console() -> void:
-	# LEFT 与 RIGHT 使用独立界面，ConsoleInterface 只负责 FRONT 主调度台。
-	title_label.text = "主调度台"
-	description_label.text = "乘客接乘、证据复核与门控。"
-	dispatch_panel.show()
-	door_control_panel.show()
-	system_hint_label.show()
-	passenger_monitor_panel.show()
-	intercom_panel.show()
-	_update_dialogue_visibility()
-
-	if demo_flow_manager != null:
-		_update_dispatch_panel()
-		_refresh_case_display()
-
+	_refresh_case_display()
 	show()
-	set_embedded_3d_mode(embedded_3d_mode)
-	if not embedded_3d_mode:
-		open_door_button.grab_focus()
-
-
-# 3D 模式保留业务实例，旧视觉和键盘入口全部关闭；通讯窗独立显示。
-func set_embedded_3d_mode(is_enabled: bool) -> void:
-	embedded_3d_mode = is_enabled
-	$ConsoleLayout.visible = not is_enabled
-	mouse_filter = Control.MOUSE_FILTER_IGNORE if is_enabled else Control.MOUSE_FILTER_PASS
-	for button: Button in [previous_camera_button, next_camera_button, talk_button,
-			open_door_button, close_door_button, return_button]:
-		button.disabled = is_enabled
-		button.focus_mode = Control.FOCUS_NONE if is_enabled else Control.FOCUS_ALL
-		if is_enabled:
-			button.release_focus()
-	return_button.visible = not is_enabled
-	_refresh_door_control_availability()
 	_refresh_comm_view()
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if not visible or embedded_3d_mode:
-		return
-
-	# 操作台可用 Esc（ui_cancel）或 S 退出，与舱内进入操作形成清晰对应。
-	if event.is_action_pressed("ui_cancel") or _is_key_pressed(event, KEY_S):
-		_request_return()
-		get_viewport().set_input_as_handled()
-
-
-func _request_return() -> void:
-	# 界面只发送退出意图，具体恢复舱内视图由外层控制器负责。
-	if embedded_3d_mode:
-		return
-	return_requested.emit()
+func set_embedded_3d_mode(is_enabled: bool) -> void:
+	embedded_3d_mode = is_enabled
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_refresh_comm_view()
 
 
 func request_select_camera(camera_index: int) -> void:
@@ -329,7 +185,6 @@ func request_select_camera(camera_index: int) -> void:
 func _select_camera(camera_index: int) -> void:
 	# 摄像头只切换证据画面，不再决定麦克风是否可以对话。
 	current_camera_index = clampi(camera_index, 0, CAMERA_NAMES.size() - 1)
-	_update_camera_display()
 	_show_system_hint("已切换至 %s。" % CAMERA_NAMES[current_camera_index])
 	_update_dialogue_visibility()
 	camera_selected.emit(current_camera_index)
@@ -337,40 +192,6 @@ func _select_camera(camera_index: int) -> void:
 
 func get_current_camera_index() -> int:
 	return current_camera_index
-
-
-func set_camera_feed_texture(texture: Texture2D) -> void:
-	# 实时画面不可用时恢复最新阶段的文字证据，不让监控模块崩溃。
-	var has_valid_texture: bool = texture != null and is_instance_valid(texture)
-	if camera_feed_texture_rect == null:
-		push_error("主操作台缺少 CameraFeedTextureRect，无法显示实时监控画面。")
-		if monitor_feed_label != null:
-			monitor_feed_label.show()
-		return
-	camera_feed_texture_rect.texture = texture if has_valid_texture else null
-	if monitor_feed_label == null:
-		push_warning("主操作台缺少 MonitorFeedLabel，实时画面失效时没有文字回退。")
-		return
-	monitor_feed_label.visible = not has_valid_texture
-
-
-func _update_camera_display() -> void:
-	camera_name_label.text = CAMERA_NAMES[current_camera_index]
-	monitor_feed_label.text = _get_phase_camera_feed(current_camera_index)
-
-
-func _get_phase_camera_feed(camera_index: int) -> String:
-	if demo_flow_manager != null:
-		var feed_text: String = demo_flow_manager.get_camera_feed_for_phase(
-			demo_flow_manager.get_case_phase(),
-			camera_index
-		)
-		if not feed_text.is_empty():
-			return feed_text
-		return "画面占位：乘客舱内为空。" if camera_index == 0 \
-				else "画面占位：当前楼层门外切片。"
-
-	return "画面占位：摄像头文本未连接。"
 
 
 func request_toggle_microphone() -> void:
@@ -422,8 +243,6 @@ func _get_dialogue_manager_start_title() -> String:
 
 
 func _update_microphone_display() -> void:
-	mic_status_label.text = "麦克风：开启" if mic_enabled else "麦克风：关闭"
-	talk_button.text = "关闭麦克风" if mic_enabled else "开启麦克风"
 	var should_show_passenger_line: bool = mic_enabled or dm_dialogue_started
 	passenger_speech_label.text = current_passenger_line \
 		if should_show_passenger_line else "乘客舱音频链路待机。"
@@ -624,7 +443,7 @@ func _get_phase_passenger_line() -> String:
 
 func _show_system_hint(hint_text: String, is_rejection: bool = false) -> void:
 	# FRONT 的短提示不自动写入历史，避免左侧日志重复玩家刚完成的操作。
-	system_hint_label.text = hint_text
+	_system_hint = hint_text
 	if embedded_3d_mode and is_rejection and not hint_text.is_empty():
 		rejection_toast.text = hint_text
 		rejection_toast.show()
@@ -642,7 +461,7 @@ func _record_system_log(message_text: String) -> void:
 
 
 func request_open_door() -> void:
-	# 2D 按钮与 3D 实体热点统一调用流程命令；UI 只处理表现效果。
+	# 实体热点统一调用流程命令；UI 只处理表现效果。
 	if _is_presentation_busy():
 		_show_system_hint(_get_presentation_busy_hint(), true)
 		return
@@ -666,7 +485,6 @@ func request_open_door() -> void:
 		if not dialogue_reply_applied:
 			current_passenger_line = demo_flow_manager.get_after_open_line()
 		_show_system_hint(result.message)
-		_update_camera_display()
 		_update_dialogue_buttons()
 		_update_microphone_display()
 		if not dialogue_reply_applied:
@@ -716,7 +534,6 @@ func request_close_door() -> void:
 		_show_system_hint(result.message)
 		if mic_enabled:
 			_start_dialogue_manager_passenger()
-		_update_camera_display()
 		_update_dialogue_buttons()
 		_update_microphone_display()
 		if not dialogue_reply_applied:
@@ -787,35 +604,13 @@ func _request_door_close_presentation() -> void:
 	_sync_door_presentation_to_business_state()
 
 
-func _refresh_door_control_availability() -> void:
-	if open_door_button == null or close_door_button == null:
-		return
-	var presentation_busy := _is_presentation_busy()
-	open_door_button.disabled = embedded_3d_mode or presentation_busy \
-			or demo_flow_manager == null \
-			or demo_flow_manager.is_elevator_moving()
-	close_door_button.disabled = embedded_3d_mode or presentation_busy \
-			or demo_flow_manager == null
-
-
-func _on_door_presentation_busy_changed(_is_busy: bool) -> void:
-	_refresh_door_control_availability()
-
-
-func _on_presentation_busy_changed(_is_busy: bool) -> void:
-	_refresh_door_control_availability()
-
-
 func _refresh_case_display() -> void:
 	_clear_pickup_dialogue_after_departure()
 	_update_dispatch_panel()
-	_update_camera_display()
 	_update_dialogue_buttons()
 	_update_dialogue_visibility()
-	_refresh_door_control_availability()
 	if demo_flow_manager != null:
-		talk_button.disabled = embedded_3d_mode or not demo_flow_manager.has_active_dispatch()
-		system_hint_label.text = demo_flow_manager.get_current_building_status_hint()
+		_system_hint = demo_flow_manager.get_current_building_status_hint()
 
 
 func _clear_pickup_dialogue_after_departure() -> void:
@@ -835,31 +630,8 @@ func _clear_pickup_dialogue_after_departure() -> void:
 
 func _update_dispatch_panel() -> void:
 	case_phase_display_changed.emit(get_case_phase_display_text())
-	if demo_flow_manager == null:
-		return
-	if not demo_flow_manager.has_active_dispatch():
-		state_label.text = "当前状态：值班待命"
-		dispatch_info_label.text = "当前派单：无\n当前任务：暂无待处理派单"
-		return
-	var phase: String = demo_flow_manager.get_case_phase()
-	var phase_text: Dictionary = demo_flow_manager.get_front_phase_text(phase)
-	state_label.text = str(phase_text.get("state", ""))
-	var task_text: String = str(phase_text.get("task", ""))
-	# 乘客未登舱前不在主操作台暴露身份；接乘点仅显示待处理任务。
-	if demo_flow_manager.is_passenger_onboard():
-		dispatch_info_label.text = "当前乘客：%s\n%s" % [
-			demo_flow_manager.get_passenger_label(), task_text,
-		]
-	else:
-		dispatch_info_label.text = task_text
 
 
-func _is_key_pressed(event: InputEvent, key: Key) -> bool:
-	return event is InputEventKey and event.pressed and not event.echo \
-		and (event.keycode == key or event.physical_keycode == key)
-
-
-# 只格式化现有展示数据，不另建派单阶段映射。
 func get_case_phase_display_text() -> String:
 	if demo_flow_manager == null or not demo_flow_manager.has_active_dispatch():
 		return "CASE — · 值班待命"
@@ -869,3 +641,7 @@ func get_case_phase_display_text() -> String:
 		String(dispatch.dispatch_id).replace("_", " "),
 		str(phase_text.get("state", "")).trim_prefix("当前状态："),
 	]
+
+# 提示快照供表现层和测试读取，不借用隐藏 Label 保存业务数据。
+func get_system_hint() -> String:
+	return _system_hint

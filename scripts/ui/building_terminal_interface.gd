@@ -29,14 +29,9 @@ const EMPTY_SYSTEM_LOG_CONTENT: String = "暂无系统通信记录。"
 # 场景结构已固定，直接引用节点，避免运行时按名称遍历整棵节点树。
 @onready var title_label: Label = $TerminalLayout/TitleLabel
 @onready var access_status_label: Label = $TerminalLayout/AccessStatusLabel
-@onready var tab_button_panel: HBoxContainer = $TerminalLayout/TabButtonPanel
-@onready var record_tab_button: Button = $TerminalLayout/TabButtonPanel/RecordTabButton
-@onready var transcript_tab_button: Button = $TerminalLayout/TabButtonPanel/TranscriptTabButton
-@onready var system_log_tab_button: Button = $TerminalLayout/TabButtonPanel/SystemLogTabButton
 @onready var content_scroll_container: ScrollContainer = $TerminalLayout/ContentScrollContainer
 @onready var terminal_content_label: Label = $TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/TerminalContentLabel
 @onready var terminal_hint_label: Label = $TerminalLayout/TerminalHintLabel
-@onready var return_button: Button = $TerminalLayout/ReturnButton
 
 var demo_flow_manager: DemoFlowManager
 var embedded_3d_mode: bool = false
@@ -49,7 +44,6 @@ var _transcript_unread: bool = false
 
 func _ready() -> void:
 	_apply_terminal_theme()
-	_connect_terminal_signals()
 	_initialize_terminal_text()
 	# RuntimeConnector3D 会在场景 ready 后注入唯一 Manager；注入前只显示静态空态，避免虚假缺失告警。
 	_set_content(EMPTY_SYSTEM_LOG_CONTENT, "等待系统通信。")
@@ -101,30 +95,15 @@ func show_terminal() -> void:
 	show()
 	if not embedded_3d_mode:
 		set_actively_viewed(true)
-		if system_log_tab_button != null:
-			system_log_tab_button.grab_focus()
 
 
 func set_embedded_3d_mode(is_enabled: bool) -> void:
 	embedded_3d_mode = is_enabled
-	if tab_button_panel != null:
-		tab_button_panel.visible = not is_enabled
-	for button: Button in [record_tab_button, transcript_tab_button, system_log_tab_button]:
-		if button != null:
-			button.disabled = is_enabled
-			if is_enabled:
-				button.release_focus()
-	if return_button != null:
-		return_button.visible = not is_enabled
-		return_button.disabled = is_enabled
-		if is_enabled:
-			return_button.release_focus()
 	if content_scroll_container != null:
 		content_scroll_container.mouse_filter = Control.MOUSE_FILTER_IGNORE \
 				if is_enabled else Control.MOUSE_FILTER_STOP
 
 
-# 左台是否真的处于玩家当前视角由 3D 根节点统一判定；栏目字符串本身不能代替阅读状态。
 func set_actively_viewed(is_viewed: bool) -> void:
 	if _is_actively_viewed == is_viewed:
 		return
@@ -251,25 +230,9 @@ func _emit_unread_state() -> void:
 	unread_state_changed.emit(get_unread_snapshot())
 
 
-func _connect_terminal_signals() -> void:
-	_connect_button(record_tab_button, show_passenger_record)
-	_connect_button(transcript_tab_button, show_transcript)
-	_connect_button(system_log_tab_button, show_system_log)
-	_connect_button(return_button, _request_return)
-
-
-func _connect_button(button: Button, callback: Callable) -> void:
-	if button != null and not button.pressed.is_connected(callback):
-		button.pressed.connect(callback)
-
-
 func _initialize_terminal_text() -> void:
 	_set_label_text(title_label, "SHAFT FACILITIES // ARCHIVE TERMINAL")
 	_set_label_text(access_status_label, "> 建筑终端 L-612-A  //  OPERATOR ACCESS  //  LINK ACTIVE")
-	_set_button_text(record_tab_button, "[ 乘客档案 ]")
-	_set_button_text(transcript_tab_button, "[ 对话记录 ]")
-	_set_button_text(system_log_tab_button, "[ 系统日志 ]")
-	_set_button_text(return_button, "返回操作间")
 
 
 func _apply_terminal_theme() -> void:
@@ -288,18 +251,6 @@ func _apply_terminal_theme() -> void:
 	terminal_theme.set_color("font_shadow_color", "Label", Color(0.0, 0.04, 0.04, 0.85))
 	terminal_theme.set_constant("shadow_offset_x", "Label", 1)
 	terminal_theme.set_constant("shadow_offset_y", "Label", 1)
-	terminal_theme.set_color("font_color", "Button", Color("edf4f1"))
-	terminal_theme.set_color("font_hover_color", "Button", Color("ffffff"))
-	terminal_theme.set_color("font_pressed_color", "Button", Color("142c2a"))
-	terminal_theme.set_color("font_focus_color", "Button", Color("ffffff"))
-	terminal_theme.set_font_size("font_size", "Button", 20)
-	var normal_style := _create_terminal_style(Color("092321"), Color("607b75"), 1)
-	var hover_style := _create_terminal_style(Color("143531"), Color("b8cbc5"), 2)
-	var pressed_style := _create_terminal_style(Color("b8cbc5"), Color("edf4f1"), 2)
-	terminal_theme.set_stylebox("normal", "Button", normal_style)
-	terminal_theme.set_stylebox("hover", "Button", hover_style)
-	terminal_theme.set_stylebox("pressed", "Button", pressed_style)
-	terminal_theme.set_stylebox("focus", "Button", hover_style)
 	terminal_theme.set_stylebox("panel", "PanelContainer", _create_terminal_style(
 		Color("092321"), Color("607b75"), 1
 	))
@@ -418,28 +369,3 @@ func _reset_scroll_to_top() -> void:
 func _set_label_text(label: Label, new_text: String) -> void:
 	if label != null:
 		label.text = new_text
-
-
-func _set_button_text(button: Button, new_text: String) -> void:
-	if button != null:
-		button.text = new_text
-
-
-func _request_return() -> void:
-	if embedded_3d_mode:
-		return
-	set_actively_viewed(false)
-	return_requested.emit()
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	if not visible or embedded_3d_mode:
-		return
-	if event.is_action_pressed("ui_cancel") or _is_key_pressed(event, KEY_S):
-		_request_return()
-		get_viewport().set_input_as_handled()
-
-
-func _is_key_pressed(event: InputEvent, key: Key) -> bool:
-	return event is InputEventKey and event.pressed and not event.echo \
-			and (event.keycode == key or event.physical_keycode == key)

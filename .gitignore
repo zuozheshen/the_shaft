@@ -27,3 +27,6 @@ desktop.ini
 
 # Godot C# / Mono
 .mono/
+
+# ART-01 local GLB import/reimport probes (including import sidecars).
+assets/art/models/_pipeline_probe/

@@ -22,9 +22,10 @@
 - `scenes/runtime/game_runtime.tscn` / GameRuntime 持有唯一 DemoFlowManager；后者协调 ElevatorRuntimeState、DispatchLifecycle、ShiftRunner 和 UIHistoryState。
 - `scenes/elevator/elevator_cabin_3d.tscn` 提供固定视角/交互。CabinInterfaceRouter3D 暴露主、左、右三台；左台使用 3D 屏幕 SubViewport、三枚实体栏目键、独立未读灯和带轴向刻线的滚轮，屏幕不再直接接收触控输入；左/右台屏面统一使用深青底、浅色字和同组机身金属材质。主台使用实体监视器、MIC/CAM/门按钮、三灯与 CASE/PHASE 状态条；右台使用实体信息屏、独立 LCD、验证键、4×3 键盘、可拿起并翻页的实体楼层导引书和执行拨杆。
 - MainConsolePresentation3D 将原监控 SubViewport 纹理绑定到主屏 Mesh，并订阅现有摄像头、MIC、门表现与派单展示数据；几何、碰撞、材质和布局保存在场景中，可在 Inspector 调整。MonitorCameraController3D 继续只负责原监控摄像机、机位和视口启停。
-- 唯一 ConsoleInterface 位于 CanvasLayer 的全局通讯容器中，持有原 DialogueManagerAdapter；其 FloatingCommUI 只呈现当前发言和动态选项，可拖动/最小化，四个朝向及转身时持续可见。左台转发鼠标前避让通讯窗，主台旧大面板及旧按钮在 3D 模式禁用；拒绝原因使用短暂提示。
+- 唯一 ConsoleInterface 位于 CanvasLayer 的全局通讯容器中，持有原 DialogueManagerAdapter；其 FloatingCommUI 只呈现当前发言和动态选项，可拖动/最小化，四个朝向及转身时持续可见。左台转发鼠标前避让通讯窗，主台旧大面板及旧按钮已移除；拒绝原因使用短暂提示，短提示数据由 ConsoleInterface 保存。
 - 左台唯一 BuildingTerminalInterface 继续读取 DemoFlowManager 的系统日志、乘客档案和对话记录；实体键只切换栏目，滚轮只改变当前阅读位置。新派单只把已有内容标为未读，且仅当玩家实际朝向左台并打开对应栏目时清除该栏目未读状态。
-- 右台旧 DestinationControlInterface 在 3D 模式隐藏并禁用输入，但继续作为唯一目的地业务适配层；RightConsolePresentation3D 只把其展示快照映射到实体屏幕，并负责拨杆回位动画。CabinInteractionController3D 将右台热点转发到同一输入、验证和行驶入口。
+- DestinationControlInterface 保留场景根和唯一目的地业务适配职责，数字输入与反馈使用字符串保存，旧 LineEdit、推荐按钮和 2D 书页已移除；RightConsolePresentation3D 只把其展示快照映射到实体屏幕，并负责拨杆回位动画。CabinInteractionController3D 将右台热点转发到同一输入、验证和行驶入口。
+- 三台的静态外形在中文“视觉资产”或既有设备视觉挂载内；Godot 保留热点、碰撞、动态屏面、交互反馈与稳定动画轴。左台滚轮由 Node3D“滚轮转轴”驱动；楼层书、摄影棚门及舱壁/地板沿用已有可替换结构。左台旧页签/返回按钮已移除，真实文字与滚动内容保留。资产流程见 [Blender → Godot 规范](docs/development/blender-godot-assets.md)，正式 .blend 版本管理位置尚未冻结。
 - 标准手柄通过语义 Input Actions 复用固定转向与唯一业务动作；CabinInteractionController3D 依据当前台位热点的相机投影维护互斥的 3D 焦点，FloatingCommUI 有选项时优先使用 Control focus。左台滚轮不进入 A 键焦点，只由鼠标滚轮或限速的右摇杆上下驱动。
 - `scenes/ui/` 下 ConsoleInterface、BuildingTerminalInterface、DestinationControlInterface 通过显式注入和流程命令访问业务。
 - ContentRegistry 从 `data/catalogs/` 的四个 Catalog 加载楼层、乘客、派单、值班资源。当前演示有三条正式派单；对白位于 `dialogues/passengers/`，通过 DialogueManagerAdapter 接入现有插件。

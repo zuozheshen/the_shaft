@@ -13,7 +13,7 @@ extends Node3D
 @export var system_unread_light_path: NodePath = ^"栏目控制区/系统日志/状态灯"
 @export var record_unread_light_path: NodePath = ^"栏目控制区/乘客档案/状态灯"
 @export var transcript_unread_light_path: NodePath = ^"栏目控制区/对话记录/状态灯"
-@export var scroll_wheel_visual_path: NodePath = ^"滚轮根/滚轮视觉"
+@export var scroll_wheel_visual_path: NodePath = ^"滚轮根/滚轮转轴"
 @export_range(4.0, 45.0, 1.0) var scroll_tick_degrees: float = 16.0
 
 var _screen_mesh: MeshInstance3D
@@ -68,7 +68,7 @@ func _ready() -> void:
 func rotate_scroll_wheel(direction: int) -> void:
 	if _scroll_wheel_visual == null or direction == 0:
 		return
-	# CylinderMesh 的本地 Y 是实体轴；只绕自身轴步进，根、碰撞和 Inspector 布局保持不变。
+	# 旋转 Godot 自有轴根；可替换模型和刻线跟随轴，碰撞与外部接线保持不变。
 	_scroll_wheel_visual.rotate_object_local(
 		Vector3.UP,
 		deg_to_rad(-scroll_tick_degrees * direction)

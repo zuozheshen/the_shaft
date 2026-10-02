@@ -440,9 +440,8 @@ func _test_console_door_integration(
 						== ElevatorDoorVisual3D.DoorPresentationState.OPENING
 	)
 	test_runner.assert_true(
-		"ConsoleInterface / 动画 busy 时两个按钮统一禁用",
-		console.open_door_button.disabled
-				and console.close_door_button.disabled
+		"ConsoleInterface / 动画 busy 时门控命令统一锁定",
+		console._is_presentation_busy()
 	)
 
 	animation_player.advance(0.25)
@@ -457,7 +456,7 @@ func _test_console_door_integration(
 					opening_position,
 					animation_player.current_animation_position
 				)
-				and console.system_hint_label.text
+				and console.get_system_hint()
 						== ConsoleInterface.DOOR_PRESENTATION_BUSY_HINT
 	)
 	animation_player.advance(2.0)
@@ -481,7 +480,7 @@ func _test_console_door_integration(
 					closing_position,
 					animation_player.current_animation_position
 				)
-				and console.system_hint_label.text
+				and console.get_system_hint()
 						== ConsoleInterface.DOOR_PRESENTATION_BUSY_HINT
 	)
 	animation_player.advance(2.0)

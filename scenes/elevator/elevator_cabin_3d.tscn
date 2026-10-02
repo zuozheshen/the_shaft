@@ -607,18 +607,20 @@ size = Vector3(0.2, 2.5, 3.8)
 
 [node name="主操作台定位" type="Node3D" parent="操作台占位" unique_id=1804053782]
 
-[node name="主操作台机身" type="CSGPolygon3D" parent="操作台占位/主操作台定位" unique_id=1725224134]
+[node name="视觉资产" type="Node3D" parent="操作台占位/主操作台定位"]
+
+[node name="主操作台机身" type="CSGPolygon3D" parent="操作台占位/主操作台定位/视觉资产" unique_id=1725224134]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1.35, 0.5, -1.35)
 material_override = SubResource("StandardMaterial3D_jyqdm")
 polygon = PackedVector2Array(-0.28, -0.5, 0.52, -0.5, 0.52, 0.9, -0.28, 0.14)
 depth = 2.7
 
-[node name="主台背板" type="CSGBox3D" parent="操作台占位/主操作台定位" unique_id=1574089554]
+[node name="主台背板" type="CSGBox3D" parent="操作台占位/主操作台定位/视觉资产" unique_id=1574089554]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6569335, -1.64)
 material_override = SubResource("StandardMaterial3D_k80hx")
 size = Vector3(3, 1.5, 0.1)
 
-[node name="主台屏幕框" type="CSGBox3D" parent="操作台占位/主操作台定位" unique_id=1944041572]
+[node name="主台屏幕框" type="CSGBox3D" parent="操作台占位/主操作台定位/视觉资产" unique_id=1944041572]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6908691, -1.56)
 size = Vector3(2.55, 1, 0.05)
 
@@ -631,7 +633,9 @@ collision_mask = 0
 script = ExtResource("8_hotspot")
 action_id = &"open_microphone"
 prompt_text = "使用麦克风"
-hover_visual_path = NodePath("麦克风视觉/麦克风高亮")
+hover_visual_path = NodePath("交互反馈/麦克风高亮")
+
+[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点" unique_id=548643525]
 shape = SubResource("BoxShape3D_microphone")
@@ -642,7 +646,7 @@ shape = SubResource("BoxShape3D_microphone")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0050354004, 0.0086244345, -0.05548632)
 mesh = SubResource("BoxMesh_bhunq")
 
-[node name="麦克风高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/麦克风视觉" unique_id=832558151]
+[node name="麦克风高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/交互反馈" unique_id=832558151]
 transform = Transform3D(1.0943732, 0, 0, 0, 0.95570934, -1.1920929e-07, 0, 0, 1.1470098, 0, 0.0030001998, -0.058588743)
 visible = false
 mesh = SubResource("BoxMesh_sn0t7")
@@ -660,7 +664,9 @@ collision_mask = 0
 script = ExtResource("8_hotspot")
 action_id = &"open_door"
 prompt_text = "开门"
-hover_visual_path = NodePath("开门视觉/开门悬停高亮")
+hover_visual_path = NodePath("交互反馈/开门悬停高亮")
+
+[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点" unique_id=680504911]
 shape = SubResource("BoxShape3D_microphone")
@@ -675,7 +681,7 @@ mesh = SubResource("BoxMesh_riqys")
 transform = Transform3D(0.19519144, 0, 0, 0, 0.052140184, 0, 0, -1.8626451e-09, 0.18330532, 0, 0.09898114, -0.047130108)
 mesh = SubResource("CylinderMesh_bhunq")
 
-[node name="开门悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉" unique_id=1590688762]
+[node name="开门悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/交互反馈" unique_id=1590688762]
 transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, 0.006237045, -0.020806313, -0.06995964)
 visible = false
 mesh = SubResource("BoxMesh_6f8o3")
@@ -693,7 +699,10 @@ collision_mask = 0
 script = ExtResource("8_hotspot")
 action_id = &"close_door"
 prompt_text = "关门"
-hover_visual_path = NodePath("关门视觉/关门悬停高亮")
+hover_visual_path = NodePath("交互反馈/关门悬停高亮")
+
+[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点"]
+transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, -0.0044502616, 0, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点" unique_id=2099203521]
 shape = SubResource("BoxShape3D_microphone")
@@ -709,7 +718,7 @@ mesh = SubResource("BoxMesh_riqys")
 transform = Transform3D(0.19519144, 0, 0, 0, 0.052140184, 0, 0, -1.8626451e-09, 0.18330532, 0, 0.09898114, -0.047130108)
 mesh = SubResource("CylinderMesh_34rt5")
 
-[node name="关门悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉" unique_id=1144826803]
+[node name="关门悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/交互反馈" unique_id=1144826803]
 transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, 0.013560355, -0.020805597, -0.06995964)
 visible = false
 mesh = SubResource("BoxMesh_efn7a")
@@ -730,7 +739,9 @@ collision_mask = 0
 script = ExtResource("8_hotspot")
 action_id = &"select_camera_01"
 prompt_text = "CAM 01"
-hover_visual_path = NodePath("视觉/悬停高亮")
+hover_visual_path = NodePath("交互反馈/悬停高亮")
+
+[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点" unique_id=867613664]
 shape = SubResource("52_cam01_shape")
@@ -744,17 +755,17 @@ mesh = SubResource("52_cam01_base")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.035, 0)
 mesh = SubResource("52_cam01_cap")
 
-[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉" unique_id=349256868]
+[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/交互反馈" unique_id=349256868]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0.07)
 visible = false
 mesh = SubResource("52_cam01_selected")
 
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉" unique_id=1017574438]
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/交互反馈" unique_id=1017574438]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.007, 0)
 visible = false
 mesh = SubResource("52_cam01_hover")
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉" unique_id=276286809]
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点" unique_id=276286809]
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.061, -0.015)
 pixel_size = 0.0014
 text = "CAM 01"
@@ -767,7 +778,9 @@ collision_mask = 0
 script = ExtResource("8_hotspot")
 action_id = &"select_camera_02"
 prompt_text = "CAM 02"
-hover_visual_path = NodePath("视觉/悬停高亮")
+hover_visual_path = NodePath("交互反馈/悬停高亮")
+
+[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点" unique_id=109370934]
 shape = SubResource("52_cam02_shape")
@@ -781,17 +794,17 @@ mesh = SubResource("52_cam02_base")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.035, 0)
 mesh = SubResource("52_cam02_cap")
 
-[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉" unique_id=529810830]
+[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/交互反馈" unique_id=529810830]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0.07)
 visible = false
 mesh = SubResource("52_cam02_selected")
 
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉" unique_id=1142936713]
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/交互反馈" unique_id=1142936713]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.007, 0)
 visible = false
 mesh = SubResource("52_cam02_hover")
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉" unique_id=866050923]
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点" unique_id=866050923]
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.061, -0.015)
 pixel_size = 0.0014
 text = "CAM 02"
@@ -880,12 +893,14 @@ script = ExtResource("10_left_screen")
 player_camera_path = NodePath("../../玩家视角/摄像机旋转轴/玩家摄像机")
 view_controller_path = NodePath("../..")
 
-[node name="左台背板" type="CSGBox3D" parent="操作台占位/左操作台定位" unique_id=1923443643]
+[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位"]
+
+[node name="左台背板" type="CSGBox3D" parent="操作台占位/左操作台定位/视觉资产" unique_id=1923443643]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.64, 1.3555053, 0)
 material_override = SubResource("53_body")
 size = Vector3(0.1, 2.1, 3)
 
-[node name="左台屏幕框" type="CSGBox3D" parent="操作台占位/左操作台定位" unique_id=789538808]
+[node name="左台屏幕框" type="CSGBox3D" parent="操作台占位/左操作台定位/视觉资产" unique_id=789538808]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.56, 1.64, 0)
 size = Vector3(0.05, 1.48, 2.72)
 material = SubResource("53_metal")
@@ -901,7 +916,7 @@ render_target_update_mode = 4
 
 [node name="BuildingTerminalInterface" parent="操作台占位/左操作台定位/左台界面视口" unique_id=217403649 instance=ExtResource("3_tyhlv")]
 
-[node name="左台操作沿" type="CSGBox3D" parent="操作台占位/左操作台定位" unique_id=427055735]
+[node name="左台操作沿" type="CSGBox3D" parent="操作台占位/左操作台定位/视觉资产" unique_id=427055735]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.45, 0.73, 0)
 material_override = SubResource("53_body")
 size = Vector3(0.35, 0.15, 2.85)
@@ -918,10 +933,12 @@ prompt_text = "查看系统日志"
 station_id = &"left_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志"]
 shape = SubResource("55_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志/视觉资产"]
 position = Vector3(0.035, 0, 0)
 mesh = SubResource("55_key_mesh")
 
@@ -934,7 +951,7 @@ mesh = SubResource("55_key_hover_mesh")
 position = Vector3(0.097, -0.083, 0)
 mesh = SubResource("55_key_selected_mesh")
 
-[node name="灯座" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志"]
+[node name="灯座" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志/视觉资产"]
 position = Vector3(0.092, 0.145, 0)
 mesh = SubResource("55_lamp_housing_mesh")
 
@@ -961,10 +978,12 @@ prompt_text = "查看乘客档案"
 station_id = &"left_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案"]
 shape = SubResource("55_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案/视觉资产"]
 position = Vector3(0.035, 0, 0)
 mesh = SubResource("55_key_mesh")
 
@@ -978,7 +997,7 @@ position = Vector3(0.097, -0.083, 0)
 visible = false
 mesh = SubResource("55_key_selected_mesh")
 
-[node name="灯座" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案"]
+[node name="灯座" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案/视觉资产"]
 position = Vector3(0.092, 0.145, 0)
 mesh = SubResource("55_lamp_housing_mesh")
 
@@ -1005,10 +1024,12 @@ prompt_text = "查看对话记录"
 station_id = &"left_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录"]
 shape = SubResource("55_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录/视觉资产"]
 position = Vector3(0.035, 0, 0)
 mesh = SubResource("55_key_mesh")
 
@@ -1022,7 +1043,7 @@ position = Vector3(0.097, -0.083, 0)
 visible = false
 mesh = SubResource("55_key_selected_mesh")
 
-[node name="灯座" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录"]
+[node name="灯座" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录/视觉资产"]
 position = Vector3(0.092, 0.145, 0)
 mesh = SubResource("55_lamp_housing_mesh")
 
@@ -1049,33 +1070,37 @@ prompt_text = "滚轮：上下阅读"
 station_id = &"left_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="滚轮转轴" type="Node3D" parent="操作台占位/左操作台定位/滚轮根"]
+position = Vector3(0.04, 0, 0)
+rotation = Vector3(1.5707963, 0, 0)
+
+[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位/滚轮根/滚轮转轴"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/左操作台定位/滚轮根"]
 rotation = Vector3(1.5707963, 0, 0)
 shape = SubResource("55_scroll_shape")
 
-[node name="滚轮视觉" type="MeshInstance3D" parent="操作台占位/左操作台定位/滚轮根"]
-position = Vector3(0.04, 0, 0)
-rotation = Vector3(1.5707963, 0, 0)
+[node name="滚轮视觉" type="MeshInstance3D" parent="操作台占位/左操作台定位/滚轮根/滚轮转轴/视觉资产"]
 mesh = SubResource("55_scroll_mesh")
 
-[node name="滚轮环" type="MeshInstance3D" parent="操作台占位/左操作台定位/滚轮根/滚轮视觉"]
+[node name="滚轮环" type="MeshInstance3D" parent="操作台占位/左操作台定位/滚轮根/滚轮转轴/视觉资产/滚轮视觉"]
 mesh = SubResource("55_scroll_ring_mesh")
 
-[node name="轴向刻线前" type="MeshInstance3D" parent="操作台占位/左操作台定位/滚轮根/滚轮视觉"]
+[node name="轴向刻线前" type="MeshInstance3D" parent="操作台占位/左操作台定位/滚轮根/滚轮转轴/视觉资产/滚轮视觉"]
 position = Vector3(0.132, 0, 0)
 mesh = SubResource("55_scroll_tread_mesh")
 
-[node name="轴向刻线下" type="MeshInstance3D" parent="操作台占位/左操作台定位/滚轮根/滚轮视觉"]
+[node name="轴向刻线下" type="MeshInstance3D" parent="操作台占位/左操作台定位/滚轮根/滚轮转轴/视觉资产/滚轮视觉"]
 position = Vector3(0, 0, 0.132)
 rotation = Vector3(0, 1.5707963, 0)
 mesh = SubResource("55_scroll_tread_mesh")
 
-[node name="轴向刻线后" type="MeshInstance3D" parent="操作台占位/左操作台定位/滚轮根/滚轮视觉"]
+[node name="轴向刻线后" type="MeshInstance3D" parent="操作台占位/左操作台定位/滚轮根/滚轮转轴/视觉资产/滚轮视觉"]
 position = Vector3(-0.132, 0, 0)
 rotation = Vector3(0, 3.1415927, 0)
 mesh = SubResource("55_scroll_tread_mesh")
 
-[node name="轴向刻线上" type="MeshInstance3D" parent="操作台占位/左操作台定位/滚轮根/滚轮视觉"]
+[node name="轴向刻线上" type="MeshInstance3D" parent="操作台占位/左操作台定位/滚轮根/滚轮转轴/视觉资产/滚轮视觉"]
 position = Vector3(0, 0, -0.132)
 rotation = Vector3(0, -1.5707963, 0)
 mesh = SubResource("55_scroll_tread_mesh")
@@ -1102,7 +1127,9 @@ size = Vector3(2.2, 2.7, 0.15)
 position = Vector3(0.576, 0.68, 0)
 scale = Vector3(0.6, 0.6, 0.6)
 
-[node name="右台背板" type="CSGBox3D" parent="操作台占位/右操作台定位" unique_id=1643159438]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位"]
+
+[node name="右台背板" type="CSGBox3D" parent="操作台占位/右操作台定位/视觉资产" unique_id=1643159438]
 position = Vector3(1.62, 1.38, 0)
 material_override = SubResource("53_body")
 size = Vector3(0.14, 2.45, 2.35)
@@ -1159,10 +1186,12 @@ prompt_text = "验证楼层"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
 shape = SubResource("53_verify_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点/视觉资产"]
 position = Vector3(-0.035, 0, 0)
 mesh = SubResource("53_verify_mesh")
 
@@ -1208,10 +1237,12 @@ prompt_text = "输入 1"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字1/视觉资产"]
 position = Vector3(-0.035, 0, 0)
 mesh = SubResource("53_key_mesh")
 
@@ -1237,10 +1268,12 @@ prompt_text = "输入 2"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字2/视觉资产"]
 position = Vector3(-0.035, 0, 0)
 mesh = SubResource("53_key_mesh")
 
@@ -1266,10 +1299,12 @@ prompt_text = "输入 3"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字3/视觉资产"]
 position = Vector3(-0.035, 0, 0)
 mesh = SubResource("53_key_mesh")
 
@@ -1295,10 +1330,12 @@ prompt_text = "输入 4"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字4/视觉资产"]
 position = Vector3(-0.035, 0, 0)
 mesh = SubResource("53_key_mesh")
 
@@ -1324,10 +1361,12 @@ prompt_text = "输入 5"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字5/视觉资产"]
 position = Vector3(-0.035, 0, 0)
 mesh = SubResource("53_key_mesh")
 
@@ -1353,10 +1392,12 @@ prompt_text = "输入 6"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字6/视觉资产"]
 position = Vector3(-0.035, 0, 0)
 mesh = SubResource("53_key_mesh")
 
@@ -1382,10 +1423,12 @@ prompt_text = "输入 7"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字7/视觉资产"]
 position = Vector3(-0.035, 0, 0)
 mesh = SubResource("53_key_mesh")
 
@@ -1411,10 +1454,12 @@ prompt_text = "输入 8"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字8/视觉资产"]
 position = Vector3(-0.035, 0, 0)
 mesh = SubResource("53_key_mesh")
 
@@ -1440,10 +1485,12 @@ prompt_text = "输入 9"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字9/视觉资产"]
 position = Vector3(-0.035, 0, 0)
 mesh = SubResource("53_key_mesh")
 
@@ -1469,10 +1516,12 @@ prompt_text = "清空输入"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/清空/视觉资产"]
 position = Vector3(-0.035, 0, 0)
 mesh = SubResource("53_key_mesh")
 
@@ -1498,10 +1547,12 @@ prompt_text = "输入 0"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字0/视觉资产"]
 position = Vector3(-0.035, 0, 0)
 mesh = SubResource("53_key_mesh")
 
@@ -1527,10 +1578,12 @@ prompt_text = "删除末位"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
+[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/退格/视觉资产"]
 position = Vector3(-0.035, 0, 0)
 mesh = SubResource("53_key_mesh")
 
@@ -1550,7 +1603,9 @@ font_size = 30
 position = Vector3(1.53, 0.16, 0)
 rotation = Vector3(0, 0, -0.349066)
 
-[node name="斜面板" type="CSGBox3D" parent="操作台占位/右操作台定位/下部斜面根"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根"]
+
+[node name="斜面板" type="CSGBox3D" parent="操作台占位/右操作台定位/下部斜面根/视觉资产"]
 material_override = SubResource("53_body")
 size = Vector3(0.16, 0.5, 2.05)
 
@@ -1842,20 +1897,24 @@ prompt_text = "拨动：前往楼层"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
+
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
 shape = SubResource("53_lever_shape")
 
-[node name="安装底座" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
+[node name="安装底座" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/视觉资产"]
 mesh = SubResource("53_lever_base_mesh")
 
 [node name="拨杆转轴" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
 
-[node name="金属短柄" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴"]
+
+[node name="金属短柄" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴/视觉资产"]
 position = Vector3(-0.2, 0, 0)
 rotation = Vector3(0, 0, 1.5707963)
 mesh = SubResource("53_lever_handle_mesh")
 
-[node name="握柄" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴"]
+[node name="握柄" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴/视觉资产"]
 position = Vector3(-0.43, 0, 0)
 mesh = SubResource("53_lever_grip_mesh")
 
@@ -1872,7 +1931,7 @@ text = "前往楼层"
 font_size = 24
 outline_size = 3
 
-[node name="底缘挡条" type="CSGBox3D" parent="操作台占位/右操作台定位/下部斜面根"]
+[node name="底缘挡条" type="CSGBox3D" parent="操作台占位/右操作台定位/下部斜面根/视觉资产"]
 position = Vector3(-0.18, -0.3, 0)
 material_override = SubResource("53_metal")
 size = Vector3(0.24, 0.1, 2.12)
@@ -1953,17 +2012,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="主操作台界面容器" type="Control" parent="操作台界面层/操作台界面根" unique_id=1294954568]
-clip_contents = true
-layout_mode = 1
-anchor_left = 0.31
-anchor_top = 0.25
-anchor_right = 0.69
-anchor_bottom = 0.61
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
 [node name="右操作台界面容器" type="Control" parent="操作台界面层/操作台界面根" unique_id=864153351]
 visible = false
 clip_contents = true
@@ -2037,8 +2085,8 @@ console_interface_path = NodePath("../操作台界面层/操作台界面根/全�
 stage_controller_path = NodePath("../监控摄影棚定位/监控测试摄影棚")
 monitor_subviewport_path = NodePath("../监控渲染系统/监控视口")
 screen_mesh_path = NodePath("../操作台占位/主操作台定位/主监视器")
-cam_01_backlight_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/选中背光")
-cam_02_backlight_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/选中背光")
+cam_01_backlight_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/交互反馈/选中背光")
+cam_02_backlight_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/交互反馈/选中背光")
 comm_light_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯/灯面")
 door_light_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯/灯面")
 fault_light_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯/灯面")
