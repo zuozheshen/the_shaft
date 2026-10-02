@@ -51,8 +51,8 @@ func run(t: Variant, tree: SceneTree) -> void:
 		var device := surface_root.get_node(device_name) as Node3D
 		t.assert_true("主台 / 斜面设备局部旋转归零 " + device_name,
 				device.transform.basis.is_equal_approx(Basis.IDENTITY))
-		# DOOR 指示灯由用户在 Inspector 中单独抬高；其余新增设备仍共享基准面。
-		if device_name != "DOOR指示灯":
+		# 指示灯可按台面和控件体积避让；CAM 热点仍保持原来的公共局部平面。
+		if device_name in ["CAM01热点", "CAM02热点"]:
 			t.assert_true("主台 / 斜面设备落在公共局部平面 " + device_name,
 					is_zero_approx(device.position.y))
 		var label := device.find_child("标识", true, false) as Label3D
@@ -69,10 +69,16 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var cam_02 := surface_root.get_node("CAM02热点") as InteractionHotspot3D
 	_assert_shared_button_meshes(t, cam_01.get_node("视觉/方形按钮"),
 			cam_02.get_node("视觉/方形按钮"), "CAM")
+	var cam_01_label := cam_01.find_child("标识", true, false) as Label3D
+	var cam_02_label := cam_02.find_child("标识", true, false) as Label3D
 	t.assert_true("主台 / 共用 CAM 外形仍保留独立标识",
-			cam_01.get_node("标识") != cam_02.get_node("标识")
-			and cam_01.get_node("标识").text != cam_02.get_node("标识").text)
-	for part in ["交互反馈/选中背光", "交互反馈/悬停高亮"]:
+			cam_01_label != cam_02_label and cam_01_label.text != cam_02_label.text)
+	for camera_hotspot in [cam_01, cam_02]:
+		var marker := camera_hotspot.get_node("交互反馈/选中背光") as Node3D
+		t.assert_true("主台 / CAM 原选中路径不再显示下方横条",
+				not marker is MeshInstance3D
+				and marker.find_children("*", "MeshInstance3D", true, false).is_empty())
+	for part in ["交互反馈/悬停高亮"]:
 		var first := cam_01.get_node(part) as MeshInstance3D
 		var second := cam_02.get_node(part) as MeshInstance3D
 		t.assert_true("主台 / CAM 原有反馈保持独立 " + part,
@@ -120,10 +126,13 @@ func run(t: Variant, tree: SceneTree) -> void:
 			t.assert_true("主台 / CAM02 位于关闭门扇外侧",
 					door.to_local(anchor.global_position).z < -door_half_depth)
 		t.assert_equal("主台 / CAM 不改变阶段", phase, manager.get_case_phase())
-		t.assert_equal("主台 / CAM 背光", index == 0,
+		t.assert_equal("主台 / CAM 原选择标记", index == 0,
 				(presentation.get_node(presentation.cam_01_backlight_path) as Node3D).visible)
-		t.assert_equal("主台 / CAM02 背光", index == 1,
+		t.assert_equal("主台 / CAM02 原选择标记", index == 1,
 				(presentation.get_node(presentation.cam_02_backlight_path) as Node3D).visible)
+		_assert_camera_cap_selection(t,
+				(cam_01 if index == 0 else cam_02).get_node("视觉/方形按钮"),
+				(cam_02 if index == 0 else cam_01).get_node("视觉/方形按钮"), index)
 	console.request_select_camera(99)
 	t.assert_equal("主台 / 无效机位不改变选择", 0, console.get_current_camera_index())
 	t.assert_false("主台 / 无效机位不触发 FAULT", fault.visible)
@@ -239,6 +248,31 @@ func _assert_shared_button_meshes(t: Variant, first: Node3D, second: Node3D, lab
 					(second_meshes[index] as MeshInstance3D).mesh)
 
 
+func _assert_camera_cap_selection(t: Variant, selected: Node3D, unselected: Node3D,
+		camera_index: int) -> void:
+	# 从 Godot 自有帽 mount 读取实际材质，不把 GLB 内部对象名当成业务契约。
+	var selected_caps := selected.get_node("按钮按压轴/按钮帽模型").find_children(
+			"*", "MeshInstance3D", true, false)
+	var unselected_caps := unselected.get_node("按钮按压轴/按钮帽模型").find_children(
+			"*", "MeshInstance3D", true, false)
+	t.assert_true("主台 / CAM 选择显示在实际按钮帽 " + str(camera_index),
+			not selected_caps.is_empty() and not unselected_caps.is_empty())
+	if selected_caps.is_empty() or unselected_caps.is_empty():
+		return
+	var lit := (selected_caps[0] as MeshInstance3D).get_active_material(0) as StandardMaterial3D
+	var dark := (unselected_caps[0] as MeshInstance3D).get_active_material(0) as StandardMaterial3D
+	t.assert_true("主台 / CAM 帽选择使用独立可配置材质", lit != null and dark != null and lit != dark)
+	if lit == null or dark == null:
+		return
+	var lit_color := lit.albedo_color
+	var dark_color := dark.albedo_color
+	t.assert_true("主台 / 所选 CAM 帽比另一帽更亮 " + str(camera_index),
+			lit_color.r + lit_color.g + lit_color.b > dark_color.r + dark_color.g + dark_color.b)
+	t.assert_true("主台 / 所选 CAM 帽内部发光，未选中帽保持暗态 " + str(camera_index),
+			lit.emission_enabled and lit.emission_energy_multiplier > 0.0
+			and lit.emission.r + lit.emission.g + lit.emission.b > 0.0 and not dark.emission_enabled)
+
+
 func _test_button_feedback(t: Variant, tree: SceneTree, main: Node,
 		interaction: CabinInteractionController3D, console: ConsoleInterface,
 		manager: DemoFlowManager) -> void:
@@ -262,9 +296,12 @@ func _test_button_feedback(t: Variant, tree: SceneTree, main: Node,
 		var button := buttons[index]
 		var axis := button.get_node(button.press_axis_path) as Node3D
 		var frame := button.get_node("固定安装框") as Node3D
-		var collision := main.find_child(hotspot_name, true, false).get_node("CollisionShape3D") as CollisionShape3D
+		var hotspot := main.find_child(hotspot_name, true, false) as InteractionHotspot3D
+		var collision := hotspot.get_node("CollisionShape3D") as CollisionShape3D
 		var frame_before := frame.global_transform
+		var hotspot_before := hotspot.global_transform
 		var collision_before := collision.global_transform
+		var action_before := hotspot.get_action_id()
 		var rest := rest_positions[index]
 		t.assert_true("按压 / 初始静止 " + hotspot_name, axis.position.is_equal_approx(rest))
 		button.play_press()
@@ -272,9 +309,11 @@ func _test_button_feedback(t: Variant, tree: SceneTree, main: Node,
 		t.assert_true("按压 / 只有稳定轴沿局部法线下沉 " + hotspot_name,
 				axis.position.y < rest.y and is_equal_approx(axis.position.x, rest.x)
 				and is_equal_approx(axis.position.z, rest.z))
-		t.assert_true("按压 / 安装框与碰撞保持静止 " + hotspot_name,
+		t.assert_true("按压 / 安装框、热点、碰撞及 action 保持不变 " + hotspot_name,
 				frame.global_transform.is_equal_approx(frame_before)
-				and collision.global_transform.is_equal_approx(collision_before))
+				and hotspot.global_transform.is_equal_approx(hotspot_before)
+				and collision.global_transform.is_equal_approx(collision_before)
+				and hotspot.get_action_id() == action_before)
 		# 连续按压覆盖正在执行的 Tween，返回初始姿态而非累加位移。
 		button.play_press()
 		button.play_press()

@@ -6,6 +6,7 @@
 
 [node name="大型按钮" type="Node3D"]
 script = ExtResource("1_feedback")
+press_distance = 0.005
 
 [node name="固定安装框" parent="." instance=ExtResource("2_frame")]
 

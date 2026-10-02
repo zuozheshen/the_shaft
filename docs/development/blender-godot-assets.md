@@ -15,7 +15,7 @@
 
 - 台体、背板和边框可放在台位根的“视觉资产”子树。
 - 热点 `Area3D`、`CollisionShape3D`、action_id、Label3D、SubViewport、动态屏面与指示灯是 Godot 自有节点，留在可替换模型之外。
-- MIC/OPEN/CLOSE 的现有视觉子树及 CAM 的“视觉”仅负责外形；“交互反馈”独立负责悬停/选中反馈。不能把它们重新放入 GLB 内。
+- MIC/OPEN/CLOSE 的现有视觉子树及 CAM 的“视觉”负责外形和可选视觉反馈；CAM 的“交互反馈”保留悬停高亮与无 Mesh 的选中兼容标记，帽材质由视觉组件更新。稳定反馈节点不放入 GLB 内。
 - 左台“滚轮转轴”由 Godot 驱动；其“视觉资产”装滚轮外形，碰撞不随滚动旋转。
 - 右台拨杆轴保留 Godot 所有，其“视觉资产”装杆柄；执行热点、busy 和业务提交不依赖杆柄内部结构。
 - 信息屏底面、LCD 底面、文字、书的动态页面继续由 Godot 管理。Blender 提供外壳、边框、玻璃等静态外形。
@@ -57,7 +57,7 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 ## 主操作台 V2 控制件（#63）
 
 - 沿用 `art_source/main_console_v2.blend` 与“主操作台体块”Scene；专属 `AgentGenerated_ART02_2_Controls` Collection 包含 6 个控制件 Mesh 与 6 个导出根。#62 的 Collection、20 个 shell Mesh、根 Empty 与 `main_console_shell.glb` 保留，控制件不并入 shell。
-- 本阶段只新增以下 6 个运行 GLB，这是允许的最大拆分粒度；不把单个控制件继续拆成更多独立运行资产。模型使用中性占位材质，各 GLB 为单位 Transform 的根与静态 Mesh；只含位置和法线数据，无 Camera、Light、UV、贴图、动画、skin、碰撞或业务 metadata。
+- 本阶段只新增以下 6 个运行 GLB，这是允许的最大拆分粒度；不把单个控制件继续拆成更多独立运行资产。模型使用中性或低饱和占位材质，各 GLB 为单位 Transform 的根与静态 Mesh；只含位置和法线数据，无 Camera、Light、UV、贴图、动画、skin、碰撞或业务 metadata。
 
 | 控制件 | `assets/art/models/` 运行资产 | `scenes/visuals/` wrapper |
 | --- | --- | --- |
@@ -66,9 +66,10 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 | OPEN/CLOSE 共享大型按钮 | `button_large.glb`、`button_large_cap.glb` | `button_large_visual.tscn` |
 | 三灯共享静态安装壳 | `indicator_lamp.glb` | `indicator_lamp_visual.tscn` |
 
-- 四个 wrapper 只装配外形，继续挂在既有“麦克风视觉”“开门视觉”“关门视觉”、CAM“视觉”和原灯根内。CAM 两实例共享标准框/帽几何，OPEN/CLOSE 两实例共享大型框/帽几何；按钮占位色通过 Godot 场景内的材质覆盖装配，Label3D、选中背光和悬停高亮各自保留，不复制 Gameplay 节点。门按钮对既有父级非均匀 Basis 的补偿仅写入视觉 wrapper。
-- 麦克风是固定底座、短鹅颈与麦头组成的独立整体，不可拿起，沿用原 toggle microphone。原大号“麦克风热点/设备标识”Label3D 隐藏，中文 wrapper 内只保留小型 COMM 标识；原 COMM 灯标识改为 TX，沿用同一灯面与 `mic_enabled_changed`，不新增录音或发射状态，也不在麦座复制第二个灯。
-- 按钮 wrapper 内的“固定安装框”静止；Godot 自有“按钮按压轴”只带动“按钮帽模型”。`ConsoleButtonVisual3D` 用一个 Tween 引用与初始位置实现约 3 毫米下压、0.06 秒下压和 0.10 秒回位，快速重入从原位重新播放并回位。反馈可禁用，空或缺失按压轴静默降级；热点、碰撞、标签和灯不随动，不新增业务状态机。
+- 四个 wrapper 只装配外形与可选视觉反馈，继续挂在既有“麦克风视觉”“开门视觉”“关门视觉”、CAM“视觉”和原灯根内。CAM 两实例共享标准框/帽几何，OPEN/CLOSE 两实例共享大型框/帽几何；按钮占位色由 Godot 场景内材质覆盖，OPEN 使用低饱和工业绿、CLOSE 使用低饱和深红。CAM 旧选中背光为无 Mesh 的兼容标记，选中表现改为按钮帽变亮和微弱发光，暗/亮帽材质按实例隔离；Label3D 与悬停高亮仍由 Godot 管理，不复制 Gameplay 节点。门按钮对既有父级非均匀 Basis 的补偿仅写入视觉 wrapper。
+- 按钮机械层级为“台面 → 安装法兰 → 固定壳体 / bezel → 独立凸起帽”，帽与框之间留真实阴影缝，边缘只有轻微倒角。沿台面法线计，CAM 安装座净高 23 毫米、帽顶 33 毫米；大型按钮安装座净高 33 毫米、帽顶 45 毫米，外占地为 0.25×0.24 米，采用更厚安装座与更宽 bezel，并非整套 CAM 同比放大。
+- 麦克风是固定底座、鹅颈与短圆柱麦头组成的独立整体，不可拿起，沿用原 toggle microphone。底座为 0.264×0.176 米，杆径 0.0225 米（比上一版增加 50%），上段向玩家弯曲约 20°，麦头直径 0.0675 米；没有真实网孔阵列。原大号“麦克风热点/设备标识”Label3D 隐藏，中文 wrapper 内只保留小型 COMM 标识；原 COMM 灯标识为 TX，并从原灯位向麦座靠近 119.6 毫米，沿用同一灯面与 `mic_enabled_changed`。不新增录音或发射状态，也不在麦座复制第二个灯；DOOR / FAULT 安装壳结构保持。
+- 按钮 wrapper 内的“固定安装框”静止；Godot 自有“按钮按压轴”只带动“按钮帽模型”与帽面 Label3D。`ConsoleButtonVisual3D` 用一个 Tween 引用与初始位置实现 CAM 4 毫米、大型按钮 5 毫米下压，仍为 0.06 秒下压和 0.10 秒回位；快速重入从原位重新播放并回位。反馈可禁用，空或缺失按压轴静默降级；热点、碰撞、action_id 和灯不随动，不新增业务状态机。
 - `MainConsolePresentation3D` 通过导出路径引用可选按钮组件，只订阅原 `camera_selected` 与 `presentation_effects_requested` 的成功开/关门 effect；初始化状态同步不播放按压。原 TX/MIC、DOOR 真实四态、FAULT 预留入口、监控纹理和 CASE 更新链保持，业务不读取 GLB 内部名称、层级或材质槽。
 - 六个 GLB 与既有 `.blend` 沿用现有 Git LFS 规则，不新增跟踪规则。源文件/运行资产大小、SHA、验证结果及提交状态记录在 #63 REVIEW，不将截图、日志、`.godot/` 或 Blender 备份提交为资产。
-- #63 控制件造型、尺寸、排布、可读性和实际手感的用户人工验收仍待完成。正式材质、UV、贴图属于 #64；CRT shader 与后续屏面表现属于 #65，当前均未制作。自动测试与 Godot AI 自检不得代替人工验收。
+- #63 本轮造型修正已完成实现、自动逻辑验证与 Godot AI 视觉/运行时自检；控制件造型、尺寸、排布、可读性和实际手感的最终用户人工验收仍待完成。#64 未开展，正式材质、UV、贴图和麦头网罩纹理留待该阶段；CRT shader 与后续屏面表现属于 #65，当前未制作。自动测试与 Godot AI 自检不得代替人工验收。

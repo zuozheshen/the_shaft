@@ -98,6 +98,11 @@ func _bind_presentation() -> void:
 func _on_camera_selected(index: int) -> void:
 	_cam_01.visible = index == 0
 	_cam_02.visible = index == 1
+	# 选中由按钮帽自身亮起；原背光节点仅保留兼容路径。
+	if is_instance_valid(_cam_01_button):
+		_cam_01_button.set_selected(index == 0)
+	if is_instance_valid(_cam_02_button):
+		_cam_02_button.set_selected(index == 1)
 
 
 func _get_button_visual(path: NodePath) -> ConsoleButtonVisualScript:

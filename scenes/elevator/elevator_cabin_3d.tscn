@@ -103,9 +103,9 @@ material = SubResource("StandardMaterial3D_sn0t7")
 size = Vector3(0.32696915, 0.0637207, 0.27590942)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_riqys"]
-albedo_color = Color(0.3267, 0.55, 0.071499996, 1)
-metallic = 0.11
-roughness = 0.6
+albedo_color = Color(0.20, 0.32, 0.22, 1)
+metallic = 0.0
+roughness = 0.72
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_bhunq"]
 material = SubResource("StandardMaterial3D_riqys")
@@ -120,9 +120,9 @@ material = SubResource("StandardMaterial3D_qr0ht")
 size = Vector3(0.37337494, 0.014404297, 0.34222412)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0pcg1"]
-albedo_color = Color(0.9, 0.10350001, 0.09000002, 1)
-metallic = 0.51
-roughness = 0.56
+albedo_color = Color(0.30, 0.12, 0.13, 1)
+metallic = 0.0
+roughness = 0.72
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_34rt5"]
 material = SubResource("StandardMaterial3D_0pcg1")
@@ -677,9 +677,9 @@ transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, 0.006237045, -0.
 visible = false
 mesh = SubResource("BoxMesh_6f8o3")
 
-[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点" unique_id=1263783487]
-transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.14, 0.065)
-pixel_size = 0.002
+[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮/按钮按压轴" unique_id=1263783487]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0665721203, 0)
+pixel_size = 0.0013
 text = "OPEN"
 font_size = 28
 
@@ -712,9 +712,9 @@ transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, 0.013560355, -0.
 visible = false
 mesh = SubResource("BoxMesh_efn7a")
 
-[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点" unique_id=109319742]
-transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.14, 0.065)
-pixel_size = 0.002
+[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮/按钮按压轴" unique_id=109319742]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0665721203, 0)
+pixel_size = 0.0013
 text = "CLOSE"
 font_size = 28
 
@@ -740,18 +740,16 @@ shape = SubResource("52_cam01_shape")
 [node name="方形按钮" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉" instance=ExtResource("63_square")]
 position = Vector3(0, -0.016055, 0)
 
-[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/交互反馈" unique_id=349256868]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.024, 0.068)
+[node name="选中背光" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/交互反馈"]
 visible = false
-mesh = SubResource("52_cam01_selected")
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/交互反馈" unique_id=1017574438]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.013, 0)
 visible = false
 mesh = SubResource("52_cam01_hover")
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点" unique_id=276286809]
-transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.024, -0.015)
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮/按钮按压轴" unique_id=276286809]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.050055, 0)
 pixel_size = 0.0014
 text = "CAM 01"
 font_size = 25
@@ -775,24 +773,22 @@ shape = SubResource("52_cam02_shape")
 [node name="方形按钮" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉" instance=ExtResource("63_square")]
 position = Vector3(0, -0.016055, 0)
 
-[node name="选中背光" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/交互反馈" unique_id=529810830]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.024, 0.068)
+[node name="选中背光" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/交互反馈"]
 visible = false
-mesh = SubResource("52_cam02_selected")
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/交互反馈" unique_id=1142936713]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.013, 0)
 visible = false
 mesh = SubResource("52_cam02_hover")
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点" unique_id=866050923]
-transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.024, -0.015)
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮/按钮按压轴" unique_id=866050923]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.050055, 0)
 pixel_size = 0.0014
 text = "CAM 02"
 font_size = 25
 
 [node name="COMM指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=100710776]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0466043, 5.9604645e-08, -0.029865384)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.927, 5.9604645e-08, -0.029865384)
 
 [node name="灯座" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯" instance=ExtResource("63_lamp")]
 
@@ -2086,3 +2082,7 @@ lever_pivot_path = NodePath("../操作台占位/右操作台定位/下部斜面�
 [editable path="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮"]
 
 [editable path="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮"]
+
+[editable path="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮"]
+
+[editable path="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮"]

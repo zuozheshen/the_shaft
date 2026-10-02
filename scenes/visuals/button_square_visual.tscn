@@ -4,8 +4,22 @@
 [ext_resource type="PackedScene" path="res://assets/art/models/button_square.glb" id="2_frame"]
 [ext_resource type="PackedScene" path="res://assets/art/models/button_square_cap.glb" id="3_cap"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cap_dark"]
+albedo_color = Color(0.09, 0.135, 0.125, 1)
+roughness = 0.72
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cap_selected"]
+albedo_color = Color(0.27, 0.4, 0.35, 1)
+roughness = 0.72
+emission_enabled = true
+emission = Color(0.27, 0.4, 0.35, 1)
+emission_energy_multiplier = 0.2
+
 [node name="方形按钮" type="Node3D"]
 script = ExtResource("1_feedback")
+press_distance = 0.004
+cap_unselected_material = SubResource("StandardMaterial3D_cap_dark")
+cap_selected_material = SubResource("StandardMaterial3D_cap_selected")
 
 [node name="固定安装框" parent="." instance=ExtResource("2_frame")]
 
