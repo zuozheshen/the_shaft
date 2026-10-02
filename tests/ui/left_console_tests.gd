@@ -18,13 +18,8 @@ func run(t: Variant, tree: SceneTree) -> void:
 
 	t.assert_equal("左台 / 唯一 BuildingTerminalInterface", 1,
 			main.find_children("BuildingTerminalInterface", "", true, false).size())
-	t.assert_false("左台 / 旧屏幕页签在 3D 模式隐藏", terminal.tab_button_panel.visible)
-	for button: Button in [
-		terminal.system_log_tab_button,
-		terminal.record_tab_button,
-		terminal.transcript_tab_button,
-	]:
-		t.assert_true("左台 / 旧屏幕按钮禁用 " + button.name, button.disabled)
+	t.assert_false("左台 / 旧屏幕页签已移除", terminal.has_node("TerminalLayout/TabButtonPanel"))
+	t.assert_equal("左台 / 旧屏幕按钮已移除", 0, terminal.find_children("*", "Button", true, false).size())
 
 	var names := ["系统日志", "乘客档案", "对话记录"]
 	var actions: Array[StringName] = [
@@ -33,7 +28,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	for index in names.size():
 		var key := control_root.get_node(names[index]) as InteractionHotspot3D
 		var collision := key.get_node("CollisionShape3D") as CollisionShape3D
-		var cap := key.get_node("按钮帽") as MeshInstance3D
+		var cap := key.get_node("视觉资产/按钮帽") as MeshInstance3D
 		t.assert_equal("左台 / 栏目动作映射 " + names[index],
 				actions[index], key.get_action_id())
 		t.assert_equal("左台 / 热点属于左台 " + names[index],
@@ -127,7 +122,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 				wheel_visual.transform.basis.y.normalized()
 			))
 	t.assert_equal("左台 / 滚轮包含可观察轴向刻线", 4,
-			wheel_visual.find_children("轴向刻线*", "MeshInstance3D", false, false).size())
+			wheel_visual.find_children("轴向刻线*", "MeshInstance3D", true, false).size())
 	t.assert_equal("左台 / 滚轮不修改系统日志", system_history_before,
 			manager.get_system_message_history())
 	t.assert_equal("左台 / 滚轮不修改对话内容", transcript_before,

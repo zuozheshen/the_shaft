@@ -86,7 +86,7 @@ const METHODS := {
 	"RuntimeConnector3D": ["get_demo_flow_manager"],
 	"CabinViewController3D": ["get_current_direction", "is_turning"],
 	"CabinInterfaceRouter3D": ["get_main_interface", "get_left_interface", "get_right_interface", "is_main_console_visible"],
-	"ConsoleInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "set_camera_feed_texture", "get_current_camera_index", "request_open_door", "request_close_door", "request_toggle_microphone", "request_select_camera", "get_case_phase_display_text"],
+	"ConsoleInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "get_current_camera_index", "request_open_door", "request_close_door", "request_toggle_microphone", "request_select_camera", "get_case_phase_display_text"],
 	"BuildingTerminalInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "set_actively_viewed", "show_system_log", "show_passenger_record", "show_transcript", "scroll_current_content", "get_current_section", "get_unread_snapshot"],
 	"LeftTerminalScreen3D": ["rotate_scroll_wheel"],
 	"DestinationControlInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "append_destination_digit", "backspace_destination_input", "clear_destination_input", "request_verify_destination", "request_submit_destination", "get_destination_presentation", "get_floor_book_page_count", "get_floor_book_snapshot"],
@@ -254,7 +254,6 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 		"CabinInterfaceRouter3D":
 			_expect(node, "..", "CabinViewController3D")
 			_expect(node, "门区提示", "Label")
-			_expect_named(node, "主操作台界面容器", "Control")
 			_expect_named(node, "右操作台界面容器", "Control")
 			_expect_named(node, "ConsoleInterface", "ConsoleInterface")
 			_expect_named(node, "DestinationControlInterface", "DestinationControlInterface")
@@ -289,7 +288,6 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 						"NextPageHotspot", "CloseBookHotspot",
 					]:
 						_expect(book, "BookRoot/" + hotspot_name, "InteractionHotspot3D")
-				_expect(right_root, "下部斜面根/底缘挡条", "CSGBox3D")
 				for key_name: String in [
 					"数字1", "数字2", "数字3", "数字4", "数字5", "数字6",
 					"数字7", "数字8", "数字9", "清空", "数字0", "退格",
@@ -305,28 +303,17 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 			for section_name: String in ["系统日志", "乘客档案", "对话记录"]:
 				_expect(node, "栏目控制区/" + section_name, "InteractionHotspot3D")
 				_expect(node, "栏目控制区/" + section_name + "/CollisionShape3D", "CollisionShape3D")
-				_expect(node, "栏目控制区/" + section_name + "/按钮帽", "MeshInstance3D")
 				_expect(node, "栏目控制区/" + section_name + "/状态灯", "Node3D")
 			_expect(node, "滚轮根", "InteractionHotspot3D")
 			_expect(node, "滚轮根/CollisionShape3D", "CollisionShape3D")
-			_expect(node, "滚轮根/滚轮视觉", "Node3D")
+			_expect(node, "滚轮根/滚轮转轴", "Node3D")
 		"ConsoleInterface":
 			_expect(node, "FloatingCommUI", "FloatingCommUI")
 			_expect(node, "RejectionToast", "Label")
 			_expect(node, "ToastTimer", "Timer")
-			_expect(node, "%OpenDoorButton", "Button")
-			_expect(node, "%CloseDoorButton", "Button")
-			_expect(node, "%CameraFeedTextureRect", "TextureRect")
-			var panel := "ConsoleLayout/PassengerMonitorPanel/PassengerMonitorLayout/CameraControlPanel/"
-			_expect(node, panel + "PrevCameraButton", "Button")
-			_expect(node, panel + "NextCameraButton", "Button")
 		"BuildingTerminalInterface":
-			_expect(node, "TerminalLayout/TabButtonPanel", "HBoxContainer")
 			_expect(node, "TerminalLayout/ContentScrollContainer", "ScrollContainer")
 			_expect(node, "TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/TerminalContentLabel", "Label")
-		"DestinationControlInterface":
-			_expect(node, "RootMargin/DestinationLayout/ManualInputPanel/ManualInputLayout/ManualDestinationLineEdit", "LineEdit")
-			_expect(node, "RootMargin/DestinationLayout/SubmitDestinationButton", "Button")
 		"MonitorStageController3D":
 			_check_mount(node, "initial_floor_slice_path", "floor_slice_mount_path")
 			_check_mount(node, "initial_passenger_visual_path", "passenger_mount_path")

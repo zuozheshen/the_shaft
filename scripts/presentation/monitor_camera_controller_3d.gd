@@ -54,7 +54,6 @@ func setup(
 		return
 	if _interface_router == null:
 		push_error("监控摄像机控制器未取得界面路由器，视口将保持停用。")
-		_main_interface.set_camera_feed_texture(null)
 		return
 
 	# 只有必要依赖通过验证后才锁定 setup，失败调用仍可在之后重试。
@@ -69,11 +68,9 @@ func setup(
 		)
 
 	if not _is_render_chain_ready:
-		_main_interface.set_camera_feed_texture(null)
 		return
 
-	# ViewportTexture 必须在节点 ready 后取得，避免在场景文件中保存跨场景纹理路径。
-	_main_interface.set_camera_feed_texture(_monitor_subviewport.get_texture())
+	# 主台展示绑定在 ready 后直接取得 ViewportTexture，控制器只负责机位和渲染启停。
 	select_camera(_main_interface.get_current_camera_index())
 	_on_main_console_visibility_changed(
 		_interface_router.is_main_console_visible()
@@ -102,12 +99,12 @@ func _prepare_render_chain() -> void:
 			or _monitor_camera == null \
 			or _cabin_camera_anchor == null \
 			or _door_camera_anchor == null:
-		push_error("监控摄像机控制器缺少关键渲染节点，将保留文字画面。")
+		push_error("监控摄像机控制器缺少关键渲染节点，实时画面无法渲染。")
 		return
 
 	var shared_world: World3D = get_viewport().world_3d
 	if shared_world == null:
-		push_error("监控摄像机控制器无法取得主场景 World3D，将保留文字画面。")
+		push_error("监控摄像机控制器无法取得主场景 World3D，实时画面无法渲染。")
 		return
 
 	# 监控视口复用主场景的 3D 世界，不创建第二套场景或 World3D。
@@ -127,8 +124,6 @@ func _apply_anchor(anchor: Marker3D) -> bool:
 
 func _on_main_console_visibility_changed(is_visible: bool) -> void:
 	if _monitor_subviewport == null:
-		if _main_interface != null:
-			_main_interface.set_camera_feed_texture(null)
 		return
 	_monitor_subviewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS \
 			if is_visible else SubViewport.UPDATE_DISABLED

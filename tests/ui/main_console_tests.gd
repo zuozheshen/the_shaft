@@ -35,12 +35,9 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_equal("主台 / 监控只有原摄像机", 1, viewport.find_children("*", "Camera3D", true, false).size())
 	t.assert_equal("主台 / Mesh 直接使用原 ViewportTexture", viewport.get_texture(),
 			(screen.material_override as StandardMaterial3D).albedo_texture)
-	t.assert_false("主台 / 旧大面板隐藏", console.get_node("ConsoleLayout").is_visible_in_tree())
-	for button: Button in [console.open_door_button, console.close_door_button,
-			console.talk_button, console.previous_camera_button, console.next_camera_button,
-			console.return_button]:
-		t.assert_true("主台 / 旧入口禁用 " + str(button.name),
-				not button.is_visible_in_tree() and button.disabled and button.focus_mode == Control.FOCUS_NONE)
+	t.assert_false("主台 / 旧大面板已移除", console.has_node("ConsoleLayout"))
+	t.assert_equal("主台 / 只保留 COMM 的实际按钮", comm.find_children("*", "Button", true, false).size(),
+			console.find_children("*", "Button", true, false).size())
 	t.assert_true("主台 / 初始通讯与故障灯熄灭", not comm_light.visible and not fault.visible)
 	t.assert_equal("主台 / 状态条复用展示数据", console.get_case_phase_display_text(), status.text)
 	var microphone := main.find_child("麦克风热点", true, false) as InteractionHotspot3D
@@ -65,9 +62,9 @@ func run(t: Variant, tree: SceneTree) -> void:
 		var base := camera_hotspot.get_node("视觉/底座") as MeshInstance3D
 		t.assert_true("主台 / CAM Mesh 与碰撞使用同一斜面 Basis " + camera_name,
 				collision.global_transform.basis.is_equal_approx(base.global_transform.basis))
-	var cam_01_visual := main.find_child("CAM01热点", true, false).get_node("视觉")
-	var cam_02_visual := main.find_child("CAM02热点", true, false).get_node("视觉")
-	for part in ["底座", "按钮帽", "选中背光", "悬停高亮"]:
+	var cam_01_visual := main.find_child("CAM01热点", true, false).get_node(".")
+	var cam_02_visual := main.find_child("CAM02热点", true, false).get_node(".")
+	for part in ["视觉/底座", "视觉/按钮帽", "交互反馈/选中背光", "交互反馈/悬停高亮"]:
 		var first := cam_01_visual.get_node(part) as MeshInstance3D
 		var second := cam_02_visual.get_node(part) as MeshInstance3D
 		t.assert_true("主台 / CAM 外形和材质可分别编辑 " + part,
@@ -202,6 +199,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_false("主台 / 无派单拒绝不触发 FAULT", fault.visible)
 	main.queue_free()
 	await _frames(tree)
+	await _test_visual_replacement(t, tree)
 
 
 func _test_dialogue(t: Variant, tree: SceneTree, console: ConsoleInterface,
@@ -441,7 +439,9 @@ func _check_door_light(t: Variant, presentation: MainConsolePresentation3D, stat
 
 func _travel(destination: DestinationControlInterface, manager: DemoFlowManager,
 		floor: String, validate: bool, tree: SceneTree) -> void:
-	destination.manual_destination_line_edit.text = floor
+	destination.clear_destination_input()
+	for digit: String in floor:
+		destination.append_destination_digit(digit)
 	if validate:
 		destination._verify_destination()
 	destination._submit_destination()
@@ -466,3 +466,56 @@ func _settle(stage: MonitorStageController3D, tree: SceneTree) -> void:
 func _frames(tree: SceneTree, count: int = 8) -> void:
 	for frame in count:
 		await tree.process_frame
+
+# 把所有台体/按钮/轴外形换成不同内部结构，证明业务不读取模型子节点。
+func _test_visual_replacement(t: Variant, tree: SceneTree) -> void:
+	var main := MAIN.instantiate()
+	var mounts := main.find_children("视觉资产", "Node3D", true, false)
+	for part_name in ["麦克风视觉", "开门视觉", "关门视觉"]:
+		mounts.append(main.find_child(part_name, true, false))
+	for camera_name in ["CAM01热点", "CAM02热点"]:
+		mounts.append(main.find_child(camera_name, true, false).get_node("视觉"))
+	for mount: Node3D in mounts:
+		for child: Node in mount.get_children():
+			mount.remove_child(child)
+			child.free()
+		var replacement := MeshInstance3D.new()
+		replacement.name = "不同内部外形"
+		replacement.mesh = BoxMesh.new()
+		mount.add_child(replacement)
+	t.add_child(main)
+	await _frames(tree)
+	var cabin := main.get_node("三维操作舱") as CabinViewController3D
+	var router := main.find_child("操作台界面层", true, false) as CabinInterfaceRouter3D
+	var interaction := main.find_child("交互控制器", true, false) as CabinInteractionController3D
+	var console := router.get_main_interface()
+	var destination := router.get_right_interface()
+	var presentation := main.find_child("主台展示绑定", true, false) as MainConsolePresentation3D
+	var viewport := cabin.get_node("监控渲染系统/监控视口") as SubViewport
+	t.assert_true("美术解耦 / 三台存在可替换外形", mounts.size() > 15)
+	for hotspot: InteractionHotspot3D in main.find_children("*", "Area3D", true, false):
+		if hotspot is InteractionHotspot3D:
+			t.assert_equal("美术解耦 / 热点碰撞保留 " + str(hotspot.get_action_id()), 1,
+					hotspot.find_children("*", "CollisionShape3D", false, false).size())
+	interaction._execute_action(&"select_camera_02")
+	t.assert_equal("美术解耦 / CAM 命令不依赖内部外形", 1, console.get_current_camera_index())
+	interaction._execute_action(&"destination_digit_0")
+	interaction._execute_action(&"destination_digit_0")
+	interaction._execute_action(&"destination_digit_4")
+	interaction._execute_action(&"destination_verify")
+	t.assert_equal("美术解耦 / 数字与验证仍保留前导零", "004",
+			str(destination.get_destination_presentation().validated_floor))
+	t.assert_equal("美术解耦 / 动态屏继续使用原视口纹理", viewport.get_texture(),
+			(presentation.get_node(presentation.screen_mesh_path).material_override as StandardMaterial3D).albedo_texture)
+	var wheel := main.find_child("左操作台定位", true, false) as LeftTerminalScreen3D
+	var axis := wheel.get_node(wheel.scroll_wheel_visual_path) as Node3D
+	var rotation_before := axis.rotation
+	wheel.rotate_scroll_wheel(1)
+	t.assert_false("美术解耦 / 新滚轮外形由稳定轴驱动", axis.rotation.is_equal_approx(rotation_before))
+	var right := main.find_child("右台展示绑定", true, false) as RightConsolePresentation3D
+	t.assert_true("美术解耦 / 执行拨杆轴保留", right.get_node(right.lever_pivot_path) is Node3D)
+	interaction._execute_action(&"left_passenger_record")
+	t.assert_equal("美术解耦 / 左台栏目命令保留", BuildingTerminalInterface.Section.PASSENGER_RECORD,
+			router.get_left_interface().get_current_section())
+	main.queue_free()
+	await _frames(tree)

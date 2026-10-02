@@ -42,25 +42,6 @@ text = "SHAFT FACILITIES // ARCHIVE TERMINAL"
 layout_mode = 2
 text = "> 建筑终端 L-612-A  //  OPERATOR ACCESS  //  LINK ACTIVE"
 
-[node name="TabButtonPanel" type="HBoxContainer" parent="TerminalLayout" unique_id=716400975]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="RecordTabButton" type="Button" parent="TerminalLayout/TabButtonPanel" unique_id=1297660751]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "[ 乘客档案 ]"
-
-[node name="TranscriptTabButton" type="Button" parent="TerminalLayout/TabButtonPanel" unique_id=930622262]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "[ 对话记录 ]"
-
-[node name="SystemLogTabButton" type="Button" parent="TerminalLayout/TabButtonPanel" unique_id=1119633557]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "[ 系统日志 ]"
-
 [node name="ContentScrollContainer" type="ScrollContainer" parent="TerminalLayout"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -86,7 +67,3 @@ autowrap_mode = 2
 [node name="TerminalHintLabel" type="Label" parent="TerminalLayout" unique_id=783481114]
 layout_mode = 2
 text = "选择一个终端页签查看建筑记录。"
-
-[node name="ReturnButton" type="Button" parent="TerminalLayout" unique_id=632655562]
-layout_mode = 2
-text = "返回操作间"

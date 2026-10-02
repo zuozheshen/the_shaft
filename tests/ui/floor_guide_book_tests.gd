@@ -166,10 +166,10 @@ func run(t: Variant, tree: SceneTree) -> void:
 			interaction._is_hotspot_allowed(digit_hotspot))
 	t.assert_false("楼层书 / 首页不能向前", book.turn_page(-1))
 
-	var input_before: String = destination.manual_destination_line_edit.text
+	var input_before: String = str(destination.get_destination_presentation().input)
 	interaction._execute_action(&"destination_digit_4")
 	t.assert_equal("楼层书 / 阅读时背后数字键失效", input_before,
-			destination.manual_destination_line_edit.text)
+			str(destination.get_destination_presentation().input))
 	t.assert_true("楼层书 / 阅读时普通焦点候选为空",
 			interaction._get_gamepad_candidates().is_empty())
 	var turn_event := InputEventAction.new()
@@ -235,7 +235,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 			interaction._hovered_hotspot != null)
 	interaction._execute_action(&"destination_digit_4")
 	t.assert_equal("楼层书 / 合书后数字键恢复", input_before + "4",
-			destination.manual_destination_line_edit.text)
+			str(destination.get_destination_presentation().input))
 	interaction._execute_action(&"floor_book_open")
 	await tree.create_timer(book.open_duration + 0.05).timeout
 	t.assert_equal("楼层书 / 同次运行再次打开保留末页",

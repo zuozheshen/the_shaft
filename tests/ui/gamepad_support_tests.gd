@@ -230,7 +230,7 @@ func _test_right_console(
 	t.assert_equal("手柄 / 数字→VERIFY→SUBMIT 完成正常行驶", "900",
 			manager.get_current_floor())
 	t.assert_equal("手柄 / 行驶启动后沿用原清空规则", "",
-			destination.manual_destination_line_edit.text)
+			str(destination.get_destination_presentation().input))
 
 
 func _test_comm_auto_focus(

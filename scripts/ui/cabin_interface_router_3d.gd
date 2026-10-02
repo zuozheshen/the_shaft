@@ -6,7 +6,6 @@ signal main_console_visibility_changed(is_visible: bool)
 
 
 var _view_controller: CabinViewController3D
-var _main_container: Control
 var _right_container: Control
 var _door_hint: Label
 var _main_interface: ConsoleInterface
@@ -22,7 +21,6 @@ func _ready() -> void:
 
 	# 场景允许在 CanvasLayer 下增加统一的界面根节点；这里按稳定节点名递归查找，
 	# 避免纯布局调整让三个操作台同时失去路由和业务连接。
-	_main_container = _find_required_control("主操作台界面容器")
 	_right_container = _find_required_control("右操作台界面容器")
 	_door_hint = _get_required_node(^"门区提示", "Label") as Label
 	_main_interface = _find_required_control("ConsoleInterface") as ConsoleInterface
@@ -135,17 +133,12 @@ func _set_container_enabled(container: Control, is_enabled: bool) -> void:
 
 
 func _set_main_console_enabled(is_enabled: bool) -> void:
-	var effective_visibility: bool = is_enabled and _main_container != null
+	var effective_visibility: bool = is_enabled
 	# 旧主台面板不再显示；此信号只给监控渲染报告主台朝向。
-	_set_container_enabled(_main_container, false)
 	if _is_main_console_visible == effective_visibility:
 		return
 	_is_main_console_visible = effective_visibility
 	main_console_visibility_changed.emit(_is_main_console_visible)
-
-
-func _get_required_control(node_path: NodePath) -> Control:
-	return _get_required_node(node_path, "Control") as Control
 
 
 func _find_required_control(node_name: String) -> Control:

@@ -328,7 +328,9 @@ func _test_coordinator_complete_shift(
 				and stage.get_door_visual().is_closed()
 	)
 
-	destination.manual_destination_line_edit.text = "900"
+	destination.clear_destination_input()
+	for digit: String in "900":
+		destination.append_destination_digit(digit)
 	console.request_open_door()
 	test_runner.assert_true(
 		"表现协调器 / PASSENGER_BOARDED 在门开完前保持 pending",
@@ -341,23 +343,21 @@ func _test_coordinator_complete_shift(
 				and coordinator.is_presentation_busy()
 	)
 	test_runner.assert_true(
-		"统一表现锁 / 登舱 pending 禁用门控与行驶按钮",
-		console.open_door_button.disabled
-				and console.close_door_button.disabled
-				and destination.submit_destination_button.disabled
-				and not console.next_camera_button.disabled
+		"统一表现锁 / 登舱 pending 锁定门控与行驶命令",
+		console._is_presentation_busy()
+				and destination.get_destination_presentation().presentation_busy
 	)
 
 	console.request_close_door()
-	var busy_hint_after_close := console.system_hint_label.text
+	var busy_hint_after_close := console.get_system_hint()
 	destination._submit_destination()
 	console._select_camera(1)
 	test_runner.assert_true(
 		"统一表现锁 / pending 时统一入口不调用关门或行驶",
 		manager.is_cabin_door_open()
 				and not manager.is_elevator_moving()
-				and destination.manual_destination_line_edit.text == "900"
-				and destination.destination_feedback_label.text
+				and str(destination.get_destination_presentation().input) == "900"
+				and str(destination.get_destination_presentation().feedback)
 						== DestinationControlInterface.PRESENTATION_BUSY_HINT
 				and console.get_current_camera_index() == 1
 	)
@@ -382,7 +382,7 @@ func _test_coordinator_complete_shift(
 		stage.get_passenger_presentation_state()
 				== MonitorStageController3D.PassengerPresentationState.CABIN
 				and not coordinator.is_presentation_busy()
-				and not destination.submit_destination_button.disabled
+				and not destination.get_destination_presentation().presentation_busy
 				and passenger.idle_enabled
 	)
 
@@ -442,7 +442,7 @@ func _test_coordinator_complete_shift(
 	test_runner.assert_true(
 		"统一表现锁 / 离舱期间关门不改变业务门状态",
 		manager.is_cabin_door_open()
-				and console.system_hint_label.text
+				and console.get_system_hint()
 						== ConsoleInterface.PRESENTATION_BUSY_HINT
 	)
 	await _wait_for_short_tween(tree)
@@ -559,7 +559,9 @@ func _test_missing_presentation_degradation(
 	)
 
 	destination.set_monitor_presentation_coordinator(null)
-	destination.manual_destination_line_edit.text = "612"
+	destination.clear_destination_input()
+	for digit: String in "612":
+		destination.append_destination_digit(digit)
 	destination._submit_destination()
 	test_runner.assert_true(
 		"表现降级 / 没有协调器时右台保留原行驶行为",
@@ -649,7 +651,9 @@ func _travel_with_destination(
 		floor_id: String,
 		should_validate: bool
 ) -> void:
-	destination.manual_destination_line_edit.text = floor_id
+	destination.clear_destination_input()
+	for digit: String in floor_id:
+		destination.append_destination_digit(digit)
 	if should_validate:
 		destination._verify_destination()
 	destination._submit_destination()
