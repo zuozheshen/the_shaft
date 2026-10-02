@@ -302,6 +302,19 @@ func _test_button_feedback(t: Variant, tree: SceneTree, main: Node,
 		var hotspot_before := hotspot.global_transform
 		var collision_before := collision.global_transform
 		var action_before := hotspot.get_action_id()
+		var label := button.find_child(
+				"设备标识" if hotspot_name in ["开门热点", "关门热点"] else "标识", true, false) as Label3D
+		var label_before := label.global_transform if label != null else Transform3D.IDENTITY
+		t.assert_true("按压 / 功能文字属于固定铭牌 " + hotspot_name,
+				label != null and not axis.is_ancestor_of(label)
+				and axis.find_children("*", "Label3D", true, false).is_empty())
+		# 验证适配后帽的实际投影仍命中原热点，而不是只点击碰撞中心。
+		var cap_mesh := axis.get_node("按钮帽模型").find_children(
+				"*", "MeshInstance3D", true, false)[0] as MeshInstance3D
+		var cap_center := cap_mesh.global_transform * cap_mesh.mesh.get_aabb().get_center()
+		var player := main.find_child("玩家摄像机", true, false) as Camera3D
+		t.assert_equal("按压 / 实际按钮帽仍命中原热点 " + hotspot_name,
+				hotspot, interaction._raycast_hotspot(player.unproject_position(cap_center)))
 		var rest := rest_positions[index]
 		t.assert_true("按压 / 初始静止 " + hotspot_name, axis.position.is_equal_approx(rest))
 		button.play_press()
@@ -314,6 +327,8 @@ func _test_button_feedback(t: Variant, tree: SceneTree, main: Node,
 				and hotspot.global_transform.is_equal_approx(hotspot_before)
 				and collision.global_transform.is_equal_approx(collision_before)
 				and hotspot.get_action_id() == action_before)
+		t.assert_true("按压 / 面板铭牌文字保持静止 " + hotspot_name,
+				label != null and label.global_transform.is_equal_approx(label_before))
 		# 连续按压覆盖正在执行的 Tween，返回初始姿态而非累加位移。
 		button.play_press()
 		button.play_press()

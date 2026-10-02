@@ -173,7 +173,7 @@ albedo_color = Color(0.25, 0.7, 0.58, 1)
 [sub_resource type="BoxMesh" id="52_cam01_hover"]
 resource_local_to_scene = true
 material = SubResource("52_hover")
-size = Vector3(0.25, 0.012, 0.25)
+size = Vector3(0.176, 0.004, 0.176)
 
 [sub_resource type="BoxShape3D" id="52_cam02_shape"]
 size = Vector3(0.22, 0.07, 0.22)
@@ -216,7 +216,7 @@ albedo_color = Color(0.25, 0.7, 0.58, 1)
 [sub_resource type="BoxMesh" id="52_cam02_hover"]
 resource_local_to_scene = true
 material = SubResource("52_cam02_hover_material")
-size = Vector3(0.25, 0.012, 0.25)
+size = Vector3(0.176, 0.004, 0.176)
 
 [sub_resource type="StandardMaterial3D" id="52_comm_housing_material"]
 resource_local_to_scene = true
@@ -568,6 +568,38 @@ height = 0.22
 radial_segments = 16
 rings = 8
 
+[sub_resource type="StandardMaterial3D" id="63_panel_plaque"]
+albedo_color = Color(0.40, 0.42, 0.39, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="63_cam_nameplate"]
+material = SubResource("63_panel_plaque")
+size = Vector3(0.145, 0.003, 0.038)
+
+[sub_resource type="BoxMesh" id="63_door_nameplate"]
+material = SubResource("63_panel_plaque")
+size = Vector3(0.18, 0.003, 0.04)
+
+[sub_resource type="BoxMesh" id="63_lamp_nameplate"]
+material = SubResource("63_panel_plaque")
+size = Vector3(0.087, 0.003, 0.029)
+
+[sub_resource type="BoxMesh" id="63_comm_group_plate"]
+material = SubResource("63_panel_plaque")
+size = Vector3(0.34, 0.003, 0.03)
+
+[sub_resource type="BoxMesh" id="63_camera_group_plate"]
+material = SubResource("63_panel_plaque")
+size = Vector3(0.42, 0.003, 0.03)
+
+[sub_resource type="BoxMesh" id="63_door_group_plate"]
+material = SubResource("63_panel_plaque")
+size = Vector3(0.54, 0.003, 0.03)
+
+[sub_resource type="BoxMesh" id="63_status_group_plate"]
+material = SubResource("63_panel_plaque")
+size = Vector3(0.32, 0.003, 0.03)
+
 [node name="三维操作舱" type="Node3D" unique_id=699471354]
 script = ExtResource("1_wegik")
 
@@ -667,7 +699,7 @@ shape = SubResource("BoxShape3D_microphone")
 [node name="开门视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点" unique_id=478558191]
 
 [node name="大型按钮" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉" instance=ExtResource("63_large")]
-transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.34641434e-07, 0, -2.555827e-07, 2.10497531, 0, -0.0205721203, 2.63869071e-09)
+transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.34641434e-07, 0, -2.555827e-07, 2.10497531, 0, -0.06156430619, -1.311690676e-10)
 
 [node name="大型按钮帽模型" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮/按钮按压轴/按钮帽模型/大型按钮帽" index="0"]
 material_override = SubResource("StandardMaterial3D_riqys")
@@ -677,8 +709,14 @@ transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, 0.006237045, -0.
 visible = false
 mesh = SubResource("BoxMesh_6f8o3")
 
-[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮/按钮按压轴" unique_id=1263783487]
-transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0665721203, 0)
+[node name="门控名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮"]
+position = Vector3(0, 0.0220721203, 0.16)
+mesh = SubResource("63_door_nameplate")
+
+[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮/门控名称铭牌" unique_id=1263783487]
+modulate = Color(0.035, 0.045, 0.04, 1)
+outline_size = 0
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
 pixel_size = 0.0013
 text = "OPEN"
 font_size = 28
@@ -702,7 +740,7 @@ shape = SubResource("BoxShape3D_microphone")
 transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, -0.0044502616, 0, 0)
 
 [node name="大型按钮" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉" instance=ExtResource("63_large")]
-transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.97374586e-07, 0, -2.555827e-07, 2.10497531, 0.0044502616, -0.0205721203, 2.63869071e-09)
+transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.97374586e-07, 0, -2.555827e-07, 2.10497531, 0.0044502616, -0.06156430619, -1.421723017e-09)
 
 [node name="大型按钮帽模型" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮/按钮按压轴/按钮帽模型/大型按钮帽" index="0"]
 material_override = SubResource("StandardMaterial3D_0pcg1")
@@ -712,14 +750,72 @@ transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, 0.013560355, -0.
 visible = false
 mesh = SubResource("BoxMesh_efn7a")
 
-[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮/按钮按压轴" unique_id=109319742]
-transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0665721203, 0)
+[node name="门控名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮"]
+position = Vector3(0, 0.0220721203, 0.16)
+mesh = SubResource("63_door_nameplate")
+
+[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮/门控名称铭牌" unique_id=109319742]
+modulate = Color(0.035, 0.045, 0.04, 1)
+outline_size = 0
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
 pixel_size = 0.0013
 text = "CLOSE"
 font_size = 28
 
 [node name="斜台面新增控件根" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=371646672]
 transform = Transform3D(1, 0, 0, 0, 0.573576417, -0.819152086, 0, 0.819152086, 0.573576417, 0, 1.02, -1.35)
+
+[node name="COMM分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
+position = Vector3(-0.925, 0.0015, -0.150)
+mesh = SubResource("63_comm_group_plate")
+
+[node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM分组铭牌"]
+position = Vector3(0, 0.0025, 0)
+rotation = Vector3(-1.5707963, 0, 0)
+pixel_size = 0.0013
+modulate = Color(0.035, 0.045, 0.04, 1)
+text = "COMM"
+font_size = 22
+outline_size = 0
+
+[node name="CAMERA分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
+position = Vector3(-0.225, -0.0145601251, -0.130)
+mesh = SubResource("63_camera_group_plate")
+
+[node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAMERA分组铭牌"]
+position = Vector3(0, 0.0025, 0)
+rotation = Vector3(-1.5707963, 0, 0)
+pixel_size = 0.0013
+modulate = Color(0.035, 0.045, 0.04, 1)
+text = "CAMERA SELECT"
+font_size = 22
+outline_size = 0
+
+[node name="DOOR分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
+position = Vector3(0.3885, -0.0088243664, -0.150)
+mesh = SubResource("63_door_group_plate")
+
+[node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR分组铭牌"]
+position = Vector3(0, 0.0025, 0)
+rotation = Vector3(-1.5707963, 0, 0)
+pixel_size = 0.0013
+modulate = Color(0.035, 0.045, 0.04, 1)
+text = "DOOR CONTROL"
+font_size = 22
+outline_size = 0
+
+[node name="STATUS分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
+position = Vector3(0.975, -0.0088243664, -0.130)
+mesh = SubResource("63_status_group_plate")
+
+[node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/STATUS分组铭牌"]
+position = Vector3(0, 0.0025, 0)
+rotation = Vector3(-1.5707963, 0, 0)
+pixel_size = 0.0013
+modulate = Color(0.035, 0.045, 0.04, 1)
+text = "STATUS"
+font_size = 22
+outline_size = 0
 
 [node name="CAM01热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=41703191]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.37, 0, -0.00688355)
@@ -738,19 +834,25 @@ shape = SubResource("52_cam01_shape")
 [node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点" unique_id=1264001608]
 
 [node name="方形按钮" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉" instance=ExtResource("63_square")]
-position = Vector3(0, -0.016055, 0)
+position = Vector3(0.04, -0.032110, 0)
 
 [node name="选中背光" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/交互反馈"]
 visible = false
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/交互反馈" unique_id=1017574438]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.013, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.04, -0.014, 0)
 visible = false
 mesh = SubResource("52_cam01_hover")
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮/按钮按压轴" unique_id=276286809]
-transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.050055, 0)
-pixel_size = 0.0014
+[node name="CAM名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮"]
+position = Vector3(0, 0.017555, 0.121)
+mesh = SubResource("63_cam_nameplate")
+
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮/CAM名称铭牌" unique_id=276286809]
+modulate = Color(0.035, 0.045, 0.04, 1)
+outline_size = 0
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
+pixel_size = 0.0013
 text = "CAM 01"
 font_size = 25
 
@@ -771,71 +873,98 @@ shape = SubResource("52_cam02_shape")
 [node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点" unique_id=546314487]
 
 [node name="方形按钮" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉" instance=ExtResource("63_square")]
-position = Vector3(0, -0.016055, 0)
+position = Vector3(-0.04, -0.032110, 0)
 
 [node name="选中背光" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/交互反馈"]
 visible = false
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/交互反馈" unique_id=1142936713]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.013, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.04, -0.014, 0)
 visible = false
 mesh = SubResource("52_cam02_hover")
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮/按钮按压轴" unique_id=866050923]
-transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.050055, 0)
-pixel_size = 0.0014
+[node name="CAM名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮"]
+position = Vector3(0, 0.017555, 0.121)
+mesh = SubResource("63_cam_nameplate")
+
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮/CAM名称铭牌" unique_id=866050923]
+modulate = Color(0.035, 0.045, 0.04, 1)
+outline_size = 0
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
+pixel_size = 0.0013
 text = "CAM 02"
 font_size = 25
 
 [node name="COMM指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=100710776]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.927, 5.9604645e-08, -0.029865384)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.91, 0, -0.029865384)
 
 [node name="灯座" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯" instance=ExtResource("63_lamp")]
+scale = Vector3(0.7, 0.7, 0.7)
 
 [node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯" unique_id=1227417893]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.017, 0)
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0.0119, 0)
 visible = false
 material_override = SubResource("52_comm")
 mesh = SubResource("52_comm_lens")
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯" unique_id=1826541840]
-transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.015, 0.064)
-pixel_size = 0.0014
+[node name="灯名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯"]
+position = Vector3(0, 0.0015, 0.063)
+mesh = SubResource("63_lamp_nameplate")
+
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯/灯名称铭牌" unique_id=1826541840]
+modulate = Color(0.035, 0.045, 0.04, 1)
+outline_size = 0
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
+pixel_size = 0.00125
 text = "TX"
-font_size = 24
+font_size = 22
 
 [node name="DOOR指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=1439120145]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.70065343, 0.038273096, -0.0697608)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.86, -0.0103243664, -0.025)
 
 [node name="灯座" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯" instance=ExtResource("63_lamp")]
+scale = Vector3(0.7, 0.7, 0.7)
 
 [node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯" unique_id=999195658]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.017, 0)
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0.0119, 0)
 material_override = SubResource("52_closed")
 mesh = SubResource("52_door_lens")
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯" unique_id=753427199]
-transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.015, 0.064)
-pixel_size = 0.0014
+[node name="灯名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯"]
+position = Vector3(0, 0.0015, 0.063)
+mesh = SubResource("63_lamp_nameplate")
+
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯/灯名称铭牌" unique_id=753427199]
+modulate = Color(0.035, 0.045, 0.04, 1)
+outline_size = 0
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
+pixel_size = 0.00125
 text = "DOOR"
-font_size = 24
+font_size = 22
 
 [node name="FAULT指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=1859006211]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.03, 0, -0.10240281)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.09, -0.0103243664, -0.025)
 
 [node name="灯座" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯" instance=ExtResource("63_lamp")]
+scale = Vector3(0.7, 0.7, 0.7)
 
 [node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯" unique_id=503477047]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.017, 0)
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0.0119, 0)
 visible = false
 material_override = SubResource("52_fault")
 mesh = SubResource("52_fault_lens")
 
-[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯" unique_id=40269106]
-transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.015, 0.064)
-pixel_size = 0.0014
+[node name="灯名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯"]
+position = Vector3(0, 0.0015, 0.063)
+mesh = SubResource("63_lamp_nameplate")
+
+[node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯/灯名称铭牌" unique_id=40269106]
+modulate = Color(0.035, 0.045, 0.04, 1)
+outline_size = 0
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
+pixel_size = 0.00125
 text = "FAULT"
-font_size = 24
+font_size = 22
 
 [node name="主监视器" type="MeshInstance3D" parent="操作台占位/主操作台定位" unique_id=933225609]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69087, -1.529)
