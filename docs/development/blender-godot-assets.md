@@ -47,6 +47,7 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 
 - 源 Scene 为“主操作台体块”，模型范围为 `AgentGenerated_ART02_1_Blockout`；使用米制单位、主台局部原点与标准 glTF Y-up 转换。只导出外壳模型，不导出 Camera、Light、碰撞、动态屏面或业务 metadata。
 - `main_console_shell.glb` 包含机身、CRT/CASE 外壳及 COMM/CAMERA/DOOR 板壳；通过 `scenes/visuals/main_console_shell_visual.tscn` 接入既有主台“视觉资产”。所有 Gameplay、热点、反馈、CASE Label3D 和监控纹理链保持 Godot 所有。
-- CRT 物理开口为 1.60×1.20 米（4:3），中心在主台局部 (0, 1.81, -1.535)。本阶段保留 640×360 feed；原主监视器节点 Transform 不变，仅 QuadMesh 使用 1.60×0.90 米与 `center_offset=(0, 0.11913, 0)`，将完整 16:9 内容居中显示，深灰占位衬底预留上下空间。#65 可在同一锚点扩展为 1.60×1.20 米动态屏面，并替换临时衬底。
+- #62 PLAN v3 将 CRT 物理开口等比缩小 10% 为 1.44×1.08 米（4:3），中心在主台局部 (0, 1.86, -1.535)。本阶段保留 640×360 feed；原主监视器节点 Transform 不变，仅 QuadMesh 使用 1.44×0.81 米与 `center_offset=(0, 0.16913, 0)`，将完整 16:9 内容居中显示，深灰占位衬底预留上下空间。#65 可在同一节点扩展为 1.44×1.08 米动态屏面，并替换临时衬底。
+- 主台控件斜面为 55°（相对水平），下端约 Y=0.823 米；前方接约 15 厘米水平托台和 4.5 厘米厚前沿。既有控件、反馈与五个热点同步校准姿态，CASE 中心抬至 Y=1.23 米；节点名、NodePath、action_id 与纹理/业务接线保留。当前台位整体位置、玩家与 FOV 不变。
 - 当前仅有中性灰 Blockout 材质，无 UV、贴图、按钮/麦克风精模、CRT shader 或 CASE 最终材质。后续 Controls / Material / Screen 阶段沿用源文件，但各自按对应 Issue 审批。
 - #62 审批允许 Codex 新建该专用文件，并只保存自身生成的修改；写前仍核对 filepath、Scene、Collection、对象与用户未保存修改。禁止覆盖身份不明的源文件、将用户已有场景 Save As 到正式源路径，或对用户文件 Revert。

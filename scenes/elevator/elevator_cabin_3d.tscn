@@ -286,8 +286,8 @@ shading_mode = 0
 texture_filter = 0
 
 [sub_resource type="QuadMesh" id="52_screen_quad"]
-size = Vector2(1.6, 0.9)
-center_offset = Vector3(0, 0.11913, 0)
+size = Vector2(1.44, 0.81)
+center_offset = Vector3(0, 0.16913, 0)
 
 [sub_resource type="StandardMaterial3D" id="52_dark"]
 resource_local_to_scene = true
@@ -616,7 +616,7 @@ size = Vector3(0.2, 2.5, 3.8)
 [node name="主台交互热点" type="Node3D" parent="操作台占位/主操作台定位" unique_id=266902568]
 
 [node name="麦克风热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=1122092151]
-transform = Transform3D(1, 0, 0, 0, 0.725374, -0.688355, 0, 0.688355, 0.725374, -0.6979811, 0.8963205, -1.279757)
+transform = Transform3D(1, 0, 0, 0, 0.573576417, -0.819152086, 0, 0.819152086, 0.573576417, -0.6979811, 0.972992457, -1.287881737)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -647,7 +647,7 @@ text = "MIC"
 font_size = 28
 
 [node name="开门热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=227531788]
-transform = Transform3D(0.62513196, 0, 0, 0, 0.3640323, -0.32701334, 0, 0.3454542, 0.34459975, 0.23426473, 0.93, -1.35)
+transform = Transform3D(0.62513196, 0, 0, 0, 0.287851969, -0.389150448, 0, 0.411095322, 0.272486038, 0.23426473, 1.02, -1.35)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -682,7 +682,7 @@ text = "OPEN"
 font_size = 28
 
 [node name="关门热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=116356286]
-transform = Transform3D(0.62513196, 0, 0, 0, 0.3640323, -0.32701334, 0, 0.3454542, 0.34459975, 0.5420569, 0.93, -1.35)
+transform = Transform3D(0.62513196, 0, 0, 0, 0.287851969, -0.389150448, 0, 0.411095322, 0.272486038, 0.5420569, 1.02, -1.35)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -719,7 +719,7 @@ text = "CLOSE"
 font_size = 28
 
 [node name="斜台面新增控件根" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=371646672]
-transform = Transform3D(1, 0, 0, 0, 0.725374, -0.688355, 0, 0.688355, 0.725374, 0, 0.93, -1.35)
+transform = Transform3D(1, 0, 0, 0, 0.573576417, -0.819152086, 0, 0.819152086, 0.573576417, 0, 1.02, -1.35)
 
 [node name="CAM01热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=41703191]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.37, 0, -0.00688355)
@@ -861,7 +861,7 @@ material_override = SubResource("52_screen")
 mesh = SubResource("52_screen_quad")
 
 [node name="设备状态条" type="Node3D" parent="操作台占位/主操作台定位" unique_id=13673703]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.105, -1.51)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.23, -1.51)
 
 [node name="背景" type="MeshInstance3D" parent="操作台占位/主操作台定位/设备状态条" unique_id=1438256047]
 material_override = SubResource("52_dark")

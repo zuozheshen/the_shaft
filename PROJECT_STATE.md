@@ -25,7 +25,7 @@
 - 唯一 ConsoleInterface 位于 CanvasLayer 的全局通讯容器中，持有原 DialogueManagerAdapter；其 FloatingCommUI 只呈现当前发言和动态选项，可拖动/最小化，四个朝向及转身时持续可见。左台转发鼠标前避让通讯窗，主台旧大面板及旧按钮已移除；拒绝原因使用短暂提示，短提示数据由 ConsoleInterface 保存。
 - 左台唯一 BuildingTerminalInterface 继续读取 DemoFlowManager 的系统日志、乘客档案和对话记录；实体键只切换栏目，滚轮只改变当前阅读位置。新派单只把已有内容标为未读，且仅当玩家实际朝向左台并打开对应栏目时清除该栏目未读状态。
 - DestinationControlInterface 保留场景根和唯一目的地业务适配职责，数字输入与反馈使用字符串保存，旧 LineEdit、推荐按钮和 2D 书页已移除；RightConsolePresentation3D 只把其展示快照映射到实体屏幕，并负责拨杆回位动画。CabinInteractionController3D 将右台热点转发到同一输入、验证和行驶入口。
-- 三台的静态外形在中文“视觉资产”或既有设备视觉挂载内；Godot 保留热点、碰撞、动态屏面、交互反馈与稳定动画轴。左台滚轮由 Node3D“滚轮转轴”驱动；楼层书、摄影棚门及舱壁/地板沿用已有可替换结构。左台旧页签/返回按钮已移除，真实文字与滚动内容保留。资产流程见 [Blender → Godot 规范](docs/development/blender-godot-assets.md)，主台 V2 Blockout 源为 `art_source/main_console_v2.blend`（`.gdignore` 隔离 Godot import），单一 `main_console_shell.glb` 经 visual wrapper 挂入主台；CRT 物理开口已预留 4:3，当前 640×360 feed 仅作保持比例的临时适配，精模/正式材质/CRT 表现尚未制作。
+- 三台的静态外形在中文“视觉资产”或既有设备视觉挂载内；Godot 保留热点、碰撞、动态屏面、交互反馈与稳定动画轴。左台滚轮由 Node3D“滚轮转轴”驱动；楼层书、摄影棚门及舱壁/地板沿用已有可替换结构。左台旧页签/返回按钮已移除，真实文字与滚动内容保留。资产流程见 [Blender → Godot 规范](docs/development/blender-godot-assets.md)，主台 V2 Blockout 源为 `art_source/main_console_v2.blend`（`.gdignore` 隔离 Godot import），单一 `main_console_shell.glb` 经 visual wrapper 挂入主台；CRT 物理开口为 1.44×1.08 米（4:3），主台使用 55° 控件斜面与前缘水平托台，既有控件/热点姿态已同步校准；当前 640×360 feed 仅作保持比例的临时适配，精模/正式材质/CRT 表现尚未制作。
 - 标准手柄通过语义 Input Actions 复用固定转向与唯一业务动作；CabinInteractionController3D 依据当前台位热点的相机投影维护互斥的 3D 焦点，FloatingCommUI 有选项时优先使用 Control focus。左台滚轮不进入 A 键焦点，只由鼠标滚轮或限速的右摇杆上下驱动。
 - `scenes/ui/` 下 ConsoleInterface、BuildingTerminalInterface、DestinationControlInterface 通过显式注入和流程命令访问业务。
 - ContentRegistry 从 `data/catalogs/` 的四个 Catalog 加载楼层、乘客、派单、值班资源。当前演示有三条正式派单；对白位于 `dialogues/passengers/`，通过 DialogueManagerAdapter 接入现有插件。
