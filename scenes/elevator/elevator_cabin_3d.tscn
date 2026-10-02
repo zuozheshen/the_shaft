@@ -89,9 +89,14 @@ size = Vector3(0.3373413, 0.023, 0.274292)
 shading_mode = 0
 albedo_color = Color(7.749051e-06, 0.8917738, 0.3193373, 1)
 
+[sub_resource type="StandardMaterial3D" id="52_hover"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.25, 0.7, 0.58, 1)
+
 [sub_resource type="BoxMesh" id="BoxMesh_sn0t7"]
-material = SubResource("StandardMaterial3D_db77g")
-size = Vector3(0.34, 0.01, 0.2545758)
+material = SubResource("52_hover")
+size = Vector3(0.270, 0.004, 0.182)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sn0t7"]
 albedo_color = Color(0.4117647, 0.4117647, 0.4117647, 1)
@@ -116,8 +121,8 @@ shading_mode = 0
 albedo_color = Color(0, 0.8901961, 0.31764707, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_6f8o3"]
-material = SubResource("StandardMaterial3D_qr0ht")
-size = Vector3(0.37337494, 0.014404297, 0.34222412)
+material = SubResource("52_hover")
+size = Vector3(0.256, 0.004, 0.246)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0pcg1"]
 albedo_color = Color(0.30, 0.12, 0.13, 1)
@@ -129,8 +134,8 @@ material = SubResource("StandardMaterial3D_0pcg1")
 radial_segments = 12
 
 [sub_resource type="BoxMesh" id="BoxMesh_efn7a"]
-material = SubResource("StandardMaterial3D_qr0ht")
-size = Vector3(0.38802147, 0.014404297, 0.34222412)
+material = SubResource("52_hover")
+size = Vector3(0.256, 0.004, 0.246)
 
 [sub_resource type="BoxShape3D" id="52_cam01_shape"]
 size = Vector3(0.22, 0.07, 0.22)
@@ -164,11 +169,6 @@ albedo_color = Color(0.12, 0.4, 0.36, 1)
 resource_local_to_scene = true
 material = SubResource("52_selected")
 size = Vector3(0.19, 0.01, 0.025)
-
-[sub_resource type="StandardMaterial3D" id="52_hover"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.25, 0.7, 0.58, 1)
 
 [sub_resource type="BoxMesh" id="52_cam01_hover"]
 resource_local_to_scene = true
@@ -671,7 +671,7 @@ shape = SubResource("BoxShape3D_microphone")
 position = Vector3(0, -0.023923, -0.035)
 
 [node name="麦克风高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/交互反馈" unique_id=832558151]
-transform = Transform3D(1.0943732, 0, 0, 0, 0.95570934, -1.1920929e-07, 0, 0, 1.1470098, 0, 0.0030001998, -0.058588743)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.021923, -0.035)
 visible = false
 mesh = SubResource("BoxMesh_sn0t7")
 
@@ -705,7 +705,7 @@ transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.34641434e-07, 0, -2.55
 material_override = SubResource("StandardMaterial3D_riqys")
 
 [node name="开门悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/交互反馈" unique_id=1590688762]
-transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, 0.006237045, -0.020806313, -0.06995964)
+transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.34641434e-07, 0, -2.555827e-07, 2.10497531, 0, -0.016586902903, 2.907973578e-09)
 visible = false
 mesh = SubResource("BoxMesh_6f8o3")
 
@@ -746,7 +746,7 @@ transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.97374586e-07, 0, -2.55
 material_override = SubResource("StandardMaterial3D_0pcg1")
 
 [node name="关门悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/交互反馈" unique_id=1144826803]
-transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, 0.013560355, -0.020805597, -0.06995964)
+transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.97374586e-07, 0, -2.555827e-07, 2.10497531, 0.0044502616, -0.016586902903, 3.0334398824e-09)
 visible = false
 mesh = SubResource("BoxMesh_efn7a")
 
@@ -770,7 +770,7 @@ position = Vector3(-0.925, 0.0015, -0.150)
 mesh = SubResource("63_comm_group_plate")
 
 [node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM分组铭牌"]
-position = Vector3(0, 0.0025, 0)
+position = Vector3(-0.065, 0.0025, 0)
 rotation = Vector3(-1.5707963, 0, 0)
 pixel_size = 0.0013
 modulate = Color(0.035, 0.045, 0.04, 1)
@@ -779,7 +779,7 @@ font_size = 22
 outline_size = 0
 
 [node name="CAMERA分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(-0.225, -0.0145601251, -0.130)
+position = Vector3(-0.1975, -0.0145601251, -0.130)
 mesh = SubResource("63_camera_group_plate")
 
 [node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAMERA分组铭牌"]
@@ -834,13 +834,13 @@ shape = SubResource("52_cam01_shape")
 [node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点" unique_id=1264001608]
 
 [node name="方形按钮" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉" instance=ExtResource("63_square")]
-position = Vector3(0.04, -0.032110, 0)
+position = Vector3(0.0675, -0.032110, 0)
 
 [node name="选中背光" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/交互反馈"]
 visible = false
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/交互反馈" unique_id=1017574438]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.04, -0.014, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0675, -0.014, 0)
 visible = false
 mesh = SubResource("52_cam01_hover")
 
@@ -873,13 +873,13 @@ shape = SubResource("52_cam02_shape")
 [node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点" unique_id=546314487]
 
 [node name="方形按钮" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉" instance=ExtResource("63_square")]
-position = Vector3(-0.04, -0.032110, 0)
+position = Vector3(-0.0125, -0.032110, 0)
 
 [node name="选中背光" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/交互反馈"]
 visible = false
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/交互反馈" unique_id=1142936713]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.04, -0.014, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0125, -0.014, 0)
 visible = false
 mesh = SubResource("52_cam02_hover")
 
