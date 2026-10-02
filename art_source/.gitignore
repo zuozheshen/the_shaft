@@ -1,0 +1,3 @@
+# Blender local backups and temporary files
+*.blend[0-9]*
+*.tmp

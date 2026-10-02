@@ -39,6 +39,7 @@
 [ext_resource type="Script" uid="uid://cjs2vtxivfkth" path="res://scripts/presentation/main_console_presentation_3d.gd" id="52_presentation"]
 [ext_resource type="Script" path="res://scripts/presentation/right_console_presentation_3d.gd" id="53_right_presentation"]
 [ext_resource type="Script" path="res://scripts/presentation/floor_guide_book_3d.gd" id="57_book"]
+[ext_resource type="PackedScene" path="res://scenes/visuals/main_console_shell_visual.tscn" id="62_main_shell"]
 
 [sub_resource type="ORMMaterial3D" id="ORMMaterial3D_cymdg"]
 albedo_texture = ExtResource("2_k80hx")
@@ -285,7 +286,8 @@ shading_mode = 0
 texture_filter = 0
 
 [sub_resource type="QuadMesh" id="52_screen_quad"]
-size = Vector2(1.66, 0.93375)
+size = Vector2(1.6, 0.9)
+center_offset = Vector3(0, 0.11913, 0)
 
 [sub_resource type="StandardMaterial3D" id="52_dark"]
 resource_local_to_scene = true
@@ -609,20 +611,7 @@ size = Vector3(0.2, 2.5, 3.8)
 
 [node name="视觉资产" type="Node3D" parent="操作台占位/主操作台定位"]
 
-[node name="主操作台机身" type="CSGPolygon3D" parent="操作台占位/主操作台定位/视觉资产" unique_id=1725224134]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1.35, 0.5, -1.35)
-material_override = SubResource("StandardMaterial3D_jyqdm")
-polygon = PackedVector2Array(-0.28, -0.5, 0.52, -0.5, 0.52, 0.9, -0.28, 0.14)
-depth = 2.7
-
-[node name="主台背板" type="CSGBox3D" parent="操作台占位/主操作台定位/视觉资产" unique_id=1574089554]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6569335, -1.64)
-material_override = SubResource("StandardMaterial3D_k80hx")
-size = Vector3(3, 1.5, 0.1)
-
-[node name="主台屏幕框" type="CSGBox3D" parent="操作台占位/主操作台定位/视觉资产" unique_id=1944041572]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6908691, -1.56)
-size = Vector3(2.55, 1, 0.05)
+[node name="主操作台外壳" parent="操作台占位/主操作台定位/视觉资产" instance=ExtResource("62_main_shell")]
 
 [node name="主台交互热点" type="Node3D" parent="操作台占位/主操作台定位" unique_id=266902568]
 

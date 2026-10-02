@@ -4,7 +4,7 @@
 
 ## 源文件与运行资产
 
-- 正式 `.blend` 的版本管理位置留待正式资产制作时确定。优先考虑仓库内 `art_source/` + `.gdignore`；文件用途、来源、大小和跟踪方式明确后，必要时再决定 Git LFS。本规范不创建该目录、不启用 LFS，也不把某个本机外部目录冻结为唯一位置。
+- 主操作台 V2 的正式源文件为 `art_source/main_console_v2.blend`，与运行资产一起沿用仓库现有 Git LFS 规则跟踪；`art_source/.gdignore` 阻止 Godot 自动导入 .blend，局部 `.gitignore` 排除 Blender 备份。源文件与 GLB 的用途、来源、大小和 SHA-256 记录在对应 Issue REVIEW；新增其他资产或改变跟踪规则仍需对应方案，不将临时项目外探针目录作为正式源位置。
 - 临时管线探针可使用项目外的 Blender 测试源文件，不提交；不保存或覆盖用户已有正式源文件。
 - 运行资产使用 `assets/art/models/<asset>.glb`，小写 snake_case，例如 `main_console_shell.glb`。只有具体正式资产 Issue 批准后才添加二进制文件。
 - 本地导入探针使用 `assets/art/models/_pipeline_probe/`。该目录及其 `.import` sidecar 不提交；截图、日志、`.godot/`、Blender 备份和测试导出同样不提交。
@@ -42,3 +42,11 @@
 验证结束恢复原灰盒，并清理仅本次生成的临时接线/导出。只有确认测试 Collection 归本任务且没有用户追加修改时才清理它。正式资产的保存、导出、覆盖和二进制提交需要其对应 Issue 的批准范围。
 
 REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户体验验收；任何一项不能冒充另一项。
+
+## 主操作台 V2 Blockout（#62）
+
+- 源 Scene 为“主操作台体块”，模型范围为 `AgentGenerated_ART02_1_Blockout`；使用米制单位、主台局部原点与标准 glTF Y-up 转换。只导出外壳模型，不导出 Camera、Light、碰撞、动态屏面或业务 metadata。
+- `main_console_shell.glb` 包含机身、CRT/CASE 外壳及 COMM/CAMERA/DOOR 板壳；通过 `scenes/visuals/main_console_shell_visual.tscn` 接入既有主台“视觉资产”。所有 Gameplay、热点、反馈、CASE Label3D 和监控纹理链保持 Godot 所有。
+- CRT 物理开口为 1.60×1.20 米（4:3），中心在主台局部 (0, 1.81, -1.535)。本阶段保留 640×360 feed；原主监视器节点 Transform 不变，仅 QuadMesh 使用 1.60×0.90 米与 `center_offset=(0, 0.11913, 0)`，将完整 16:9 内容居中显示，深灰占位衬底预留上下空间。#65 可在同一锚点扩展为 1.60×1.20 米动态屏面，并替换临时衬底。
+- 当前仅有中性灰 Blockout 材质，无 UV、贴图、按钮/麦克风精模、CRT shader 或 CASE 最终材质。后续 Controls / Material / Screen 阶段沿用源文件，但各自按对应 Issue 审批。
+- #62 审批允许 Codex 新建该专用文件，并只保存自身生成的修改；写前仍核对 filepath、Scene、Collection、对象与用户未保存修改。禁止覆盖身份不明的源文件、将用户已有场景 Save As 到正式源路径，或对用户文件 Revert。
