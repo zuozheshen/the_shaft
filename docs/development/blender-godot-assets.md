@@ -51,5 +51,24 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 - 上柜外宽仍为 2.42 米、外侧壁宽 6 厘米；CRT 两侧可见机柜带由 37 收至 28 厘米，其中前面板由 31 收至 22 厘米。新增 CRT 模组壳体外宽 1.86 米、纵深 22 厘米（Z=-1.65 至 -1.43 米），相对柜前面 Z=-1.50 米前凸 7 厘米；bezel 再前伸 4 厘米至 Z=-1.39 米。原屏面 Z=-1.529 米不动，相对 bezel 最前沿内凹 13.9 厘米，形成“主机柜 → CRT 模组壳体 → 厚 bezel → 内凹屏幕”。
 - 柜顶由 Y=2.454 降至 2.424 米，顶盖外侧厚度由 4 收至 3 厘米；中央隐藏下表面为 Y=2.410 米，保留 1.4 厘米顶壳厚度与未来屏幕顶部 Y=2.400 米的空间。bezel 顶带约由 12 收至 9 厘米，仅使用 2–3 毫米单段边缘折角，无 Modifier。
 - 主台控件斜面仍为 55°，下端约 Y=0.823 米；水平前沿延伸由 15 收至 7 厘米，厚度由 2 收至 1.2 厘米。操作楔体前裙下端后收 10 厘米（相对竖直约 18.27°）；下部底座前面上端后收 10 厘米、下端后收 23 厘米（约 15.46°），底宽由 2.56 收至 2.36 米。三块操作面沿用原高度与边界，前端边厚由 2.5 收至 2 厘米，COMM 留空、DOOR 保持较宽。Godot 场景、Gameplay、五个热点、碰撞、action_id、反馈、CASE、玩家位置与 FOV 均未改变。
-- 当前模型为 20 个 Mesh 与一个根 Empty，沿用 4 个中性灰 Blockout 材质；无 UV、贴图、正式材质、按钮/麦克风精模、CRT shader、CASE 最终材质或表面细节。尚未进入 #63–#65；后续 Controls / Material / Screen 阶段沿用源文件，但各自按对应 Issue 审批。
+- #62 shell 模型仍为 20 个 Mesh 与一个根 Empty，沿用 4 个中性灰 Blockout 材质；本体不含 UV、贴图、正式材质、按钮/麦克风模型、CRT shader、CASE 最终材质或表面细节。#63 控制件在同一源文件的独立 Collection 制作，见下节；后续 #64 Material / #65 Screen 阶段仍按对应 Issue 审批。
 - #62 审批允许 Codex 新建该专用文件，并只保存自身生成的修改；写前仍核对 filepath、Scene、Collection、对象与用户未保存修改。禁止覆盖身份不明的源文件、将用户已有场景 Save As 到正式源路径，或对用户文件 Revert。
+
+## 主操作台 V2 控制件（#63）
+
+- 沿用 `art_source/main_console_v2.blend` 与“主操作台体块”Scene；专属 `AgentGenerated_ART02_2_Controls` Collection 包含 6 个控制件 Mesh 与 6 个导出根。#62 的 Collection、20 个 shell Mesh、根 Empty 与 `main_console_shell.glb` 保留，控制件不并入 shell。
+- 本阶段只新增以下 6 个运行 GLB，这是允许的最大拆分粒度；不把单个控制件继续拆成更多独立运行资产。模型使用中性占位材质，各 GLB 为单位 Transform 的根与静态 Mesh；只含位置和法线数据，无 Camera、Light、UV、贴图、动画、skin、碰撞或业务 metadata。
+
+| 控制件 | `assets/art/models/` 运行资产 | `scenes/visuals/` wrapper |
+| --- | --- | --- |
+| 固定桌面调度麦克风 | `desk_microphone.glb` | `desk_microphone_visual.tscn` |
+| CAM 共享方形按钮 | `button_square.glb`、`button_square_cap.glb` | `button_square_visual.tscn` |
+| OPEN/CLOSE 共享大型按钮 | `button_large.glb`、`button_large_cap.glb` | `button_large_visual.tscn` |
+| 三灯共享静态安装壳 | `indicator_lamp.glb` | `indicator_lamp_visual.tscn` |
+
+- 四个 wrapper 只装配外形，继续挂在既有“麦克风视觉”“开门视觉”“关门视觉”、CAM“视觉”和原灯根内。CAM 两实例共享标准框/帽几何，OPEN/CLOSE 两实例共享大型框/帽几何；按钮占位色通过 Godot 场景内的材质覆盖装配，Label3D、选中背光和悬停高亮各自保留，不复制 Gameplay 节点。门按钮对既有父级非均匀 Basis 的补偿仅写入视觉 wrapper。
+- 麦克风是固定底座、短鹅颈与麦头组成的独立整体，不可拿起，沿用原 toggle microphone。原大号“麦克风热点/设备标识”Label3D 隐藏，中文 wrapper 内只保留小型 COMM 标识；原 COMM 灯标识改为 TX，沿用同一灯面与 `mic_enabled_changed`，不新增录音或发射状态，也不在麦座复制第二个灯。
+- 按钮 wrapper 内的“固定安装框”静止；Godot 自有“按钮按压轴”只带动“按钮帽模型”。`ConsoleButtonVisual3D` 用一个 Tween 引用与初始位置实现约 3 毫米下压、0.06 秒下压和 0.10 秒回位，快速重入从原位重新播放并回位。反馈可禁用，空或缺失按压轴静默降级；热点、碰撞、标签和灯不随动，不新增业务状态机。
+- `MainConsolePresentation3D` 通过导出路径引用可选按钮组件，只订阅原 `camera_selected` 与 `presentation_effects_requested` 的成功开/关门 effect；初始化状态同步不播放按压。原 TX/MIC、DOOR 真实四态、FAULT 预留入口、监控纹理和 CASE 更新链保持，业务不读取 GLB 内部名称、层级或材质槽。
+- 六个 GLB 与既有 `.blend` 沿用现有 Git LFS 规则，不新增跟踪规则。源文件/运行资产大小、SHA、验证结果及提交状态记录在 #63 REVIEW，不将截图、日志、`.godot/` 或 Blender 备份提交为资产。
+- #63 控制件造型、尺寸、排布、可读性和实际手感的用户人工验收仍待完成。正式材质、UV、贴图属于 #64；CRT shader 与后续屏面表现属于 #65，当前均未制作。自动测试与 Godot AI 自检不得代替人工验收。

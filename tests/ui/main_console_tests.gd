@@ -2,6 +2,7 @@ extends RefCounted
 ## 使用正式 main_3d 接线和原 Dialogue；只在测试实例中缩短动画等待。
 
 const MAIN := preload("res://scenes/main/main_3d.tscn")
+const ConsoleButtonVisualScript := preload("res://scripts/presentation/console_button_visual_3d.gd")
 
 
 func run(t: Variant, tree: SceneTree) -> void:
@@ -45,6 +46,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_true("主台 / 新增控件根精确复用 MIC 斜面 Basis",
 			surface_root.transform.basis.is_equal_approx(microphone.transform.basis))
 	var microphone_label := microphone.get_node("设备标识") as Label3D
+	t.assert_false("主台 / 大号 MIC 标识不再显示", microphone_label.visible)
 	for device_name in ["CAM01热点", "CAM02热点", "COMM指示灯", "DOOR指示灯", "FAULT指示灯"]:
 		var device := surface_root.get_node(device_name) as Node3D
 		t.assert_true("主台 / 斜面设备局部旋转归零 " + device_name,
@@ -59,16 +61,34 @@ func run(t: Variant, tree: SceneTree) -> void:
 	for camera_name in ["CAM01热点", "CAM02热点"]:
 		var camera_hotspot := surface_root.get_node(camera_name) as InteractionHotspot3D
 		var collision := camera_hotspot.get_node("CollisionShape3D") as CollisionShape3D
-		var base := camera_hotspot.get_node("视觉/底座") as MeshInstance3D
-		t.assert_true("主台 / CAM Mesh 与碰撞使用同一斜面 Basis " + camera_name,
-				collision.global_transform.basis.is_equal_approx(base.global_transform.basis))
-	var cam_01_visual := main.find_child("CAM01热点", true, false).get_node(".")
-	var cam_02_visual := main.find_child("CAM02热点", true, false).get_node(".")
-	for part in ["视觉/底座", "视觉/按钮帽", "交互反馈/选中背光", "交互反馈/悬停高亮"]:
-		var first := cam_01_visual.get_node(part) as MeshInstance3D
-		var second := cam_02_visual.get_node(part) as MeshInstance3D
-		t.assert_true("主台 / CAM 外形和材质可分别编辑 " + part,
+		var visual := camera_hotspot.get_node("视觉/方形按钮") as Node3D
+		t.assert_true("主台 / CAM 外形与碰撞使用同一斜面朝向 " + camera_name,
+				collision.global_transform.basis.orthonormalized().is_equal_approx(
+					visual.global_transform.basis.orthonormalized()))
+	var cam_01 := surface_root.get_node("CAM01热点") as InteractionHotspot3D
+	var cam_02 := surface_root.get_node("CAM02热点") as InteractionHotspot3D
+	_assert_shared_button_meshes(t, cam_01.get_node("视觉/方形按钮"),
+			cam_02.get_node("视觉/方形按钮"), "CAM")
+	t.assert_true("主台 / 共用 CAM 外形仍保留独立标识",
+			cam_01.get_node("标识") != cam_02.get_node("标识")
+			and cam_01.get_node("标识").text != cam_02.get_node("标识").text)
+	for part in ["交互反馈/选中背光", "交互反馈/悬停高亮"]:
+		var first := cam_01.get_node(part) as MeshInstance3D
+		var second := cam_02.get_node(part) as MeshInstance3D
+		t.assert_true("主台 / CAM 原有反馈保持独立 " + part,
 				first.mesh != second.mesh and first.mesh.surface_get_material(0) != second.mesh.surface_get_material(0))
+	var open_button := main.find_child("开门热点", true, false).get_node("开门视觉/大型按钮")
+	var close_button := main.find_child("关门热点", true, false).get_node("关门视觉/大型按钮")
+	_assert_shared_button_meshes(t, open_button, close_button, "DOOR")
+	var open_caps := open_button.get_node("按钮按压轴/按钮帽模型").find_children("*", "MeshInstance3D", true, false)
+	var close_caps := close_button.get_node("按钮按压轴/按钮帽模型").find_children("*", "MeshInstance3D", true, false)
+	var distinct_door_colors := false
+	for index in mini(open_caps.size(), close_caps.size()):
+		var open_material := (open_caps[index] as MeshInstance3D).get_active_material(0) as StandardMaterial3D
+		var close_material := (close_caps[index] as MeshInstance3D).get_active_material(0) as StandardMaterial3D
+		if open_material != null and close_material != null:
+			distinct_door_colors = distinct_door_colors or open_material.albedo_color != close_material.albedo_color
+	t.assert_true("主台 / 共用门按钮几何仍区分 OPEN 和 CLOSE 颜色", distinct_door_colors)
 	await tree.physics_frame
 	for name in ["麦克风热点", "CAM01热点", "CAM02热点", "开门热点", "关门热点"]:
 		var hotspot := main.find_child(name, true, false) as InteractionHotspot3D
@@ -77,6 +97,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 		t.assert_equal("主台 / 实体碰撞可射线命中 " + name, hotspot,
 				interaction._raycast_hotspot(player.unproject_position(shape.global_position)))
 
+	await _test_button_feedback(t, tree, main, interaction, console, manager)
 	var phase := manager.get_case_phase()
 	for index in [1, 0]:
 		_action(main, interaction, "CAM0%d热点" % (index + 1))
@@ -201,6 +222,84 @@ func run(t: Variant, tree: SceneTree) -> void:
 	await _frames(tree)
 	await _test_visual_replacement(t, tree)
 
+
+func _assert_shared_button_meshes(t: Variant, first: Node3D, second: Node3D, label: String) -> void:
+	t.assert_true("主台 / " + label + " 复用同一按钮场景",
+			not first.scene_file_path.is_empty() and first.scene_file_path == second.scene_file_path)
+	# 只读稳定 wrapper；不把 GLB 的内部对象名变成接线契约。
+	for part in ["固定安装框", "按钮按压轴/按钮帽模型"]:
+		var first_meshes := first.get_node(part).find_children("*", "MeshInstance3D", true, false)
+		var second_meshes := second.get_node(part).find_children("*", "MeshInstance3D", true, false)
+		t.assert_true("主台 / " + label + " 共用部件存在 " + part, not first_meshes.is_empty())
+		t.assert_equal("主台 / " + label + " 共用部件 Mesh 数量 " + part,
+				first_meshes.size(), second_meshes.size())
+		for index in mini(first_meshes.size(), second_meshes.size()):
+			t.assert_equal("主台 / " + label + " 共用 Mesh " + part + str(index),
+					(first_meshes[index] as MeshInstance3D).mesh,
+					(second_meshes[index] as MeshInstance3D).mesh)
+
+
+func _test_button_feedback(t: Variant, tree: SceneTree, main: Node,
+		interaction: CabinInteractionController3D, console: ConsoleInterface,
+		manager: DemoFlowManager) -> void:
+	var mounts := {
+		"CAM01热点": "视觉/方形按钮", "CAM02热点": "视觉/方形按钮",
+		"开门热点": "开门视觉/大型按钮", "关门热点": "关门视觉/大型按钮",
+	}
+	var buttons: Array[ConsoleButtonVisualScript] = []
+	var rest_positions: Array[Vector3] = []
+	var initial_wait := 0.0
+	for hotspot_name: String in mounts:
+		var button := main.find_child(hotspot_name, true, false).get_node(mounts[hotspot_name]) as ConsoleButtonVisualScript
+		buttons.append(button)
+		rest_positions.append((button.get_node(button.press_axis_path) as Node3D).position)
+		initial_wait = maxf(initial_wait, button.press_down_duration + button.press_return_duration)
+	await tree.create_timer(initial_wait + 0.05).timeout
+	var phase_before := manager.get_case_phase()
+	var camera_before := console.get_current_camera_index()
+	var index := 0
+	for hotspot_name: String in mounts:
+		var button := buttons[index]
+		var axis := button.get_node(button.press_axis_path) as Node3D
+		var frame := button.get_node("固定安装框") as Node3D
+		var collision := main.find_child(hotspot_name, true, false).get_node("CollisionShape3D") as CollisionShape3D
+		var frame_before := frame.global_transform
+		var collision_before := collision.global_transform
+		var rest := rest_positions[index]
+		t.assert_true("按压 / 初始静止 " + hotspot_name, axis.position.is_equal_approx(rest))
+		button.play_press()
+		await tree.create_timer(button.press_down_duration * 0.5).timeout
+		t.assert_true("按压 / 只有稳定轴沿局部法线下沉 " + hotspot_name,
+				axis.position.y < rest.y and is_equal_approx(axis.position.x, rest.x)
+				and is_equal_approx(axis.position.z, rest.z))
+		t.assert_true("按压 / 安装框与碰撞保持静止 " + hotspot_name,
+				frame.global_transform.is_equal_approx(frame_before)
+				and collision.global_transform.is_equal_approx(collision_before))
+		# 连续按压覆盖正在执行的 Tween，返回初始姿态而非累加位移。
+		button.play_press()
+		button.play_press()
+		await tree.create_timer(button.press_down_duration + button.press_return_duration + 0.05).timeout
+		t.assert_true("按压 / 连续按压无漂移并自动回位 " + hotspot_name,
+				axis.position.is_equal_approx(rest))
+		t.assert_true("按压 / 视觉调用不改变业务 " + hotspot_name,
+				manager.get_case_phase() == phase_before and console.get_current_camera_index() == camera_before)
+		index += 1
+	var cam_02 := buttons[1]
+	var cam_02_axis := cam_02.get_node(cam_02.press_axis_path) as Node3D
+	_action(main, interaction, "CAM02热点")
+	await tree.create_timer(cam_02.press_down_duration * 0.5).timeout
+	t.assert_true("按压 / 正式 CAM 选择触发视觉反馈", cam_02_axis.position.y < rest_positions[1].y)
+	await tree.create_timer(cam_02.press_down_duration + cam_02.press_return_duration + 0.05).timeout
+	_action(main, interaction, "CAM01热点")
+	cam_02.feedback_enabled = false
+	_action(main, interaction, "CAM02热点")
+	await tree.create_timer(cam_02.press_down_duration + cam_02.press_return_duration + 0.05).timeout
+	t.assert_true("按压 / 禁用视觉反馈仍正常切换 CAM",
+			cam_02_axis.position.is_equal_approx(rest_positions[1])
+			and console.get_current_camera_index() == 1 and manager.get_case_phase() == phase_before)
+	cam_02.feedback_enabled = true
+	_action(main, interaction, "CAM01热点")
+	await tree.create_timer(buttons[0].press_down_duration + buttons[0].press_return_duration + 0.05).timeout
 
 func _test_dialogue(t: Variant, tree: SceneTree, console: ConsoleInterface,
 		manager: DemoFlowManager) -> void:
@@ -474,7 +573,10 @@ func _test_visual_replacement(t: Variant, tree: SceneTree) -> void:
 	for part_name in ["麦克风视觉", "开门视觉", "关门视觉"]:
 		mounts.append(main.find_child(part_name, true, false))
 	for camera_name in ["CAM01热点", "CAM02热点"]:
-		mounts.append(main.find_child(camera_name, true, false).get_node("视觉"))
+		var button := main.find_child(camera_name, true, false).get_node("视觉/方形按钮") as ConsoleButtonVisualScript
+		# 保留可选脚本但替换全部内部外形，同时覆盖空路径和不存在的按压轴。
+		button.press_axis_path = NodePath("") if camera_name == "CAM01热点" else NodePath("不存在的按压轴")
+		mounts.append(button)
 	for mount: Node3D in mounts:
 		for child: Node in mount.get_children():
 			mount.remove_child(child)
@@ -497,6 +599,8 @@ func _test_visual_replacement(t: Variant, tree: SceneTree) -> void:
 		if hotspot is InteractionHotspot3D:
 			t.assert_equal("美术解耦 / 热点碰撞保留 " + str(hotspot.get_action_id()), 1,
 					hotspot.find_children("*", "CollisionShape3D", false, false).size())
+	interaction._execute_action(&"select_camera_01")
+	t.assert_equal("美术解耦 / 空按压轴不阻断 CAM 命令", 0, console.get_current_camera_index())
 	interaction._execute_action(&"select_camera_02")
 	t.assert_equal("美术解耦 / CAM 命令不依赖内部外形", 1, console.get_current_camera_index())
 	interaction._execute_action(&"destination_digit_0")

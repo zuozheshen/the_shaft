@@ -2,6 +2,14 @@ class_name MainConsolePresentation3D
 extends Node
 
 
+const ConsoleButtonVisualScript := preload(
+	"res://scripts/presentation/console_button_visual_3d.gd"
+)
+const FlowCommandResultScript := preload(
+	"res://scripts/runtime/commands/flow_command_result.gd"
+)
+
+
 # 所有外形、布局与状态材质都在场景中配置；这里只绑定已有数据。
 @export var console_interface_path: NodePath
 @export var stage_controller_path: NodePath
@@ -13,6 +21,11 @@ extends Node
 @export var door_light_path: NodePath
 @export var fault_light_path: NodePath
 @export var status_label_path: NodePath
+# 按压反馈是可选表现；未配置时保留原有按钮和业务行为。
+@export var cam_01_button_visual_path: NodePath
+@export var cam_02_button_visual_path: NodePath
+@export var door_open_button_visual_path: NodePath
+@export var door_close_button_visual_path: NodePath
 @export var door_closed_material: StandardMaterial3D
 @export var door_moving_material: StandardMaterial3D
 @export var door_open_material: StandardMaterial3D
@@ -25,6 +38,10 @@ var _comm: Node3D
 var _door: MeshInstance3D
 var _fault: Node3D
 var _status: Label3D
+var _cam_01_button: ConsoleButtonVisualScript
+var _cam_02_button: ConsoleButtonVisualScript
+var _door_open_button: ConsoleButtonVisualScript
+var _door_close_button: ConsoleButtonVisualScript
 
 
 func _ready() -> void:
@@ -42,6 +59,10 @@ func _bind_presentation() -> void:
 	_door = get_node_or_null(door_light_path) as MeshInstance3D
 	_fault = get_node_or_null(fault_light_path) as Node3D
 	_status = get_node_or_null(status_label_path) as Label3D
+	_cam_01_button = _get_button_visual(cam_01_button_visual_path)
+	_cam_02_button = _get_button_visual(cam_02_button_visual_path)
+	_door_open_button = _get_button_visual(door_open_button_visual_path)
+	_door_close_button = _get_button_visual(door_close_button_visual_path)
 	if _console == null or _stage == null or viewport == null or screen == null \
 			or _cam_01 == null or _cam_02 == null or _comm == null \
 			or _door == null or _fault == null or _status == null:
@@ -57,6 +78,9 @@ func _bind_presentation() -> void:
 	material.albedo_texture = viewport.get_texture()
 	screen.material_override = material
 	_console.camera_selected.connect(_on_camera_selected)
+	# 单独监听实际选择信号，初始化灯态不会播放按压。
+	_console.camera_selected.connect(_on_camera_button_selected)
+	_console.presentation_effects_requested.connect(_on_presentation_effects_requested)
 	_console.mic_enabled_changed.connect(_on_microphone_changed)
 	_console.case_phase_display_changed.connect(_on_case_text_changed)
 	_stage.door_presentation_state_changed.connect(_on_door_state_changed)
@@ -74,6 +98,26 @@ func _bind_presentation() -> void:
 func _on_camera_selected(index: int) -> void:
 	_cam_01.visible = index == 0
 	_cam_02.visible = index == 1
+
+
+func _get_button_visual(path: NodePath) -> ConsoleButtonVisualScript:
+	if path.is_empty():
+		return null
+	return get_node_or_null(path) as ConsoleButtonVisualScript
+
+
+func _on_camera_button_selected(index: int) -> void:
+	if index == 0 and is_instance_valid(_cam_01_button):
+		_cam_01_button.play_press()
+	elif index == 1 and is_instance_valid(_cam_02_button):
+		_cam_02_button.play_press()
+
+
+func _on_presentation_effects_requested(effects: Array[StringName]) -> void:
+	if effects.has(FlowCommandResultScript.DOOR_OPENED) and is_instance_valid(_door_open_button):
+		_door_open_button.play_press()
+	if effects.has(FlowCommandResultScript.DOOR_CLOSED) and is_instance_valid(_door_close_button):
+		_door_close_button.play_press()
 
 
 func _on_microphone_changed(enabled: bool) -> void:
