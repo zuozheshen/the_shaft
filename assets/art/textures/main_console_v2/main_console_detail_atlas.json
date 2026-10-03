@@ -222,5 +222,25 @@
       240,
       112
     ]
+  },
+  "applied_details": {
+    "CRT右厚框": {
+      "face_normal": [
+        0,
+        -1,
+        0
+      ],
+      "uv_rect_pixels": [
+        96,
+        542,
+        72,
+        450
+      ],
+      "vent_banks": 1,
+      "fasteners": 2,
+      "identifier": "UNIT 01",
+      "reason": "CRT housing cooling/service strip",
+      "new_geometry": false
+    }
   }
 }

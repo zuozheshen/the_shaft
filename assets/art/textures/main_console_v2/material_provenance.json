@@ -1,0 +1,187 @@
+{
+  "sources": [
+    {
+      "asset": "Metal028",
+      "asset_name": "Metal 028",
+      "source_url": "https://ambientcg.com/a/Metal028",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "download_date": "2026-10-03",
+      "archive_url": "https://ambientcg.com/get?file=Metal028_1K-PNG.zip",
+      "archive_sha256": "582963a48e2479660dc006cd59103be10db13e97f5ee36884c44c0e288dfa7b7",
+      "maps_used": [
+        {
+          "map": "NormalGL",
+          "file": "Metal028_1K-PNG_NormalGL.png",
+          "sha256": "2288587809ce1f3328fa093dd9c9db1f5cc1b699ededdb5f82bca0e81e6b1fa3",
+          "resolution": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "map": "Roughness",
+          "file": "Metal028_1K-PNG_Roughness.png",
+          "sha256": "1237849a265dea5d00c8e7eff463b2e088d840e02d986b51ebd2670529a4dbe1",
+          "resolution": [
+            1024,
+            1024
+          ]
+        }
+      ],
+      "maps_excluded": [
+        "Color",
+        "NormalDX",
+        "Displacement",
+        "Metalness"
+      ]
+    },
+    {
+      "asset": "Plastic013A",
+      "asset_name": "Plastic 013 A",
+      "source_url": "https://ambientcg.com/a/Plastic013A",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "download_date": "2026-10-03",
+      "archive_url": "https://ambientcg.com/get?file=Plastic013A_1K-PNG.zip",
+      "archive_sha256": "0fac90b85a4b58dad30bcfb444c93b212eb24a87a800622d85155809bd5ace80",
+      "maps_used": [
+        {
+          "map": "NormalGL",
+          "file": "Plastic013A_1K-PNG_NormalGL.png",
+          "sha256": "0649c3d12d7349894435331fa6bcacb7bb809edbee30be8b87f1e28afcf332f0",
+          "resolution": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "map": "Roughness",
+          "file": "Plastic013A_1K-PNG_Roughness.png",
+          "sha256": "716af3827ef40025a5a4b145d27f0c25cc6742a45952f4417bde3f60dd798ff6",
+          "resolution": [
+            1024,
+            1024
+          ]
+        }
+      ],
+      "maps_excluded": [
+        "Color",
+        "NormalDX",
+        "Displacement",
+        "Metalness"
+      ]
+    }
+  ],
+  "derivation": {
+    "normal": "OpenGL +Y; BOX resize; scale XY; rebuild and normalize Z",
+    "paint_xy_strength": 0.65,
+    "plastic_xy_strength": 0.55,
+    "roughness": "8px Gaussian high-pass, clipped +/-2 sigma; 247 +/-6 multiplier",
+    "contact_polish": "roughness only; <=1.33% UV mask; <=4/255 reduction",
+    "grille": "local regular holes; gradient normal; no external grille image"
+  },
+  "no_external_albedo": true,
+  "generator_libraries": {
+    "Pillow": "12.3.0",
+    "NumPy": "2.3.5"
+  },
+  "material_normal_scales": {
+    "paint": 0.24,
+    "control_imported": 0.6,
+    "microphone": 0.75,
+    "Godot_cap_overrides": 0.6
+  },
+  "self_made_details": {
+    "CRT右厚框": {
+      "face_normal": [
+        0,
+        -1,
+        0
+      ],
+      "uv_rect_pixels": [
+        96,
+        542,
+        72,
+        450
+      ],
+      "vent_banks": 1,
+      "fasteners": 2,
+      "identifier": "UNIT 01",
+      "reason": "CRT housing cooling/service strip",
+      "new_geometry": false
+    }
+  },
+  "outputs": {
+    "control_normal_256.png": {
+      "resolution": [
+        256,
+        256
+      ],
+      "sha256": "321ac89c91f58f2ff9bee8073046adc0ab2f35b38792bd80aab7609974129298"
+    },
+    "control_normal_512.png": {
+      "resolution": [
+        512,
+        512
+      ],
+      "sha256": "c14dc305bd8532c185d77c85440680eab67f836c6808b95824f73b5fa0233b3e"
+    },
+    "control_roughness_256.png": {
+      "resolution": [
+        256,
+        256
+      ],
+      "sha256": "1a8ea921843fb914d1a95e3a7e866278878779c973f40d4fbd33d167fee7d208"
+    },
+    "control_roughness_512.png": {
+      "resolution": [
+        512,
+        512
+      ],
+      "sha256": "206cf5983d9561b972d831121cee18c071759986997dcdddd917062fe6440299"
+    },
+    "main_console_detail_atlas.png": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "sha256": "6b0a373313b8a05ab143733077278159601798e8f75e836ec47fc8fb23dfadb9"
+    },
+    "microphone_albedo.png": {
+      "resolution": [
+        512,
+        512
+      ],
+      "sha256": "5b7573198805da5cd5ce519a4d2540522450f84cb7f4709be33931556de66745"
+    },
+    "microphone_normal.png": {
+      "resolution": [
+        512,
+        512
+      ],
+      "sha256": "180478289a7073afc1004efd6e92aa9f60cb5eb40ea2f6ee8ba97867b82bb8b2"
+    },
+    "module_detail_albedo.png": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "sha256": "746a4bce913f5d6dd76126b04c113ab0c772e5ad5e00e9e40ae2404baf7e1d2c"
+    },
+    "paint_normal.png": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "sha256": "4debb23fa7730c73548c6e0c381060515db696ec049daf7312d1bc8e2796edf7"
+    },
+    "paint_roughness.png": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "sha256": "a586680e6a6c4ef58751e5c59a48b940ab64e51503820708d9c8b1705fd280ed"
+    }
+  }
+}

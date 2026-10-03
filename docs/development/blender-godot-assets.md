@@ -78,12 +78,13 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 
 ## 主操作台 V2 UV / 材质（#64）
 
-- 原 26 Mesh、7 导出根、Collection、Transform/Origin、顶点/面/法线与材质槽数量保持。shell 使用四个共享表面；麦克风三槽，其余控制件一槽。大型按钮只复制材质资源以使用 512 粗糙度，未增加槽或拆分 GLB。
-- 静态机身为米白/暖灰，后装模块为中灰/深灰，麦座、安装框为中灰，PTT 为米白，鹅颈/麦头为黑色。沿用原材质名称（包括历史“灰绿底座”名称），其静态实际颜色已为中性灰。功能状态色仍保留 CAM 暗/亮、OPEN/CLOSE、hover、TX/DOOR/FAULT 的原色与信号。
-- `art_source/main_console_texture_source.py` 使用 Pillow 12.3.0、NumPy 2.3.5、固定 seed 与内置字体绘制。运行 `python art_source/main_console_texture_source.py assets/art/textures/main_console_v2` 可重建本期 PNG 和 Atlas 索引；不下载照片、不使用生成式图像。分辨率是最大值，只制作实际需要的通道，不生成整套 Albedo/Roughness/Normal。
-- 主体使用 1024 单通道粗糙度；麦克风与大型按钮使用 512，普通按钮/灯壳使用 256。同源粗糙度值为 239–252，乘基础参数后产生微弱变化，表面无锈、掉漆、油泥或重污损。颜色/金属度保留简单材质参数，未使用 Normal。
-- shell 的各平面使用正交投影 UV，密度为 368.64 texel/米；无方向微表面有意重复，不用于独特文字。控制件展开到 0–1，麦克风重新分配四个色区；512 Albedo 只在麦头引用 Atlas 网罩，其余为原纯色。源几何不为导出切线而三角化；无 Normal 时不导出不必要的切线。
-- `main_console_detail_atlas.png` 为 1024，索引 JSON 记录采样矩形，单元之间至少留 8 像素。螺丝、铆钉、通风与浅槽只是复用库，主台本轮均未使用；不增加 greeble Mesh。动态 CASE/Camera Feed 不进入 Atlas。
-- 11 个固定铭牌沿用原薄盒的顶点、法线、尺寸与位置，仅转为带独立 UV 的 ArrayMesh，共用 `assets/art/materials/main_console_v2/nameplate_atlas.tres`。顶部映射对应标签，侧面保持纯色；COMM 文本保留原左移 65 毫米的排版。原 Label3D 名称、文本、父级与 Transform 保留并隐藏，供必要时恢复；不放入帽轴。
-- CAM 两个状态和 OPEN/CLOSE 覆盖材质为同目录外部 `.tres`，引用 256/512 同源粗糙度。既有脚本继续复制 CAM 状态材质，选中状态不串联；GLB 同路径 reimport 不覆盖这些 Godot 所有资源。独立纹理采用 lossless + mipmaps；七个 GLB 的 Embedded Image Handling 固定为 Embed as Uncompressed（3），内嵌到导入缓存，不向模型目录抽取重复 PNG。不增加分辨率或资产跟踪规则。
-- 基础材质、微表面、Atlas 细节、固定铭牌分别在正式 `main_3d`、原 FOV70 和原灯光下检查。布局/碰撞/action_id、按压/hover、CASE/屏面、Camera、左右台与舱体不改变；最终色板、可读性和操作手感由用户验收。执行证据、文件大小/SHA 与本地提交记录见 #64 REVIEW。
+- 原26 Mesh、7导出根、Collection、Transform/Origin、顶点/面/法线及材质槽数量保持。shell四个共享表面，麦克风三槽，其余控制件一槽；大型按钮复制材质资源以使用512图，没有增加槽或拆分GLB。
+- 静态机身为米白/暖灰，CRT/面板为中性中灰，CAMERA后装模块为偏冷深灰，安装框/鹅颈近黑、麦座深灰、PTT中灰。历史材质名“灰绿底座”保留，实际颜色为中性灰。CAM未选中帽为炭灰，原选中/OPEN/CLOSE/hover/TX/DOOR/FAULT功能颜色与信号保持。
+- 最新实施补充采用官方CC0微表面和项目自制Atlas混合。仅采用ambientCG Metal028、Plastic013A的1K NormalGL/Roughness；不采用外部Albedo、NormalDX、Displacement、Metalness或外部blend/tres，不使用生成式图片。来源URL、许可证、日期、下载包/使用map的SHA和派生图记录在 `assets/art/textures/main_console_v2/material_provenance.json`。
+- `art_source/main_console_texture_source.py` 使用Pillow 12.3.0、NumPy 2.3.5和内置字体。将provenance记录的两个1K-PNG zip下载到仓库外目录，运行 `python art_source/main_console_texture_source.py assets/art/textures/main_console_v2 --sources <仓库外素材目录>`。可直接读取zip中的所用map，或读取解出的PNG；每次先检查记录的SHA，不执行远程下载或外部资产脚本。
+- 分辨率是上限：shell/Atlas1024，麦克风/大按钮512，小按钮/灯256。只制作实际使用通道；色板/金属度/基础粗糙度由材质参数控制。Normal在向量空间BOX缩放、降低XY并重建Z，采用OpenGL +Y。Roughness取8px Gaussian高通后的细颗粒，剔除大尺度斑纹，压到247±6，再乘基础参数；帽面微弱磨亮掩膜小于2%，最多降低4/255，无锈、掉漆、油泥或大面积划痕。
+- 正式视角下喷漆Normal强度降低到0.24，控制件0.6，麦克风0.75；派生PNG已先降低XY幅度。麦头规则网孔Normal为自制，底座/鹅颈没有网孔。512项目自制Albedo只负责麦克风四个颜色区，底座64灰、PTT110灰、鹅颈/麦头32近黑。
+- shell普通平面仍为368.64 texel/米的正交UV重复；控制件在0–1内。C仅将CRT右厚框的已有前脸UV映射到保留区，使用一个散热/检修条、两个固定螺丝和UNIT01小标记；自制 `module_detail_albedo.png` 和paint Normal中的保留区配合，其他面仍为统一项目颜色。不加网孔阵列或greeble几何，不把所有Atlas tile铺到主台。Atlas索引记录该表面与单元矩形；动态CASE/Camera Feed不进入Atlas。
+- 源几何不为导出切线而三角化。GLB保留NORMAL/UV；Godot原 `meshes/ensure_tangents` 从导入三角面生成切线，运行时已核实Normal和切线存在。七个GLB Embedded Image Handling沿用Embed as Uncompressed（3），不向模型目录抽取重复PNG。独立PNG使用lossless/mipmaps，关闭3D自动改变压缩模式，不增加LFS规则。
+- 11个固定铭牌沿用原薄盒的顶点、法线、尺寸和位置，带独立UV的ArrayMesh共用 `assets/art/materials/main_console_v2/nameplate_atlas.tres`。COMM文字沿用左移65毫米排版。原Label3D名称、文本、父级与Transform保留隐藏，必要时可恢复；文字不在按钮帽或按压轴上。CAM与OPEN/CLOSE四个外部覆盖材质引用同源256/512 Roughness/Normal，状态仍按实例隔离，GLB reimport不覆盖这些Godot资源。
+- 执行顺序为A基础材质→B微表面→C功能细节→D固定铭牌；各阶段正式main_3d/FOV70/原灯光截图通过后才继续下一层。实际完成与阻塞、自动测试、Godot运行时和用户体验验收状态以#64有效评论为准。当前没有改布局、热点、碰撞、action_id、按压/hover、CASE/Camera、左右台、舱体或灯光；#65尚未制作。
