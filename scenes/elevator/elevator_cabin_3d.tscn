@@ -303,7 +303,7 @@ shading_mode = 0
 albedo_color = Color(0.045, 0.055, 0.065, 1)
 
 [sub_resource type="BoxMesh" id="52_status_box"]
-size = Vector3(2.3, 0.14, 0.002)
+size = Vector3(2.304, 0.14, 0.002)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_aod7d"]
 albedo_texture = ExtResource("13_aod7d")

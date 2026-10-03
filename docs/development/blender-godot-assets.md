@@ -78,7 +78,7 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 
 ## 主操作台 V2 UV / 材质（#64）
 
-- 原26 Mesh、7导出根、Collection、Transform/Origin、面/法线及材质槽数量保持；仅按用户批准修补“状态窗下框”的宽度与前缘。shell五个共享材质（CRT右厚框使用独立的细节保留材质），每个Mesh仍为一槽；麦克风三槽，其余控制件一槽。大型按钮复制材质资源以使用512图，没有增加槽或拆分GLB。
+- 原26 Mesh、7导出根、Collection、Transform/Origin、面拓扑及材质槽数量保持；仅按用户批准修补“状态窗下框”的宽度、前缘与左端顶部，其法线随局部面变化重算。shell五个共享材质（CRT右厚框使用独立的细节保留材质），每个Mesh仍为一槽；麦克风三槽，其余控制件一槽。大型按钮复制材质资源以使用512图，没有增加槽或拆分GLB。
 - 静态机身为米白/暖灰，CRT/面板为中性中灰，CAMERA后装模块为偏冷深灰，安装框/鹅颈近黑、麦座深灰、PTT中灰。历史材质名“灰绿底座”保留，实际颜色为中性灰。CAM未选中帽为炭灰，原选中/OPEN/CLOSE/hover/TX/DOOR/FAULT功能颜色与信号保持。
 - 最新实施补充采用官方CC0微表面和项目自制Atlas混合。仅采用ambientCG Metal028、Plastic013A的1K NormalGL/Roughness；不采用外部Albedo、NormalDX、Displacement、Metalness或外部blend/tres，不使用生成式图片。来源URL、许可证、日期、下载包/使用map的SHA和派生图记录在 `assets/art/textures/main_console_v2/material_provenance.json`。
 - `art_source/main_console_texture_source.py` 使用Pillow 12.3.0、NumPy 2.3.5和内置字体。将provenance记录的两个1K-PNG zip下载到仓库外目录，运行 `python art_source/main_console_texture_source.py assets/art/textures/main_console_v2 --sources <仓库外素材目录>`。可直接读取zip中的所用map，或读取解出的PNG；每次先检查记录的SHA，不执行远程下载或外部资产脚本。
@@ -87,4 +87,4 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 - shell普通平面仍为368.64 texel/米的正交UV重复；控制件在0–1内。C仅将CRT右厚框的已有前脸UV映射到保留区，使用一个散热/检修条、两个固定螺丝和UNIT01小标记；自制 `module_detail_albedo.png` 和paint Normal中的保留区配合，其他面仍为统一项目颜色。不加网孔阵列或greeble几何，不把所有Atlas tile铺到主台。Atlas索引记录该表面与单元矩形；动态CASE/Camera Feed不进入Atlas。
 - 源几何不为导出切线而三角化。GLB保留NORMAL/UV；Godot原 `meshes/ensure_tangents` 从导入三角面生成切线，运行时已核实Normal和切线存在。七个GLB Embedded Image Handling沿用Embed as Uncompressed（3），不向模型目录抽取重复PNG。独立PNG使用lossless/mipmaps，关闭3D自动改变压缩模式，不增加LFS规则。
 - 11个固定铭牌沿用原薄盒的顶点、法线、尺寸和位置，带独立UV的ArrayMesh共用 `assets/art/materials/main_console_v2/nameplate_atlas.tres`。COMM文字沿用左移65毫米排版。原Label3D名称、文本、父级与Transform保留隐藏，必要时可恢复；文字不在按钮帽或按压轴上。CAM与OPEN/CLOSE四个外部覆盖材质引用同源256/512 Roughness/Normal，状态仍按实例隔离，GLB reimport不覆盖这些Godot资源。
-- 执行顺序为A基础材质→B微表面→C功能细节→D固定铭牌；各阶段正式main_3d/FOV70/原灯光截图通过后才继续下一层。实际完成与阻塞、自动测试、Godot运行时和用户体验验收状态以#64有效评论为准。用户另行批准两处边缘修补：CASE背景厚度28→2毫米，前面内嵌外壳2毫米（背景局部z=0.007）；STATUS下托边左右各延长50毫米至x=±1.26米，前缘前移21毫米至Blender Y=1.444米。按钮、灯、铭牌、热点、碰撞、action_id、按压/hover、CASE逻辑、Camera/FOV、左右台、舱体和灯光保持；#65尚未制作。
+- 执行顺序为A基础材质→B微表面→C功能细节→D固定铭牌；各阶段正式main_3d/FOV70/原灯光截图通过后才继续下一层。实际完成与阻塞、自动测试、Godot运行时和用户体验验收状态以#64有效评论为准。用户另行批准两处边缘修补：CASE背景厚度28→2毫米，前面内嵌外壳2毫米（背景局部z=0.007）；STATUS下托边左右各延长50毫米至x=±1.26米，前缘前移21毫米至Blender Y=1.444米。随后按用户“左上角一样修”补足COMM侧接缝：托边左端顶部再提高4毫米，线性过渡至右端0毫米；CASE背景宽2.300→2.304米，两端各搭入侧壁2毫米。按钮、灯、铭牌、热点、碰撞、action_id、按压/hover、CASE逻辑、Camera/FOV、左右台、舱体和灯光保持；#65尚未制作。
