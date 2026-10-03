@@ -51,13 +51,13 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 - 上柜外宽仍为 2.42 米、外侧壁宽 6 厘米；CRT 两侧可见机柜带由 37 收至 28 厘米，其中前面板由 31 收至 22 厘米。新增 CRT 模组壳体外宽 1.86 米、纵深 22 厘米（Z=-1.65 至 -1.43 米），相对柜前面 Z=-1.50 米前凸 7 厘米；bezel 再前伸 4 厘米至 Z=-1.39 米。原屏面 Z=-1.529 米不动，相对 bezel 最前沿内凹 13.9 厘米，形成“主机柜 → CRT 模组壳体 → 厚 bezel → 内凹屏幕”。
 - 柜顶由 Y=2.454 降至 2.424 米，顶盖外侧厚度由 4 收至 3 厘米；中央隐藏下表面为 Y=2.410 米，保留 1.4 厘米顶壳厚度与未来屏幕顶部 Y=2.400 米的空间。bezel 顶带约由 12 收至 9 厘米，仅使用 2–3 毫米单段边缘折角，无 Modifier。
 - 主台控件斜面仍为 55°，下端约 Y=0.823 米；水平前沿延伸由 15 收至 7 厘米，厚度由 2 收至 1.2 厘米。操作楔体前裙下端后收 10 厘米（相对竖直约 18.27°）；下部底座前面上端后收 10 厘米、下端后收 23 厘米（约 15.46°），底宽由 2.56 收至 2.36 米。三块操作面沿用原高度与边界，前端边厚由 2.5 收至 2 厘米，COMM 留空、DOOR 保持较宽。Godot 场景、Gameplay、五个热点、碰撞、action_id、反馈、CASE、玩家位置与 FOV 均未改变。
-- #62 shell 模型仍为 20 个 Mesh 与一个根 Empty，沿用 4 个中性灰 Blockout 材质；本体不含 UV、贴图、正式材质、按钮/麦克风模型、CRT shader、CASE 最终材质或表面细节。#63 控制件在同一源文件的独立 Collection 制作，见下节；后续 #64 Material / #65 Screen 阶段仍按对应 Issue 审批。
+- #62 的几何基线为 20 个 Mesh 与一个根 Empty、4 个中性灰 Blockout 材质；当时本体不含 UV、贴图、正式材质、按钮/麦克风模型或表面细节。#64 在原几何上加入下节所述 UV/材质，CRT shader 和 CASE 最终材质仍未制作。#63 控制件在同一源文件的独立 Collection 制作，见下节；后续 #64 Material / #65 Screen 阶段仍按对应 Issue 审批。
 - #62 审批允许 Codex 新建该专用文件，并只保存自身生成的修改；写前仍核对 filepath、Scene、Collection、对象与用户未保存修改。禁止覆盖身份不明的源文件、将用户已有场景 Save As 到正式源路径，或对用户文件 Revert。
 
 ## 主操作台 V2 控制件（#63）
 
 - 沿用 `art_source/main_console_v2.blend` 与“主操作台体块”Scene；专属 `AgentGenerated_ART02_2_Controls` Collection 包含 6 个控制件 Mesh 与 6 个导出根。#62 的 Collection、20 个 shell Mesh、根 Empty 与 `main_console_shell.glb` 保留，控制件不并入 shell。
-- 本阶段只新增以下 6 个运行 GLB，这是允许的最大拆分粒度；不把单个控制件继续拆成更多独立运行资产。模型使用中性或低饱和占位材质，各 GLB 为单位 Transform 的根与静态 Mesh；只含位置和法线数据，无 Camera、Light、UV、贴图、动画、skin、碰撞或业务 metadata。
+- 本阶段只新增以下 6 个运行 GLB，这是允许的最大拆分粒度；不把单个控制件继续拆成更多独立运行资产。#63 基线模型使用中性或低饱和占位材质，各 GLB 为单位 Transform 的根与静态 Mesh；当时只含位置和法线数据，无 UV、贴图。#64 仅补充 UV/表面数据，持续不含 Camera、Light、动画、skin、碰撞或业务 metadata。
 
 | 控制件 | `assets/art/models/` 运行资产 | `scenes/visuals/` wrapper |
 | --- | --- | --- |
@@ -73,4 +73,17 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 - `MainConsolePresentation3D` 通过导出路径引用可选按钮组件，只订阅原 `camera_selected` 与 `presentation_effects_requested` 的成功开/关门 effect；初始化状态同步不播放按压。原 TX/MIC、DOOR 真实四态、FAULT 预留入口、监控纹理和 CASE 更新链保持，业务不读取 GLB 内部名称、层级或材质槽。
 - COMM / CAMERA SELECT / DOOR CONTROL / STATUS 四个固定小铭牌表达功能组，CAM 01 / CAM 02、OPEN / CLOSE、TX / DOOR / FAULT 都使用独立铭牌；采用 Godot 原生薄静态几何与 Label3D 占位，不新增 GLB、不做最终材质或螺丝。铭牌贴合原模块顶面；按钮 wrapper 补偿已有资产接触面高度，使安装框实际落到台面，不移动 Gameplay。
 - 六个 GLB 与既有 `.blend` 沿用现有 Git LFS 规则，不新增跟踪规则。源文件/运行资产大小、SHA、验证结果及提交状态记录在 #63 REVIEW，不将截图、日志、`.godot/` 或 Blender 备份提交为资产。
-- #63 本轮造型修正已完成实现、自动逻辑验证与 Godot AI 视觉/运行时自检；控制件造型、尺寸、排布、可读性和实际手感的最终用户人工验收仍待完成。#64 未开展，正式材质、UV、贴图和麦头网罩纹理留待该阶段；CRT shader 与后续屏面表现属于 #65，当前未制作。自动测试与 Godot AI 自检不得代替人工验收。
+- #62/#63 已获用户人工验收；#64 表面实现见下节，当前材质方向仍待对应人工验收。CRT shader 与后续屏面表现属于 #65，当前未制作。自动测试与 Godot AI 自检不得代替人工验收。
+
+
+## 主操作台 V2 UV / 材质（#64）
+
+- 原 26 Mesh、7 导出根、Collection、Transform/Origin、顶点/面/法线与材质槽数量保持。shell 使用四个共享表面；麦克风三槽，其余控制件一槽。大型按钮只复制材质资源以使用 512 粗糙度，未增加槽或拆分 GLB。
+- 静态机身为米白/暖灰，后装模块为中灰/深灰，麦座、安装框为中灰，PTT 为米白，鹅颈/麦头为黑色。沿用原材质名称（包括历史“灰绿底座”名称），其静态实际颜色已为中性灰。功能状态色仍保留 CAM 暗/亮、OPEN/CLOSE、hover、TX/DOOR/FAULT 的原色与信号。
+- `art_source/main_console_texture_source.py` 使用 Pillow 12.3.0、NumPy 2.3.5、固定 seed 与内置字体绘制。运行 `python art_source/main_console_texture_source.py assets/art/textures/main_console_v2` 可重建本期 PNG 和 Atlas 索引；不下载照片、不使用生成式图像。分辨率是最大值，只制作实际需要的通道，不生成整套 Albedo/Roughness/Normal。
+- 主体使用 1024 单通道粗糙度；麦克风与大型按钮使用 512，普通按钮/灯壳使用 256。同源粗糙度值为 239–252，乘基础参数后产生微弱变化，表面无锈、掉漆、油泥或重污损。颜色/金属度保留简单材质参数，未使用 Normal。
+- shell 的各平面使用正交投影 UV，密度为 368.64 texel/米；无方向微表面有意重复，不用于独特文字。控制件展开到 0–1，麦克风重新分配四个色区；512 Albedo 只在麦头引用 Atlas 网罩，其余为原纯色。源几何不为导出切线而三角化；无 Normal 时不导出不必要的切线。
+- `main_console_detail_atlas.png` 为 1024，索引 JSON 记录采样矩形，单元之间至少留 8 像素。螺丝、铆钉、通风与浅槽只是复用库，主台本轮均未使用；不增加 greeble Mesh。动态 CASE/Camera Feed 不进入 Atlas。
+- 11 个固定铭牌沿用原薄盒的顶点、法线、尺寸与位置，仅转为带独立 UV 的 ArrayMesh，共用 `assets/art/materials/main_console_v2/nameplate_atlas.tres`。顶部映射对应标签，侧面保持纯色；COMM 文本保留原左移 65 毫米的排版。原 Label3D 名称、文本、父级与 Transform 保留并隐藏，供必要时恢复；不放入帽轴。
+- CAM 两个状态和 OPEN/CLOSE 覆盖材质为同目录外部 `.tres`，引用 256/512 同源粗糙度。既有脚本继续复制 CAM 状态材质，选中状态不串联；GLB 同路径 reimport 不覆盖这些 Godot 所有资源。独立纹理采用 lossless + mipmaps；七个 GLB 的 Embedded Image Handling 固定为 Embed as Uncompressed（3），内嵌到导入缓存，不向模型目录抽取重复 PNG。不增加分辨率或资产跟踪规则。
+- 基础材质、微表面、Atlas 细节、固定铭牌分别在正式 `main_3d`、原 FOV70 和原灯光下检查。布局/碰撞/action_id、按压/hover、CASE/屏面、Camera、左右台与舱体不改变；最终色板、可读性和操作手感由用户验收。执行证据、文件大小/SHA 与本地提交记录见 #64 REVIEW。

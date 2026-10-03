@@ -1,0 +1,9 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/art/textures/main_console_v2/control_roughness_512.png" id="1_roughness"]
+
+[resource]
+resource_name = "door_close"
+albedo_color = Color(0.30, 0.12, 0.13, 1)
+roughness = 0.746
+roughness_texture = ExtResource("1_roughness")

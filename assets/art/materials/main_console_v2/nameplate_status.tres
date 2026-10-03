@@ -1,0 +1,18 @@
+[gd_resource type="ArrayMesh" format=4]
+
+[ext_resource type="Material" path="res://assets/art/materials/main_console_v2/nameplate_atlas.tres" id="1_material"]
+
+[resource]
+resource_name = "STATUS固定铭牌"
+_surfaces = [{
+"aabb": AABB(-0.16, -0.0015, -0.015, 0.32, 0.003, 0.03),
+"attribute_data": PackedByteArray("CtcjPArXIzwK1yM8CtcjPArXIzwK1yM8CtcjPArXIzwK1yM8CtcjPArXIzwK1yM8CtcjPArXIzwK1yM8CtcjPArXIzwK1yM8CtcjPArXIzwK1yM8CtcjPArXIzwK1yM8CtcjPArXIzwK1yM8CtcjPArXIzwK1yM8CtcjPArXIzwA4Hs/AKAdPwrXIzwK1yM8ACAEPwCgHT8K1yM8CtcjPADgez8AoBI/CtcjPArXIzwAIAQ/AKASPwrXIzwK1yM8"),
+"format": 34359742487,
+"index_count": 36,
+"index_data": PackedByteArray("AAACAAQAAgAGAAQAAQADAAUAAwAHAAUACAAKAAwACgAOAAwACQALAA0ACwAPAA0AEAASABQAEgAWABQAEQATABUAEwAXABUA"),
+"material": ExtResource("1_material"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 24,
+"vertex_data": PackedByteArray("CtcjvqabxDqPwnU8CtcjPqabxDqPwnW8CtcjPqabxDqPwnU8CtcjvqabxDqPwnW8CtcjvqabxLqPwnU8CtcjPqabxLqPwnW8CtcjPqabxLqPwnU8CtcjvqabxLqPwnW8CtcjPqabxDqPwnU8CtcjvqabxDqPwnW8CtcjPqabxDqPwnW8CtcjvqabxDqPwnU8CtcjPqabxLqPwnU8CtcjvqabxLqPwnW8CtcjPqabxLqPwnW8CtcjvqabxLqPwnU8CtcjPqabxDqPwnU8CtcjvqabxLqPwnU8CtcjvqabxDqPwnU8CtcjPqabxLqPwnU8CtcjPqabxDqPwnW8CtcjvqabxLqPwnW8CtcjvqabxDqPwnW8CtcjPqabxLqPwnW8/3//f////7//////AAD/v/9//3////+//////wAA/7//f/9/////v/////8AAP+//3//f////7//////AAD/v///AID/////AAAAgP9//7///wCA/////wAAAID/f/+///8AgP////8AAACA/3//v///AID/////AAAAgP9//78AgP//AAD/vwCAAAD///+/AID//wAA/78AgAAA////vwCA//8AAP+/AIAAAP///78AgP//AAD/vwCAAAD///+/")
+}]

@@ -1,0 +1,8 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/art/textures/main_console_v2/main_console_detail_atlas.png" id="1_6522t"]
+
+[resource]
+resource_name = "米灰铭牌Atlas"
+albedo_texture = ExtResource("1_6522t")
+roughness = 0.85

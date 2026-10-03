@@ -45,6 +45,20 @@
 [ext_resource type="PackedScene" path="res://scenes/visuals/button_large_visual.tscn" id="63_large"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/indicator_lamp_visual.tscn" id="63_lamp"]
 
+[ext_resource type="Material" path="res://assets/art/materials/main_console_v2/door_open.tres" id="64_door_open"]
+[ext_resource type="Material" path="res://assets/art/materials/main_console_v2/door_close.tres" id="64_door_close"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_open.tres" id="64_nameplate_open"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_close.tres" id="64_nameplate_close"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_comm.tres" id="64_nameplate_comm"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_camera_group.tres" id="64_nameplate_camera_group"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_door_group.tres" id="64_nameplate_door_group"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_status.tres" id="64_nameplate_status"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_cam_01.tres" id="64_nameplate_cam_01"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_cam_02.tres" id="64_nameplate_cam_02"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_tx.tres" id="64_nameplate_tx"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_door.tres" id="64_nameplate_door"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_fault.tres" id="64_nameplate_fault"]
+
 [sub_resource type="ORMMaterial3D" id="ORMMaterial3D_cymdg"]
 albedo_texture = ExtResource("2_k80hx")
 orm_texture = ExtResource("5_1mpkw")
@@ -107,13 +121,8 @@ roughness = 0.81
 material = SubResource("StandardMaterial3D_sn0t7")
 size = Vector3(0.32696915, 0.0637207, 0.27590942)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_riqys"]
-albedo_color = Color(0.20, 0.32, 0.22, 1)
-metallic = 0.0
-roughness = 0.72
-
 [sub_resource type="CylinderMesh" id="CylinderMesh_bhunq"]
-material = SubResource("StandardMaterial3D_riqys")
+material = ExtResource("64_door_open")
 radial_segments = 12
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qr0ht"]
@@ -124,13 +133,8 @@ albedo_color = Color(0, 0.8901961, 0.31764707, 1)
 material = SubResource("52_hover")
 size = Vector3(0.256, 0.004, 0.246)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0pcg1"]
-albedo_color = Color(0.30, 0.12, 0.13, 1)
-metallic = 0.0
-roughness = 0.72
-
 [sub_resource type="CylinderMesh" id="CylinderMesh_34rt5"]
-material = SubResource("StandardMaterial3D_0pcg1")
+material = ExtResource("64_door_close")
 radial_segments = 12
 
 [sub_resource type="BoxMesh" id="BoxMesh_efn7a"]
@@ -568,38 +572,6 @@ height = 0.22
 radial_segments = 16
 rings = 8
 
-[sub_resource type="StandardMaterial3D" id="63_panel_plaque"]
-albedo_color = Color(0.40, 0.42, 0.39, 1)
-roughness = 1.0
-
-[sub_resource type="BoxMesh" id="63_cam_nameplate"]
-material = SubResource("63_panel_plaque")
-size = Vector3(0.145, 0.003, 0.038)
-
-[sub_resource type="BoxMesh" id="63_door_nameplate"]
-material = SubResource("63_panel_plaque")
-size = Vector3(0.18, 0.003, 0.04)
-
-[sub_resource type="BoxMesh" id="63_lamp_nameplate"]
-material = SubResource("63_panel_plaque")
-size = Vector3(0.087, 0.003, 0.029)
-
-[sub_resource type="BoxMesh" id="63_comm_group_plate"]
-material = SubResource("63_panel_plaque")
-size = Vector3(0.34, 0.003, 0.03)
-
-[sub_resource type="BoxMesh" id="63_camera_group_plate"]
-material = SubResource("63_panel_plaque")
-size = Vector3(0.42, 0.003, 0.03)
-
-[sub_resource type="BoxMesh" id="63_door_group_plate"]
-material = SubResource("63_panel_plaque")
-size = Vector3(0.54, 0.003, 0.03)
-
-[sub_resource type="BoxMesh" id="63_status_group_plate"]
-material = SubResource("63_panel_plaque")
-size = Vector3(0.32, 0.003, 0.03)
-
 [node name="三维操作舱" type="Node3D" unique_id=699471354]
 script = ExtResource("1_wegik")
 
@@ -702,7 +674,7 @@ shape = SubResource("BoxShape3D_microphone")
 transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.34641434e-07, 0, -2.555827e-07, 2.10497531, 0, -0.06156430619, -1.311690676e-10)
 
 [node name="大型按钮帽模型" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮/按钮按压轴/按钮帽模型/大型按钮帽" index="0"]
-material_override = SubResource("StandardMaterial3D_riqys")
+material_override = ExtResource("64_door_open")
 
 [node name="开门悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/交互反馈" unique_id=1590688762]
 transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.34641434e-07, 0, -2.555827e-07, 2.10497531, 0, -0.016586902903, 2.907973578e-09)
@@ -711,9 +683,10 @@ mesh = SubResource("BoxMesh_6f8o3")
 
 [node name="门控名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮"]
 position = Vector3(0, 0.0220721203, 0.16)
-mesh = SubResource("63_door_nameplate")
+mesh = ExtResource("64_nameplate_open")
 
 [node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮/门控名称铭牌" unique_id=1263783487]
+visible = false
 modulate = Color(0.035, 0.045, 0.04, 1)
 outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
@@ -743,7 +716,7 @@ transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, -0.0044502616, 0
 transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.97374586e-07, 0, -2.555827e-07, 2.10497531, 0.0044502616, -0.06156430619, -1.421723017e-09)
 
 [node name="大型按钮帽模型" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮/按钮按压轴/按钮帽模型/大型按钮帽" index="0"]
-material_override = SubResource("StandardMaterial3D_0pcg1")
+material_override = ExtResource("64_door_close")
 
 [node name="关门悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/交互反馈" unique_id=1144826803]
 transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.97374586e-07, 0, -2.555827e-07, 2.10497531, 0.0044502616, -0.016586902903, 3.0334398824e-09)
@@ -752,9 +725,10 @@ mesh = SubResource("BoxMesh_efn7a")
 
 [node name="门控名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮"]
 position = Vector3(0, 0.0220721203, 0.16)
-mesh = SubResource("63_door_nameplate")
+mesh = ExtResource("64_nameplate_close")
 
 [node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮/门控名称铭牌" unique_id=109319742]
+visible = false
 modulate = Color(0.035, 0.045, 0.04, 1)
 outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
@@ -767,9 +741,10 @@ transform = Transform3D(1, 0, 0, 0, 0.573576417, -0.819152086, 0, 0.819152086, 0
 
 [node name="COMM分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
 position = Vector3(-0.925, 0.0015, -0.150)
-mesh = SubResource("63_comm_group_plate")
+mesh = ExtResource("64_nameplate_comm")
 
 [node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM分组铭牌"]
+visible = false
 position = Vector3(-0.065, 0.0025, 0)
 rotation = Vector3(-1.5707963, 0, 0)
 pixel_size = 0.0013
@@ -780,9 +755,10 @@ outline_size = 0
 
 [node name="CAMERA分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
 position = Vector3(-0.1975, -0.0145601251, -0.130)
-mesh = SubResource("63_camera_group_plate")
+mesh = ExtResource("64_nameplate_camera_group")
 
 [node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAMERA分组铭牌"]
+visible = false
 position = Vector3(0, 0.0025, 0)
 rotation = Vector3(-1.5707963, 0, 0)
 pixel_size = 0.0013
@@ -793,9 +769,10 @@ outline_size = 0
 
 [node name="DOOR分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
 position = Vector3(0.3885, -0.0088243664, -0.150)
-mesh = SubResource("63_door_group_plate")
+mesh = ExtResource("64_nameplate_door_group")
 
 [node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR分组铭牌"]
+visible = false
 position = Vector3(0, 0.0025, 0)
 rotation = Vector3(-1.5707963, 0, 0)
 pixel_size = 0.0013
@@ -806,9 +783,10 @@ outline_size = 0
 
 [node name="STATUS分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
 position = Vector3(0.975, -0.0088243664, -0.130)
-mesh = SubResource("63_status_group_plate")
+mesh = ExtResource("64_nameplate_status")
 
 [node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/STATUS分组铭牌"]
+visible = false
 position = Vector3(0, 0.0025, 0)
 rotation = Vector3(-1.5707963, 0, 0)
 pixel_size = 0.0013
@@ -846,9 +824,10 @@ mesh = SubResource("52_cam01_hover")
 
 [node name="CAM名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮"]
 position = Vector3(0, 0.017555, 0.121)
-mesh = SubResource("63_cam_nameplate")
+mesh = ExtResource("64_nameplate_cam_01")
 
 [node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮/CAM名称铭牌" unique_id=276286809]
+visible = false
 modulate = Color(0.035, 0.045, 0.04, 1)
 outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
@@ -885,9 +864,10 @@ mesh = SubResource("52_cam02_hover")
 
 [node name="CAM名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮"]
 position = Vector3(0, 0.017555, 0.121)
-mesh = SubResource("63_cam_nameplate")
+mesh = ExtResource("64_nameplate_cam_02")
 
 [node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮/CAM名称铭牌" unique_id=866050923]
+visible = false
 modulate = Color(0.035, 0.045, 0.04, 1)
 outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
@@ -909,9 +889,10 @@ mesh = SubResource("52_comm_lens")
 
 [node name="灯名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯"]
 position = Vector3(0, 0.0015, 0.063)
-mesh = SubResource("63_lamp_nameplate")
+mesh = ExtResource("64_nameplate_tx")
 
 [node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯/灯名称铭牌" unique_id=1826541840]
+visible = false
 modulate = Color(0.035, 0.045, 0.04, 1)
 outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
@@ -932,9 +913,10 @@ mesh = SubResource("52_door_lens")
 
 [node name="灯名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯"]
 position = Vector3(0, 0.0015, 0.063)
-mesh = SubResource("63_lamp_nameplate")
+mesh = ExtResource("64_nameplate_door")
 
 [node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯/灯名称铭牌" unique_id=753427199]
+visible = false
 modulate = Color(0.035, 0.045, 0.04, 1)
 outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
@@ -956,9 +938,10 @@ mesh = SubResource("52_fault_lens")
 
 [node name="灯名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯"]
 position = Vector3(0, 0.0015, 0.063)
-mesh = SubResource("63_lamp_nameplate")
+mesh = ExtResource("64_nameplate_fault")
 
 [node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯/灯名称铭牌" unique_id=40269106]
+visible = false
 modulate = Color(0.035, 0.045, 0.04, 1)
 outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
