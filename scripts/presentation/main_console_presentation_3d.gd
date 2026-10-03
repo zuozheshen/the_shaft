@@ -21,6 +21,8 @@ const FlowCommandResultScript := preload(
 @export var door_light_path: NodePath
 @export var fault_light_path: NodePath
 @export var status_label_path: NodePath
+@export var status_subviewport_path: NodePath
+@export var status_mesh_path: NodePath
 # 按压反馈是可选表现；未配置时保留原有按钮和业务行为。
 @export var cam_01_button_visual_path: NodePath
 @export var cam_02_button_visual_path: NodePath
@@ -37,7 +39,7 @@ var _cam_02: Node3D
 var _comm: Node3D
 var _door: MeshInstance3D
 var _fault: Node3D
-var _status: Label3D
+var _status: Label
 var _cam_01_button: ConsoleButtonVisualScript
 var _cam_02_button: ConsoleButtonVisualScript
 var _door_open_button: ConsoleButtonVisualScript
@@ -58,25 +60,37 @@ func _bind_presentation() -> void:
 	_comm = get_node_or_null(comm_light_path) as Node3D
 	_door = get_node_or_null(door_light_path) as MeshInstance3D
 	_fault = get_node_or_null(fault_light_path) as Node3D
-	_status = get_node_or_null(status_label_path) as Label3D
+	_status = get_node_or_null(status_label_path) as Label
+	var status_viewport := get_node_or_null(status_subviewport_path) as SubViewport
+	var status_screen := get_node_or_null(status_mesh_path) as MeshInstance3D
 	_cam_01_button = _get_button_visual(cam_01_button_visual_path)
 	_cam_02_button = _get_button_visual(cam_02_button_visual_path)
 	_door_open_button = _get_button_visual(door_open_button_visual_path)
 	_door_close_button = _get_button_visual(door_close_button_visual_path)
 	if _console == null or _stage == null or viewport == null or screen == null \
 			or _cam_01 == null or _cam_02 == null or _comm == null \
-			or _door == null or _fault == null or _status == null:
+			or _door == null or _fault == null or _status == null \
+			or status_viewport == null or status_screen == null:
 		push_error("主台展示缺少关键导出路径或节点类型错误。")
 		return
-	var source_material := screen.material_override as StandardMaterial3D
-	if source_material == null or door_closed_material == null \
+	var status_source_material := status_screen.material_override as StandardMaterial3D
+	if status_source_material == null or not status_viewport.disable_3d \
+			or not status_viewport.is_ancestor_of(_status):
+		push_error("CASE 展示需要纯 2D 视口、其内部 Label 和独立屏面材质。")
+		return
+	var source_material := screen.material_override as ShaderMaterial
+	if source_material == null or source_material.shader == null or door_closed_material == null \
 			or door_moving_material == null or door_open_material == null:
-		push_error("主台展示缺少 Inspector 中配置的 StandardMaterial3D。")
+		push_error("主台展示缺少 CRT ShaderMaterial 或门灯 StandardMaterial3D。")
 		return
 	# 复制原材质只隔离纹理写入，不覆盖用户调整的基础参数和 Mesh。
-	var material := source_material.duplicate() as StandardMaterial3D
-	material.albedo_texture = viewport.get_texture()
+	var material := source_material.duplicate() as ShaderMaterial
+	material.set_shader_parameter("feed_texture", viewport.get_texture())
 	screen.material_override = material
+	# CASE 只渲染原派单展示文本；复制材质隔离写入，不改变屏面几何。
+	var status_material := status_source_material.duplicate() as StandardMaterial3D
+	status_material.albedo_texture = status_viewport.get_texture()
+	status_screen.material_override = status_material
 	_console.camera_selected.connect(_on_camera_selected)
 	# 单独监听实际选择信号，初始化灯态不会播放按压。
 	_console.camera_selected.connect(_on_camera_button_selected)

@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://assets/art/shaders/main_console_crt.gdshader" id="1_crt"]
+
+[resource]
+resource_local_to_scene = true
+shader = ExtResource("1_crt")
+shader_parameter/curvature = 0.015
+shader_parameter/scanline_strength = 0.04
+shader_parameter/vignette_strength = 0.08
+shader_parameter/brightness = 1.0

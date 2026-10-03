@@ -29,18 +29,47 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var screen := presentation.get_node(presentation.screen_mesh_path) as MeshInstance3D
 	var comm_light := presentation.get_node(presentation.comm_light_path) as Node3D
 	var fault := presentation.get_node(presentation.fault_light_path) as Node3D
-	var status := presentation.get_node(presentation.status_label_path) as Label3D
+	var status := presentation.get_node(presentation.status_label_path) as Label
+	var status_viewport := presentation.get_node(presentation.status_subviewport_path) as SubViewport
+	var status_screen := presentation.get_node(presentation.status_mesh_path) as MeshInstance3D
 	t.assert_equal("主台 / 唯一 ConsoleInterface", 1, main.find_children("ConsoleInterface", "", true, false).size())
 	t.assert_equal("主台 / 唯一 DialogueManagerAdapter", 1, main.find_children("DialogueManagerAdapter", "", true, false).size())
-	t.assert_equal("主台 / 原监控、左台及楼层书两页共四个视口", 4, main.find_children("*", "SubViewport", true, false).size())
+	t.assert_equal("主台 / 原四个视口加 CASE 纯 2D 视口", 5, main.find_children("*", "SubViewport", true, false).size())
+	t.assert_equal("主台 / 原监控实际 320x240", Vector2i(320, 240), viewport.size)
+	t.assert_equal("主台 / 原监控保持纵向视野", Camera3D.KEEP_HEIGHT, camera.keep_aspect)
+	t.assert_equal("主台 / 原监控复用正式 World3D", cabin.get_viewport().world_3d, viewport.world_3d)
+	var screen_size := (screen.mesh as QuadMesh).size
+	t.assert_true("主台 / 动态 Quad 保持 4:3", is_equal_approx(screen_size.x / screen_size.y, 4.0 / 3.0))
+	t.assert_equal("主台 / CASE 实际 512x64", Vector2i(512, 64), status_viewport.size)
+	t.assert_true("主台 / CASE 禁用 3D 且无摄像机", status_viewport.disable_3d
+			and status_viewport.find_children("*", "Camera3D", true, false).is_empty())
+	t.assert_equal("主台 / CASE 独立纹理进入实际屏面", status_viewport.get_texture(),
+			(status_screen.material_override as StandardMaterial3D).albedo_texture)
+	var status_size := (status_screen.mesh as QuadMesh).size
+	t.assert_true("主台 / CASE 保持字形比例", is_equal_approx(status_size.x / status_size.y, 8.0))
 	t.assert_equal("主台 / 监控只有原摄像机", 1, viewport.find_children("*", "Camera3D", true, false).size())
 	t.assert_equal("主台 / Mesh 直接使用原 ViewportTexture", viewport.get_texture(),
-			(screen.material_override as StandardMaterial3D).albedo_texture)
+			(screen.material_override as ShaderMaterial).get_shader_parameter("feed_texture"))
 	t.assert_false("主台 / 旧大面板已移除", console.has_node("ConsoleLayout"))
 	t.assert_equal("主台 / 只保留 COMM 的实际按钮", comm.find_children("*", "Button", true, false).size(),
 			console.find_children("*", "Button", true, false).size())
 	t.assert_true("主台 / 初始通讯与故障灯熄灭", not comm_light.visible and not fault.visible)
 	t.assert_equal("主台 / 状态条复用展示数据", console.get_case_phase_display_text(), status.text)
+	# 全部真实派单阶段都经过同一展示信号，测量实际字体，不缩改文案。
+	for dispatch: DispatchDefinition in ContentRegistry.get_all_dispatch_definitions():
+		for phase_name: String in dispatch.front_phase_texts:
+			var phase_text: Dictionary = dispatch.front_phase_texts[phase_name]
+			var content := "%s · %s" % [String(dispatch.dispatch_id).replace("_", " "),
+					str(phase_text.get("state", "")).trim_prefix("当前状态：")]
+			console.case_phase_display_changed.emit(content)
+			t.assert_equal("CASE / 实际 Label 接收 " + String(dispatch.dispatch_id) + " " + phase_name,
+					content, status.text)
+			_assert_status_layout(t, status, status_viewport, phase_name)
+	console.case_phase_display_changed.emit(console.get_case_phase_display_text())
+	console.case_phase_display_changed.connect(func(text: String) -> void:
+		t.assert_equal("CASE / 三单真实刷新进入实际 Label", text, status.text)
+		_assert_status_layout(t, status, status_viewport, text)
+	)
 	var microphone := main.find_child("麦克风热点", true, false) as InteractionHotspot3D
 	var surface_root := main.find_child("斜台面新增控件根", true, false) as Node3D
 	t.assert_true("主台 / 新增控件根精确复用 MIC 斜面 Basis",
@@ -230,6 +259,17 @@ func run(t: Variant, tree: SceneTree) -> void:
 	main.queue_free()
 	await _frames(tree)
 	await _test_visual_replacement(t, tree)
+
+
+func _assert_status_layout(t: Variant, status: Label, viewport: SubViewport, context: String) -> void:
+	var font := status.get_theme_font("font")
+	var font_size := status.get_theme_font_size("font_size")
+	var text_size := font.get_string_size(status.text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+	t.assert_true("CASE / 单行不裁切 " + context,
+			text_size.x <= status.size.x and font.get_height(font_size) <= status.size.y
+			and status.position.x >= 0.0 and status.position.y >= 0.0
+			and status.get_rect().end.x <= viewport.size.x
+			and status.get_rect().end.y <= viewport.size.y)
 
 
 func _assert_shared_button_meshes(t: Variant, first: Node3D, second: Node3D, label: String) -> void:
@@ -664,7 +704,7 @@ func _test_visual_replacement(t: Variant, tree: SceneTree) -> void:
 	t.assert_equal("美术解耦 / 数字与验证仍保留前导零", "004",
 			str(destination.get_destination_presentation().validated_floor))
 	t.assert_equal("美术解耦 / 动态屏继续使用原视口纹理", viewport.get_texture(),
-			(presentation.get_node(presentation.screen_mesh_path).material_override as StandardMaterial3D).albedo_texture)
+			(presentation.get_node(presentation.screen_mesh_path).material_override as ShaderMaterial).get_shader_parameter("feed_texture"))
 	var wheel := main.find_child("左操作台定位", true, false) as LeftTerminalScreen3D
 	var axis := wheel.get_node(wheel.scroll_wheel_visual_path) as Node3D
 	var rotation_before := axis.rotation

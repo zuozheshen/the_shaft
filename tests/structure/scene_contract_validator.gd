@@ -54,7 +54,8 @@ const EXPORTED_PATHS := {
 		"monitor_subviewport_path": "SubViewport", "screen_mesh_path": "MeshInstance3D",
 		"cam_01_backlight_path": "Node3D", "cam_02_backlight_path": "Node3D",
 		"comm_light_path": "Node3D", "door_light_path": "MeshInstance3D",
-		"fault_light_path": "Node3D", "status_label_path": "Label3D",
+		"fault_light_path": "Node3D", "status_label_path": "Label",
+		"status_subviewport_path": "SubViewport", "status_mesh_path": "MeshInstance3D",
 	},
 	"RightConsolePresentation3D": {
 		"destination_interface_path": "DestinationControlInterface",
@@ -268,8 +269,26 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 				if not node.get(property) is StandardMaterial3D:
 					_report(node, property, "StandardMaterial3D", "missing or wrong type")
 			var screen := node.get_node_or_null(node.get("screen_mesh_path")) as MeshInstance3D
-			if screen != null and not screen.material_override is StandardMaterial3D:
-				_report(node, "screen_mesh_path/material_override", "StandardMaterial3D", "missing or wrong type")
+			if screen != null:
+				var material := screen.material_override as ShaderMaterial
+				if material == null or material.shader == null:
+					_report(node, "screen_mesh_path/material_override", "ShaderMaterial with Shader", "missing or wrong type")
+				else:
+					var has_feed_uniform := false
+					for uniform: Dictionary in material.shader.get_shader_uniform_list():
+						has_feed_uniform = has_feed_uniform or (uniform.name == "feed_texture" and uniform.type == TYPE_OBJECT)
+					if not has_feed_uniform:
+						_report(node, "screen_mesh_path/material_override", "feed_texture sampler", "missing")
+			var status_viewport := node.get_node_or_null(node.get("status_subviewport_path")) as SubViewport
+			var status_label := node.get_node_or_null(node.get("status_label_path")) as Label
+			if status_viewport != null:
+				if not status_viewport.disable_3d:
+					_report(node, "status_subviewport_path", "pure 2D SubViewport", "disable_3d=false")
+				if status_label != null and not status_viewport.is_ancestor_of(status_label):
+					_report(node, "status_label_path", "Label inside status SubViewport", "outside viewport")
+			var status_screen := node.get_node_or_null(node.get("status_mesh_path")) as MeshInstance3D
+			if status_screen != null and not status_screen.material_override is StandardMaterial3D:
+				_report(node, "status_mesh_path/material_override", "StandardMaterial3D", "missing or wrong type")
 		"RightConsolePresentation3D":
 			var right_root := _root.find_child("右操作台定位", true, false)
 			if right_root == null:

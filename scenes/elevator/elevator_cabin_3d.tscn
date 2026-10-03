@@ -59,6 +59,8 @@
 [ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_door.tres" id="64_nameplate_door"]
 [ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_fault.tres" id="64_nameplate_fault"]
 
+[ext_resource type="Material" path="res://assets/art/materials/main_console_v2/crt_screen.tres" id="65_crt"]
+
 [sub_resource type="ORMMaterial3D" id="ORMMaterial3D_cymdg"]
 albedo_texture = ExtResource("2_k80hx")
 orm_texture = ExtResource("5_1mpkw")
@@ -288,19 +290,22 @@ top_radius = 0.023
 bottom_radius = 0.023
 height = 0.024
 
-[sub_resource type="StandardMaterial3D" id="52_screen"]
-resource_local_to_scene = true
-shading_mode = 0
-texture_filter = 0
-
 [sub_resource type="QuadMesh" id="52_screen_quad"]
-size = Vector2(1.44, 0.81)
+size = Vector2(1.44, 1.08)
 center_offset = Vector3(0, 0.16913, 0)
 
 [sub_resource type="StandardMaterial3D" id="52_dark"]
 resource_local_to_scene = true
 shading_mode = 0
 albedo_color = Color(0.045, 0.055, 0.065, 1)
+
+[sub_resource type="StandardMaterial3D" id="65_status_screen"]
+resource_local_to_scene = true
+shading_mode = 0
+texture_filter = 0
+
+[sub_resource type="QuadMesh" id="65_status_quad"]
+size = Vector2(1.024, 0.128)
 
 [sub_resource type="BoxMesh" id="52_status_box"]
 size = Vector3(2.304, 0.14, 0.002)
@@ -951,7 +956,7 @@ font_size = 22
 
 [node name="主监视器" type="MeshInstance3D" parent="操作台占位/主操作台定位" unique_id=933225609]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69087, -1.529)
-material_override = SubResource("52_screen")
+material_override = ExtResource("65_crt")
 mesh = SubResource("52_screen_quad")
 
 [node name="设备状态条" type="Node3D" parent="操作台占位/主操作台定位" unique_id=13673703]
@@ -962,13 +967,33 @@ position = Vector3(0, 0, 0.007)
 material_override = SubResource("52_dark")
 mesh = SubResource("52_status_box")
 
-[node name="状态文字" type="Label3D" parent="操作台占位/主操作台定位/设备状态条" unique_id=1478401597]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.019)
-pixel_size = 0.0018
-modulate = Color(0.65, 0.86, 0.79, 1)
+[node name="状态屏面" type="MeshInstance3D" parent="操作台占位/主操作台定位/设备状态条"]
+position = Vector3(0, 0, 0.019)
+material_override = SubResource("65_status_screen")
+mesh = SubResource("65_status_quad")
+
+[node name="状态视口" type="SubViewport" parent="操作台占位/主操作台定位/设备状态条"]
+disable_3d = true
+size = Vector2i(512, 64)
+render_target_update_mode = 4
+
+[node name="底色" type="ColorRect" parent="操作台占位/主操作台定位/设备状态条/状态视口"]
+offset_right = 512.0
+offset_bottom = 64.0
+mouse_filter = 2
+color = Color(0.045, 0.055, 0.065, 1)
+
+[node name="状态文字" type="Label" parent="操作台占位/主操作台定位/设备状态条/状态视口" unique_id=1478401597]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 504.0
+offset_bottom = 56.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.65, 0.86, 0.79, 1)
+theme_override_font_sizes/font_size = 24
 text = "CASE — · 值班待命"
-font_size = 28
-outline_size = 3
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="左操作台定位" type="Node3D" parent="操作台占位" unique_id=1852062320]
 position = Vector3(-0.246, 0.1, 0)
@@ -2153,7 +2178,7 @@ cabin_camera_anchor_path = NodePath("../监控摄影棚定位/监控测试摄影
 door_camera_anchor_path = NodePath("../监控摄影棚定位/监控测试摄影棚/摄像机锚点/门外摄像机锚点")
 
 [node name="监控视口" type="SubViewport" parent="监控渲染系统" unique_id=2050851602]
-size = Vector2i(640, 360)
+size = Vector2i(320, 240)
 render_target_update_mode = 4
 
 [node name="监控摄像机" type="Camera3D" parent="监控渲染系统/监控视口" unique_id=522498465]
@@ -2178,7 +2203,9 @@ cam_02_backlight_path = NodePath("../操作台占位/主操作台定位/主台�
 comm_light_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯/灯面")
 door_light_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯/灯面")
 fault_light_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯/灯面")
-status_label_path = NodePath("../操作台占位/主操作台定位/设备状态条/状态文字")
+status_label_path = NodePath("../操作台占位/主操作台定位/设备状态条/状态视口/状态文字")
+status_subviewport_path = NodePath("../操作台占位/主操作台定位/设备状态条/状态视口")
+status_mesh_path = NodePath("../操作台占位/主操作台定位/设备状态条/状态屏面")
 door_closed_material = SubResource("52_closed")
 door_moving_material = SubResource("52_moving")
 door_open_material = SubResource("52_open")

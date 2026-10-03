@@ -141,6 +141,45 @@ func run() -> Array[String]:
 	_expect("main screen permits Inspector edits and exported path", _scene_errors(instance).is_empty())
 	instance.free()
 
+	for field: String in ["status_label_path", "status_subviewport_path", "status_mesh_path"]:
+		instance = packed.instantiate()
+		presentation = instance.find_child("主台展示绑定", true, false)
+		presentation.set(field, NodePath("不存在的CASE节点"))
+		_expect("missing CASE path " + field, _scene_errors(instance).contains(field))
+		instance.free()
+
+	instance = packed.instantiate()
+	presentation = instance.find_child("主台展示绑定", true, false)
+	var wrong_label := Label3D.new()
+	presentation.add_child(wrong_label)
+	presentation.set("status_label_path", presentation.get_path_to(wrong_label))
+	_expect("CASE rejects Label3D", _scene_errors(instance).contains("status_label_path"))
+	instance.free()
+
+	instance = packed.instantiate()
+	presentation = instance.find_child("主台展示绑定", true, false)
+	presentation.get_node(presentation.get("status_subviewport_path")).disable_3d = false
+	_expect("CASE rejects 3D viewport", _scene_errors(instance).contains("pure 2D"))
+	instance.free()
+
+	for invalid_material: Material in [StandardMaterial3D.new(), ShaderMaterial.new()]:
+		instance = packed.instantiate()
+		presentation = instance.find_child("主台展示绑定", true, false)
+		var bad_screen := presentation.get_node(presentation.get("screen_mesh_path")) as MeshInstance3D
+		bad_screen.material_override = invalid_material
+		_expect("CRT rejects wrong/missing shader", _scene_errors(instance).contains("ShaderMaterial with Shader"))
+		instance.free()
+
+	instance = packed.instantiate()
+	presentation = instance.find_child("主台展示绑定", true, false)
+	var wrong_shader := Shader.new()
+	wrong_shader.code = "shader_type spatial; void fragment() { ALBEDO = vec3(1.0); }"
+	var wrong_material := ShaderMaterial.new()
+	wrong_material.shader = wrong_shader
+	presentation.get_node(presentation.get("screen_mesh_path")).material_override = wrong_material
+	_expect("CRT rejects missing feed sampler", _scene_errors(instance).contains("feed_texture sampler"))
+	instance.free()
+
 	var validator := Validator.new()
 	var empty_node := Node.new()
 	validator.validate_api(empty_node, ["get_demo_flow_manager"], ["dispatch_started"], "fixture", "接口")

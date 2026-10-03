@@ -46,12 +46,12 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 ## 主操作台 V2 Blockout（#62）
 
 - 源 Scene 为“主操作台体块”，模型范围为 `AgentGenerated_ART02_1_Blockout`；使用米制单位、主台局部原点与标准 glTF Y-up 转换。只导出外壳模型，不导出 Camera、Light、碰撞、动态屏面或业务 metadata。
-- `main_console_shell.glb` 包含机身、CRT/CASE 外壳及 COMM/CAMERA/DOOR 板壳；通过 `scenes/visuals/main_console_shell_visual.tscn` 接入既有主台“视觉资产”。所有 Gameplay、热点、反馈、CASE Label3D 和监控纹理链保持 Godot 所有。
-- CRT 最前方物理孔口为 1.32×0.99 米（4:3），中心约 Y=1.827 米、前缘 Z=-1.39 米；内框向后渐扩，前孔为 1.36×1.02 米（Z=-1.425），后孔留出裕量为 1.46×1.095 米（Z=-1.524）。后方仍预留以 Y=1.86 米为中心的 1.44×1.08 米屏幕空间与占位衬底。前框孔口与实际动态内容是两层：本阶段完整保留 640×360 feed、1.44×0.81 米（16:9）QuadMesh、`center_offset=(0, 0.16913, 0)` 及原主监视器 Transform，#65 再处理未来 4:3 动态屏面。
+- `main_console_shell.glb` 包含机身、CRT/CASE 外壳及 COMM/CAMERA/DOOR 板壳；通过 `scenes/visuals/main_console_shell_visual.tscn` 接入既有主台“视觉资产”。所有 Gameplay、热点、反馈、CASE 动态文字和监控纹理链保持 Godot 所有。
+- CRT 最前方物理孔口为 1.32×0.99 米（4:3），中心约 Y=1.827 米、前缘 Z=-1.39 米；内框向后渐扩，前孔为 1.36×1.02 米（Z=-1.425），后孔留出裕量为 1.46×1.095 米（Z=-1.524）。后方仍预留以 Y=1.86 米为中心的 1.44×1.08 米屏幕空间与占位衬底。前框孔口与实际动态内容是两层：#62 阶段保留 640×360 feed、1.44×0.81 米（16:9）QuadMesh、`center_offset=(0, 0.16913, 0)` 及原主监视器 Transform，#65 已将同一动态屏面改为 4:3，最终规格见末节。
 - 上柜外宽仍为 2.42 米、外侧壁宽 6 厘米；CRT 两侧可见机柜带由 37 收至 28 厘米，其中前面板由 31 收至 22 厘米。新增 CRT 模组壳体外宽 1.86 米、纵深 22 厘米（Z=-1.65 至 -1.43 米），相对柜前面 Z=-1.50 米前凸 7 厘米；bezel 再前伸 4 厘米至 Z=-1.39 米。原屏面 Z=-1.529 米不动，相对 bezel 最前沿内凹 13.9 厘米，形成“主机柜 → CRT 模组壳体 → 厚 bezel → 内凹屏幕”。
 - 柜顶由 Y=2.454 降至 2.424 米，顶盖外侧厚度由 4 收至 3 厘米；中央隐藏下表面为 Y=2.410 米，保留 1.4 厘米顶壳厚度与未来屏幕顶部 Y=2.400 米的空间。bezel 顶带约由 12 收至 9 厘米，仅使用 2–3 毫米单段边缘折角，无 Modifier。
 - 主台控件斜面仍为 55°，下端约 Y=0.823 米；水平前沿延伸由 15 收至 7 厘米，厚度由 2 收至 1.2 厘米。操作楔体前裙下端后收 10 厘米（相对竖直约 18.27°）；下部底座前面上端后收 10 厘米、下端后收 23 厘米（约 15.46°），底宽由 2.56 收至 2.36 米。三块操作面沿用原高度与边界，前端边厚由 2.5 收至 2 厘米，COMM 留空、DOOR 保持较宽。Godot 场景、Gameplay、五个热点、碰撞、action_id、反馈、CASE、玩家位置与 FOV 均未改变。
-- #62 的几何基线为 20 个 Mesh 与一个根 Empty、4 个中性灰 Blockout 材质；当时本体不含 UV、贴图、正式材质、按钮/麦克风模型或表面细节。#64 在原几何上加入下节所述 UV/材质，CRT shader 和 CASE 最终材质仍未制作。#63 控制件在同一源文件的独立 Collection 制作，见下节；后续 #64 Material / #65 Screen 阶段仍按对应 Issue 审批。
+- #62 的几何基线为 20 个 Mesh 与一个根 Empty、4 个中性灰 Blockout 材质；当时本体不含 UV、贴图、正式材质、按钮/麦克风模型或表面细节。#64 在原几何上加入下节所述 UV/材质，#65 的 CRT shader 和 CASE 动态屏面见末节。#63 控制件在同一源文件的独立 Collection 制作，见下节；后续 #64 Material / #65 Screen 阶段仍按对应 Issue 审批。
 - #62 审批允许 Codex 新建该专用文件，并只保存自身生成的修改；写前仍核对 filepath、Scene、Collection、对象与用户未保存修改。禁止覆盖身份不明的源文件、将用户已有场景 Save As 到正式源路径，或对用户文件 Revert。
 
 ## 主操作台 V2 控制件（#63）
@@ -73,7 +73,7 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 - `MainConsolePresentation3D` 通过导出路径引用可选按钮组件，只订阅原 `camera_selected` 与 `presentation_effects_requested` 的成功开/关门 effect；初始化状态同步不播放按压。原 TX/MIC、DOOR 真实四态、FAULT 预留入口、监控纹理和 CASE 更新链保持，业务不读取 GLB 内部名称、层级或材质槽。
 - COMM / CAMERA SELECT / DOOR CONTROL / STATUS 四个固定小铭牌表达功能组，CAM 01 / CAM 02、OPEN / CLOSE、TX / DOOR / FAULT 都使用独立铭牌；采用 Godot 原生薄静态几何与 Label3D 占位，不新增 GLB、不做最终材质或螺丝。铭牌贴合原模块顶面；按钮 wrapper 补偿已有资产接触面高度，使安装框实际落到台面，不移动 Gameplay。
 - 六个 GLB 与既有 `.blend` 沿用现有 Git LFS 规则，不新增跟踪规则。源文件/运行资产大小、SHA、验证结果及提交状态记录在 #63 REVIEW，不将截图、日志、`.godot/` 或 Blender 备份提交为资产。
-- #62/#63 已获用户人工验收；#64 表面实现见下节，当前材质方向仍待对应人工验收。CRT shader 与后续屏面表现属于 #65，当前未制作。自动测试与 Godot AI 自检不得代替人工验收。
+- #62/#63 造型与体验及 #64 材质已获用户人工验收；表面和屏面实现见下节。最终整体验收状态以 #65 / #61 为准，自动测试与 Godot AI 自检不得代替人工验收。
 
 
 ## 主操作台 V2 UV / 材质（#64）
@@ -87,4 +87,13 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 - shell普通平面仍为368.64 texel/米的正交UV重复；控制件在0–1内。C仅将CRT右厚框的已有前脸UV映射到保留区，使用一个散热/检修条、两个固定螺丝和UNIT01小标记；自制 `module_detail_albedo.png` 和paint Normal中的保留区配合，其他面仍为统一项目颜色。不加网孔阵列或greeble几何，不把所有Atlas tile铺到主台。Atlas索引记录该表面与单元矩形；动态CASE/Camera Feed不进入Atlas。
 - 源几何不为导出切线而三角化。GLB保留NORMAL/UV；Godot原 `meshes/ensure_tangents` 从导入三角面生成切线，运行时已核实Normal和切线存在。七个GLB Embedded Image Handling沿用Embed as Uncompressed（3），不向模型目录抽取重复PNG。独立PNG使用lossless/mipmaps，关闭3D自动改变压缩模式，不增加LFS规则。
 - 11个固定铭牌沿用原薄盒的顶点、法线、尺寸和位置，带独立UV的ArrayMesh共用 `assets/art/materials/main_console_v2/nameplate_atlas.tres`。COMM文字沿用左移65毫米排版。原Label3D名称、文本、父级与Transform保留隐藏，必要时可恢复；文字不在按钮帽或按压轴上。CAM与OPEN/CLOSE四个外部覆盖材质引用同源256/512 Roughness/Normal，状态仍按实例隔离，GLB reimport不覆盖这些Godot资源。
-- 执行顺序为A基础材质→B微表面→C功能细节→D固定铭牌；各阶段正式main_3d/FOV70/原灯光截图通过后才继续下一层。实际完成与阻塞、自动测试、Godot运行时和用户体验验收状态以#64有效评论为准。用户批准的CASE边缘修补保持：背景厚2毫米、前面内嵌外壳2毫米（背景局部z=0.007），宽2.304米、两端各搭入侧壁2毫米。STATUS下托边最终仍为8顶点/6面：前下沿X=±1.26米、Blender Y=1.444米；全部后缘及全部上沿X=±1.175米，后缘Y=1.505米、前上沿Y=1.465米。顶面保留沿X左高右低4毫米/2.52米的安装微坡，后侧另加8毫米搭接；收窄侧面以清除COMM上沿三角突出，后缘回缩与前上沿回切避免遮挡DOOR CONTROL。UV、材质槽、Transform/Origin和层级保持，仅派生法线重算。按钮、灯、铭牌、热点、碰撞、action_id、按压/hover、CASE逻辑、Camera/FOV、左右台、舱体和灯光保持；#65尚未制作。
+- 执行顺序为A基础材质→B微表面→C功能细节→D固定铭牌；各阶段正式main_3d/FOV70/原灯光截图通过后才继续下一层。实际完成与阻塞、自动测试、Godot运行时和用户体验验收状态以#64有效评论为准。用户批准的CASE边缘修补保持：背景厚2毫米、前面内嵌外壳2毫米（背景局部z=0.007），宽2.304米、两端各搭入侧壁2毫米。STATUS下托边最终仍为8顶点/6面：前下沿X=±1.26米、Blender Y=1.444米；全部后缘及全部上沿X=±1.175米，后缘Y=1.505米、前上沿Y=1.465米。顶面保留沿X左高右低4毫米/2.52米的安装微坡，后侧另加8毫米搭接；收窄侧面以清除COMM上沿三角突出，后缘回缩与前上沿回切避免遮挡DOOR CONTROL。UV、材质槽、Transform/Origin和层级保持，仅派生法线重算。按钮、灯、铭牌、热点、碰撞、action_id、按压/hover、CASE逻辑、Camera/FOV、左右台、舱体和灯光保持；后续动态屏面规格见 #65 小节。
+
+## 主操作台 V2 CRT / CASE（#65）
+
+- 原监控仍为唯一 Camera / SubViewport / 共享 World3D 链，尺寸 320×240；Camera 保持 KEEP_HEIGHT、FOV60 和原两个锚点。主屏原节点 Transform、center_offset 与外壳不动，Quad 从 1.44×0.81 改为 1.44×1.08 米，4:3 四边完整落在既有孔口内。
+- 仅主屏使用 assets/art/shaders/main_console_crt.gdshader / assets/art/materials/main_console_v2/crt_screen.tres。feed_texture 为原 ViewportTexture，source_color、nearest、repeat_disable，unshaded 只输出 ALBEDO；没有额外照明、双重发光或全屏效果。
+- 默认曲率0.015、扫描线0.04、暗角0.08、亮度1.0；shader 内分别 clamp 到0–0.03、0–0.08、0–0.15、0.9–1.1。扫描线对应240行，以 fwidth 在缩小时衰减，优先避免摩尔纹；没有噪声、滚动、闪烁、色差或 VHS 抖动。参数归零可对照原材质。
+- 设备状态条/状态视口是 disable_3d=true 的512×64 SubViewport，内部状态文字为2D Label；状态屏面是独立 nearest / unshaded StandardMaterial3D 的1.024×0.128米Quad。原2.304×0.14米背景与父级保持，不横向拉满黑条，CASE没有CRT扫描线。字色浅青，font_size24，四边8px安全区、单行居中。24个真实阶段的最长文字宽364px，字体高度34px，适合496×48px内容区，无需512×96。
+- MainConsolePresentation3D 保留 status_label_path 字段名，目标迁到上述 Label，新增 status_subviewport_path / status_mesh_path。绑定只复制材质并更新纹理、原信号文字和指示灯，不重置屏面 Mesh / Transform，不在隐藏节点保存业务数据。
+- #65 不修改 Blender 源文件或任何 GLB，原七个运行资产与静态材质沿用；同路径reimport后的监控/CASE绑定和热点不依赖模型内部命名。全局分辨率、左右台、COMM、楼层书、Input、灯光与其他材质过滤不变。
