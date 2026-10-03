@@ -7,9 +7,9 @@
 [resource]
 resource_name = "cam_unselected"
 albedo_color = Color(0.04, 0.04, 0.04, 1)
-roughness = 0.746
+roughness = 0.8052631579
 roughness_texture = ExtResource("1_roughness")
 
 normal_enabled = true
-normal_scale = 0.6
+normal_scale = 0.75
 normal_texture = ExtResource("2_normal")

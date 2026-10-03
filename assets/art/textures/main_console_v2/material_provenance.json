@@ -79,7 +79,17 @@
     "plastic_xy_strength": 0.55,
     "roughness": "8px Gaussian high-pass, clipped +/-2 sigma; 247 +/-6 multiplier",
     "contact_polish": "roughness only; <=1.33% UV mask; <=4/255 reduction",
-    "grille": "local regular holes; gradient normal; no external grille image"
+    "grille": "local regular holes; gradient normal; no external grille image",
+    "paint_normal_prefilter": {
+      "method": "GaussianBlur",
+      "radius_pixels": 1.2,
+      "protected_rect": [
+        88,
+        24,
+        176,
+        490
+      ]
+    }
   },
   "no_external_albedo": true,
   "generator_libraries": {
@@ -87,10 +97,12 @@
     "NumPy": "2.3.5"
   },
   "material_normal_scales": {
-    "paint": 0.24,
-    "control_imported": 0.6,
-    "microphone": 0.75,
-    "Godot_cap_overrides": 0.6
+    "paint": 0.45,
+    "control_imported": 0.75,
+    "microphone_base_ptt": 0.85,
+    "microphone_neck_grille": 0.75,
+    "Godot_cap_overrides": 0.75,
+    "CRT_detail": 0.24
   },
   "self_made_details": {
     "CRT右厚框": {
@@ -174,7 +186,7 @@
         1024,
         1024
       ],
-      "sha256": "4debb23fa7730c73548c6e0c381060515db696ec049daf7312d1bc8e2796edf7"
+      "sha256": "6b3dead370a88ce4aa68cd41d0130f0fdc6a954e04038c21ffdf53a6db784416"
     },
     "paint_roughness.png": {
       "resolution": [
@@ -183,5 +195,16 @@
       ],
       "sha256": "a586680e6a6c4ef58751e5c59a48b940ab64e51503820708d9c8b1705fd280ed"
     }
+  },
+  "material_roughness_targets": {
+    "body": 0.48,
+    "module": 0.54,
+    "camera_module": 0.5,
+    "dark_backing": 0.7,
+    "frames": 0.46,
+    "caps": 0.78,
+    "microphone_base": 0.48,
+    "microphone_ptt": 0.78,
+    "microphone_neck_grille": 0.9
   }
 }

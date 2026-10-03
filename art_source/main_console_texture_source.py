@@ -201,7 +201,16 @@ def build_surface_details(output):
     (output / 'main_console_detail_atlas.json').write_text(json.dumps(index, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     provenance_path = output / 'material_provenance.json'
     provenance = json.loads(provenance_path.read_text(encoding='utf-8'))
-    provenance['material_normal_scales'] = {'paint': 0.24, 'control_imported': 0.6, 'microphone': 0.75, 'Godot_cap_overrides': 0.6}
+    # 正式FOV70下预过滤喷漆高频法线；C图案像素保持，避免增强通风/编号。
+    normal_path = output / 'paint_normal.png'
+    original = Image.open(normal_path).convert('RGB')
+    filtered = original.filter(ImageFilter.GaussianBlur(1.2))
+    protected = (88, 24, 176, 490)
+    filtered.paste(original.crop(protected), protected[:2])
+    filtered.save(normal_path)
+    provenance['derivation']['paint_normal_prefilter'] = {'method': 'GaussianBlur', 'radius_pixels': 1.2, 'protected_rect': list(protected)}
+    provenance['material_normal_scales'] = {'paint': 0.45, 'control_imported': 0.75, 'microphone_base_ptt': 0.85, 'microphone_neck_grille': 0.75, 'Godot_cap_overrides': 0.75, 'CRT_detail': 0.24}
+    provenance['material_roughness_targets'] = {'body': 0.48, 'module': 0.54, 'camera_module': 0.50, 'dark_backing': 0.70, 'frames': 0.46, 'caps': 0.78, 'microphone_base': 0.48, 'microphone_ptt': 0.78, 'microphone_neck_grille': 0.90}
     provenance['self_made_details'] = index['applied_details']
     provenance['outputs'] = {file.name: {'resolution': list(Image.open(file).size),
         'sha256': hashlib.sha256(file.read_bytes()).hexdigest()} for file in sorted(output.glob('*.png'))}

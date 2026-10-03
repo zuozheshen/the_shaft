@@ -7,9 +7,9 @@
 [resource]
 resource_name = "door_open"
 albedo_color = Color(0.20, 0.32, 0.22, 1)
-roughness = 0.746
+roughness = 0.8052631579
 roughness_texture = ExtResource("1_roughness")
 
 normal_enabled = true
-normal_scale = 0.6
+normal_scale = 0.75
 normal_texture = ExtResource("2_normal")

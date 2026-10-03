@@ -303,7 +303,7 @@ shading_mode = 0
 albedo_color = Color(0.045, 0.055, 0.065, 1)
 
 [sub_resource type="BoxMesh" id="52_status_box"]
-size = Vector3(2.3, 0.14, 0.028)
+size = Vector3(2.3, 0.14, 0.002)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_aod7d"]
 albedo_texture = ExtResource("13_aod7d")
@@ -958,6 +958,7 @@ mesh = SubResource("52_screen_quad")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.23, -1.51)
 
 [node name="背景" type="MeshInstance3D" parent="操作台占位/主操作台定位/设备状态条" unique_id=1438256047]
+position = Vector3(0, 0, 0.007)
 material_override = SubResource("52_dark")
 mesh = SubResource("52_status_box")
 
