@@ -53,12 +53,12 @@
 
 [ext_resource type="Material" path="res://assets/art/materials/main_console_v2/crt_screen.tres" id="65_crt"]
 
-[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/wall_paint.tres" id="66_wall"]
-[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/floor_rubber.tres" id="66_floor"]
-[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/ceiling_paint.tres" id="66_ceiling"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/joint.tres" id="66_wall"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/floor.tres" id="66_floor"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/ceiling.tres" id="66_ceiling"]
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/trim_rubber.tres" id="66_trim"]
 
-[ext_resource type="PackedScene" path="res://scenes/visuals/cabin_wall_assembly_visual.tscn" id="66_assembly"]
+[ext_resource type="PackedScene" path="res://scenes/visuals/cabin_assembly_v3_visual.tscn" id="66_assembly"]
 
 [sub_resource type="BoxMesh" id="66_floor_trim"]
 material = ExtResource("66_trim")
@@ -600,6 +600,7 @@ material_override = ExtResource("66_wall")
 size = Vector3(0.2, 2.5, 3.8)
 
 [node name="基础收边" type="Node3D" parent="灰盒环境"]
+visible = false
 
 [node name="后墙地脚条" type="MeshInstance3D" parent="灰盒环境/基础收边"]
 position = Vector3(0, 0.0175, 1.698)
@@ -615,9 +616,9 @@ position = Vector3(1.698, 0.0175, 0)
 rotation = Vector3(0, 1.5707963, 0)
 mesh = SubResource("66_floor_trim")
 
-[node name="装配结构V2" type="Node3D" parent="灰盒环境"]
+[node name="装配结构V3" type="Node3D" parent="灰盒环境"]
 
-[node name="左墙装配小样" parent="灰盒环境/装配结构V2" instance=ExtResource("66_assembly")]
+[node name="四壁与天花装配" parent="灰盒环境/装配结构V3" instance=ExtResource("66_assembly")]
 
 [node name="操作台占位" type="Node3D" parent="." unique_id=181656154]
 

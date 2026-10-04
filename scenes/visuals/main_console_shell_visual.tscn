@@ -1,7 +1,40 @@
 [gd_scene format=3]
 
 [ext_resource type="PackedScene" path="res://assets/art/models/main_console_shell.glb" id="1_shell"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/shell.tres" id="66_shell"]
 
 [node name="主操作台外壳" type="Node3D"]
 
 [node name="外壳模型" parent="." instance=ExtResource("1_shell")]
+
+[node name="上柜右侧壁" parent="外壳模型/主操作台外壳" index="10"]
+material_override = ExtResource("66_shell")
+
+[node name="上柜右面板" parent="外壳模型/主操作台外壳" index="11"]
+material_override = ExtResource("66_shell")
+
+[node name="上柜后壳" parent="外壳模型/主操作台外壳" index="12"]
+material_override = ExtResource("66_shell")
+
+[node name="上柜左侧壁" parent="外壳模型/主操作台外壳" index="13"]
+material_override = ExtResource("66_shell")
+
+[node name="上柜左面板" parent="外壳模型/主操作台外壳" index="14"]
+material_override = ExtResource("66_shell")
+
+[node name="上柜顶盖" parent="外壳模型/主操作台外壳" index="15"]
+material_override = ExtResource("66_shell")
+
+[node name="下部柜座" parent="外壳模型/主操作台外壳" index="16"]
+material_override = ExtResource("66_shell")
+
+[node name="前缘水平托台" parent="外壳模型/主操作台外壳" index="17"]
+material_override = ExtResource("66_shell")
+
+[node name="操作楔体" parent="外壳模型/主操作台外壳" index="18"]
+material_override = ExtResource("66_shell")
+
+[node name="状态窗下框" parent="外壳模型/主操作台外壳" index="19"]
+material_override = ExtResource("66_shell")
+
+[editable path="外壳模型"]

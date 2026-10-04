@@ -1,0 +1,56 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/steel.tres" id="steel"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/joint.tres" id="joint"]
+
+[sub_resource type="BoxMesh" id="mesh_1"]
+size = Vector3(0.025, 2.43, 0.016)
+material = ExtResource("steel")
+
+[sub_resource type="BoxMesh" id="mesh_2"]
+size = Vector3(0.025, 2.43, 0.016)
+material = ExtResource("steel")
+
+[sub_resource type="BoxMesh" id="mesh_3"]
+size = Vector3(2.035, 0.006, 0.017)
+material = ExtResource("joint")
+
+[sub_resource type="BoxMesh" id="mesh_4"]
+size = Vector3(2.035, 0.006, 0.017)
+material = ExtResource("joint")
+
+[sub_resource type="BoxMesh" id="mesh_5"]
+size = Vector3(2.03, 0.01, 0.018)
+material = ExtResource("steel")
+
+[node name="乘客舱装配视觉V3" type="Node3D"]
+
+[node name="门框内折边-1.017" type="MeshInstance3D" parent="."]
+position = Vector3(-1.017, 1.25, 0.106)
+rotation = Vector3(0, 0, 0)
+layers = 2
+mesh = SubResource("mesh_1")
+
+[node name="门框内折边1.017" type="MeshInstance3D" parent="."]
+position = Vector3(1.017, 1.25, 0.106)
+rotation = Vector3(0, 0, 0)
+layers = 2
+mesh = SubResource("mesh_2")
+
+[node name="门槛导向槽-0.06" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.053, -0.06)
+rotation = Vector3(0, 0, 0)
+layers = 2
+mesh = SubResource("mesh_3")
+
+[node name="门槛导向槽0.06" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.053, 0.06)
+rotation = Vector3(0, 0, 0)
+layers = 2
+mesh = SubResource("mesh_4")
+
+[node name="门槛前沿收边" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.055, 0.142)
+rotation = Vector3(0, 0, 0)
+layers = 2
+mesh = SubResource("mesh_5")

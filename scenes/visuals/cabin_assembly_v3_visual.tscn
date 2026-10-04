@@ -1,0 +1,371 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/wall.tres" id="wall"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/trim.tres" id="trim"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/joint.tres" id="joint"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/elevator_cabin_v3/hatch_bevel.tres" id="hatch_bevel"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/steel.tres" id="steel"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/record.tres" id="record"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/elevator_cabin_v3/ceiling_hatch_bevel.tres" id="ceiling_hatch_bevel"]
+
+[sub_resource type="QuadMesh" id="mesh_1"]
+size = Vector2(3.38, 2.4)
+material = ExtResource("wall")
+
+[sub_resource type="BoxMesh" id="mesh_2"]
+size = Vector3(3.33, 0.033, 0.016)
+material = ExtResource("trim")
+
+[sub_resource type="BoxMesh" id="mesh_3"]
+size = Vector3(3.33, 0.055, 0.021)
+material = ExtResource("joint")
+
+[sub_resource type="BoxMesh" id="mesh_4"]
+size = Vector3(0.026, 2.38, 0.017)
+material = ExtResource("trim")
+
+[sub_resource type="BoxMesh" id="mesh_5"]
+size = Vector3(0.026, 2.38, 0.017)
+material = ExtResource("trim")
+
+[sub_resource type="QuadMesh" id="mesh_6"]
+size = Vector2(3.38, 2.4)
+material = ExtResource("wall")
+
+[sub_resource type="BoxMesh" id="mesh_7"]
+size = Vector3(3.33, 0.033, 0.016)
+material = ExtResource("trim")
+
+[sub_resource type="BoxMesh" id="mesh_8"]
+size = Vector3(3.33, 0.055, 0.021)
+material = ExtResource("joint")
+
+[sub_resource type="BoxMesh" id="mesh_9"]
+size = Vector3(0.026, 2.38, 0.017)
+material = ExtResource("trim")
+
+[sub_resource type="BoxMesh" id="mesh_10"]
+size = Vector3(0.026, 2.38, 0.017)
+material = ExtResource("trim")
+
+[sub_resource type="QuadMesh" id="mesh_11"]
+size = Vector2(3.38, 2.4)
+material = ExtResource("wall")
+
+[sub_resource type="BoxMesh" id="mesh_12"]
+size = Vector3(3.33, 0.033, 0.016)
+material = ExtResource("trim")
+
+[sub_resource type="BoxMesh" id="mesh_13"]
+size = Vector3(3.33, 0.055, 0.021)
+material = ExtResource("joint")
+
+[sub_resource type="BoxMesh" id="mesh_14"]
+size = Vector3(0.026, 2.38, 0.017)
+material = ExtResource("trim")
+
+[sub_resource type="BoxMesh" id="mesh_15"]
+size = Vector3(0.026, 2.38, 0.017)
+material = ExtResource("trim")
+
+[sub_resource type="BoxMesh" id="mesh_16"]
+size = Vector3(0.817, 1.017, 0.015)
+material = ExtResource("joint")
+
+[sub_resource type="CylinderMesh" id="bolt"]
+top_radius = 0.007
+bottom_radius = 0.007
+height = 0.004
+radial_segments = 6
+rings = 1
+material = ExtResource("steel")
+
+[sub_resource type="BoxMesh" id="mesh_17"]
+size = Vector3(0.028, 0.027, 0.018)
+material = ExtResource("steel")
+
+[sub_resource type="BoxMesh" id="mesh_18"]
+size = Vector3(0.028, 0.027, 0.018)
+material = ExtResource("steel")
+
+[sub_resource type="BoxMesh" id="mesh_19"]
+size = Vector3(0.015, 0.14, 0.021)
+material = ExtResource("steel")
+
+[sub_resource type="BoxMesh" id="mesh_20"]
+size = Vector3(0.51, 0.53, 0.014)
+material = ExtResource("trim")
+
+[sub_resource type="QuadMesh" id="mesh_21"]
+size = Vector2(0.475, 0.485)
+material = ExtResource("record")
+
+[sub_resource type="BoxMesh" id="mesh_22"]
+size = Vector3(0.15, 0.023, 0.01)
+material = ExtResource("steel")
+
+[sub_resource type="QuadMesh" id="mesh_23"]
+size = Vector2(3.38, 2.4)
+material = ExtResource("wall")
+
+[sub_resource type="BoxMesh" id="mesh_24"]
+size = Vector3(3.33, 0.033, 0.016)
+material = ExtResource("trim")
+
+[sub_resource type="BoxMesh" id="mesh_25"]
+size = Vector3(3.33, 0.055, 0.021)
+material = ExtResource("joint")
+
+[sub_resource type="BoxMesh" id="mesh_26"]
+size = Vector3(0.026, 2.38, 0.017)
+material = ExtResource("trim")
+
+[sub_resource type="BoxMesh" id="mesh_27"]
+size = Vector3(0.026, 2.38, 0.017)
+material = ExtResource("trim")
+
+[sub_resource type="BoxMesh" id="mesh_28"]
+size = Vector3(0.572, 0.272, 0.012)
+material = ExtResource("joint")
+
+[node name="舱体装配视觉V3" type="Node3D"]
+
+[node name="前壁" type="Node3D" parent="."]
+position = Vector3(0, 0, -1.694)
+rotation = Vector3(0, 0, 0)
+
+[node name="连续喷漆墙面" type="MeshInstance3D" parent="前壁"]
+position = Vector3(0, 1.25, 0.001)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_1")
+
+[node name="顶部窄折边" type="MeshInstance3D" parent="前壁"]
+position = Vector3(0, 2.477, 0.008)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_2")
+
+[node name="地脚防护" type="MeshInstance3D" parent="前壁"]
+position = Vector3(0, 0.033, 0.011)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_3")
+
+[node name="转角折边-1.678" type="MeshInstance3D" parent="前壁"]
+position = Vector3(-1.678, 1.253, 0.009)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_4")
+
+[node name="转角折边1.678" type="MeshInstance3D" parent="前壁"]
+position = Vector3(1.678, 1.253, 0.009)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_5")
+
+[node name="左壁" type="Node3D" parent="."]
+position = Vector3(-1.694, 0, 0)
+rotation = Vector3(0, 1.570796327, 0)
+
+[node name="连续喷漆墙面" type="MeshInstance3D" parent="左壁"]
+position = Vector3(0, 1.25, 0.001)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_6")
+
+[node name="顶部窄折边" type="MeshInstance3D" parent="左壁"]
+position = Vector3(0, 2.477, 0.008)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_7")
+
+[node name="地脚防护" type="MeshInstance3D" parent="左壁"]
+position = Vector3(0, 0.033, 0.011)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_8")
+
+[node name="转角折边-1.678" type="MeshInstance3D" parent="左壁"]
+position = Vector3(-1.678, 1.253, 0.009)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_9")
+
+[node name="转角折边1.678" type="MeshInstance3D" parent="左壁"]
+position = Vector3(1.678, 1.253, 0.009)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_10")
+
+[node name="后壁" type="Node3D" parent="."]
+position = Vector3(0, 0, 1.694)
+rotation = Vector3(0, 3.141592654, 0)
+
+[node name="连续喷漆墙面" type="MeshInstance3D" parent="后壁"]
+position = Vector3(0, 1.25, 0.001)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_11")
+
+[node name="顶部窄折边" type="MeshInstance3D" parent="后壁"]
+position = Vector3(0, 2.477, 0.008)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_12")
+
+[node name="地脚防护" type="MeshInstance3D" parent="后壁"]
+position = Vector3(0, 0.033, 0.011)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_13")
+
+[node name="转角折边-1.678" type="MeshInstance3D" parent="后壁"]
+position = Vector3(-1.678, 1.253, 0.009)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_14")
+
+[node name="转角折边1.678" type="MeshInstance3D" parent="后壁"]
+position = Vector3(1.678, 1.253, 0.009)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_15")
+
+[node name="检修门安装薄框" type="MeshInstance3D" parent="后壁"]
+position = Vector3(-0.57, 1.48, 0.01)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_16")
+
+[node name="检修门盖板" type="MeshInstance3D" parent="后壁"]
+position = Vector3(-0.57, 1.48, 0.024)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = ExtResource("hatch_bevel")
+
+[node name="检修固定件0" type="MeshInstance3D" parent="后壁"]
+position = Vector3(-0.9199999999999999, 1.04, 0.034)
+rotation = Vector3(1.570796327, 0, 0)
+mesh = SubResource("bolt")
+
+[node name="检修固定件1" type="MeshInstance3D" parent="后壁"]
+position = Vector3(-0.21999999999999997, 1.04, 0.034)
+rotation = Vector3(1.570796327, 0, 0)
+mesh = SubResource("bolt")
+
+[node name="检修固定件2" type="MeshInstance3D" parent="后壁"]
+position = Vector3(-0.9199999999999999, 1.92, 0.034)
+rotation = Vector3(1.570796327, 0, 0)
+mesh = SubResource("bolt")
+
+[node name="检修固定件3" type="MeshInstance3D" parent="后壁"]
+position = Vector3(-0.21999999999999997, 1.92, 0.034)
+rotation = Vector3(1.570796327, 0, 0)
+mesh = SubResource("bolt")
+
+[node name="把手座1.535" type="MeshInstance3D" parent="后壁"]
+position = Vector3(-0.84, 1.535, 0.037)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_17")
+
+[node name="把手座1.415" type="MeshInstance3D" parent="后壁"]
+position = Vector3(-0.84, 1.415, 0.037)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_18")
+
+[node name="检修折手" type="MeshInstance3D" parent="后壁"]
+position = Vector3(-0.84, 1.475, 0.054)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_19")
+
+[node name="点检记录夹板" type="MeshInstance3D" parent="后壁"]
+position = Vector3(0.76, 1.79, 0.019)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_20")
+
+[node name="点检记录" type="MeshInstance3D" parent="后壁"]
+position = Vector3(0.76, 1.79, 0.028)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_21")
+
+[node name="记录夹" type="MeshInstance3D" parent="后壁"]
+position = Vector3(0.76, 2.04, 0.033)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_22")
+
+[node name="右壁" type="Node3D" parent="."]
+position = Vector3(1.694, 0, 0)
+rotation = Vector3(0, -1.570796327, 0)
+
+[node name="连续喷漆墙面" type="MeshInstance3D" parent="右壁"]
+position = Vector3(0, 1.25, 0.001)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_23")
+
+[node name="顶部窄折边" type="MeshInstance3D" parent="右壁"]
+position = Vector3(0, 2.477, 0.008)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_24")
+
+[node name="地脚防护" type="MeshInstance3D" parent="右壁"]
+position = Vector3(0, 0.033, 0.011)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_25")
+
+[node name="转角折边-1.678" type="MeshInstance3D" parent="右壁"]
+position = Vector3(-1.678, 1.253, 0.009)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_26")
+
+[node name="转角折边1.678" type="MeshInstance3D" parent="右壁"]
+position = Vector3(1.678, 1.253, 0.009)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_27")
+
+[node name="天花检修" type="Node3D" parent="."]
+position = Vector3(0.74, 2.497, 1.56)
+rotation = Vector3(1.570796327, 0, 0)
+
+[node name="盖板垫边" type="MeshInstance3D" parent="天花检修"]
+position = Vector3(0, 0, 0.002)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = SubResource("mesh_28")
+
+[node name="维修盖板" type="MeshInstance3D" parent="天花检修"]
+position = Vector3(0, 0, 0.01)
+rotation = Vector3(0, 0, 0)
+layers = 1
+mesh = ExtResource("ceiling_hatch_bevel")
+
+[node name="维修紧固0" type="MeshInstance3D" parent="天花检修"]
+position = Vector3(-0.245, -0.1, 0.019)
+rotation = Vector3(1.570796327, 0, 0)
+mesh = SubResource("bolt")
+
+[node name="维修紧固1" type="MeshInstance3D" parent="天花检修"]
+position = Vector3(0.245, -0.1, 0.019)
+rotation = Vector3(1.570796327, 0, 0)
+mesh = SubResource("bolt")
+
+[node name="维修紧固2" type="MeshInstance3D" parent="天花检修"]
+position = Vector3(-0.245, 0.1, 0.019)
+rotation = Vector3(1.570796327, 0, 0)
+mesh = SubResource("bolt")
+
+[node name="维修紧固3" type="MeshInstance3D" parent="天花检修"]
+position = Vector3(0.245, 0.1, 0.019)
+rotation = Vector3(1.570796327, 0, 0)
+mesh = SubResource("bolt")

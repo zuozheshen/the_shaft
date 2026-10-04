@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_v3/inspection_record.png" id="1_albedo"]
+
+[resource]
+resource_name = "ART03_V3_record"
+albedo_color = Color(1, 1, 1, 1)
+roughness = 0.95
+metallic = 0
+texture_filter = 5
+albedo_texture = ExtResource("1_albedo")

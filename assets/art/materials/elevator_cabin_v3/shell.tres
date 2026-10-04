@@ -1,0 +1,9 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+
+[resource]
+resource_name = "ART03_V3_shell"
+albedo_color = Color(0.72, 0.74, 0.735, 1)
+roughness = 0.65
+metallic = 0
+texture_filter = 5

@@ -2,8 +2,13 @@
 
 [ext_resource type="Script" uid="uid://d1fwxlb7fey8r" path="res://scripts/presentation/elevator_door_visual_3d.gd" id="1_door"]
 
-[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_assembly_v2/door_left_assembly.tres" id="66_door_left"]
-[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_assembly_v2/door_right_assembly.tres" id="66_door_right"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/door_left.tres" id="66_door_left"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/door_right.tres" id="66_door_right"]
+
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/joint.tres" id="66_rework_left_center_mat"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/steel.tres" id="66_rework_left_fold_mat"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/joint.tres" id="66_rework_right_center_mat"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/steel.tres" id="66_rework_right_fold_mat"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sn0t7"]
 albedo_color = Color(0.39215687, 0.43137255, 0.47058824, 1)
@@ -107,6 +112,22 @@ _data = {
 &"door_open": SubResource("Animation_i2igv")
 }
 
+[sub_resource type="QuadMesh" id="66_rework_left_center"]
+size = Vector2(0.018, 2.34)
+material = ExtResource("66_rework_left_center_mat")
+
+[sub_resource type="QuadMesh" id="66_rework_left_fold"]
+size = Vector2(0.016, 2.34)
+material = ExtResource("66_rework_left_fold_mat")
+
+[sub_resource type="QuadMesh" id="66_rework_right_center"]
+size = Vector2(0.018, 2.34)
+material = ExtResource("66_rework_right_center_mat")
+
+[sub_resource type="QuadMesh" id="66_rework_right_fold"]
+size = Vector2(0.016, 2.34)
+material = ExtResource("66_rework_right_fold_mat")
+
 [node name="双开门视觉3D" type="Node3D" unique_id=850811919]
 script = ExtResource("1_door")
 animation_player_path = NodePath("门动画播放器")
@@ -137,3 +158,22 @@ unique_name_in_owner = true
 libraries/ = SubResource("AnimationLibrary_i2igv")
 
 [node name="门音效播放器" type="AudioStreamPlayer3D" parent="." unique_id=408775721]
+[node name="V3中央" type="MeshInstance3D" parent="门扇根/左门扇动画根"]
+position = Vector3(0.511, 0, 0.0419)
+layers = 2
+mesh = SubResource("66_rework_left_center")
+
+[node name="V3折边" type="MeshInstance3D" parent="门扇根/左门扇动画根"]
+position = Vector3(0.483, 0, 0.0419)
+layers = 2
+mesh = SubResource("66_rework_left_fold")
+
+[node name="V3中央" type="MeshInstance3D" parent="门扇根/右门扇动画根"]
+position = Vector3(-0.511, 0, 0.0419)
+layers = 2
+mesh = SubResource("66_rework_right_center")
+
+[node name="V3折边" type="MeshInstance3D" parent="门扇根/右门扇动画根"]
+position = Vector3(-0.483, 0, 0.0419)
+layers = 2
+mesh = SubResource("66_rework_right_fold")

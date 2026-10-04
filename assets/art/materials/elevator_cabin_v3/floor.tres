@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_v3/rubber_studs.png" id="1_tex"]
+
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_v3/rubber_normal.png" id="2_normal"]
+
+[resource]
+resource_name = "ART03_V3_floor"
+albedo_color = Color(1, 1, 1, 1)
+roughness = 0.93
+metallic = 0
+texture_filter = 5
+albedo_texture = ExtResource("1_tex")
+uv1_triplanar = true
+uv1_scale = Vector3(1.45, 1.45, 1.45)
+normal_enabled = true
+normal_scale = 0.30
+normal_texture = ExtResource("2_normal")

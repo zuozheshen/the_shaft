@@ -1,0 +1,32 @@
+{
+  "issue": 66,
+  "revision": "V3 continuous smoky-blue, fully unworn",
+  "source": "Retained project-authored procedural rubber and printed record created for #66; native material/mesh generator: art_source/elevator_cabin_visual_v3_source.py",
+  "license": "Project-authored art. Raster label uses Microsoft YaHei and Consolas; no font file redistributed.",
+  "outputs": {
+    "inspection_record.png": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "c22e0ec4b9187917f9626a739de5e75b17241bcaebe659c1a5d1c87ee470750e",
+      "purpose": "clean printed inspection record"
+    },
+    "rubber_normal.png": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "c4d88fd2e2243e3896a375f9d062a609e03295d1c5e2eca9348097b413e9874a",
+      "purpose": "uniform rubber studs; no scuffs or aging"
+    },
+    "rubber_studs.png": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "f3679b3558a0efd1072520092ae662cfdae7af123c0144c0b73af5581eae97fa",
+      "purpose": "uniform rubber studs; no scuffs or aging"
+    }
+  }
+}
