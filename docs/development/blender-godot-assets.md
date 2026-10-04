@@ -114,7 +114,7 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 
 - 原生方案：操作舱六个 CSGBox3D、摄影棚已有三壁/地面、两门框与门槛只绑定外部材质；两扇门保持原 BoxMesh、3×2 UV、动画根和轨道。没有舱体 GLB、新 Blender 源或导出。旧共享 4K 文件保留，仅移除操作舱场景已失去引用的三个旧墙/地/顶材质及其独占资源声明。
 - 六个共享 StandardMaterial3D 位于 `assets/art/materials/elevator_cabin_v1/`。四墙灰绿 #939B93，天花浅暖灰 #B7B7AF，橡胶地面 #3E4241，涂层门 #939797，门框/门槛 #737B79，橡胶收边 #3A403E；metallic 均为 0。有效粗糙度基准依次为 0.68/0.76/0.88/0.54/0.62/0.86；有图材质的 roughness 参数除以 247/255，以抵消数据图基准。Normal 强度依次为 0.18/0.10/0.35/0.24/0.18，收边无贴图；没有 heightmap。
-- 六张 1024 PNG 位于 `assets/art/textures/elevator_cabin_v1/`，总计 3,643,139 字节。喷漆 Normal/Roughness 供墙、顶、框共用；地面一组自制周期颗粒；门一组原生六面 atlas。大面局部 triplanar，4m/tile、256 texel/m；门正面约 341×512px 对应 1.04×2.35m。过滤为 linear mipmapped anisotropic；法线明确 Enable/OpenGL +Y，数据图不标 source_color，lossless/mipmaps，不改变全局或 ART-02 过滤。
+- 六张 1024 PNG 位于 `assets/art/textures/elevator_cabin_v1/`，总计 3,643,139 字节。喷漆 Normal/Roughness 供墙、顶、框共用；地面一组自制周期颗粒；门一组原生六面 atlas。大面局部 triplanar，4m/tile、256 texel/m；地面 offset=(0.5,0.5,0.5)，使图中的两条磨亮落在舱内中央、避免 tile 原点将其推到墙边。门正面约 341×512px 对应 1.04×2.35m。过滤为 linear mipmapped anisotropic；法线明确 Enable/OpenGL +Y，数据图不标 source_color，lossless/mipmaps，不改变全局或 ART-02 过滤。
 - 喷漆只重用已校验的 ambientCG Metal028 CC0 原始 NormalGL/Roughness，未修改 ART-02 成品图。下载来源、许可、原图和压缩包 SHA、派生参数、尺寸/大小及每张输出 SHA 在 `material_provenance.json`。地面随机种子 66，抛光可见掩膜约 3.50%、有效 roughness 最大减少 0.0392；门边约 1.94%、最大减少 0.0262。只改 roughness，没有白色划痕、锈、油污或 Albedo 大斑。
 - `灰盒环境/基础收边` 新增后、左、右三条无碰撞 MeshInstance3D，共享 3.396×0.035×0.002m BoxMesh；底边 Y=0，墙内表面相隔 1mm。省略主台遮挡的前条和摄影棚视角外的门上横条；不改变原门洞、门扇运动包络或通行边界。
 - PLAN v1 的现状描述漏掉玩家后墙外 `操作台占位/电梯门` 旧静态 CSG（Z=2.85；后墙中心 Z=1.8）。它没有材质、动画或碰撞，也不是业务乘客舱门，本轮保持。正式业务门仍在 X=100 的摄影棚，经原 320×240 feed 观察；CAM01 朝舱门，CAM02 朝门外，不为材质验收改锚点。
