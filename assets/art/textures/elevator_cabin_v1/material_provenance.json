@@ -1,0 +1,127 @@
+{
+  "issue": 66,
+  "sources": [
+    {
+      "asset": "Metal028",
+      "asset_name": "Metal 028",
+      "source_url": "https://ambientcg.com/a/Metal028",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "download_date": "2026-10-03",
+      "archive_url": "https://ambientcg.com/get?file=Metal028_1K-PNG.zip",
+      "archive_sha256": "582963a48e2479660dc006cd59103be10db13e97f5ee36884c44c0e288dfa7b7",
+      "maps_used": [
+        {
+          "map": "NormalGL",
+          "file": "Metal028_1K-PNG_NormalGL.png",
+          "sha256": "2288587809ce1f3328fa093dd9c9db1f5cc1b699ededdb5f82bca0e81e6b1fa3",
+          "resolution": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "map": "Roughness",
+          "file": "Metal028_1K-PNG_Roughness.png",
+          "sha256": "1237849a265dea5d00c8e7eff463b2e088d840e02d986b51ebd2670529a4dbe1",
+          "resolution": [
+            1024,
+            1024
+          ]
+        }
+      ],
+      "maps_excluded": [
+        "Color",
+        "NormalDX",
+        "Displacement",
+        "Metalness"
+      ]
+    }
+  ],
+  "source_reuse": "Only the SHA-verified Metal028 NormalGL/Roughness source; no ART-02 output images modified.",
+  "derivation": {
+    "normal_direction": "OpenGL +Y; vector normalization; no sRGB conversion for data maps",
+    "paint": {
+      "normal_xy_scale": 0.35,
+      "normal_prefilter_px": 1.2,
+      "roughness_highpass_px": 8,
+      "roughness_multiplier": "247 +/- 6"
+    },
+    "floor": {
+      "source": "project-authored periodic grain",
+      "seed": 66,
+      "tile_meters": 4,
+      "texel_per_meter": 256,
+      "polish_area_fraction": 0.03497314453125,
+      "polish_max_reduction_255": 11
+    },
+    "door": {
+      "layout": "native BoxMesh 3x2 UV",
+      "polish_area_fraction": 0.019439697265625,
+      "polish_max_reduction_255": 12,
+      "geometry_uv_changed": false
+    }
+  },
+  "roughness_targets": {
+    "wall": 0.68,
+    "ceiling": 0.76,
+    "floor": 0.88,
+    "door": 0.54,
+    "frame": 0.62,
+    "trim": 0.86
+  },
+  "generator_libraries": {
+    "Pillow": "12.3.0",
+    "NumPy": "2.3.5"
+  },
+  "outputs": {
+    "paint_normal.png": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "bytes": 450000,
+      "sha256": "50ed4520f3185b2bcea16f815d13df23c06dc011d74e55e0323c3844340a2546"
+    },
+    "paint_roughness.png": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "bytes": 553337,
+      "sha256": "a586680e6a6c4ef58751e5c59a48b940ab64e51503820708d9c8b1705fd280ed"
+    },
+    "floor_normal.png": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "bytes": 1583982,
+      "sha256": "55ad35e5146aee923725adce88780f2e831f5e301631d825ddbdc6b38e5b5e69"
+    },
+    "floor_roughness.png": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "bytes": 479504,
+      "sha256": "d32ab7f3de09bba81be6a246b9477b61fddc9c4b1a38127e0c3c4dbfe627952c"
+    },
+    "door_normal.png": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "bytes": 309772,
+      "sha256": "525b4c1266c62c5b895fff0d0abb7aa0e07d3cc5f4c20c76d44d5e0f9cc336b6"
+    },
+    "door_roughness.png": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "bytes": 266544,
+      "sha256": "6ed54201817e55376388a9ebe79cc2db92421975d914d02804bb932e18ce3fa0"
+    }
+  }
+}

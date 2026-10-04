@@ -1,19 +1,11 @@
 [gd_scene format=3 uid="uid://pfkh2fdm64ga"]
 
 [ext_resource type="Script" uid="uid://bfnx7v1oyqct0" path="res://scripts/elevator/cabin_view_controller_3d.gd" id="1_wegik"]
-[ext_resource type="Texture2D" uid="uid://ddj56nnupgtxy" path="res://assets/art/thumb-grate_6024.jpg" id="2_gn0la"]
-[ext_resource type="Texture2D" uid="uid://dpygqogeotcb3" path="res://assets/art/metal_plate_02_4k/metal_plate_floor/metal_plate_diff_4k.jpg" id="2_k80hx"]
 [ext_resource type="PackedScene" uid="uid://dwgr21xrksmb4" path="res://scenes/ui/ConsoleInterface.tscn" id="2_laov4"]
-[ext_resource type="Texture2D" uid="uid://cnak0x22o7ehv" path="res://assets/art/metal_plate_02_4k/metal_plate_floor/metal_plate_disp_4k.jpg" id="3_aod7d"]
-[ext_resource type="Texture2D" uid="uid://byyqlnbvspl1a" path="res://assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_diff_4k.jpg" id="3_gn0la"]
 [ext_resource type="PackedScene" uid="uid://2mxpahaa3nm2" path="res://scenes/ui/BuildingTerminalInterface.tscn" id="3_tyhlv"]
-[ext_resource type="Texture2D" uid="uid://csks66mkxs7qs" path="res://assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_arm_4k.jpg" id="4_0r6a2"]
-[ext_resource type="Texture2D" uid="uid://u3tfav7ow5mx" path="res://assets/art/metal_plate_02_4k/metal_plate_floor/metal_plate_nor_gl_4k.jpg" id="4_05vjs"]
 [ext_resource type="Texture2D" uid="uid://bw80rtlmesldf" path="res://assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_disp_4k.jpg" id="4_cymdg"]
 [ext_resource type="PackedScene" uid="uid://wet3ybwny70j" path="res://scenes/ui/DestinationControlInterface.tscn" id="4_rx0mt"]
 [ext_resource type="Shader" uid="uid://c5ev61meb7jam" path="res://scenes/elevator/overlay.gdshader" id="5_0eoy0"]
-[ext_resource type="Texture2D" uid="uid://dmlgvxktr25bj" path="res://assets/art/metal_plate_02_4k/metal_plate_floor/metal_plate_arm_4k.jpg" id="5_1mpkw"]
-[ext_resource type="Texture2D" uid="uid://d0iyhy0bberiy" path="res://assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_nor_gl_4k.jpg" id="5_fkxr1"]
 [ext_resource type="Script" uid="uid://d3ik5m87sk8gx" path="res://scripts/ui/cabin_interface_router_3d.gd" id="5_router"]
 [ext_resource type="Script" uid="uid://b7vbl3jrmhedx" path="res://scripts/interaction/interaction_hotspot_3d.gd" id="8_hotspot"]
 [ext_resource type="Script" uid="uid://dmivswclo885p" path="res://scripts/interaction/cabin_interaction_controller.gd" id="9_interaction"]
@@ -61,27 +53,14 @@
 
 [ext_resource type="Material" path="res://assets/art/materials/main_console_v2/crt_screen.tres" id="65_crt"]
 
-[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_cymdg"]
-albedo_texture = ExtResource("2_k80hx")
-orm_texture = ExtResource("5_1mpkw")
-normal_enabled = true
-normal_scale = 7.05
-normal_texture = ExtResource("4_05vjs")
-heightmap_enabled = true
-heightmap_texture = ExtResource("3_aod7d")
-uv1_triplanar = true
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/wall_paint.tres" id="66_wall"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/floor_rubber.tres" id="66_floor"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/ceiling_paint.tres" id="66_ceiling"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/trim_rubber.tres" id="66_trim"]
 
-[sub_resource type="ORMMaterial3D" id="ORMMaterial3D_jyqdm"]
-albedo_texture = ExtResource("3_gn0la")
-orm_texture = ExtResource("4_0r6a2")
-normal_enabled = true
-normal_texture = ExtResource("5_fkxr1")
-heightmap_enabled = true
-heightmap_texture = ExtResource("4_cymdg")
-uv1_triplanar = true
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jyqdm"]
-albedo_texture = ExtResource("2_gn0la")
+[sub_resource type="BoxMesh" id="66_floor_trim"]
+material = ExtResource("66_trim")
+size = Vector3(3.396, 0.035, 0.002)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k80hx"]
 albedo_texture = ExtResource("11_aod7d")
@@ -590,33 +569,49 @@ fallback_floor_visual_profile = ExtResource("50_floor_fallback")
 
 [node name="地面" type="CSGBox3D" parent="灰盒环境" unique_id=120851442]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
-material_override = SubResource("ORMMaterial3D_cymdg")
+material_override = ExtResource("66_floor")
 size = Vector3(3.8, 0.2, 3.8)
 
 [node name="天花板" type="CSGBox3D" parent="灰盒环境" unique_id=1367294192]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
-material_override = SubResource("ORMMaterial3D_cymdg")
+material_override = ExtResource("66_ceiling")
 size = Vector3(3.8, 0.2, 3.8)
 
 [node name="前墙" type="CSGBox3D" parent="灰盒环境" unique_id=1372158968]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -1.8)
-material_override = SubResource("ORMMaterial3D_jyqdm")
+material_override = ExtResource("66_wall")
 size = Vector3(3.8, 2.5, 0.2)
 
 [node name="后墙" type="CSGBox3D" parent="灰盒环境" unique_id=125213659]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 1.8)
-material_override = SubResource("ORMMaterial3D_jyqdm")
+material_override = ExtResource("66_wall")
 size = Vector3(3.8, 2.5, 0.2)
 
 [node name="左墙" type="CSGBox3D" parent="灰盒环境" unique_id=847244142]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 1.25, 0)
-material_override = SubResource("ORMMaterial3D_jyqdm")
+material_override = ExtResource("66_wall")
 size = Vector3(0.2, 2.5, 3.8)
 
 [node name="右墙" type="CSGBox3D" parent="灰盒环境" unique_id=2006808390]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 1.25, 0)
-material_override = SubResource("ORMMaterial3D_jyqdm")
+material_override = ExtResource("66_wall")
 size = Vector3(0.2, 2.5, 3.8)
+
+[node name="基础收边" type="Node3D" parent="灰盒环境"]
+
+[node name="后墙地脚条" type="MeshInstance3D" parent="灰盒环境/基础收边"]
+position = Vector3(0, 0.0175, 1.698)
+mesh = SubResource("66_floor_trim")
+
+[node name="左墙地脚条" type="MeshInstance3D" parent="灰盒环境/基础收边"]
+position = Vector3(-1.698, 0.0175, 0)
+rotation = Vector3(0, 1.5707963, 0)
+mesh = SubResource("66_floor_trim")
+
+[node name="右墙地脚条" type="MeshInstance3D" parent="灰盒环境/基础收边"]
+position = Vector3(1.698, 0.0175, 0)
+rotation = Vector3(0, 1.5707963, 0)
+mesh = SubResource("66_floor_trim")
 
 [node name="操作台占位" type="Node3D" parent="." unique_id=181656154]
 

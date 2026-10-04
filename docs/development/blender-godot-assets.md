@@ -109,3 +109,21 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 - 导出验证对照展开三角形 POSITION/NORMAL、UV、节点层级/Transform、primitive/材质槽；v2 相对 v1 仅图片与 `体块模块灰` 的上述 Albedo 绑定变化，其他材质参数不变。活动 Blender 的未保存内存现场保留；源/导出在校验过身份的独立进程处理，保存源再以独立只读进程复核。
 - `control_normal_256.png.import` 与 `control_normal_512.png.import` 明确设 `compress/normal_map=1`（Enable），保留原 OpenGL 方向与强度，避免每次从 Detect 重新自动启用；Godot 的 RG 法线压缩提示属于正常导入优化，非运行 ERROR。固定 Godot AI v4.1.0 不改。原生 stderr 已捕获 6 条节点离树路径 ERROR，发生在正式场景打开后的导入收尾期间；Godot AI 日志过滤不能替代原生日志。资源元数据/EOL 收尾改在编辑器关闭时执行，导入扫描完成后才打开正式 main_3d；该流程的最终原生日志验证记录于 #67 最新 REVIEW。编辑器实例重载是当前推断，尚未确认具体 C++ 调用点，不声称已定位永久引擎根因。
 - 正式场景、Gameplay、CRT shader/ViewportTexture、CASE、Camera/FOV70、热点/碰撞与灯光不变。正式截图与独立的自动/视觉/人工验收状态记录于 #67 最新 REVIEW；停在本地 commit/push/merge 前。
+
+## 操作舱与监控乘客舱材质 V1（#66）
+
+- 原生方案：操作舱六个 CSGBox3D、摄影棚已有三壁/地面、两门框与门槛只绑定外部材质；两扇门保持原 BoxMesh、3×2 UV、动画根和轨道。没有舱体 GLB、新 Blender 源或导出。旧共享 4K 文件保留，仅移除操作舱场景已失去引用的三个旧墙/地/顶材质及其独占资源声明。
+- 六个共享 StandardMaterial3D 位于 `assets/art/materials/elevator_cabin_v1/`。四墙灰绿 #939B93，天花浅暖灰 #B7B7AF，橡胶地面 #3E4241，涂层门 #939797，门框/门槛 #737B79，橡胶收边 #3A403E；metallic 均为 0。有效粗糙度基准依次为 0.68/0.76/0.88/0.54/0.62/0.86；有图材质的 roughness 参数除以 247/255，以抵消数据图基准。Normal 强度依次为 0.18/0.10/0.35/0.24/0.18，收边无贴图；没有 heightmap。
+- 六张 1024 PNG 位于 `assets/art/textures/elevator_cabin_v1/`，总计 3,643,139 字节。喷漆 Normal/Roughness 供墙、顶、框共用；地面一组自制周期颗粒；门一组原生六面 atlas。大面局部 triplanar，4m/tile、256 texel/m；门正面约 341×512px 对应 1.04×2.35m。过滤为 linear mipmapped anisotropic；法线明确 Enable/OpenGL +Y，数据图不标 source_color，lossless/mipmaps，不改变全局或 ART-02 过滤。
+- 喷漆只重用已校验的 ambientCG Metal028 CC0 原始 NormalGL/Roughness，未修改 ART-02 成品图。下载来源、许可、原图和压缩包 SHA、派生参数、尺寸/大小及每张输出 SHA 在 `material_provenance.json`。地面随机种子 66，抛光可见掩膜约 3.50%、有效 roughness 最大减少 0.0392；门边约 1.94%、最大减少 0.0262。只改 roughness，没有白色划痕、锈、油污或 Albedo 大斑。
+- `灰盒环境/基础收边` 新增后、左、右三条无碰撞 MeshInstance3D，共享 3.396×0.035×0.002m BoxMesh；底边 Y=0，墙内表面相隔 1mm。省略主台遮挡的前条和摄影棚视角外的门上横条；不改变原门洞、门扇运动包络或通行边界。
+- PLAN v1 的现状描述漏掉玩家后墙外 `操作台占位/电梯门` 旧静态 CSG（Z=2.85；后墙中心 Z=1.8）。它没有材质、动画或碰撞，也不是业务乘客舱门，本轮保持。正式业务门仍在 X=100 的摄影棚，经原 320×240 feed 观察；CAM01 朝舱门，CAM02 朝门外，不为材质验收改锚点。
+- 同路径重导入六张 PNG 后，外部材质引用继续生效，无 Gameplay 重接。玩家 FOV70、监控 FOV60、Camera/Viewport/CRT/CASE、原灯光和 WorldEnvironment 保持；项目 viewport 配置 2560×1080，当前设备正式 framebuffer 实测 2560×1440，二者在验收记录中区分。固定视角地面大多在画外，只在转向角落少量可见；微表面与最终质感仍需用户实机判断。
+
+重建需 Python、Pillow 12.3.0、NumPy 2.3.5 与 provenance 记录中 SHA 匹配的原始包；包放在仓库外，不提交下载缓存：
+
+```powershell
+python art_source/elevator_cabin_texture_source.py assets/art/textures/elevator_cabin_v1 --source-archive <仓库外路径>/Metal028_1K-PNG.zip
+```
+
+生成器拒绝不匹配的源 SHA；重建后比较输出 hash，再按上述新 PNG 导入配置 reimport。资源元数据/EOL 收尾在 Editor 关闭时执行，原生日志与 Godot AI 日志共同复核；自动逻辑验证、视觉运行时自检、用户体验验收的实际状态以 #66 最新 REVIEW 为准。

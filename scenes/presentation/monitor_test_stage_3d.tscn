@@ -6,6 +6,10 @@
 [ext_resource type="PackedScene" uid="uid://pwk8iyr654yu" path="res://scenes/presentation/passenger_visual_3d.tscn" id="3_q8crp"]
 [ext_resource type="Resource" uid="uid://qboej4pygmj3" path="res://data/presentation/passenger_visuals/passenger_001_visual.tres" id="4_profile"]
 
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/wall_paint.tres" id="66_wall"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/floor_rubber.tres" id="66_floor"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/frame_coated_steel.tres" id="66_frame"]
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bhunq"]
 albedo_color = Color(1, 0, 0, 1)
 
@@ -30,21 +34,25 @@ initial_passenger_profile = ExtResource("4_profile")
 [node name="固定乘客舱" type="Node3D" parent="." unique_id=1566578310]
 
 [node name="舱内地面" type="CSGBox3D" parent="固定乘客舱" unique_id=321001515]
+material_override = ExtResource("66_floor")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 1.1)
 layers = 2
 size = Vector3(3, 0.1, 2.2)
 
 [node name="舱内后墙" type="CSGBox3D" parent="固定乘客舱" unique_id=383717504]
+material_override = ExtResource("66_wall")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 2.2)
 layers = 2
 size = Vector3(3, 2.6, 0.1)
 
 [node name="舱内左墙" type="CSGBox3D" parent="固定乘客舱" unique_id=660531601]
+material_override = ExtResource("66_wall")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 1.3, 1.1)
 layers = 2
 size = Vector3(0.1, 2.6, 2.2)
 
 [node name="舱内右墙" type="CSGBox3D" parent="固定乘客舱" unique_id=126593965]
+material_override = ExtResource("66_wall")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 1.3, 1.1)
 layers = 2
 size = Vector3(0.1, 2.6, 2.2)
@@ -59,16 +67,19 @@ material = SubResource("StandardMaterial3D_bhunq")
 [node name="固定门区" type="Node3D" parent="." unique_id=443299903]
 
 [node name="左门框" type="CSGBox3D" parent="固定门区" unique_id=1470046501]
+material_override = ExtResource("66_frame")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.15, 1.25, 0)
 layers = 2
 size = Vector3(0.25, 2.5, 0.2)
 
 [node name="右门框" type="CSGBox3D" parent="固定门区" unique_id=1423737869]
+material_override = ExtResource("66_frame")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.15, 1.25, 0)
 layers = 2
 size = Vector3(0.25, 2.5, 0.2)
 
 [node name="门槛" type="CSGBox3D" parent="固定门区" unique_id=315909104]
+material_override = ExtResource("66_frame")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 layers = 2
 size = Vector3(2.05, 0.05, 0.3)

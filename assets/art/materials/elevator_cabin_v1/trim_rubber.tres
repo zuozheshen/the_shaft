@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "ART03_trim_rubber"
+albedo_color = Color(0.227451, 0.250980, 0.243137, 1)
+roughness = 0.86

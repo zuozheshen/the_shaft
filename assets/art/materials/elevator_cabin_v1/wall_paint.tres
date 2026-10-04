@@ -1,0 +1,16 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_v1/paint_normal.png" id="1_normal"]
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_v1/paint_roughness.png" id="2_roughness"]
+
+[resource]
+resource_name = "ART03_wall_paint"
+albedo_color = Color(0.576471, 0.607843, 0.576471, 1)
+roughness = 0.702024
+roughness_texture = ExtResource("2_roughness")
+normal_enabled = true
+normal_scale = 0.18
+normal_texture = ExtResource("1_normal")
+texture_filter = 5
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true

@@ -34,6 +34,7 @@
 - `scenes/presentation/monitor_test_stage_3d.tscn` 是正式主场景当前使用的监控摄影棚：可替换楼层切片、纸片乘客、双开门。MonitorCameraController3D 使用同一个世界和一台监控摄像机切换两个机位；MonitorPresentationCoordinator3D 协调门与乘客动作。
 - 楼层视觉由独立 FloorVisualProfile Resource 配置，位于 `data/presentation/floor_visuals/`。现有协调器在 setup 和实际到站时先应用楼层视觉，再同步乘客；移动中保持上一楼层。正式 Profile 与 fallback 由操作舱场景显式注入。
 - 监控舱内、固定门区与乘客使用渲染层 2；门外环境使用层 3 和一盏共用门外灯。监控摄像机可见层 2+3，玩家摄像机排除这两层。七层保持 Unshaded，主要依靠 Profile tint 区分楼层。
+- #66 的舱体材质 V1 保留原生 CSG/BoxMesh，在操作舱四壁/地面/天花、监控乘客舱已有大面及门/框/槛绑定六个共享外部材质；三条无碰撞地脚收边独立挂在“灰盒环境/基础收边”。六张 1024 Normal/Roughness 与独立派生脚本不修改 ART-02 资产或灯光。来源、重建与 reimport 边界见资产规范；实际验收状态以 #66 有效评论为准。
 
 ## 已实现与冻结职责
 
