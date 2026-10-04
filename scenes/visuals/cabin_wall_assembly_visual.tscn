@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/elevator_cabin_assembly_v2/corner_fold_mesh.tres" id="1_corner"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/elevator_cabin_assembly_v2/top_fold_mesh.tres" id="2_top"]
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_assembly_v2/vertical_seam_albedo.png" id="3_seam_albedo"]
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_assembly_v2/vertical_seam_normal.png" id="4_seam_normal"]
+
+[node name="左墙装配小样" type="Node3D"]
+
+[node name="前段竖缝" type="Decal" parent="."]
+transform = Transform3D(0, 1, 0, 0, 0, 1, 1, 0, 0, -1.7, 1.2525, -0.5666667)
+size = Vector3(0.012, 0.006, 2.433)
+texture_albedo = ExtResource("3_seam_albedo")
+texture_normal = ExtResource("4_seam_normal")
+albedo_mix = 0.15
+upper_fade = 0.0
+lower_fade = 0.0
+normal_fade = 0.8
+cull_mask = 1
+
+[node name="后段竖缝" type="Decal" parent="."]
+transform = Transform3D(0, 1, 0, 0, 0, 1, 1, 0, 0, -1.7, 1.2525, 0.5666667)
+size = Vector3(0.012, 0.006, 2.433)
+texture_albedo = ExtResource("3_seam_albedo")
+texture_normal = ExtResource("4_seam_normal")
+albedo_mix = 0.15
+upper_fade = 0.0
+lower_fade = 0.0
+normal_fade = 0.8
+cull_mask = 1
+
+[node name="前左护角" type="MeshInstance3D" parent="."]
+position = Vector3(-1.699, 0, -1.699)
+layers = 1
+mesh = ExtResource("1_corner")
+
+[node name="左墙顶折边" type="MeshInstance3D" parent="."]
+position = Vector3(-1.699, 2.4995, 0)
+layers = 1
+mesh = ExtResource("2_top")

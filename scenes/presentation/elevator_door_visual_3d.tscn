@@ -2,7 +2,8 @@
 
 [ext_resource type="Script" uid="uid://d1fwxlb7fey8r" path="res://scripts/presentation/elevator_door_visual_3d.gd" id="1_door"]
 
-[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/door_coated_steel.tres" id="66_door_material"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_assembly_v2/door_left_assembly.tres" id="66_door_left"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_assembly_v2/door_right_assembly.tres" id="66_door_right"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sn0t7"]
 albedo_color = Color(0.39215687, 0.43137255, 0.47058824, 1)
@@ -119,7 +120,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.52, 1.2, 0)
 
 [node name="左门扇" type="MeshInstance3D" parent="门扇根/左门扇动画根" unique_id=1872462857]
 layers = 2
-material_override = ExtResource("66_door_material")
+material_override = ExtResource("66_door_left")
 mesh = SubResource("BoxMesh_bhunq")
 
 [node name="右门扇动画根" type="Node3D" parent="门扇根" unique_id=35818975]
@@ -128,7 +129,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.52, 1.2, 0)
 
 [node name="右门扇" type="MeshInstance3D" parent="门扇根/右门扇动画根" unique_id=1321047058]
 layers = 2
-material_override = ExtResource("66_door_material")
+material_override = ExtResource("66_door_right")
 mesh = SubResource("BoxMesh_riqys")
 
 [node name="门动画播放器" type="AnimationPlayer" parent="." unique_id=510481983]

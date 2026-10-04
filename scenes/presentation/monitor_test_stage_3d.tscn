@@ -10,6 +10,11 @@
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/floor_rubber.tres" id="66_floor"]
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/frame_coated_steel.tres" id="66_frame"]
 
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_assembly_v2/vertical_seam_albedo.png" id="66_edge_albedo"]
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_assembly_v2/vertical_seam_normal.png" id="66_edge_normal"]
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_assembly_v2/threshold_groove_albedo.png" id="66_threshold_albedo"]
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_assembly_v2/threshold_groove_normal.png" id="66_threshold_normal"]
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bhunq"]
 albedo_color = Color(1, 0, 0, 1)
 
@@ -85,6 +90,44 @@ layers = 2
 size = Vector3(2.05, 0.05, 0.3)
 
 [node name="双开门视觉3D" parent="固定门区" unique_id=850811919 instance=ExtResource("3_1rmkh")]
+
+[node name="装配标记V2" type="Node3D" parent="固定门区"]
+
+[node name="左框内缘" type="Decal" parent="固定门区/装配标记V2"]
+layers = 2
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, -1.035, 1.25, 0.1)
+size = Vector3(0.012, 0.006, 2.45)
+texture_albedo = ExtResource("66_edge_albedo")
+texture_normal = ExtResource("66_edge_normal")
+albedo_mix = 0.15
+upper_fade = 0.0
+lower_fade = 0.0
+normal_fade = 0.8
+cull_mask = 2
+
+[node name="右框内缘" type="Decal" parent="固定门区/装配标记V2"]
+layers = 2
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 1.035, 1.25, 0.1)
+size = Vector3(0.012, 0.006, 2.45)
+texture_albedo = ExtResource("66_edge_albedo")
+texture_normal = ExtResource("66_edge_normal")
+albedo_mix = 0.15
+upper_fade = 0.0
+lower_fade = 0.0
+normal_fade = 0.8
+cull_mask = 2
+
+[node name="门槛导向槽" type="Decal" parent="固定门区/装配标记V2"]
+layers = 2
+position = Vector3(0, 0.05, 0)
+size = Vector3(2.03, 0.006, 0.28)
+texture_albedo = ExtResource("66_threshold_albedo")
+texture_normal = ExtResource("66_threshold_normal")
+albedo_mix = 0.15
+upper_fade = 0.0
+lower_fade = 0.0
+normal_fade = 0.8
+cull_mask = 2
 
 [node name="门外楼层区域" type="Node3D" parent="." unique_id=1314125170]
 

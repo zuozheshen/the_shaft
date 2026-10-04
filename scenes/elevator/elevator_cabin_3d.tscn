@@ -58,6 +58,8 @@
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/ceiling_paint.tres" id="66_ceiling"]
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/trim_rubber.tres" id="66_trim"]
 
+[ext_resource type="PackedScene" path="res://scenes/visuals/cabin_wall_assembly_visual.tscn" id="66_assembly"]
+
 [sub_resource type="BoxMesh" id="66_floor_trim"]
 material = ExtResource("66_trim")
 size = Vector3(3.396, 0.035, 0.002)
@@ -612,6 +614,10 @@ mesh = SubResource("66_floor_trim")
 position = Vector3(1.698, 0.0175, 0)
 rotation = Vector3(0, 1.5707963, 0)
 mesh = SubResource("66_floor_trim")
+
+[node name="装配结构V2" type="Node3D" parent="灰盒环境"]
+
+[node name="左墙装配小样" parent="灰盒环境/装配结构V2" instance=ExtResource("66_assembly")]
 
 [node name="操作台占位" type="Node3D" parent="." unique_id=181656154]
 

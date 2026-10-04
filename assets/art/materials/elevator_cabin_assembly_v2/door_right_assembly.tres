@@ -1,0 +1,17 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_assembly_v2/door_right_normal.png" id="1_normal"]
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_v1/door_roughness.png" id="2_roughness"]
+
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_assembly_v2/door_right_albedo.png" id="3_albedo"]
+
+[resource]
+resource_name = "ART03_door_right_assembly"
+albedo_color = Color(0.576471, 0.592157, 0.592157, 1)
+albedo_texture = ExtResource("3_albedo")
+roughness = 0.557490
+roughness_texture = ExtResource("2_roughness")
+normal_enabled = true
+normal_scale = 0.24
+normal_texture = ExtResource("1_normal")
+texture_filter = 5

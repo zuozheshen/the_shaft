@@ -1,0 +1,123 @@
+{
+  "issue": 66,
+  "plan": "v2 first sample only",
+  "baseline": "8cafcab2cacbce272dd84f2bc627935ae789d684",
+  "source": {
+    "path": "assets/art/textures/elevator_cabin_v1/door_normal.png",
+    "sha256": "525b4c1266c62c5b895fff0d0abb7aa0e07d3cc5f4c20c76d44d5e0f9cc336b6",
+    "provenance": "assets/art/textures/elevator_cabin_v1/material_provenance.json",
+    "license": "project-authored structure over V1 CC0 Metal028 micro-surface"
+  },
+  "door": {
+    "band_m_per_leaf": 0.006,
+    "face": "+Z, u=0..1/3 v=0..1/2",
+    "inner_edge": {
+      "left": "u=1/3",
+      "right": "u=0"
+    },
+    "max_linear_shadow": 0.2,
+    "changed_normal_pixels": {
+      "left": 1024,
+      "right": 1024
+    },
+    "roughness_unchanged_sha256": "6ed54201817e55376388a9ebe79cc2db92421975d914d02804bb932e18ce3fa0",
+    "outside_band_normal_unchanged": true,
+    "mesh_uv_animation_unchanged": true
+  },
+  "decal": {
+    "vertical_band_m": 0.012,
+    "nominal_groove_m": 0.008,
+    "depth_m": 0.006,
+    "orm_emission": false,
+    "threshold_grooves_z_m": [
+      -0.06,
+      0.06
+    ]
+  },
+  "mesh": {
+    "sheet_thickness_m": 0.002,
+    "corner_wings_m": 0.025,
+    "corner_y_m": [
+      0.036,
+      2.469
+    ],
+    "top_return_m": 0.02,
+    "top_drop_m": 0.0295,
+    "collision": false,
+    "native_generator": "Godot SurfaceTool/ArrayMesh, no Blender or GLB"
+  },
+  "outputs": {
+    "door_left_albedo.png": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "bytes": 5355,
+      "sha256": "d6eb03f3492c8dc3d14c09ef09b3ddcf2b2650a7df115d310eaae04ddc99faf8"
+    },
+    "door_left_normal.png": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "bytes": 309894,
+      "sha256": "309fa3b1c5778d83848f7b980b51a754e84ecb42bf30de260026039a8304ba48"
+    },
+    "door_right_albedo.png": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "bytes": 5349,
+      "sha256": "fefc16c4b11ad3052d1ca5e0a9a265b61776cc23e8ec0ba4bc09dee1993163f1"
+    },
+    "door_right_normal.png": {
+      "resolution": [
+        1024,
+        1024
+      ],
+      "bytes": 309880,
+      "sha256": "76c92db4f413e66009192eea14163fede4c53b54979ca17aabc4dc1fe88ae734"
+    },
+    "vertical_seam_albedo.png": {
+      "resolution": [
+        64,
+        256
+      ],
+      "bytes": 767,
+      "sha256": "1f3108c9a73dfd3bfee2fb55898cffad168a846e80140256882b3890f9ddeea0"
+    },
+    "vertical_seam_normal.png": {
+      "resolution": [
+        64,
+        256
+      ],
+      "bytes": 523,
+      "sha256": "766de81680aebc5c56ff53072f66de657224bdfbd95c687e20f07bd0be2b3829"
+    },
+    "threshold_groove_albedo.png": {
+      "resolution": [
+        256,
+        64
+      ],
+      "bytes": 220,
+      "sha256": "ecda9f5a0e38b20bf571f4f348af98c924248ebccae288237ff4f556b1e3f018"
+    },
+    "threshold_groove_normal.png": {
+      "resolution": [
+        256,
+        64
+      ],
+      "bytes": 281,
+      "sha256": "235cb3fad9d6e453c9d09679694b479cb1aa7d9e80f16a491b9b7a053e19f7bf"
+    },
+    "corner_fold_mesh.tres": {
+      "bytes": 2706,
+      "sha256": "afe9d5f7dd71f122b1b8b2ee90cb82ee5a3c0c205acd7b1651538a83d2b09487"
+    },
+    "top_fold_mesh.tres": {
+      "bytes": 2710,
+      "sha256": "a9852d301cafbf4e0f08451218d5075076e6c6f131c5e787fa0672abcdc952f6"
+    }
+  }
+}

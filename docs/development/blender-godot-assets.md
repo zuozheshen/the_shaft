@@ -127,3 +127,18 @@ python art_source/elevator_cabin_texture_source.py assets/art/textures/elevator_
 ```
 
 生成器拒绝不匹配的源 SHA；重建后比较输出 hash，再按上述新 PNG 导入配置 reimport。资源元数据/EOL 收尾在 Editor 关闭时执行，原生日志与 Godot AI 日志共同复核；自动逻辑验证、视觉运行时自检、用户体验验收的实际状态以 #66 最新 REVIEW 为准。
+
+## 操作舱装配结构 V2 首批小样（#66）
+
+- 仅左墙两道竖缝、前左护角、左墙顶折边与 CAM01 原乘客舱门区。其他墙面、天花盖板和操作台安装缝待视觉反馈后决定；本小样不扩展到全舱。
+- 左墙按内表面宽 3.4m 三等分，拼缝中心 Z=±0.5666667m。两道 Decal 投射宽 12mm、深 6mm、高 2.433m，低对比 Albedo/浅 Normal；不切开原墙体。护角为两翼 25mm、板厚 2mm 的闭合 L 截面 ArrayMesh，Y=0.036–2.469m；顶边回折 20mm、下垂 29.5mm，长 3.398m。与原地脚条留 1mm、与天花留 0.5mm；护角与顶边端头留 1mm，避免共面重叠。两个 MeshInstance3D 共用 V1 墙漆，不生成碰撞。
+- 门扇仍用原 BoxMesh/UV/动画根；各门扇朝中央的 +Z 面内缘只有 6mm 派生 Albedo/Normal。正面 UV 为 u=0–1/3、v=0–1/2；左扇内缘 u=1/3，右扇内缘 u=0。线性暗芯上限 20%，Normal 带外逐像素保留 V1，Roughness 直接引用原图，色板及参数保持。新材质绑定原动画根下的 Mesh，纹理随门运动，不新增门边几何或改变实际间隙。
+- 两门框内缘和既有门槛只加三个薄投射 Decal，使用监控层 2/cull mask 2；门槛两条浅槽位于 Z=±0.06m。投射范围不碰门扇；不改框、门槛、门尺寸或位置。操作舱小样为层 1，不进入原监控 Camera mask 6。
+- 新资源位于 `assets/art/{materials,textures}/elevator_cabin_assembly_v2/`，8 张 PNG 共 632,269 字节。Normal 明确 Enable/OpenGL +Y；Albedo Disable Normal；全部 lossless/mipmaps，关闭 3D 自动压缩，不改全局过滤、原 V1 或 ART-02。沿用现有 PNG LFS 规则，来源及输出 SHA 见 `assembly_provenance.json`。
+- `art_source/elevator_cabin_assembly_source.py` 从已校验的 V1 图生成结构纹理，再用 Godot SurfaceTool/ArrayMesh 生成两个闭合折边（各 60 顶点/20 三角面，显式法线与切线）。不需要 Blender、GLB 或新依赖。优先生成到仓库外并比较 hash；导入配置保留新 PNG 的现有 UID，资源导入收尾在 Editor 关闭时执行。
+
+```powershell
+python art_source/elevator_cabin_assembly_source.py --godot <Godot-4.7-console.exe> --scratch-dir <仓库外临时目录> --output-root <仓库外重建目录>
+```
+
+正式验收使用同一玩家位置、FOV70、原灯光及 2560×1440 framebuffer；监控保持原 FOV60、320×240 和 CRT。主台、Q 转向 45°、左台及开/关门截图在仓库外保存；45°仅暂停原转向 Tween 取样后继续，不改相机资产。CAM01 中央缝与门槛在该低分辨率画面中仍偏弱，放大 feed 只辅助检查，最终可读性由用户判断。小样 REVIEW 区分逻辑测试、运行时检查与待完成的人工视觉反馈。
