@@ -97,3 +97,15 @@ REVIEW 分别记录自动逻辑检查、Godot AI 视觉/运行时自检和用户
 - 设备状态条/状态视口是 disable_3d=true 的512×64 SubViewport，内部状态文字为2D Label；状态屏面是独立 nearest / unshaded StandardMaterial3D 的1.024×0.128米Quad。原2.304×0.14米背景与父级保持，不横向拉满黑条，CASE没有CRT扫描线。字色浅青，font_size24，四边8px安全区、单行居中。24个真实阶段的最长文字宽364px，字体高度34px，适合496×48px内容区，无需512×96。
 - MainConsolePresentation3D 保留 status_label_path 字段名，目标迁到上述 Label，新增 status_subviewport_path / status_mesh_path。绑定只复制材质并更新纹理、原信号文字和指示灯，不重置屏面 Mesh / Transform，不在隐藏节点保存业务数据。
 - #65 不修改 Blender 源文件或任何 GLB，原七个运行资产与静态材质沿用；同路径reimport后的监控/CASE绑定和热点不依赖模型内部命名。全局分辨率、左右台、COMM、楼层书、Input、灯光与其他材质过滤不变。
+
+## 主操作台最终装配细节（#67，修订 v2）
+
+- 基于 #65 已验收的 `84267b2`；原两个 Collection、33 对象 / 26 Mesh / 12 材质、所有几何、法线、Transform/Origin、材质槽、Modifier、隐藏状态与导出根保持。#67 v1 仅在 7 个目标对象分配固定表面 UV；v2 保留这些 UV，不新增对象或螺丝 Mesh，只重导出原 `main_console_shell.glb` 与 `desk_microphone.glb`。
+- 用户要求将弱凹点改为可辨认螺丝贴图。CRT 左 / 右前脸各 2 颗约 11mm，连同既有检修条 2 颗共 6 颗；COMM / CAMERA / DOOR 各 2 颗约 9 / 8 / 9mm，错开位置；STATUS 无固定件；麦座原上表面 2 颗约 5.5mm。新固定件有灰色头部、细暗色沉头座及明确槽口，搭配浅 Normal；CAMERA 用十字槽，其余为一字槽。原检修条、通风槽和 UNIT01 不变，可选 SERV.04 省略。
+- CRT/CAMERA 沿用 `module_detail_albedo.png`，麦座沿用 `microphone_albedo.png`。COMM/DOOR 原共享 `体块模块灰` 材质只新增 `panel_fastener_albedo.png` Base Color 绑定，不新增材质槽；贴图背景 128 sRGB 等于原线性 BaseColorFactor 0.2158605，普通板面底色保持。螺丝是固定装配标记，触摸磨亮区仍不改 Base Color。
+- 为让实机小螺丝的头部/槽口不糊为亮点，module/panel Albedo 使用 2048px、microphone Albedo 使用 1024px；Normal/Roughness 继续 1024px / microphone Normal 512px，功能铭牌 Atlas PNG 1024px 不变。`assembly_detail_pass` 的 rect 使用原 Normal 布局坐标，Albedo 绘制乘 2；归一化 UV、物理尺寸与材质 Normal 强度不变。
+- 密封带仍在 CRT 原四个内坡面后缘、约 3.5mm 近黑色，显示面/孔口几何和 4:3 feed 不变。面板与 DOOR/STATUS 分界仅约 1.2mm 浅 Normal 接缝，无 Albedo 黑描边。前沿及 CAM/OPEN/CLOSE 旁磨亮只使用 Roughness，最大减少 4/255，新增可见掩膜约占目标表面 0.3203%；无锈、掉漆、白划痕、油污或大面积使用痕迹。
+- `main_console_texture_source.py` 的 `build_assembly_details` 在原 #64 派生步骤后执行，沿用原已校验 CC0 微表面与本地绘制细节，不需要新下载或生成图片；布局、螺丝表现、分辨率和输出 hash 记录于 Atlas JSON / provenance。普通机身 UV 仍采样下半区，固定装配面使用预留上半区；麦座只改变原上表面，避免标记重复到其他面。
+- 导出验证对照展开三角形 POSITION/NORMAL、UV、节点层级/Transform、primitive/材质槽；v2 相对 v1 仅图片与 `体块模块灰` 的上述 Albedo 绑定变化，其他材质参数不变。活动 Blender 的未保存内存现场保留；源/导出在校验过身份的独立进程处理，保存源再以独立只读进程复核。
+- `control_normal_256.png.import` 与 `control_normal_512.png.import` 明确设 `compress/normal_map=1`（Enable），保留原 OpenGL 方向与强度，避免每次从 Detect 重新自动启用；Godot 的 RG 法线压缩提示属于正常导入优化，非运行 ERROR。固定 Godot AI v4.1.0 不改。原生 stderr 已捕获 6 条节点离树路径 ERROR，发生在正式场景打开后的导入收尾期间；Godot AI 日志过滤不能替代原生日志。资源元数据/EOL 收尾改在编辑器关闭时执行，导入扫描完成后才打开正式 main_3d；该流程的最终原生日志验证记录于 #67 最新 REVIEW。编辑器实例重载是当前推断，尚未确认具体 C++ 调用点，不声称已定位永久引擎根因。
+- 正式场景、Gameplay、CRT shader/ViewportTexture、CASE、Camera/FOV70、热点/碰撞与灯光不变。正式截图与独立的自动/视觉/人工验收状态记录于 #67 最新 REVIEW；停在本地 commit/push/merge 前。

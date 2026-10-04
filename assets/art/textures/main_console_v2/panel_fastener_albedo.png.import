@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bq1ckdjvh77hh"
-path="res://.godot/imported/control_normal_512.png-e7137003e77d2fd3e2f196a7da3964e3.ctex"
+uid="uid://brq7lyqxafm63"
+path="res://.godot/imported/panel_fastener_albedo.png-2de3a603f3ad78d1f391a23d13212ec3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/textures/main_console_v2/control_normal_512.png"
-dest_files=["res://.godot/imported/control_normal_512.png-e7137003e77d2fd3e2f196a7da3964e3.ctex"]
+source_file="res://assets/art/textures/main_console_v2/panel_fastener_albedo.png"
+dest_files=["res://.godot/imported/panel_fastener_albedo.png-2de3a603f3ad78d1f391a23d13212ec3.ctex"]
 
 [params]
 
@@ -21,7 +21,7 @@ compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
-compress/normal_map=1
+compress/normal_map=0
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1
@@ -37,4 +37,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=0
+detect_3d/compress_to=1

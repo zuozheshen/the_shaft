@@ -162,38 +162,45 @@
     },
     "microphone_albedo.png": {
       "resolution": [
-        512,
-        512
+        1024,
+        1024
       ],
-      "sha256": "5b7573198805da5cd5ce519a4d2540522450f84cb7f4709be33931556de66745"
+      "sha256": "ff13d043e282cc7ac4b9a751ae9541b1ec1841ec4176a85ef510acdfc452838b"
     },
     "microphone_normal.png": {
       "resolution": [
         512,
         512
       ],
-      "sha256": "180478289a7073afc1004efd6e92aa9f60cb5eb40ea2f6ee8ba97867b82bb8b2"
+      "sha256": "58e722b1ce3455be34f93f8c9d2ac1a259322e45f829f492e146a110b68d6267"
     },
     "module_detail_albedo.png": {
       "resolution": [
-        1024,
-        1024
+        2048,
+        2048
       ],
-      "sha256": "746a4bce913f5d6dd76126b04c113ab0c772e5ad5e00e9e40ae2404baf7e1d2c"
+      "sha256": "9032874230af6bb34334559dfc9c97dd1f072846b694f9fdd99889ce64abac84"
     },
     "paint_normal.png": {
       "resolution": [
         1024,
         1024
       ],
-      "sha256": "6b3dead370a88ce4aa68cd41d0130f0fdc6a954e04038c21ffdf53a6db784416"
+      "sha256": "c25b0ac4e9111306ba664d04b3c38bc4a499c9193ccf6c47a496f01c3e56f6c7"
     },
     "paint_roughness.png": {
       "resolution": [
         1024,
         1024
       ],
-      "sha256": "a586680e6a6c4ef58751e5c59a48b940ab64e51503820708d9c8b1705fd280ed"
+      "sha256": "47336499c4d748760ee7449ee505e17beb63cb2858797eae85272a362d290471"
+    },
+    "panel_fastener_albedo.png": {
+      "resolution": [
+        2048,
+        2048
+      ],
+      "sha256": "c0d5c8489f649c2a154bbacc409d1b5220204da72459b358cf61e99d78d1624a"
     }
   },
   "material_roughness_targets": {
@@ -206,5 +213,295 @@
     "microphone_base": 0.48,
     "microphone_ptt": 0.78,
     "microphone_neck_grille": 0.9
+  },
+  "assembly_detail_pass": {
+    "issue": 67,
+    "surfaces": {
+      "CRT左厚框": {
+        "face": 1,
+        "rect": [
+          12,
+          32,
+          64,
+          450
+        ],
+        "size_m": [
+          0.178,
+          1.102273
+        ],
+        "screws": [
+          [
+            0.325,
+            0.082,
+            0.011
+          ],
+          [
+            0.325,
+            0.906,
+            0.011
+          ]
+        ]
+      },
+      "CRT右厚框": {
+        "face": 1,
+        "rect": [
+          96,
+          32,
+          72,
+          450
+        ],
+        "size_m": [
+          0.178,
+          1.102273
+        ],
+        "screws": [
+          [
+            0.71,
+            0.082,
+            0.011
+          ],
+          [
+            0.71,
+            0.906,
+            0.011
+          ]
+        ],
+        "existing_uv": true
+      },
+      "COMM模块板壳": {
+        "face": 4,
+        "rect": [
+          224,
+          32,
+          284,
+          132
+        ],
+        "size_m": [
+          0.77,
+          0.357411
+        ],
+        "screws": [
+          [
+            0.08,
+            0.76,
+            0.009
+          ],
+          [
+            0.87,
+            0.17,
+            0.009
+          ]
+        ],
+        "seam": true
+      },
+      "CAMERA模块板壳": {
+        "face": 4,
+        "rect": [
+          528,
+          32,
+          205,
+          132
+        ],
+        "size_m": [
+          0.555,
+          0.357411
+        ],
+        "screws": [
+          [
+            0.12,
+            0.19,
+            0.008
+          ],
+          [
+            0.9,
+            0.77,
+            0.008
+          ]
+        ],
+        "seam": true,
+        "drive": "cross",
+        "polish": [
+          [
+            0.33,
+            0.72,
+            6,
+            0.65
+          ],
+          [
+            0.71,
+            0.72,
+            6,
+            0.65
+          ]
+        ]
+      },
+      "DOOR模块板壳": {
+        "face": 4,
+        "rect": [
+          224,
+          190,
+          430,
+          132
+        ],
+        "size_m": [
+          1.165,
+          0.357411
+        ],
+        "screws": [
+          [
+            0.053,
+            0.75,
+            0.009
+          ],
+          [
+            0.55,
+            0.17,
+            0.009
+          ]
+        ],
+        "seam": true,
+        "status_seam_u": 0.66,
+        "polish": [
+          [
+            0.2,
+            0.72,
+            6,
+            0.65
+          ],
+          [
+            0.46,
+            0.72,
+            6,
+            0.65
+          ]
+        ]
+      },
+      "前缘水平托台": {
+        "face": 4,
+        "rect": [
+          224,
+          466,
+          780,
+          28
+        ],
+        "size_m": [
+          2.64,
+          0.075
+        ],
+        "polish": [
+          [
+            0.34,
+            0.8,
+            8,
+            0.65
+          ],
+          [
+            0.62,
+            0.8,
+            8,
+            0.65
+          ]
+        ]
+      }
+    },
+    "gasket": {
+      "3": {
+        "rect": [
+          224,
+          400,
+          550,
+          40
+        ],
+        "edge": "v_max"
+      },
+      "7": {
+        "rect": [
+          800,
+          32,
+          48,
+          450
+        ],
+        "edge": "u_max"
+      },
+      "11": {
+        "rect": [
+          224,
+          344,
+          550,
+          40
+        ],
+        "edge": "v_min"
+      },
+      "15": {
+        "rect": [
+          864,
+          32,
+          48,
+          450
+        ],
+        "edge": "u_min"
+      }
+    },
+    "microphone": {
+      "face": 1,
+      "rect": [
+        16,
+        8,
+        220,
+        84
+      ],
+      "size_m": [
+        0.248,
+        0.16
+      ],
+      "screws": [
+        [
+          0.157,
+          0.175,
+          0.0055
+        ],
+        [
+          0.843,
+          0.175,
+          0.0055
+        ]
+      ]
+    },
+    "fastener_totals": {
+      "CRT_including_existing": 6,
+      "COMM": 2,
+      "CAMERA": 2,
+      "DOOR": 2,
+      "STATUS": 0,
+      "microphone_base": 2
+    },
+    "gasket_width_m": 0.0035,
+    "seam_width_m": 0.0012,
+    "new_geometry": false,
+    "new_materials": false,
+    "optional_identifier": null,
+    "fastener_rendering": "albedo_head_seat_drive_with_shallow_normal",
+    "albedo_sampling": {
+      "module_panel_resolution": 2048,
+      "microphone_resolution": 1024,
+      "layout_rect_scale": 2,
+      "geometry_uv_unchanged": true
+    },
+    "panel_albedo": {
+      "file": "panel_fastener_albedo.png",
+      "background_srgb": [
+        128,
+        128,
+        128
+      ],
+      "materials": [
+        "体块模块灰"
+      ]
+    },
+    "polish": {
+      "channel": "roughness_only",
+      "max_reduction_255": 4,
+      "visible_area_fraction": 0.0032032905985025623
+    }
   }
 }

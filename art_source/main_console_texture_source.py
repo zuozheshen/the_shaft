@@ -230,6 +230,214 @@ def build_microphone(output):
     image.save(output/'microphone_albedo.png')
 
 
+
+
+# #67：仅固定表面的装配细节，不新增几何或材质。坐标为 PNG 左上原点像素。
+ASSEMBLY_SURFACES = {
+    'CRT左厚框': {'face': 1, 'rect': [12, 32, 64, 450], 'size_m': [.178, 1.102273],
+                  'screws': [[.325, .082, .011], [.325, .906, .011]]},
+    'CRT右厚框': {'face': 1, 'rect': [96, 32, 72, 450], 'size_m': [.178, 1.102273],
+                  'screws': [[.71, .082, .011], [.71, .906, .011]], 'existing_uv': True},
+    'COMM模块板壳': {'face': 4, 'rect': [224, 32, 284, 132], 'size_m': [.77, .357411],
+                  'screws': [[.08, .76, .009], [.87, .17, .009]], 'seam': True},
+    'CAMERA模块板壳': {'face': 4, 'rect': [528, 32, 205, 132], 'size_m': [.555, .357411],
+                  'screws': [[.12, .19, .008], [.9, .77, .008]], 'seam': True, 'drive': 'cross',
+                  'polish': [[.33, .72, 6, .65], [.71, .72, 6, .65]]},
+    'DOOR模块板壳': {'face': 4, 'rect': [224, 190, 430, 132], 'size_m': [1.165, .357411],
+                  'screws': [[.053, .75, .009], [.55, .17, .009]], 'seam': True,
+                  'status_seam_u': .66, 'polish': [[.2, .72, 6, .65], [.46, .72, 6, .65]]},
+    '前缘水平托台': {'face': 4, 'rect': [224, 466, 780, 28], 'size_m': [2.64, .075],
+                  'polish': [[.34, .8, 8, .65], [.62, .8, 8, .65]]},
+}
+ASSEMBLY_GASKET = {
+    # v_min/v_max 指 Blender UV；PNG Y 方向与 UV V 相反。
+    '3': {'rect': [224, 400, 550, 40], 'edge': 'v_max'},
+    '7': {'rect': [800, 32, 48, 450], 'edge': 'u_max'},
+    '11': {'rect': [224, 344, 550, 40], 'edge': 'v_min'},
+    '15': {'rect': [864, 32, 48, 450], 'edge': 'u_min'},
+}
+ASSEMBLY_MICROPHONE = {'face': 1, 'rect': [16, 8, 220, 84], 'size_m': [.248, .16],
+                      'screws': [[.157, .175, .0055], [.843, .175, .0055]]}
+
+
+def _surface_background(image, old_uv_rect, destination):
+    # 保留该面原有微表面，仅将采样范围移入不被其他面使用的预留区。
+    x, y, width, height = destination
+    source = image.crop(old_uv_rect).resize((width, height), Image.Resampling.BILINEAR)
+    image.paste(source, (x, y))
+
+
+def _assembly_normal(image, rect, height):
+    x, y, width, rows = rect
+    normal = np.asarray(image.crop((x, y, x + width, y + rows)), dtype=float) / 127.5 - 1
+    gy, gx = np.gradient(height)
+    normal[..., 0] -= gx
+    normal[..., 1] += gy  # OpenGL +Y；PNG 向下，UV 向上。
+    normal[..., 2] = np.sqrt(np.maximum(.01, 1 - np.sum(normal[..., :2] ** 2, axis=2)))
+    normal /= np.maximum(np.linalg.norm(normal, axis=2, keepdims=True), 1e-8)
+    image.paste(Image.fromarray(np.rint((normal + 1) * 127.5).clip(0, 255).astype('uint8')), (x, y))
+
+
+def _fastener_height(height, surface, diameter_scale=1.0):
+    yy, xx = np.mgrid[:height.shape[0], :height.shape[1]]
+    for u, v, diameter in surface.get('screws', []):
+        rx = diameter * height.shape[1] / surface['size_m'][0] / 2 * diameter_scale
+        ry = diameter * height.shape[0] / surface['size_m'][1] / 2 * diameter_scale
+        dx = (xx + .5 - u * height.shape[1]) / rx
+        dy = (yy + .5 - v * height.shape[0]) / ry
+        radius = np.hypot(dx, dy)
+        # 沉头座和一字槽只有法线，没有黑色圆片或凸起螺栓。
+        height += .10 * np.exp(-(radius / .65) ** 4)
+        height -= .14 * np.exp(-((radius - .88) / .18) ** 2)
+        slot = np.exp(-(dy / .24) ** 2) * np.clip((.67 - np.abs(dx)) / .2, 0, 1)
+        height -= .22 * slot
+        if surface.get('drive') == 'cross':
+            height -= .22 * np.exp(-(dx / .24) ** 2) * np.clip((.67 - np.abs(dy)) / .2, 0, 1)
+
+
+def _fastener_albedo(image, surface, head, rim, slot):
+    # 固定件用同源绘制的灰色头部、细沉头座和明确槽口，FOV70 下可辨认。
+    # 小图先在 128px 绘制再采样，避免把低分辨率圆头变成硬方块。
+    # Albedo 使用两倍采样密度，原 UV/法线布局不变；槽口需覆盖实机像素。
+    x, y, width, rows = [2 * value for value in surface['rect']]
+    for u, v, diameter in surface.get('screws', []):
+        stamp = Image.new('RGBA', (128, 128), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(stamp)
+        draw.ellipse((4, 4, 123, 123), fill=(*rim, 255))
+        draw.ellipse((22, 22, 105, 105), fill=(*head, 255))
+        draw.line((31, 64, 96, 64), fill=(*slot, 255), width=30)
+        if surface.get('drive') == 'cross':
+            draw.line((64, 31, 64, 96), fill=(*slot, 255), width=30)
+        size=(max(3, round(diameter * width / surface['size_m'][0])),
+              max(3, round(diameter * rows / surface['size_m'][1])))
+        stamp=stamp.resize(size, Image.Resampling.LANCZOS)
+        left=x+round(u*width-size[0]/2)
+        top=y+round(v*rows-size[1]/2)
+        image.paste(stamp, (left, top), stamp)
+
+
+def build_assembly_details(output):
+    paint_normal = Image.open(output / 'paint_normal.png').convert('RGB')
+    paint_roughness = Image.open(output / 'paint_roughness.png').convert('L')
+    detail_albedo = Image.open(output / 'module_detail_albedo.png').convert('RGB')
+    mic_normal = Image.open(output / 'microphone_normal.png').convert('RGB')
+    mic_albedo = Image.open(output / 'microphone_albedo.png').convert('RGB')
+    # 128 sRGB 精确匹配 COMM/DOOR 原纯色因子，不改变普通板面底色。
+    panel_albedo = Image.new('RGB', (1024, 1024), (128, 128, 128))
+    index_path = output / 'main_console_detail_atlas.json'
+    index = json.loads(index_path.read_text(encoding='utf-8'))
+
+    # #64 各面旧正交 UV；右侧检修条像素及 UV 原样保留，仅额外添加两处浅法线。
+    old_rects = {
+        'CRT左厚框': (20, 597, 87, 1004),
+        'COMM模块板壳': (20, 872, 305, 1004),
+        'CAMERA模块板壳': (20, 872, 226, 1004),
+        'DOOR模块板壳': (20, 872, 451, 1004),
+        '前缘水平托台': (20, 976, 994, 1004),
+    }
+    polish_area = 0.0
+    eligible_area = 0.0
+    for name, surface in ASSEMBLY_SURFACES.items():
+        rect = surface['rect']
+        x, y, width, rows = rect
+        if name in old_rects:
+            for image in (paint_normal, paint_roughness):
+                _surface_background(image, old_rects[name], rect)
+        height = np.zeros((rows, width), dtype=float)
+        _fastener_height(height, surface)
+        if surface.get('seam'):
+            # 1.2mm 浅槽，边界留 6mm；无黑色 Albedo 描边。
+            yy, xx = np.mgrid[:rows, :width]
+            pad_x = .006 * width / surface['size_m'][0]
+            pad_y = .006 * rows / surface['size_m'][1]
+            distance = np.minimum.reduce([xx + .5 - pad_x, width - xx - .5 - pad_x,
+                                          yy + .5 - pad_y, rows - yy - .5 - pad_y])
+            height -= .075 * np.exp(-(distance / .42) ** 2)
+            if 'status_seam_u' in surface:
+                # 同一原板壳上区分 DOOR / STATUS，不切几何，不加 STATUS 固定件。
+                height -= .06 * np.exp(-((xx + .5 - width * surface['status_seam_u']) / .42) ** 2)
+        if np.any(height):
+            _assembly_normal(paint_normal, rect, height)
+        if surface.get('polish'):
+            rough = np.asarray(paint_roughness.crop((x, y, x + width, y + rows)), dtype=float)
+            yy, xx = np.mgrid[:rows, :width]
+            mask = np.zeros((rows, width), dtype=float)
+            for u, v, sigma_x, sigma_y in surface['polish']:
+                q = ((xx + .5 - u * width) / sigma_x) ** 2 + ((yy + .5 - v * rows) / sigma_y) ** 2
+                mask = np.maximum(mask, np.where(q <= 4, np.exp(-q / 2), 0))
+            result = np.rint(rough - 4 * mask).clip(0, 255).astype('uint8')
+            area = surface['size_m'][0] * surface['size_m'][1]
+            polish_area += float(np.mean(result < rough)) * area
+            eligible_area += area
+            paint_roughness.paste(Image.fromarray(result), (x, y))
+    assert polish_area / eligible_area < .01
+
+    # 内坡面后缘：3.5mm 密封带位于玻璃之外，屏幕与孔口几何完全不变。
+    old_gasket_rects = {
+        '3': (20, 941, 559, 1004),
+        '7': (20, 600, 62, 1004),
+        '11': (20, 960, 559, 1004),
+        '15': (20, 600, 62, 1004),
+    }
+    for face, surface in ASSEMBLY_GASKET.items():
+        x, y, width, rows = surface['rect']
+        for image in (paint_normal, paint_roughness):
+            _surface_background(image, old_gasket_rects[face], surface['rect'])
+        color = np.full((rows, width, 3), (86, 89, 96), dtype='uint8')
+        edge = surface['edge']
+        yy, xx = np.mgrid[:rows, :width]
+        axis = width if edge.startswith('u') else rows
+        band = .0035 / .099 * axis
+        distance = (xx + .5 if edge == 'u_min' else width - xx - .5 if edge == 'u_max'
+                    else rows - yy - .5 if edge == 'v_min' else yy + .5)
+        mask = np.clip(band + .5 - distance, 0, 1)
+        color = np.rint(color * (1 - mask[..., None]) + np.array([24, 25, 27]) * mask[..., None]).astype('uint8')
+        detail_albedo.paste(Image.fromarray(color), (x, y))
+
+    # 麦座唯一上表面分配到原灰色象限的空白范围，其他面仍使用原 UV。
+    mic = ASSEMBLY_MICROPHONE
+    _surface_background(mic_normal, (10, 114, 214, 246), mic['rect'])
+    height = np.zeros((mic['rect'][3], mic['rect'][2]), dtype=float)
+    _fastener_height(height, mic)
+    _assembly_normal(mic_normal, mic['rect'], height)
+
+    paint_normal.save(output / 'paint_normal.png')
+    paint_roughness.save(output / 'paint_roughness.png')
+    detail_albedo.save(output / 'module_detail_albedo.png')
+    mic_normal.save(output / 'microphone_normal.png')
+    detail_albedo = detail_albedo.resize((2048, 2048), Image.Resampling.NEAREST)
+    panel_albedo = panel_albedo.resize((2048, 2048), Image.Resampling.NEAREST)
+    mic_albedo = mic_albedo.resize((1024, 1024), Image.Resampling.NEAREST)
+    for name, surface in ASSEMBLY_SURFACES.items():
+        if name in ('COMM模块板壳', 'DOOR模块板壳'):
+            _fastener_albedo(panel_albedo, surface, (184, 184, 180), (64, 64, 64), (38, 38, 38))
+        else:
+            _fastener_albedo(detail_albedo, surface, (151, 153, 157), (49, 51, 56), (24, 26, 30))
+    _fastener_albedo(mic_albedo, mic, (122, 124, 126), (28, 29, 30), (16, 17, 18))
+    detail_albedo.save(output / 'module_detail_albedo.png')
+    panel_albedo.save(output / 'panel_fastener_albedo.png')
+    mic_albedo.save(output / 'microphone_albedo.png')
+    index['assembly_detail_pass'] = {
+        'issue': 67, 'surfaces': ASSEMBLY_SURFACES, 'gasket': ASSEMBLY_GASKET,
+        'microphone': ASSEMBLY_MICROPHONE,
+        'fastener_totals': {'CRT_including_existing': 6, 'COMM': 2, 'CAMERA': 2, 'DOOR': 2, 'STATUS': 0, 'microphone_base': 2},
+        'gasket_width_m': .0035, 'seam_width_m': .0012,
+        'new_geometry': False, 'new_materials': False, 'optional_identifier': None,
+        'fastener_rendering': 'albedo_head_seat_drive_with_shallow_normal',
+        'albedo_sampling': {'module_panel_resolution': 2048, 'microphone_resolution': 1024, 'layout_rect_scale': 2, 'geometry_uv_unchanged': True},
+        'panel_albedo': {'file': 'panel_fastener_albedo.png', 'background_srgb': [128, 128, 128], 'materials': ['体块模块灰']},
+        'polish': {'channel': 'roughness_only', 'max_reduction_255': 4,
+                   'visible_area_fraction': polish_area / eligible_area},
+    }
+    index_path.write_text(json.dumps(index, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    provenance_path = output / 'material_provenance.json'
+    provenance = json.loads(provenance_path.read_text(encoding='utf-8'))
+    provenance['assembly_detail_pass'] = index['assembly_detail_pass']
+    provenance['outputs'] = {file.name: {'resolution': list(Image.open(file).size),
+        'sha256': hashlib.sha256(file.read_bytes()).hexdigest()} for file in sorted(output.glob('*.png'))}
+    provenance_path.write_text(json.dumps(provenance, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output', type=Path)
@@ -239,3 +447,4 @@ if __name__ == '__main__':
     build_atlas(args.output)
     build_microphone(args.output)
     build_surface_details(args.output)
+    build_assembly_details(args.output)
