@@ -273,6 +273,14 @@ top_radius = 0.023
 bottom_radius = 0.023
 height = 0.024
 
+[sub_resource type="StandardMaterial3D" id="comm_lens_inactive"]
+albedo_color = Color(0.07, 0.15, 0.11, 1)
+roughness = 0.4
+
+[sub_resource type="StandardMaterial3D" id="fault_lens_inactive"]
+albedo_color = Color(0.22, 0.045, 0.03, 1)
+roughness = 0.4
+
 [sub_resource type="QuadMesh" id="52_screen_quad"]
 size = Vector2(1.44, 1.08)
 center_offset = Vector3(0, 0.16913, 0)
@@ -633,7 +641,7 @@ mesh = SubResource("66_floor_trim")
 [node name="主台交互热点" type="Node3D" parent="操作台占位/主操作台定位" unique_id=266902568]
 
 [node name="麦克风热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=1122092151]
-transform = Transform3D(1, 0, 0, 0, 0.573576417, -0.819152086, 0, 0.819152086, 0.573576417, -0.6979811, 0.972992457, -1.287881737)
+transform = Transform3D(1, 0, 0, 0, 0.573576417, -0.819152086, 0, 0.819152086, 0.573576417, -0.6979811, 0.944992457, -1.287881737)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -664,7 +672,7 @@ text = "MIC"
 font_size = 28
 
 [node name="开门热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=227531788]
-transform = Transform3D(0.62513196, 0, 0, 0, 0.287851969, -0.389150448, 0, 0.411095322, 0.272486038, 0.23426473, 1.02, -1.35)
+transform = Transform3D(0.62513196, 0, 0, 0, 0.287851969, -0.389150448, 0, 0.411095322, 0.272486038, 0.23426473, 1.01, -1.35)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -704,7 +712,7 @@ text = "OPEN"
 font_size = 28
 
 [node name="关门热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=116356286]
-transform = Transform3D(0.62513196, 0, 0, 0, 0.287851969, -0.389150448, 0, 0.411095322, 0.272486038, 0.5420569, 1.02, -1.35)
+transform = Transform3D(0.62513196, 0, 0, 0, 0.287851969, -0.389150448, 0, 0.411095322, 0.272486038, 0.5420569, 1.01, -1.35)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -749,7 +757,7 @@ font_size = 28
 transform = Transform3D(1, 0, 0, 0, 0.573576417, -0.819152086, 0, 0.819152086, 0.573576417, 0, 1.02, -1.35)
 
 [node name="COMM分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(-0.925, 0.0015, -0.150)
+position = Vector3(-0.925, -0.014560139676, -0.172936258408)
 mesh = ExtResource("64_nameplate_comm")
 
 [node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM分组铭牌"]
@@ -777,7 +785,7 @@ font_size = 22
 outline_size = 0
 
 [node name="DOOR分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(0.3885, -0.0088243664, -0.150)
+position = Vector3(0.3885, -0.01456013057, -0.15819152086)
 mesh = ExtResource("64_nameplate_door_group")
 
 [node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR分组铭牌"]
@@ -791,7 +799,7 @@ font_size = 22
 outline_size = 0
 
 [node name="STATUS分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(0.975, -0.0088243664, -0.130)
+position = Vector3(0.975, -0.01456013057, -0.13819152086)
 mesh = ExtResource("64_nameplate_status")
 
 [node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/STATUS分组铭牌"]
@@ -885,7 +893,7 @@ text = "CAM 02"
 font_size = 25
 
 [node name="COMM指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=100710776]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.91, 0, -0.029865384)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.91, -0.016060139676, -0.052801642408)
 
 [node name="灯座" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯" instance=ExtResource("63_lamp")]
 scale = Vector3(0.7, 0.7, 0.7)
@@ -894,6 +902,12 @@ scale = Vector3(0.7, 0.7, 0.7)
 transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0.0119, 0)
 visible = false
 material_override = SubResource("52_comm")
+mesh = SubResource("52_comm_lens")
+
+[node name="实体灯芯" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯"]
+position = Vector3(0, 0.011, 0)
+scale = Vector3(0.7, 0.7, 0.7)
+material_override = SubResource("comm_lens_inactive")
 mesh = SubResource("52_comm_lens")
 
 [node name="灯名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯"]
@@ -910,7 +924,7 @@ text = "TX"
 font_size = 22
 
 [node name="DOOR指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=1439120145]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.86, -0.0103243664, -0.025)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.86, -0.01606013057, -0.03319152086)
 
 [node name="灯座" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯" instance=ExtResource("63_lamp")]
 scale = Vector3(0.7, 0.7, 0.7)
@@ -934,7 +948,7 @@ text = "DOOR"
 font_size = 22
 
 [node name="FAULT指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=1859006211]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.09, -0.0103243664, -0.025)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.09, -0.01606013057, -0.03319152086)
 
 [node name="灯座" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯" instance=ExtResource("63_lamp")]
 scale = Vector3(0.7, 0.7, 0.7)
@@ -943,6 +957,12 @@ scale = Vector3(0.7, 0.7, 0.7)
 transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0.0119, 0)
 visible = false
 material_override = SubResource("52_fault")
+mesh = SubResource("52_fault_lens")
+
+[node name="实体灯芯" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯"]
+position = Vector3(0, 0.011, 0)
+scale = Vector3(0.7, 0.7, 0.7)
+material_override = SubResource("fault_lens_inactive")
 mesh = SubResource("52_fault_lens")
 
 [node name="灯名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯"]

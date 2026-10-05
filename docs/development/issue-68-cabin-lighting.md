@@ -2,19 +2,17 @@
 
 ## 用户补充：主台局部对齐
 
-依据 [用户直接执行指令](https://github.com/zuozheshen/the_shaft/issues/68#issuecomment-5988216500)，
-以 CAMERA 模块前沿下缘为基准，将 COMM 和 DOOR 的前沿下缘分别延长2.8cm、1cm。
-原 GLB、Blender 源、斜顶面、控件和热点保持原值；视觉 wrapper 使用两份派生 ArrayMesh。
-仅调整每份 Mesh 的6个重复顶点坐标，并校正改变坡度的下表面法线；UV、索引与原硬边保留。
-派生材质复制原参数并复用同像素的 Albedo/Normal 和相同 G 通道 Roughness，
-金属度系数保持0，省去不参与着色的内嵌金属贴图。
-法线贴图保留 Godot 新用法的自动导入设置；面板 Albedo 固定无损导入，关闭自动转为 VRAM 压缩。
+依据 [用户纠正](https://github.com/zuozheshen/the_shaft/issues/68#issuecomment-5988468138)，
+使用原 GLB Mesh，保持原前沿20mm厚度。COMM 整组垂直下移28mm、DOOR 整组下移10mm，
+使三块面板前沿齐平；相应控件、铭牌和热点同步下移，保留安装与命中关系。
+撤销 REVIEW 3 的增厚派生 Mesh、材质、生成源及相关纹理导入改动；原 Blender/GLB 未修改。
 
-派生源为 `art_source/main_console_panel_alignment_source.py`，用 `--godot` 指定 Godot，
-`--scratch-dir` 指定仓库外临时目录。现有 `main_console_texture_source.py` 去除 COMM 文字左偏，
-Atlas 中其余图块像素、字号、颜色与 UV 布局保持原值。
-正式 FOV70 验证三块底边的投影 Y 完全一致；本轮灯光参数未变化。
-用户最终视觉验收仍待完成。
+现有 `main_console_texture_source.py` 保留 COMM 字样居中，字号、颜色与其他 Atlas 图块不变。
+COMM/FAULT 新增常显暗色实体灯芯，置于原亮灯覆盖层下方；熄灭时安装环仍有实体，
+原亮灯层、状态逻辑与 DOOR 灯保持。本轮灯光参数未变化。
+
+按用户本轮明确要求不运行测试；仅执行正式 main_3d / FOV70 视觉与运行时查看。
+用户最终视觉/体验验收仍待完成。
 
 执行范围依据 [PLAN v1](https://github.com/zuozheshen/the_shaft/issues/68#issuecomment-5987056668)、
 [正式审批](https://github.com/zuozheshen/the_shaft/issues/68#issuecomment-5987128027) 和
