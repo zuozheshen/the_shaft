@@ -160,6 +160,27 @@ light_energy = 3.0
 light_cull_mask = 4
 omni_range = 6.0
 
+[node name="门外光占位验证" type="Node3D" parent="监控灯光"]
+visible = false
+
+[node name="近门溢光" type="SpotLight3D" parent="监控灯光/门外光占位验证"]
+transform = Transform3D(-1, 0, 0, 0, 0.2425356, 0.9701425, 0, 0.9701425, -0.2425356, 0, 0.8, -0.2)
+layers = 2
+light_color = Color(0.9, 0.95, 1, 1)
+light_energy = 0.3
+light_size = 0.0
+light_specular = 0.2
+light_cull_mask = 2
+shadow_enabled = true
+shadow_bias = 0.03
+shadow_normal_bias = 1.0
+shadow_blur = 1.5
+shadow_caster_mask = 2
+spot_range = 1.4
+spot_attenuation = 1.0
+spot_angle = 35.0
+spot_angle_attenuation = 1.0
+
 [node name="乘客视觉区域" type="Node3D" parent="." unique_id=568816502]
 
 [node name="位置参考点" type="Node3D" parent="乘客视觉区域" unique_id=1659085098]

@@ -1,0 +1,18 @@
+[gd_resource type="Environment" format=3]
+
+[resource]
+resource_name = "正常值班_弱中性回填"
+background_mode = 0
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 0.08
+ambient_light_sky_contribution = 0.0
+tonemap_mode = 0
+tonemap_exposure = 1.0
+ssr_enabled = false
+ssao_enabled = false
+ssil_enabled = false
+sdfgi_enabled = false
+glow_enabled = false
+fog_enabled = false
+adjustment_enabled = false
