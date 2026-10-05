@@ -757,7 +757,7 @@ font_size = 28
 transform = Transform3D(1, 0, 0, 0, 0.573576417, -0.819152086, 0, 0.819152086, 0.573576417, 0, 1.02, -1.35)
 
 [node name="COMM分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(-0.925, -0.014560139676, -0.172936258408)
+position = Vector3(-0.875, -0.014560139676, -0.12)
 mesh = ExtResource("64_nameplate_comm")
 
 [node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM分组铭牌"]
