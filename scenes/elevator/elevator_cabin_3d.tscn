@@ -2062,7 +2062,7 @@ visible = false
 [node name="前部工作主光" type="SpotLight3D" parent="灯光/正常值班照明"]
 transform = Transform3D(1, 0, 0, 0, 0.42261824, 0.9063078, 0, -0.9063078, 0.42261824, 0, 2.32, -0.45)
 layers = 1
-light_color = Color(1, 0.9267, 0.8487, 1)
+light_color = Color(1, 0.9476, 0.8919, 1)
 light_energy = 2.0
 light_size = 0.0
 light_specular = 0.5
@@ -2075,13 +2075,13 @@ shadow_blur = 1.5
 shadow_caster_mask = 1
 spot_range = 4.8
 spot_attenuation = 1.0
-spot_angle = 70.0
-spot_angle_attenuation = 1.0
+spot_angle = 75.0
+spot_angle_attenuation = 1.6
 
 [node name="后部辅光" type="SpotLight3D" parent="灯光/正常值班照明"]
-transform = Transform3D(1, 0, 0, 0, -0.25881904, 0.9659258, 0, -0.9659258, -0.25881904, 0, 2.32, 0.8)
+transform = Transform3D(1, 0, 0, 0, -0.5, 0.8660253, 0, -0.8660253, -0.5, 0, 2.32, 0.5)
 layers = 1
-light_color = Color(1, 0.9267, 0.8487, 1)
+light_color = Color(1, 0.9476, 0.8919, 1)
 light_energy = 1.3
 light_size = 0.0
 light_specular = 0.5
@@ -2094,8 +2094,8 @@ shadow_blur = 1.5
 shadow_caster_mask = 1
 spot_range = 4.5
 spot_attenuation = 1.0
-spot_angle = 70.0
-spot_angle_attenuation = 1.0
+spot_angle = 75.0
+spot_angle_attenuation = 2.0
 
 [node name="玩家视角" type="Node3D" parent="." unique_id=309831261]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
