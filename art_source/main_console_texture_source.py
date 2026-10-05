@@ -152,7 +152,7 @@ def build_atlas(output):
         left=x+256-width//2;top=y+32-height//2
         draw.rectangle((left,top,left+width-1,top+height-1),fill=(203,200,192),outline=(159,157,151),width=1)
         font=ImageFont.load_default(size=round(height*(1.0 if ratio>10 else .9)))
-        center=x+256-(width*.065/.34 if label=='COMM' else 0)
+        center=x+256
         draw.text((center,y+32),label,font=font,fill=(30,30,30),anchor='mm')
         index['tiles'][label]=[left,top,width,height]
     for number,label in enumerate(['CAMERA','01','02','UNIT / 01']):

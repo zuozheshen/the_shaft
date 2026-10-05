@@ -2,10 +2,18 @@
 
 [ext_resource type="PackedScene" path="res://assets/art/models/main_console_shell.glb" id="1_shell"]
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/shell.tres" id="66_shell"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/panel_comm_aligned.tres" id="comm_aligned"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/panel_door_aligned.tres" id="door_aligned"]
 
 [node name="主操作台外壳" type="Node3D"]
 
 [node name="外壳模型" parent="." instance=ExtResource("1_shell")]
+
+[node name="COMM模块板壳" parent="外壳模型/主操作台外壳" index="1"]
+mesh = ExtResource("comm_aligned")
+
+[node name="DOOR模块板壳" parent="外壳模型/主操作台外壳" index="9"]
+mesh = ExtResource("door_aligned")
 
 [node name="上柜右侧壁" parent="外壳模型/主操作台外壳" index="10"]
 material_override = ExtResource("66_shell")
