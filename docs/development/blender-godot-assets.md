@@ -142,3 +142,13 @@ python art_source/elevator_cabin_assembly_source.py --godot <Godot-4.7-console.e
 ```
 
 正式验收使用同一玩家位置、FOV70、原灯光及 2560×1440 framebuffer；监控保持原 FOV60、320×240 和 CRT。主台、Q 转向 45°、左台及开/关门截图在仓库外保存；45°仅暂停原转向 Tween 取样后继续，不改相机资产。CAM01 中央缝与门槛在该低分辨率画面中仍偏弱，放大 feed 只辅助检查，最终可读性由用户判断。小样 REVIEW 区分逻辑测试、运行时检查与待完成的人工视觉反馈。
+
+## 左侧档案终端 V1（#69）
+
+- 正式源为 `art_source/left_archive_terminal_v1.blend`，Scene“左台档案终端V1”、Collection `AgentGenerated_ART05_LeftArchiveTerminal`；3 个原点为零、单位 Transform 的根分别负责外壳、共享栏目键与滚轮。源使用相对纹理路径，不改主台源或资产。
+- 对应 `left_archive_terminal_shell.glb`、`left_archive_key.glb`、`left_archive_scroll.glb` 与同名纯视觉 wrapper。外壳含固定双语铭牌与支座，只有滚轮核心挂原“滚轮转轴”；不导出 Camera、Light、动态屏、碰撞或业务 metadata。保留源 BEVEL，导出时求值，不 Apply 到源 Mesh。
+- 标准 glTF Y-up 转换与原左台 0.85 缩放保持。实际壳体约 2.36×1.60m、深15cm；原动态屏尺寸/1152×648视口保持，屏高占比74.2%、内凹2.5cm。三键完整安装框实际12×6cm、凸起约9mm；滚轮直径12cm、轴向宽8.5cm、16条粗槽；原水平转轴与每tick16°保留。
+- 壳/内框复用主台已有 paint Normal/Roughness；普通UV只取下半图，避开主台专有装配tile。键和滚轮复用256控件微表面。基础粗糙度约0.48机身、0.70内框/安装框、0.78键帽；Normal为OpenGL +Y，机身0.45、控件0.75。GLB沿用 Embedded Image Handling=3，不抽取重复PNG。
+- 固定标签、4个固定螺丝标记与细接缝使用1024×512自制Atlas，源为 `art_source/left_archive_terminal_texture_source.py`。布局、复用来源/许可证/SHA记录在 `assets/art/textures/left_archive_terminal_v1/`；Pillow默认英文字体和本机Windows中文字体仅栅格化标签，不分发字体或下载资产。原中文Label3D隐藏保留，标签不随滚轮旋转。
+- 正式左台只有三个栏目键与SCROLL，没有SELECT。唯一BuildingTerminalInterface、数据/未读规则、字体和原输入保持；主题为深蓝黑、冷青白与灰蓝，琥珀表示未读，选中/悬停为低亮冷青。动态屏仍由原LeftTerminalScreen3D绑定原ViewportTexture、unshaded/nearest，不新增CRT或业务脚本。
+- 旧CSG和原控件视觉在正式场景对照后移除；右台共享资源保留，按#69基线/commit回滚。重导出前核对任务文件、Collection与对象范围，仅选择对应根及其子对象；重导入后使用正式main_3d、原玩家Camera/FOV70核验，并分开记录自动测试、Godot AI自检和用户美术/手感验收。

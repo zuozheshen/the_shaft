@@ -1,0 +1,105 @@
+{
+  "issue": 69,
+  "atlas": "project-authored functional labels, seam and fastener marks",
+  "fonts": {
+    "english": "Pillow bundled default font",
+    "chinese": "Microsoft YaHei from local Windows; rasterized labels only, no font redistribution",
+    "local_font_sha256": "d79c55e68b1131eea0cc1c47be4f572d964f28c682e143db2ad09c1e4cb07a3f"
+  },
+  "micro_surface_sources": [
+    {
+      "asset": "Metal028",
+      "asset_name": "Metal 028",
+      "source_url": "https://ambientcg.com/a/Metal028",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "download_date": "2026-10-03",
+      "archive_url": "https://ambientcg.com/get?file=Metal028_1K-PNG.zip",
+      "archive_sha256": "582963a48e2479660dc006cd59103be10db13e97f5ee36884c44c0e288dfa7b7",
+      "maps_used": [
+        {
+          "map": "NormalGL",
+          "file": "Metal028_1K-PNG_NormalGL.png",
+          "sha256": "2288587809ce1f3328fa093dd9c9db1f5cc1b699ededdb5f82bca0e81e6b1fa3",
+          "resolution": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "map": "Roughness",
+          "file": "Metal028_1K-PNG_Roughness.png",
+          "sha256": "1237849a265dea5d00c8e7eff463b2e088d840e02d986b51ebd2670529a4dbe1",
+          "resolution": [
+            1024,
+            1024
+          ]
+        }
+      ],
+      "maps_excluded": [
+        "Color",
+        "NormalDX",
+        "Displacement",
+        "Metalness"
+      ]
+    },
+    {
+      "asset": "Plastic013A",
+      "asset_name": "Plastic 013 A",
+      "source_url": "https://ambientcg.com/a/Plastic013A",
+      "license": "CC0-1.0",
+      "license_url": "https://docs.ambientcg.com/license/",
+      "download_date": "2026-10-03",
+      "archive_url": "https://ambientcg.com/get?file=Plastic013A_1K-PNG.zip",
+      "archive_sha256": "0fac90b85a4b58dad30bcfb444c93b212eb24a87a800622d85155809bd5ace80",
+      "maps_used": [
+        {
+          "map": "NormalGL",
+          "file": "Plastic013A_1K-PNG_NormalGL.png",
+          "sha256": "0649c3d12d7349894435331fa6bcacb7bb809edbee30be8b87f1e28afcf332f0",
+          "resolution": [
+            1024,
+            1024
+          ]
+        },
+        {
+          "map": "Roughness",
+          "file": "Plastic013A_1K-PNG_Roughness.png",
+          "sha256": "716af3827ef40025a5a4b145d27f0c25cc6742a45952f4417bde3f60dd798ff6",
+          "resolution": [
+            1024,
+            1024
+          ]
+        }
+      ],
+      "maps_excluded": [
+        "Color",
+        "NormalDX",
+        "Displacement",
+        "Metalness"
+      ]
+    }
+  ],
+  "reused_maps": [
+    {
+      "path": "assets/art/textures/main_console_v2/paint_normal.png",
+      "sha256": "c25b0ac4e9111306ba664d04b3c38bc4a499c9193ccf6c47a496f01c3e56f6c7"
+    },
+    {
+      "path": "assets/art/textures/main_console_v2/paint_roughness.png",
+      "sha256": "47336499c4d748760ee7449ee505e17beb63cb2858797eae85272a362d290471"
+    },
+    {
+      "path": "assets/art/textures/main_console_v2/control_normal_256.png",
+      "sha256": "321ac89c91f58f2ff9bee8073046adc0ab2f35b38792bd80aab7609974129298"
+    },
+    {
+      "path": "assets/art/textures/main_console_v2/control_roughness_256.png",
+      "sha256": "1a8ea921843fb914d1a95e3a7e866278878779c973f40d4fbd33d167fee7d208"
+    }
+  ],
+  "uv": "paint uses image lower half only (UV v=0.02..0.48); excludes main console reserved upper-image assembly tile",
+  "normal": "existing OpenGL +Y maps; paint strength 0.45, controls 0.75",
+  "roughness": "existing 247/255-centered maps, factor compensates to paint 0.48 / frame 0.70 / cap 0.78",
+  "license": "shared micro maps retain existing CC0 provenance; no remote downloads"
+}
