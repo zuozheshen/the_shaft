@@ -111,7 +111,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var wheel_axis_before := wheel_basis_before.y.normalized()
 	var expected_wheel_basis := wheel_basis_before * Basis(
 			Vector3.UP,
-			deg_to_rad(-left.scroll_tick_degrees)
+			deg_to_rad(left.scroll_tick_degrees)
 	)
 	interaction._execute_left_scroll(1)
 	await _frames(tree, 2)
@@ -134,6 +134,13 @@ func run(t: Variant, tree: SceneTree) -> void:
 			manager.get_system_message_history())
 	t.assert_equal("左台 / 滚轮不修改对话内容", transcript_before,
 			manager.get_front_dialogue_history())
+
+	interaction._execute_left_scroll(-1)
+	await _frames(tree, 2)
+	t.assert_true("左台 / 反向阅读使滚轮回到原角度",
+			wheel_basis_before.is_equal_approx(wheel_visual.transform.basis))
+	t.assert_equal("左台 / 反向阅读回到原阅读位置", 0,
+			terminal.content_scroll_container.scroll_vertical)
 
 	var scroll_hotspot := left.get_node("滚轮根") as InteractionHotspot3D
 	t.assert_equal("左台 / 滚轮使用独立实体热点", &"left_scroll",

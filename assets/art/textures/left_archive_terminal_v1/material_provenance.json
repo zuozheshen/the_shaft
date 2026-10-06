@@ -2,7 +2,6 @@
   "issue": 69,
   "atlas": "project-authored functional labels, seam and fastener marks",
   "fonts": {
-    "english": "Pillow bundled default font",
     "chinese": "Microsoft YaHei from local Windows; rasterized labels only, no font redistribution",
     "local_font_sha256": "d79c55e68b1131eea0cc1c47be4f572d964f28c682e143db2ad09c1e4cb07a3f"
   },
@@ -100,6 +99,7 @@
   ],
   "uv": "paint uses image lower half only (UV v=0.02..0.48); excludes main console reserved upper-image assembly tile",
   "normal": "existing OpenGL +Y maps; paint strength 0.45, controls 0.75",
-  "roughness": "existing 247/255-centered maps, factor compensates to paint 0.48 / frame 0.70 / cap 0.78",
+  "roughness": "existing 247/255-centered maps, factor compensates to body 0.48 / functional panel 0.54 / frame 0.70 / cap 0.78",
+  "functional_panel": "main console module gray: sRGB [128,128,128], copied as a uniform color without its assembly tiles",
   "license": "shared micro maps retain existing CC0 provenance; no remote downloads"
 }
