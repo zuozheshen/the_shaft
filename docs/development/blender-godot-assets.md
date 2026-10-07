@@ -156,7 +156,7 @@ python art_source/elevator_cabin_assembly_source.py --godot <Godot-4.7-console.e
 
 ## 右侧路线核验终端 V1（#71）
 
-- 正式源为 `art_source/right_route_terminal_v1.blend`，Scene“右台路线核验终端V1”、Collection `AgentGenerated_ART06_RightRouteTerminal`。四个零原点、单位 Transform 的根分别为“右台静态外壳 / 右台共享数字帽 / 右台验证帽 / 右台执行杆柄”；对应四个 `right_route_*.glb` 和同名纯视觉 wrapper。48 Mesh 包含 41 个闭合结构件及 7 个有意非闭合的固定 Atlas 贴片；源 BEVEL 保留，不 Apply。没有 Camera、Light、动画、碰撞或业务 metadata 导出。
+- 正式源为 `art_source/right_route_terminal_v1.blend`，Scene“右台路线核验终端V1”、Collection `AgentGenerated_ART06_RightRouteTerminal`。四个零原点、单位 Transform 的根分别为“右台静态外壳 / 右台共享数字帽 / 右台验证帽 / 右台执行杆柄”；对应四个 `right_route_*.glb` 和同名纯视觉 wrapper。51 Mesh 包含 44 个闭合结构件及 7 个有意非闭合的固定 Atlas 贴片；源 BEVEL 保留，不 Apply。没有 Camera、Light、动画、碰撞或业务 metadata 导出。
 - 原右台根 0.6 缩放、20° 下部斜面、书本整组 RestPose / InspectPose / 动画与业务脚本保持。上部宽1.38m、总可见高约1.75m，整机最大横向包络实测约1.47m；键盘偏左，右侧无交互服务板留空，书托与执行舱分成不等宽功能岛。执行舱从0.58m Blockout收至用户批准区间内的0.54m；深约20.4cm，右外缘与轴位保持。拨杆热点仅沿原斜面局部Z从0.5移至0.7（12cm），原16°短程 / 回位时长和单次提交不变。
 - 信息窗有效面0.94×0.378m，厚喷漆框、内压框、橡胶边与动态屏面形成约6cm内陷，六个原信息字段和30字号保持。LCD与VERIFY共用0.92m模块；LCD有效宽0.54m，数字标签位于屏面前约3mm、右边留25mm。所有信息、数字、键位和“前往楼层”文字仍为Godot Label3D，未烘入Atlas。
 - 4×3 keypad为0.53×0.476m独立模块；帽面0.14×0.10m，横向中心距由25.8cm收至15.7cm（净缝1.7cm），纵向中心距由12.6cm收至11.2cm（净缝1.2cm）。12键独立Area、碰撞、动作和原手柄语义保持；CLR字号统一为30，VERIFY与执行铭牌去掉黑色描边以保留字形。
@@ -165,3 +165,7 @@ python art_source/elevator_cabin_assembly_source.py --godot <Godot-4.7-console.e
 - Pass D仅使用256×128自制Atlas中的六个固定螺钉标记及一条检修接缝。源为 `art_source/right_route_terminal_texture_source.py`；输出位于 `assets/art/textures/right_route_terminal_v1/`，含布局、来源许可与复用SHA。运行同源Python/Pillow脚本可重建，不下载素材或分发字体。Atlas使用lossless/mipmaps、关闭自动3D压缩；四个GLB Embedded Image Handling=3、沿用ensure_tangents，不抽取重复PNG。
 - 接线只替换右台视觉和必要的热点/标签对齐。业务控制器、公共路径、InputMap、Manager、内容、主台/左台、COMM、原相机FOV70与灯光不变。回滚按#71 base/commit恢复这一组文件；重导出只选择对应根及递归子对象，重新扫描导入后检查实际运行时材料名称和网格，不能把filesystem update成功当作缓存已更新的证据。
 - 固定验收使用正式main_3d、玩家原位置(0,1.5,0)、FOV70与正常照明。全貌、原像素正视/键盘/下部裁切、原Q/E转向中间帧、原InspectPose开书/翻页/合书证据保存在仓库外。自动逻辑、Godot AI自检和用户美术/手感验收分别记录；最终人工验收状态以#71有效评论为准。
+
+- Pass A.1（审批评论 `6032359448`）仅微调结构：服务板由0.55×0.60m缩至0.40×0.46m，前面后退24mm；原上部主机壳改为闭合凹位边框，新增后壳维持整机外包络，原浅接缝随盖板对齐。服务区与0.54m执行舱之间新增16cm宽的连续折板；沿用原材质，不新增按钮、灯、文字或装饰件。
+- A.1键盘作为整体上移3cm，帽面、键距和动作保持；正式场景实测模块底边与常态闭合书本顶边间距约4.04cm。握球直径由13.2cm缩至11.55cm（12.5%），握球沿杆轴外移15mm、杆体延长15mm，并增加竖向限位槽；原拨杆转轴、16°行程和回位不变。悬停握球尺寸/位置同步；书本整组未改。
+- A.1源保留修改前Mesh副本作对照，复用原材质槽、Normal/Roughness与Atlas，不进行材质Polish。只重导出静态外壳和杆柄，数字/验证帽GLB保持。A.1正视证据使用玩家原位置(0,1.5,0)；约45°侧视证据使用同一原Camera的临时检查机位，FOV70保持，取图后恢复，未保存相机或玩法变化。此次增量停在A.1人工视觉验收；既有基线中的B/C/D内容保持，后续工作以最新Issue审批为准。
