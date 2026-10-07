@@ -231,8 +231,8 @@ func _emit_unread_state() -> void:
 
 
 func _initialize_terminal_text() -> void:
-	_set_label_text(title_label, "SHAFT FACILITIES // ARCHIVE TERMINAL")
-	_set_label_text(access_status_label, "> 建筑终端 L-612-A  //  OPERATOR ACCESS  //  LINK ACTIVE")
+	_set_label_text(title_label, "ARCHIVE TERMINAL")
+	_set_label_text(access_status_label, "SHAFT FACILITIES // L-612-A // OPERATOR ACCESS // LINK ACTIVE")
 
 
 func _apply_terminal_theme() -> void:
@@ -255,9 +255,10 @@ func _apply_terminal_theme() -> void:
 		Color("101e26"), Color("4d6671"), 1
 	))
 	theme = terminal_theme
-	title_label.add_theme_font_size_override("font_size", 28)
-	title_label.add_theme_color_override("font_color", Color("ddedf0"))
-	access_status_label.add_theme_font_size_override("font_size", 17)
+	# 设备头以字号区分名称与状态，亮度贴近正文，不抢阅读内容。
+	title_label.add_theme_font_size_override("font_size", 24)
+	title_label.add_theme_color_override("font_color", Color("c4e0e5"))
+	access_status_label.add_theme_font_size_override("font_size", 14)
 	access_status_label.add_theme_color_override("font_color", Color("8099a4"))
 	terminal_hint_label.add_theme_font_size_override("font_size", 16)
 	terminal_hint_label.add_theme_color_override("font_color", Color("8099a4"))
