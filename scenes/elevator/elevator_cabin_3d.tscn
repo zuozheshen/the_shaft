@@ -1204,16 +1204,16 @@ horizontal_alignment = 0
 width = 600.0
 
 [node name="数字显示组" type="Node3D" parent="操作台占位/右操作台定位"]
-position = Vector3(-0.471294463, 0.585488264, 0)
-rotation = Vector3(0, 0, -0.349066)
+position = Vector3(0.128333333, -0.016666668, 0.000000000)
+rotation = Vector3(0, 0, 0)
 
 [node name="LCD屏面" type="CSGBox3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.345, 1.491667, -0.216667)
+position = Vector3(1.331666667, 1.491667000, -0.216667000)
 material_override = SubResource("53_lcd")
 size = Vector3(0.025, 0.19, 1.133333)
 
 [node name="输入数字" type="Label3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.3275, 1.491667, 0.308333)
+position = Vector3(1.314166667, 1.491667000, 0.308333000)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0022
 font_size = 42
@@ -1268,8 +1268,8 @@ horizontal_alignment = 0
 width = 800.0
 
 [node name="数字键盘" type="Node3D" parent="操作台占位/右操作台定位"]
-position = Vector3(-0.454193473, 0.582472920, 0)
-rotation = Vector3(0, 0, -0.349066)
+position = Vector3(-0.35123533, 0.333446622, 0)
+rotation = Vector3(0, 0, -0.20943951)
 
 [node name="数字1" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
 position = Vector3(1.323333, 1.183333, -0.745000)
@@ -1294,6 +1294,8 @@ visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
+outline_size = 0
+modulate = Color(0.08, 0.09, 0.09, 1)
 position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
@@ -1323,6 +1325,8 @@ visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
+outline_size = 0
+modulate = Color(0.08, 0.09, 0.09, 1)
 position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
@@ -1352,6 +1356,8 @@ visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
+outline_size = 0
+modulate = Color(0.08, 0.09, 0.09, 1)
 position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
@@ -1381,6 +1387,8 @@ visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
+outline_size = 0
+modulate = Color(0.08, 0.09, 0.09, 1)
 position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
@@ -1410,6 +1418,8 @@ visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
+outline_size = 0
+modulate = Color(0.08, 0.09, 0.09, 1)
 position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
@@ -1439,6 +1449,8 @@ visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
+outline_size = 0
+modulate = Color(0.08, 0.09, 0.09, 1)
 position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
@@ -1468,6 +1480,8 @@ visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
+outline_size = 0
+modulate = Color(0.08, 0.09, 0.09, 1)
 position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
@@ -1497,6 +1511,8 @@ visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
+outline_size = 0
+modulate = Color(0.08, 0.09, 0.09, 1)
 position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
@@ -1526,6 +1542,8 @@ visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
+outline_size = 0
+modulate = Color(0.08, 0.09, 0.09, 1)
 position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
@@ -1555,6 +1573,8 @@ visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
+outline_size = 0
+modulate = Color(0.08, 0.09, 0.09, 1)
 position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0013
@@ -1584,6 +1604,8 @@ visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
+outline_size = 0
+modulate = Color(0.08, 0.09, 0.09, 1)
 position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
@@ -1613,6 +1635,8 @@ visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
+outline_size = 0
+modulate = Color(0.08, 0.09, 0.09, 1)
 position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
@@ -1620,8 +1644,8 @@ text = "←"
 font_size = 30
 
 [node name="下部斜面根" type="Node3D" parent="操作台占位/右操作台定位"]
-position = Vector3(1.53, 0.16, 0)
-rotation = Vector3(0, 0, -0.349066)
+position = Vector3(1.67244494, 0.1912314, 0)
+rotation = Vector3(0, 0, -0.20943951)
 
 [node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根"]
 
@@ -1634,8 +1658,8 @@ script = ExtResource("57_book")
 position = Vector3(-0.377316594, -0.084123135, 0)
 
 [node name="InspectPose" type="Marker3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
-position = Vector3(-1.767628193, 0.460700750, 0.9)
-rotation = Vector3(0, 0, 0.20944)
+position = Vector3(-1.816490173, 0.660054445, 0.899999857)
+rotation = Vector3(0, 0, 0.06981351)
 scale = Vector3(1.25, 1.25, 1.25)
 
 [node name="BookRoot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
@@ -1907,7 +1931,7 @@ text = "01 / 07"
 horizontal_alignment = 2
 
 [node name="执行拨杆热点" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根"]
-position = Vector3(-0.362109303, 0.531540394, 0.6)
+position = Vector3(-0.362109482, 0.402886957, 0.574999988)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1919,7 +1943,7 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
-position = Vector3(-0.23, 0, 0)
+position = Vector3(-0.246666667, 0, 0)
 shape = SubResource("53_lever_shape")
 
 
@@ -1931,13 +1955,13 @@ shape = SubResource("53_lever_shape")
 [node name="握柄" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴/视觉资产" instance=ExtResource("71_handle")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
-position = Vector3(-0.455, 0, 0)
+position = Vector3(-0.488333333, 0, 0)
 visible = false
 mesh = SubResource("71_lever_hover")
 
 [node name="执行标识" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
 modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.122160047, -0.369036824, 0)
+position = Vector3(-0.116792738, -0.38929975, 0.00000006)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
 text = "前往楼层"
