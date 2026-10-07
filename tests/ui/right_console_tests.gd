@@ -36,19 +36,44 @@ func run(t: Variant, tree: SceneTree) -> void:
 		"数字1", "数字2", "数字3", "数字4", "数字5", "数字6",
 		"数字7", "数字8", "数字9", "清空", "数字0", "退格",
 	]
+	# 紧凑布局必须在正式FOV70投影下命中各键；只读射线不改业务。
+	cabin._start_turn(-1)
+	await tree.create_timer(cabin.turn_duration + 0.05).timeout
+	var camera := cabin.get_node(
+			"玩家视角/摄像机旋转轴/玩家摄像机"
+	) as Camera3D
 	for index in key_names.size():
 		var key := right_root.get_node("数字键盘/" + key_names[index]) \
 				as InteractionHotspot3D
 		var collision := key.get_node("CollisionShape3D") as CollisionShape3D
-		var cap := key.get_node("视觉资产/按钮帽") as MeshInstance3D
+		var cap := key.get_node("视觉资产/按钮帽") as Node3D
 		t.assert_equal("右台 / 4x3 动作映射 " + key_names[index],
 				StringName(expected_actions[index]), key.get_action_id())
 		t.assert_equal("右台 / 热点属于右台 " + key_names[index],
 				&"right_console", key.get_station_id())
-		t.assert_true("右台 / Mesh 与碰撞跟随同一按键根 " + key_names[index],
+		t.assert_true("右台 / 视觉实例与碰撞跟随同一按键根 " + key_names[index],
 				collision.global_transform.basis.is_equal_approx(
 					cap.global_transform.basis
 				))
+
+		for local_point: Vector3 in [
+			Vector3.ZERO, Vector3(-0.034, -0.06, -0.09),
+			Vector3(-0.034, 0.06, 0.09),
+		]:
+			t.assert_equal("右台 / 紧凑键中心和边缘射线 " + key_names[index]
+					+ str(local_point), key, interaction._raycast_hotspot(
+						camera.unproject_position(key.to_global(local_point))
+					))
+	var verify := right_root.get_node(
+			"数字显示组/验证楼层热点"
+	) as InteractionHotspot3D
+	t.assert_equal("右台 / 新核验模块 VERIFY 射线", verify,
+			interaction._raycast_hotspot(camera.unproject_position(verify.global_position)))
+	for digit in range(10):
+		destination.clear_destination_input()
+		interaction._execute_action(StringName("destination_digit_" + str(digit)))
+		t.assert_equal("右台 / 每个数字输入 %d" % digit, str(digit),
+				str(destination.get_destination_presentation().input))
 
 	destination.clear_destination_input()
 	for action: StringName in [
@@ -59,7 +84,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_equal("右台 / 实体数字键复用原输入并保留 004", "004",
 			str(destination.get_destination_presentation().input))
 	t.assert_equal("右台 / LCD 读取同一字符串", "004",
-			str(destination.get_destination_presentation().input))
+			(presentation.get_node(presentation.input_label_path) as Label3D).text)
 	interaction._execute_action(&"destination_verify")
 	await _frames(tree, 2)
 	var snapshot := destination.get_destination_presentation()
@@ -134,14 +159,20 @@ func run(t: Variant, tree: SceneTree) -> void:
 			lever.get_action_id())
 	var pivot := presentation.get_node(presentation.lever_pivot_path) as Node3D
 	var rest_rotation := pivot.rotation
+	var submit_results: Array[FlowCommandResult] = []
+	destination.destination_travel_result.connect(func(result: FlowCommandResult) -> void:
+		submit_results.append(result)
+	)
 	interaction._execute_action(&"destination_submit")
 	interaction._execute_action(&"destination_submit")
 	t.assert_true("右台 / 拨杆动作期间防重复触发", presentation.is_lever_animating())
+	t.assert_equal("右台 / 连续触发只提交一次", 1, submit_results.size())
 	await tree.create_timer(
 		presentation.lever_forward_duration + presentation.lever_return_duration + 0.05
 	).timeout
 	await _frames(tree, 2)
 	t.assert_false("右台 / 拨杆自动回位后解锁", presentation.is_lever_animating())
+	t.assert_equal("右台 / 回位不产生第二次提交", 1, submit_results.size())
 	t.assert_true("右台 / 拨杆精确返回 Inspector 姿态",
 			pivot.rotation.is_equal_approx(rest_rotation))
 

@@ -153,3 +153,15 @@ python art_source/elevator_cabin_assembly_source.py --godot <Godot-4.7-console.e
 - 用户反馈修订：三枚栏目铭牌局部28×10cm、滚动牌20×10cm，Atlas裁切比例匹配几何，仅显示中文；顶部小铭牌移除。按钮区内嵌2.60×0.34m中灰前面板，复用主台功能模块底色sRGB128/128/128与约0.54粗糙度，暖灰外框保留。每tick16°的轮子模型转向反转，正文上下滚动规则保持。
 - 正式左台只有三个栏目键与SCROLL，没有SELECT。唯一BuildingTerminalInterface、数据/未读规则、字体和原输入保持；主题为深蓝黑、冷青白与灰蓝，琥珀表示未读，选中/悬停为低亮冷青。动态屏仍由原LeftTerminalScreen3D绑定原ViewportTexture、unshaded/nearest，不新增CRT或业务脚本。
 - 旧CSG和原控件视觉在正式场景对照后移除；右台共享资源保留，按#69基线/commit回滚。重导出前核对任务文件、Collection与对象范围，仅选择对应根及其子对象；重导入后使用正式main_3d、原玩家Camera/FOV70核验，并分开记录自动测试、Godot AI自检和用户美术/手感验收。
+
+## 右侧路线核验终端 V1（#71）
+
+- 正式源为 `art_source/right_route_terminal_v1.blend`，Scene“右台路线核验终端V1”、Collection `AgentGenerated_ART06_RightRouteTerminal`。四个零原点、单位 Transform 的根分别为“右台静态外壳 / 右台共享数字帽 / 右台验证帽 / 右台执行杆柄”；对应四个 `right_route_*.glb` 和同名纯视觉 wrapper。48 Mesh 包含 41 个闭合结构件及 7 个有意非闭合的固定 Atlas 贴片；源 BEVEL 保留，不 Apply。没有 Camera、Light、动画、碰撞或业务 metadata 导出。
+- 原右台根 0.6 缩放、20° 下部斜面、书本整组 RestPose / InspectPose / 动画与业务脚本保持。上部宽1.38m、总可见高约1.75m，整机最大横向包络实测约1.47m；键盘偏左，右侧无交互服务板留空，书托与执行舱分成不等宽功能岛。执行舱从0.58m Blockout收至用户批准区间内的0.54m；深约20.4cm，右外缘与轴位保持。拨杆热点仅沿原斜面局部Z从0.5移至0.7（12cm），原16°短程 / 回位时长和单次提交不变。
+- 信息窗有效面0.94×0.378m，厚喷漆框、内压框、橡胶边与动态屏面形成约6cm内陷，六个原信息字段和30字号保持。LCD与VERIFY共用0.92m模块；LCD有效宽0.54m，数字标签位于屏面前约3mm、右边留25mm。所有信息、数字、键位和“前往楼层”文字仍为Godot Label3D，未烘入Atlas。
+- 4×3 keypad为0.53×0.476m独立模块；帽面0.14×0.10m，横向中心距由25.8cm收至15.7cm（净缝1.7cm），纵向中心距由12.6cm收至11.2cm（净缝1.2cm）。12键独立Area、碰撞、动作和原手柄语义保持；CLR字号统一为30，VERIFY与执行铭牌去掉黑色描边以保留字形。
+- 书托有内衬、底托和两个不对称挡片，书的原封面和拿取/开合路径保持。执行舱包含真实孔口、后壁、圆轴套、原转轴下的短金属杆与厚实电木握把；仅移动杆柄挂原“拨杆转轴”，固定机构全部属于外壳。小铭牌仍显示原“前往楼层”。
+- 壳体复用ART-05同系暖灰色板和ART-02的paint Normal/Roughness，普通UV只取下半图，避开主台专有装配tile。功能面板沿用主台sRGB128灰；深灰框、橡胶边与局部深棕黑电木形成材质层级。OpenGL +Y Normal为机身0.45、键帽/握把0.75；补偿247/255中值后的粗糙度目标为壳.48、功能板.54、框.70、键帽/握把.78。没有新增灯或状态材质。
+- Pass D仅使用256×128自制Atlas中的六个固定螺钉标记及一条检修接缝。源为 `art_source/right_route_terminal_texture_source.py`；输出位于 `assets/art/textures/right_route_terminal_v1/`，含布局、来源许可与复用SHA。运行同源Python/Pillow脚本可重建，不下载素材或分发字体。Atlas使用lossless/mipmaps、关闭自动3D压缩；四个GLB Embedded Image Handling=3、沿用ensure_tangents，不抽取重复PNG。
+- 接线只替换右台视觉和必要的热点/标签对齐。业务控制器、公共路径、InputMap、Manager、内容、主台/左台、COMM、原相机FOV70与灯光不变。回滚按#71 base/commit恢复这一组文件；重导出只选择对应根及递归子对象，重新扫描导入后检查实际运行时材料名称和网格，不能把filesystem update成功当作缓存已更新的证据。
+- 固定验收使用正式main_3d、玩家原位置(0,1.5,0)、FOV70与正常照明。全貌、原像素正视/键盘/下部裁切、原Q/E转向中间帧、原InspectPose开书/翻页/合书证据保存在仓库外。自动逻辑、Godot AI自检和用户美术/手感验收分别记录；最终人工验收状态以#71有效评论为准。

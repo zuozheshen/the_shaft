@@ -1,0 +1,22 @@
+{
+  "resolution": [
+    256,
+    128
+  ],
+  "tiles": {
+    "fastener": [
+      0,
+      0,
+      128,
+      128
+    ],
+    "seam": [
+      160,
+      0,
+      96,
+      128
+    ]
+  },
+  "coordinates": "pixels from top left; rectangles [x,y,width,height]",
+  "usage": "six fixed fastener marks and one service-cover seam; no hotspots, no dynamic text"
+}

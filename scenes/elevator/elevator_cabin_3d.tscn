@@ -66,6 +66,11 @@
 [ext_resource type="PackedScene" path="res://scenes/visuals/left_archive_key_visual.tscn" id="69_left_key"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/left_archive_scroll_visual.tscn" id="69_left_scroll"]
 
+[ext_resource type="PackedScene" path="res://scenes/visuals/right_route_terminal_shell_visual.tscn" id="71_shell"]
+[ext_resource type="PackedScene" path="res://scenes/visuals/right_route_key_cap_visual.tscn" id="71_key"]
+[ext_resource type="PackedScene" path="res://scenes/visuals/right_route_verify_cap_visual.tscn" id="71_verify"]
+[ext_resource type="PackedScene" path="res://scenes/visuals/right_route_lever_handle_visual.tscn" id="71_handle"]
+
 [sub_resource type="BoxMesh" id="66_floor_trim"]
 material = ExtResource("66_trim")
 size = Vector3(3.396, 0.035, 0.002)
@@ -441,7 +446,7 @@ metallic = 0.9
 roughness = 0.24
 
 [sub_resource type="BoxShape3D" id="53_key_shape"]
-size = Vector3(0.15, 0.16, 0.25)
+size = Vector3(0.1, 0.176667, 0.243333)
 
 [sub_resource type="BoxMesh" id="53_key_mesh"]
 material = SubResource("53_key")
@@ -453,17 +458,17 @@ size = Vector3(0.12, 0.16, 0.38)
 
 [sub_resource type="BoxMesh" id="53_hover_mesh"]
 material = SubResource("53_hover")
-size = Vector3(0.135, 0.155, 0.235)
+size = Vector3(0.005, 0.176667, 0.246667)
 
 [sub_resource type="BoxMesh" id="53_verify_hover_mesh"]
 material = SubResource("53_hover")
-size = Vector3(0.135, 0.175, 0.4)
+size = Vector3(0.005, 0.175, 0.4)
 
 [sub_resource type="BoxShape3D" id="53_verify_shape"]
 size = Vector3(0.15, 0.19, 0.42)
 
 [sub_resource type="BoxShape3D" id="53_lever_shape"]
-size = Vector3(0.32, 0.28, 0.5)
+size = Vector3(0.69, 0.3, 0.29)
 
 [sub_resource type="BoxMesh" id="53_book_pages_mesh"]
 material = SubResource("53_pages")
@@ -523,6 +528,13 @@ radial_segments = 16
 material = SubResource("53_key")
 radius = 0.11
 height = 0.22
+radial_segments = 16
+rings = 8
+
+[sub_resource type="SphereMesh" id="71_lever_hover"]
+material = SubResource("53_hover")
+radius = 0.118
+height = 0.236
 radial_segments = 16
 rings = 8
 
@@ -1170,25 +1182,19 @@ scale = Vector3(0.6, 0.6, 0.6)
 
 [node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位"]
 
-[node name="右台背板" type="CSGBox3D" parent="操作台占位/右操作台定位/视觉资产" unique_id=1643159438]
-position = Vector3(1.62, 1.38, 0)
-material_override = SubResource("53_body")
-size = Vector3(0.14, 2.45, 2.35)
+
+[node name="右台外壳" parent="操作台占位/右操作台定位/视觉资产" instance=ExtResource("71_shell")]
 
 [node name="验证信息屏" type="Node3D" parent="操作台占位/右操作台定位"]
 
-[node name="屏幕框" type="CSGBox3D" parent="操作台占位/右操作台定位/验证信息屏"]
-position = Vector3(1.525, 2.04, 0)
-material_override = SubResource("53_metal")
-size = Vector3(0.08, 0.72, 1.86)
 
 [node name="屏面" type="CSGBox3D" parent="操作台占位/右操作台定位/验证信息屏"]
-position = Vector3(1.475, 2.04, 0)
+position = Vector3(1.44, 2.086667, -0.166667)
 material_override = SubResource("53_screen")
-size = Vector3(0.025, 0.63, 1.74)
+size = Vector3(0.025, 0.63, 1.566667)
 
 [node name="信息文字" type="Label3D" parent="操作台占位/右操作台定位/验证信息屏"]
-position = Vector3(1.455, 2.04, -0.73)
+position = Vector3(1.425, 2.086667, -0.916667)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0025
 text = "当前楼层：---\n系统推荐：—\n目标楼层：---\n地址状态：未验证\n派单关联度：—\n稳定度影响：—"
@@ -1199,18 +1205,14 @@ width = 600.0
 
 [node name="数字显示组" type="Node3D" parent="操作台占位/右操作台定位"]
 
-[node name="LCD外框" type="CSGBox3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.505, 1.56, -0.31)
-material_override = SubResource("53_metal")
-size = Vector3(0.1, 0.25, 1.0)
 
 [node name="LCD屏面" type="CSGBox3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.445, 1.56, -0.31)
+position = Vector3(1.345, 1.491667, -0.333333)
 material_override = SubResource("53_lcd")
 size = Vector3(0.025, 0.19, 0.9)
 
 [node name="输入数字" type="Label3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.425, 1.56, 0.08)
+position = Vector3(1.3275, 1.491667, 0.075)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0022
 font_size = 42
@@ -1218,7 +1220,7 @@ outline_size = 2
 horizontal_alignment = 2
 
 [node name="验证楼层热点" type="Area3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.44, 1.56, 0.58)
+position = Vector3(1.35, 1.491667, 0.35)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1232,27 +1234,25 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
 shape = SubResource("53_verify_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点/视觉资产"]
-position = Vector3(-0.035, 0, 0)
-mesh = SubResource("53_verify_mesh")
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点/视觉资产" instance=ExtResource("71_verify")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.05, 0, 0)
 visible = false
 mesh = SubResource("53_verify_hover_mesh")
 
 [node name="拒绝提示高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.05, 0, 0)
 visible = false
 mesh = SubResource("53_verify_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
-position = Vector3(-0.105, 0, 0)
+position = Vector3(-0.061, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0022
 text = "验证楼层"
 font_size = 26
-outline_size = 2
+outline_size = 0
 modulate = Color(0.08, 0.09, 0.09, 1)
 
 [node name="反馈文字" type="Label3D" parent="操作台占位/右操作台定位/数字显示组"]
@@ -1269,7 +1269,7 @@ width = 800.0
 [node name="数字键盘" type="Node3D" parent="操作台占位/右操作台定位"]
 
 [node name="数字1" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 1.17, -0.43)
+position = Vector3(1.323333, 1.183333, -0.745000)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1283,24 +1283,22 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字1/视觉资产"]
-position = Vector3(-0.035, 0, 0)
-mesh = SubResource("53_key_mesh")
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字1/视觉资产" instance=ExtResource("71_key")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
-position = Vector3(-0.105, 0, 0.055)
+position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
 text = "1"
 font_size = 30
 
 [node name="数字2" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 1.17, 0)
+position = Vector3(1.323333, 1.183333, -0.483333)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1314,24 +1312,22 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字2/视觉资产"]
-position = Vector3(-0.035, 0, 0)
-mesh = SubResource("53_key_mesh")
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字2/视觉资产" instance=ExtResource("71_key")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
-position = Vector3(-0.105, 0, 0.055)
+position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
 text = "2"
 font_size = 30
 
 [node name="数字3" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 1.17, 0.43)
+position = Vector3(1.323333, 1.183333, -0.221667)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1345,24 +1341,22 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字3/视觉资产"]
-position = Vector3(-0.035, 0, 0)
-mesh = SubResource("53_key_mesh")
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字3/视觉资产" instance=ExtResource("71_key")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
-position = Vector3(-0.105, 0, 0.055)
+position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
 text = "3"
 font_size = 30
 
 [node name="数字4" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.96, -0.43)
+position = Vector3(1.323333, 0.996667, -0.745000)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1376,24 +1370,22 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字4/视觉资产"]
-position = Vector3(-0.035, 0, 0)
-mesh = SubResource("53_key_mesh")
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字4/视觉资产" instance=ExtResource("71_key")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
-position = Vector3(-0.105, 0, 0.055)
+position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
 text = "4"
 font_size = 30
 
 [node name="数字5" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.96, 0)
+position = Vector3(1.323333, 0.996667, -0.483333)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1407,24 +1399,22 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字5/视觉资产"]
-position = Vector3(-0.035, 0, 0)
-mesh = SubResource("53_key_mesh")
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字5/视觉资产" instance=ExtResource("71_key")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
-position = Vector3(-0.105, 0, 0.055)
+position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
 text = "5"
 font_size = 30
 
 [node name="数字6" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.96, 0.43)
+position = Vector3(1.323333, 0.996667, -0.221667)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1438,24 +1428,22 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字6/视觉资产"]
-position = Vector3(-0.035, 0, 0)
-mesh = SubResource("53_key_mesh")
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字6/视觉资产" instance=ExtResource("71_key")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
-position = Vector3(-0.105, 0, 0.055)
+position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
 text = "6"
 font_size = 30
 
 [node name="数字7" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.75, -0.43)
+position = Vector3(1.323333, 0.810000, -0.745000)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1469,24 +1457,22 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字7/视觉资产"]
-position = Vector3(-0.035, 0, 0)
-mesh = SubResource("53_key_mesh")
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字7/视觉资产" instance=ExtResource("71_key")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
-position = Vector3(-0.105, 0, 0.055)
+position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
 text = "7"
 font_size = 30
 
 [node name="数字8" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.75, 0)
+position = Vector3(1.323333, 0.810000, -0.483333)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1500,24 +1486,22 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字8/视觉资产"]
-position = Vector3(-0.035, 0, 0)
-mesh = SubResource("53_key_mesh")
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字8/视觉资产" instance=ExtResource("71_key")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
-position = Vector3(-0.105, 0, 0.055)
+position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
 text = "8"
 font_size = 30
 
 [node name="数字9" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.75, 0.43)
+position = Vector3(1.323333, 0.810000, -0.221667)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1531,24 +1515,22 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字9/视觉资产"]
-position = Vector3(-0.035, 0, 0)
-mesh = SubResource("53_key_mesh")
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字9/视觉资产" instance=ExtResource("71_key")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
-position = Vector3(-0.105, 0, 0.055)
+position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
 text = "9"
 font_size = 30
 
 [node name="清空" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.54, -0.43)
+position = Vector3(1.323333, 0.623333, -0.745000)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1562,24 +1544,22 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/清空/视觉资产"]
-position = Vector3(-0.035, 0, 0)
-mesh = SubResource("53_key_mesh")
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/清空/视觉资产" instance=ExtResource("71_key")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
-position = Vector3(-0.105, 0, 0.075)
+position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0013
 text = "CLR"
-font_size = 24
+font_size = 30
 
 [node name="数字0" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.54, 0)
+position = Vector3(1.323333, 0.623333, -0.483333)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1593,24 +1573,22 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字0/视觉资产"]
-position = Vector3(-0.035, 0, 0)
-mesh = SubResource("53_key_mesh")
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字0/视觉资产" instance=ExtResource("71_key")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
-position = Vector3(-0.105, 0, 0.055)
+position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
 text = "0"
 font_size = 30
 
 [node name="退格" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.44, 0.54, 0.43)
+position = Vector3(1.323333, 0.623333, -0.221667)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1624,17 +1602,15 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/退格/视觉资产"]
-position = Vector3(-0.035, 0, 0)
-mesh = SubResource("53_key_mesh")
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/退格/视觉资产" instance=ExtResource("71_key")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
-position = Vector3(-0.105, 0, 0.055)
+position = Vector3(-0.042, 0, 0)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
 text = "←"
@@ -1646,9 +1622,6 @@ rotation = Vector3(0, 0, -0.349066)
 
 [node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根"]
 
-[node name="斜面板" type="CSGBox3D" parent="操作台占位/右操作台定位/下部斜面根/视觉资产"]
-material_override = SubResource("53_body")
-size = Vector3(0.16, 0.5, 2.05)
 
 [node name="楼层导引书" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根"]
 position = Vector3(-0.13, 0.01, -0.48)
@@ -1929,7 +1902,7 @@ text = "01 / 07"
 horizontal_alignment = 2
 
 [node name="执行拨杆热点" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根"]
-position = Vector3(-0.12, 0, 0.5)
+position = Vector3(-0.12, 0, 0.7)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1941,41 +1914,31 @@ hover_visual_path = NodePath("悬停高亮")
 [node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
+position = Vector3(-0.23, 0, 0)
 shape = SubResource("53_lever_shape")
 
-[node name="安装底座" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/视觉资产"]
-mesh = SubResource("53_lever_base_mesh")
 
 [node name="拨杆转轴" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
 
 [node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴"]
 
-[node name="金属短柄" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴/视觉资产"]
-position = Vector3(-0.2, 0, 0)
-rotation = Vector3(0, 0, 1.5707963)
-mesh = SubResource("53_lever_handle_mesh")
 
-[node name="握柄" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴/视觉资产"]
-position = Vector3(-0.43, 0, 0)
-mesh = SubResource("53_lever_grip_mesh")
+[node name="握柄" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴/视觉资产" instance=ExtResource("71_handle")]
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
-position = Vector3(-0.075, 0, 0)
+position = Vector3(-0.43, 0, 0)
 visible = false
-mesh = SubResource("53_verify_hover_mesh")
+mesh = SubResource("71_lever_hover")
 
 [node name="执行标识" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
-position = Vector3(-0.1, -0.22, 0.2)
+modulate = Color(0.08, 0.09, 0.09, 1)
+position = Vector3(-0.145, -0.22, 0.2)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
 text = "前往楼层"
-font_size = 24
-outline_size = 3
+font_size = 28
+outline_size = 0
 
-[node name="底缘挡条" type="CSGBox3D" parent="操作台占位/右操作台定位/下部斜面根/视觉资产"]
-position = Vector3(-0.18, -0.3, 0)
-material_override = SubResource("53_metal")
-size = Vector3(0.24, 0.1, 2.12)
 
 [node name="灯光" type="Node3D" parent="." unique_id=635936352]
 
