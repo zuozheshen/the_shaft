@@ -1961,7 +1961,7 @@ mesh = SubResource("71_lever_hover")
 
 [node name="执行标识" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
 modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.116792738, -0.38929975, 0.00000006)
+position = Vector3(-0.116792738, -0.501827839, 0.00000006)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0018
 text = "前往楼层"
