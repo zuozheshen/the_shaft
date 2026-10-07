@@ -1,0 +1,46 @@
+{
+  "resolution": [
+    1024,
+    512
+  ],
+  "tiles": {
+    "passenger": [
+      8,
+      136,
+      240,
+      86
+    ],
+    "transcript": [
+      264,
+      136,
+      240,
+      86
+    ],
+    "system": [
+      520,
+      136,
+      240,
+      86
+    ],
+    "scroll": [
+      810,
+      136,
+      172,
+      86
+    ],
+    "fastener": [
+      800,
+      16,
+      96,
+      96
+    ],
+    "seam": [
+      16,
+      320,
+      992,
+      48
+    ]
+  },
+  "coordinates": "pixels from top left; rectangles [x,y,width,height]",
+  "runtime": "fixed shell labels; never attached to a rotating or pressing axis"
+}

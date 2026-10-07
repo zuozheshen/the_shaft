@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/art/models/left_archive_terminal_shell.glb" id="1_model"]
+
+[node name="档案终端外壳视觉" type="Node3D"]
+
+[node name="Blender模型" parent="." instance=ExtResource("1_model")]

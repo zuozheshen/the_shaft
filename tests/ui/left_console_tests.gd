@@ -28,17 +28,19 @@ func run(t: Variant, tree: SceneTree) -> void:
 	for index in names.size():
 		var key := control_root.get_node(names[index]) as InteractionHotspot3D
 		var collision := key.get_node("CollisionShape3D") as CollisionShape3D
-		var cap := key.get_node("视觉资产/按钮帽") as MeshInstance3D
+		var cap := key.get_node("视觉资产/按钮帽") as Node3D
 		t.assert_equal("左台 / 栏目动作映射 " + names[index],
 				actions[index], key.get_action_id())
 		t.assert_equal("左台 / 热点属于左台 " + names[index],
 				&"left_console", key.get_station_id())
 		t.assert_equal("左台 / 保留现有中文术语 " + names[index], names[index],
 				(key.get_node("标识") as Label3D).text)
-		t.assert_true("左台 / Mesh 与碰撞跟随同一按键根 " + names[index],
+		t.assert_true("左台 / 视觉挂载与碰撞跟随同一按键根 " + names[index],
 				collision.global_transform.basis.is_equal_approx(
 					cap.global_transform.basis
 				))
+		t.assert_true("左台 / 栏目模型导入后有可见网格 " + names[index],
+				cap.find_children("*", "MeshInstance3D", true, false).size() > 0)
 	# 左视角中 z 从大到小对应画面从左到右；人工验收冻结为 FILE、TRANSCRIPT、SYSTEM、滚轮。
 	var passenger_key := control_root.get_node("乘客档案") as Node3D
 	var transcript_key := control_root.get_node("对话记录") as Node3D
@@ -103,11 +105,13 @@ func run(t: Variant, tree: SceneTree) -> void:
 	terminal.terminal_content_label.text = "\n".join(long_lines)
 	await _frames(tree, 3)
 	var wheel_visual := left.get_node(left.scroll_wheel_visual_path) as Node3D
+	var wheel_collision := scroll_root.get_node("CollisionShape3D") as CollisionShape3D
+	var collision_transform_before := wheel_collision.global_transform
 	var wheel_basis_before := wheel_visual.transform.basis
 	var wheel_axis_before := wheel_basis_before.y.normalized()
 	var expected_wheel_basis := wheel_basis_before * Basis(
 			Vector3.UP,
-			deg_to_rad(-left.scroll_tick_degrees)
+			deg_to_rad(left.scroll_tick_degrees)
 	)
 	interaction._execute_left_scroll(1)
 	await _frames(tree, 2)
@@ -121,12 +125,22 @@ func run(t: Variant, tree: SceneTree) -> void:
 			wheel_axis_before.is_equal_approx(
 				wheel_visual.transform.basis.y.normalized()
 			))
-	t.assert_equal("左台 / 滚轮包含可观察轴向刻线", 4,
-			wheel_visual.find_children("轴向刻线*", "MeshInstance3D", true, false).size())
+	t.assert_true("左台 / 可替换滚轮模型挂在唯一转轴内",
+			wheel_visual.get_node("视觉资产/滚轮视觉")
+					.find_children("*", "MeshInstance3D", true, false).size() > 0)
+	t.assert_true("左台 / 滚动不旋转热点碰撞",
+			collision_transform_before.is_equal_approx(wheel_collision.global_transform))
 	t.assert_equal("左台 / 滚轮不修改系统日志", system_history_before,
 			manager.get_system_message_history())
 	t.assert_equal("左台 / 滚轮不修改对话内容", transcript_before,
 			manager.get_front_dialogue_history())
+
+	interaction._execute_left_scroll(-1)
+	await _frames(tree, 2)
+	t.assert_true("左台 / 反向阅读使滚轮回到原角度",
+			wheel_basis_before.is_equal_approx(wheel_visual.transform.basis))
+	t.assert_equal("左台 / 反向阅读回到原阅读位置", 0,
+			terminal.content_scroll_container.scroll_vertical)
 
 	var scroll_hotspot := left.get_node("滚轮根") as InteractionHotspot3D
 	t.assert_equal("左台 / 滚轮使用独立实体热点", &"left_scroll",

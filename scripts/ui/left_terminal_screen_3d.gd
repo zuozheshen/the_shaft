@@ -68,10 +68,10 @@ func _ready() -> void:
 func rotate_scroll_wheel(direction: int) -> void:
 	if _scroll_wheel_visual == null or direction == 0:
 		return
-	# 旋转 Godot 自有轴根；可替换模型和刻线跟随轴，碰撞与外部接线保持不变。
+	# 按玩家反馈修正机械转向；只旋转自有轴根，正文滚动与热点碰撞保持原规则。
 	_scroll_wheel_visual.rotate_object_local(
 		Vector3.UP,
-		deg_to_rad(-scroll_tick_degrees * direction)
+		deg_to_rad(scroll_tick_degrees * direction)
 	)
 
 
