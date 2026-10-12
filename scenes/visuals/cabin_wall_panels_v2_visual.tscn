@@ -1,0 +1,165 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/art/models/cabin_wall_panels_v2.glb" id="model"]
+[ext_resource type="Material" path="res://assets/art/materials/cabin_wall_panels_v2/main.tres" id="main"]
+[ext_resource type="Material" path="res://assets/art/materials/cabin_wall_panels_v2/replacement.tres" id="replacement"]
+[ext_resource type="Material" path="res://assets/art/materials/cabin_wall_panels_v2/trim.tres" id="trim"]
+[ext_resource type="Material" path="res://assets/art/materials/cabin_wall_panels_v2/fastener.tres" id="fastener"]
+
+[node name="舱壁金属面板V2" type="Node3D"]
+
+[node name="墙板模型" parent="." instance=ExtResource("model")]
+
+[node name="Panel_Front_01" parent="墙板模型/CabinWallPanelsV2" index="14"]
+layers = 1
+material_override = ExtResource("main")
+
+[node name="Panel_Front_02" parent="墙板模型/CabinWallPanelsV2" index="15"]
+layers = 1
+material_override = ExtResource("main")
+
+[node name="Panel_Front_03" parent="墙板模型/CabinWallPanelsV2" index="16"]
+layers = 1
+material_override = ExtResource("main")
+
+[node name="Seam_Front_01" parent="墙板模型/CabinWallPanelsV2" index="26"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Seam_Front_02" parent="墙板模型/CabinWallPanelsV2" index="27"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Top_Front" parent="墙板模型/CabinWallPanelsV2" index="34"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Bottom_Front" parent="墙板模型/CabinWallPanelsV2" index="0"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Panel_Left_01" parent="墙板模型/CabinWallPanelsV2" index="17"]
+layers = 1
+material_override = ExtResource("main")
+
+[node name="Panel_Left_02" parent="墙板模型/CabinWallPanelsV2" index="18"]
+layers = 1
+material_override = ExtResource("main")
+
+[node name="Panel_Left_03" parent="墙板模型/CabinWallPanelsV2" index="19"]
+layers = 1
+material_override = ExtResource("main")
+
+[node name="Seam_Left_01" parent="墙板模型/CabinWallPanelsV2" index="28"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Seam_Left_02" parent="墙板模型/CabinWallPanelsV2" index="29"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Top_Left" parent="墙板模型/CabinWallPanelsV2" index="35"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Bottom_Left" parent="墙板模型/CabinWallPanelsV2" index="1"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Panel_Rear_01" parent="墙板模型/CabinWallPanelsV2" index="20"]
+layers = 1
+material_override = ExtResource("main")
+
+[node name="Panel_Rear_02" parent="墙板模型/CabinWallPanelsV2" index="21"]
+layers = 1
+material_override = ExtResource("replacement")
+
+[node name="Panel_Rear_03" parent="墙板模型/CabinWallPanelsV2" index="22"]
+layers = 1
+material_override = ExtResource("main")
+
+[node name="Seam_Rear_01" parent="墙板模型/CabinWallPanelsV2" index="30"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Seam_Rear_02" parent="墙板模型/CabinWallPanelsV2" index="31"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Top_Rear" parent="墙板模型/CabinWallPanelsV2" index="36"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Bottom_Rear" parent="墙板模型/CabinWallPanelsV2" index="2"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Panel_Right_01" parent="墙板模型/CabinWallPanelsV2" index="23"]
+layers = 1
+material_override = ExtResource("main")
+
+[node name="Panel_Right_02" parent="墙板模型/CabinWallPanelsV2" index="24"]
+layers = 1
+material_override = ExtResource("main")
+
+[node name="Panel_Right_03" parent="墙板模型/CabinWallPanelsV2" index="25"]
+layers = 1
+material_override = ExtResource("replacement")
+
+[node name="Seam_Right_01" parent="墙板模型/CabinWallPanelsV2" index="32"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Seam_Right_02" parent="墙板模型/CabinWallPanelsV2" index="33"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Top_Right" parent="墙板模型/CabinWallPanelsV2" index="37"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Bottom_Right" parent="墙板模型/CabinWallPanelsV2" index="3"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Corner_-1_-1" parent="墙板模型/CabinWallPanelsV2" index="4"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Corner_-1_1" parent="墙板模型/CabinWallPanelsV2" index="5"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Corner_1_-1" parent="墙板模型/CabinWallPanelsV2" index="6"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Corner_1_1" parent="墙板模型/CabinWallPanelsV2" index="7"]
+layers = 1
+material_override = ExtResource("trim")
+
+[node name="Fastener_Rear_01" parent="墙板模型/CabinWallPanelsV2" index="8"]
+layers = 1
+material_override = ExtResource("fastener")
+
+[node name="Fastener_Rear_02" parent="墙板模型/CabinWallPanelsV2" index="9"]
+layers = 1
+material_override = ExtResource("fastener")
+
+[node name="Fastener_Rear_03" parent="墙板模型/CabinWallPanelsV2" index="10"]
+layers = 1
+material_override = ExtResource("fastener")
+
+[node name="Fastener_Rear_04" parent="墙板模型/CabinWallPanelsV2" index="11"]
+layers = 1
+material_override = ExtResource("fastener")
+
+[node name="Fastener_Right_05" parent="墙板模型/CabinWallPanelsV2" index="12"]
+layers = 1
+material_override = ExtResource("fastener")
+
+[node name="Fastener_Right_06" parent="墙板模型/CabinWallPanelsV2" index="13"]
+layers = 1
+material_override = ExtResource("fastener")
+
+[editable path="墙板模型"]

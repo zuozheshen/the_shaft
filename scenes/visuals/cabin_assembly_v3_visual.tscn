@@ -1,5 +1,7 @@
 [gd_scene format=3]
 
+[ext_resource type="PackedScene" path="res://scenes/visuals/cabin_wall_panels_v2_visual.tscn" id="wall_panels_v2"]
+
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/wall.tres" id="wall"]
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/trim.tres" id="trim"]
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/joint.tres" id="joint"]
@@ -135,30 +137,35 @@ position = Vector3(0, 0, -1.694)
 rotation = Vector3(0, 0, 0)
 
 [node name="连续喷漆墙面" type="MeshInstance3D" parent="前壁"]
+visible = false
 position = Vector3(0, 1.25, 0.001)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_1")
 
 [node name="顶部窄折边" type="MeshInstance3D" parent="前壁"]
+visible = false
 position = Vector3(0, 2.477, 0.008)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_2")
 
 [node name="地脚防护" type="MeshInstance3D" parent="前壁"]
+visible = false
 position = Vector3(0, 0.033, 0.011)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_3")
 
 [node name="转角折边-1.678" type="MeshInstance3D" parent="前壁"]
+visible = false
 position = Vector3(-1.678, 1.253, 0.009)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_4")
 
 [node name="转角折边1.678" type="MeshInstance3D" parent="前壁"]
+visible = false
 position = Vector3(1.678, 1.253, 0.009)
 rotation = Vector3(0, 0, 0)
 layers = 1
@@ -169,30 +176,35 @@ position = Vector3(-1.694, 0, 0)
 rotation = Vector3(0, 1.570796327, 0)
 
 [node name="连续喷漆墙面" type="MeshInstance3D" parent="左壁"]
+visible = false
 position = Vector3(0, 1.25, 0.001)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_6")
 
 [node name="顶部窄折边" type="MeshInstance3D" parent="左壁"]
+visible = false
 position = Vector3(0, 2.477, 0.008)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_7")
 
 [node name="地脚防护" type="MeshInstance3D" parent="左壁"]
+visible = false
 position = Vector3(0, 0.033, 0.011)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_8")
 
 [node name="转角折边-1.678" type="MeshInstance3D" parent="左壁"]
+visible = false
 position = Vector3(-1.678, 1.253, 0.009)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_9")
 
 [node name="转角折边1.678" type="MeshInstance3D" parent="左壁"]
+visible = false
 position = Vector3(1.678, 1.253, 0.009)
 rotation = Vector3(0, 0, 0)
 layers = 1
@@ -203,30 +215,35 @@ position = Vector3(0, 0, 1.694)
 rotation = Vector3(0, 3.141592654, 0)
 
 [node name="连续喷漆墙面" type="MeshInstance3D" parent="后壁"]
+visible = false
 position = Vector3(0, 1.25, 0.001)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_11")
 
 [node name="顶部窄折边" type="MeshInstance3D" parent="后壁"]
+visible = false
 position = Vector3(0, 2.477, 0.008)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_12")
 
 [node name="地脚防护" type="MeshInstance3D" parent="后壁"]
+visible = false
 position = Vector3(0, 0.033, 0.011)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_13")
 
 [node name="转角折边-1.678" type="MeshInstance3D" parent="后壁"]
+visible = false
 position = Vector3(-1.678, 1.253, 0.009)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_14")
 
 [node name="转角折边1.678" type="MeshInstance3D" parent="后壁"]
+visible = false
 position = Vector3(1.678, 1.253, 0.009)
 rotation = Vector3(0, 0, 0)
 layers = 1
@@ -305,30 +322,35 @@ position = Vector3(1.694, 0, 0)
 rotation = Vector3(0, -1.570796327, 0)
 
 [node name="连续喷漆墙面" type="MeshInstance3D" parent="右壁"]
+visible = false
 position = Vector3(0, 1.25, 0.001)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_23")
 
 [node name="顶部窄折边" type="MeshInstance3D" parent="右壁"]
+visible = false
 position = Vector3(0, 2.477, 0.008)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_24")
 
 [node name="地脚防护" type="MeshInstance3D" parent="右壁"]
+visible = false
 position = Vector3(0, 0.033, 0.011)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_25")
 
 [node name="转角折边-1.678" type="MeshInstance3D" parent="右壁"]
+visible = false
 position = Vector3(-1.678, 1.253, 0.009)
 rotation = Vector3(0, 0, 0)
 layers = 1
 mesh = SubResource("mesh_26")
 
 [node name="转角折边1.678" type="MeshInstance3D" parent="右壁"]
+visible = false
 position = Vector3(1.678, 1.253, 0.009)
 rotation = Vector3(0, 0, 0)
 layers = 1
@@ -369,3 +391,5 @@ mesh = SubResource("bolt")
 position = Vector3(0.245, 0.1, 0.019)
 rotation = Vector3(1.570796327, 0, 0)
 mesh = SubResource("bolt")
+
+[node name="独立墙板视觉V2" parent="." instance=ExtResource("wall_panels_v2")]
