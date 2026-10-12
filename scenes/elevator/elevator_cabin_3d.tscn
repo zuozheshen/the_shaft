@@ -26,6 +26,7 @@
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_612_visual.tres" id="50_floor_612"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_742_visual.tres" id="50_floor_742"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_900_visual.tres" id="50_floor_900"]
+[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_318_visual.tres" id="50_floor_318"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_fallback_visual.tres" id="50_floor_fallback"]
 [ext_resource type="Script" uid="uid://bf4fhxjlwlla6" path="res://scripts/presentation/floor_visual_profile.gd" id="50_floor_type"]
 [ext_resource type="Script" uid="uid://cjs2vtxivfkth" path="res://scripts/presentation/main_console_presentation_3d.gd" id="52_presentation"]
@@ -580,7 +581,7 @@ script = ExtResource("1_wegik")
 [node name="监控表现协调器" type="Node" parent="." unique_id=333989727]
 script = ExtResource("23_coordinator")
 passenger_visual_profiles = Array[ExtResource("24_profile_type")]([ExtResource("25_profile_001"), ExtResource("26_profile_002"), ExtResource("27_profile_003")])
-floor_visual_profiles = Array[ExtResource("50_floor_type")]([ExtResource("50_floor_900"), ExtResource("50_floor_742"), ExtResource("50_floor_612"), ExtResource("50_floor_004"), ExtResource("50_floor_387"), ExtResource("50_floor_392"), ExtResource("50_floor_547")])
+floor_visual_profiles = Array[ExtResource("50_floor_type")]([ExtResource("50_floor_900"), ExtResource("50_floor_742"), ExtResource("50_floor_612"), ExtResource("50_floor_004"), ExtResource("50_floor_387"), ExtResource("50_floor_392"), ExtResource("50_floor_547"), ExtResource("50_floor_318")])
 fallback_floor_visual_profile = ExtResource("50_floor_fallback")
 
 [node name="灰盒环境" type="Node3D" parent="." unique_id=408541640]

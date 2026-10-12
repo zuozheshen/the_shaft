@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FloorDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/definitions/floor_definition.gd" id="1_definition"]
+
+[resource]
+script = ExtResource("1_definition")
+floor_id = &"318"
+display_name = "居民住宅层"
+description = "常规居民居住楼层。电梯口连接住宅走廊，沿线分布住户房间与基础公共设施。"
+function_description = "居民居住、日常通行与基础生活服务。"
+maintenance_history = "电梯前室与住宅走廊照明按常规周期检修，近期无长期封闭记录。"
+book_note = "请勿在电梯门前及主要通行区域堆放私人物品。"
+book_order = 80

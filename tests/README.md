@@ -110,13 +110,13 @@ godot.cmd --headless --path . --scene res://tests/project_check_runner.tscn -- -
 - 三个操作台继续通过 `DemoFlowManager` 的兼容 API 接入。
 - 源码边界检查确保主台和右台不再组合被禁止的低级状态写入。
 - 监控摄影棚挂载、分层楼层、纸片乘客、独立双开门及乘客登/离舱表现时间线。
-- 楼层视觉 Profile 与正式 Catalog/场景配置对应；前导零、重复/空配置、setup、实际到站先视觉后乘客、七层完整覆盖、fallback 与多层往返。
+- 楼层视觉 Profile 与正式 Catalog/场景配置对应；前导零、重复/空配置、setup、实际到站先视觉后乘客、八个楼层 Profile 完整覆盖（含 318 独立资源）、fallback 与多层往返。
 - Profile 切换保留门动画、乘客 Profile 与登/离舱 Tween；CAM 切换不重置楼层，门外灯倍率不累积且受光层与舱内/乘客隔离。Scene Contract 检查门外灯导出路径和楼层公共 API。
 - `ui/main_console_tests.gd` 使用正式 main_3d、原 DialogueManagerAdapter 与三单对白，验证五个热点射线/动作、原监控纹理和机位、CAM 背光、MIC/COMM、真实门四态、FAULT 默认熄灭及拒绝提示。
 - 全局通讯窗的四方向/转身保持、动态选项文本/顺序/允许状态与单次回调、最小化保留会话、拖动及缩放夹紧、左台输入避让与补齐释放、监控启停独立性。
 - `ui/left_console_tests.gd` 使用正式 main_3d，验证唯一 BuildingTerminalInterface、旧触控入口停用、三枚实体栏目键和滚轮接线，以及新派单、转向和当前栏目共同决定的未读灯语义；滚轮不得改写业务历史。
 - `ui/right_console_tests.gd` 使用正式 main_3d，验证旧右台覆盖层隐藏、4×3 实体键动作映射与射线命中、`004` 前导零、验证状态/信息屏/LCD 同步、CLR/退格、ART-06 冻结的12°斜面、导引书常态位置，以及拨杆单次提交、真实Tween的30°前进/自动回位、全过程hover抑制及当前悬停意图恢复。
-- `ui/floor_guide_book_tests.gd` 使用正式 main_3d，验证七层固定资料与 book_order、004 前导零、392 纸质备注、书本鼠标射线热点、COMM 优先、开合互斥、翻页边界与 busy、键盘和手柄阅读输入、转向锁、背后设备隔离与合书后焦点恢复。
+- `ui/floor_guide_book_tests.gd` 使用正式 main_3d，验证八层固定资料与 book_order（318 追加为第八页，旧七页不重排）、004 前导零、392 纸质备注、书本鼠标射线热点、COMM 优先、开合互斥、翻页边界与 busy、键盘和手柄阅读输入、转向锁、背后设备隔离与合书后焦点恢复。
 - `ui/gamepad_support_tests.gd` 使用正式 main_3d，验证 Q/E 与肩键共存、D-pad/双摇杆/A/B/Y 语义 InputMap、带 deadzone 和首次延迟的焦点/滚动重复、三台相机投影导航可达性、disabled 与 `left_scroll` 候选过滤、mouse/gamepad 单焦点、COMM 优先与禁用选项跳过，以及只用手柄焦点完成数字输入→VERIFY→SUBMIT 正常行驶。
 - 正式接线的三单接乘/询问/到站反馈/离舱结算、日志记录；CAM 切换保留门动画和乘客 Tween，状态刷新保留手调主屏 Transform/Mesh。
 
@@ -159,3 +159,16 @@ Headless 使用无画面驱动，不能证明 D3D12 画面、焦点、字体、�
 ## 美术替换边界回归
 
 `ui/main_console_tests.gd` 在内存正式主场景中，将台体、按钮和轴外形替换为不同内部结构，检查热点碰撞、CAM、数字/验证（含 004）、原监控纹理、滚轮轴、拨杆轴和左台栏目不丢失。旧控件移除断言覆盖主台面板、左台页签及右台 LineEdit/按钮；门与协调器测试继续通过真实命令和展示快照检查 busy 拒绝及释放。真实 Blender 导出与 Godot 同路径 reimport 属于独立人工工具验证，不由这组 headless 替换测试冒充。
+
+#75 Pass A/B 的只读布局门（不执行 Aseprite、PNG 导出或 Pass C）：
+
+```powershell
+godot.cmd --headless --path . --script res://tools/aseprite/validate_floor_profile.gd -- --check-layout
+```
+
+成功标记为 `LAYOUT CHECKS PASS`。它实例化正式 main_3d，对照
+`art_source/floors/floor_slice_layout_v1.json` 检查七个 Quad、完整 Transform、
+320×240 机位参数、固定遮挡、Marker、共享字号和规范化 LF 源文件 hash。
+`--print-layout` 可附加输出当前几何 JSON；命令始终只读正式源和清单。
+mask 来自 B 的实机校对与固定 Box 射线计算，命令不把几何一致性冒充截图验收。
+像素密度、Palette 和正式导出矩形仍未冻结，清单的 `export_ready=false`。

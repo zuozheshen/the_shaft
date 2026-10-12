@@ -32,6 +32,10 @@ func _test_scene_configuration(r: Variant) -> void:
 		r.assert_true("楼层配置 / 有效且无重复", profile != null and profile.floor_id not in ids)
 		if profile != null:
 			ids.append(profile.floor_id)
+			if profile.floor_id == &"318":
+				r.assert_equal("318 / 正式独立 Profile 路径",
+						"res://data/presentation/floor_visuals/floor_318_visual.tres",
+						profile.resource_path)
 	r.assert_equal("楼层配置 / 数量与真实 Catalog 一致", CATALOG.floors.size(), ids.size())
 	for floor_data in CATALOG.floors:
 		r.assert_true("楼层配置 / 覆盖 " + String(floor_data.floor_id), floor_data.floor_id in ids)
@@ -194,6 +198,9 @@ func _test_arrival_and_fallback(r: Variant, tree: SceneTree) -> void:
 				expected = profile
 		r.assert_equal("楼层映射 / 使用正式资源 " + String(floor_data.floor_id),
 				expected, stage.get_current_floor_visual_profile())
+		r.assert_equal("楼层映射 / 动态编号 " + String(floor_data.floor_id),
+				"FLOOR " + String(floor_data.floor_id),
+				(stage.get_node(stage.floor_label_path) as Label3D).text)
 
 	# 删除一个已注册业务楼层的表现配置，业务仍可正常完成移动。
 	coordinator.floor_visual_profiles = []

@@ -95,6 +95,7 @@ size = Vector3(2.05, 0.05, 0.3)
 
 [node name="门外基础地面" type="CSGBox3D" parent="门外楼层区域" unique_id=864514015]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, -1.75)
+visible = false
 layers = 4
 size = Vector3(3, 0.1, 3.5)
 
