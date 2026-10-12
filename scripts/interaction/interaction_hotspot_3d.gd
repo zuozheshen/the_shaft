@@ -10,6 +10,8 @@ extends Area3D
 @export_node_path("Node3D") var hover_visual_path: NodePath
 
 var _is_hovered: bool = false
+var _hover_requested: bool = false
+var _hover_visual_enabled: bool = true
 var _hover_visual: Node3D
 
 
@@ -26,6 +28,8 @@ func _exit_tree() -> void:
 	if is_instance_valid(_hover_visual):
 		_hover_visual.visible = false
 	_is_hovered = false
+	_hover_requested = false
+	_hover_visual_enabled = true
 
 
 func can_interact() -> bool:
@@ -45,8 +49,20 @@ func get_station_id() -> StringName:
 
 
 func set_hovered(hovered: bool) -> void:
-	# 禁用热点时不能显示“可操作”反馈；相同状态不会重复写 visible。
-	var should_show_hover: bool = hovered and interaction_enabled
+	_hover_requested = hovered
+	_refresh_hover_visual()
+
+
+func set_hover_visual_enabled(enabled: bool) -> void:
+	# 只压制表现，保留鼠标/手柄悬停意图与热点业务可用性。
+	_hover_visual_enabled = enabled
+	_refresh_hover_visual()
+
+
+func _refresh_hover_visual() -> void:
+	# 动画回位后按当前悬停意图恢复；相同状态不会重复写 visible。
+	var should_show_hover: bool = _hover_requested and interaction_enabled \
+			and _hover_visual_enabled
 	if _is_hovered == should_show_hover:
 		return
 	_is_hovered = should_show_hover
