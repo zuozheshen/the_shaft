@@ -9,7 +9,7 @@ extends Node
 @export var feedback_label_path: NodePath
 @export var verify_attention_visual_path: NodePath
 @export var lever_pivot_path: NodePath
-@export_range(2.0, 35.0, 1.0) var lever_travel_degrees: float = 16.0
+@export_range(2.0, 35.0, 1.0) var lever_travel_degrees: float = 30.0
 @export_range(0.03, 0.5, 0.01) var lever_forward_duration: float = 0.12
 @export_range(0.03, 0.8, 0.01) var lever_return_duration: float = 0.22
 
@@ -19,6 +19,7 @@ var _input_label: Label3D
 var _feedback_label: Label3D
 var _verify_attention_visual: MeshInstance3D
 var _lever_pivot: Node3D
+var _lever_hotspot: InteractionHotspot3D
 var _lever_rest_rotation: Vector3
 var _lever_tween: Tween
 var _lever_animating: bool = false
@@ -46,6 +47,7 @@ func _bind_presentation() -> void:
 		return
 	_verify_attention_visual.visible = false
 	_lever_rest_rotation = _lever_pivot.rotation
+	_lever_hotspot = _lever_pivot.get_parent() as InteractionHotspot3D
 	if not _destination.destination_presentation_changed.is_connected(
 			_on_destination_presentation_changed
 	):
@@ -69,6 +71,9 @@ func request_submit() -> void:
 	# 业务提交只发生在按下这一刻；Tween 前进和回位都不触发第二次提交。
 	_destination.request_submit_destination()
 	_lever_animating = true
+	# 前进与回位全过程隐藏握柄高亮，仍由原动画锁防止重复提交。
+	if _lever_hotspot != null:
+		_lever_hotspot.set_hover_visual_enabled(false)
 	if _lever_tween != null and _lever_tween.is_valid():
 		_lever_tween.kill()
 	_lever_pivot.rotation = _lever_rest_rotation
@@ -103,6 +108,8 @@ func _finish_lever_animation() -> void:
 	if _lever_pivot != null:
 		_lever_pivot.rotation = _lever_rest_rotation
 	_lever_animating = false
+	if _lever_hotspot != null:
+		_lever_hotspot.set_hover_visual_enabled(true)
 
 
 func _on_destination_travel_result(result: FlowCommandResult) -> void:
