@@ -90,6 +90,8 @@ func _bind_presentation() -> void:
 	# CASE 只渲染原派单展示文本；复制材质隔离写入，不改变屏面几何。
 	var status_material := status_source_material.duplicate() as StandardMaterial3D
 	status_material.albedo_texture = status_viewport.get_texture()
+	# 发光也采样同一视口，只增强状态文字，保留深底。
+	status_material.emission_texture = status_viewport.get_texture()
 	status_screen.material_override = status_material
 	_console.camera_selected.connect(_on_camera_selected)
 	# 单独监听实际选择信号，初始化灯态不会播放按压。
@@ -156,6 +158,10 @@ func _on_door_state_changed(state: int) -> void:
 			_door.material_override = door_moving_material
 		ElevatorDoorVisual3D.DoorPresentationState.OPEN:
 			_door.material_override = door_open_material
+	# 近距反光随实际门灯颜色切换；旧场景未配置灯时仍可正常运行。
+	var spill := _door.get_node_or_null("近距溢光") as OmniLight3D
+	if spill != null:
+		spill.light_color = (_door.material_override as StandardMaterial3D).emission
 
 
 func set_fault_active(active: bool) -> void:

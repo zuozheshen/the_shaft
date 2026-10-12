@@ -190,3 +190,25 @@ r7用户修订：
 - 正式main_3d自检逐键36射线与握把3射线均命中；原16°范围内采样0/4/8/12/16°、按杆最大半径3cm计算，限位槽最小余量约17.5mm。重复请求一次结果、自动回位及书本拿起/翻页/合书均通过。正视仍为原玩家位置/FOV70，侧视为同一原Camera临时45°检查机位并恢复。结构回收到此停下；后续Pass B需最新视觉反馈，不由工具自检替代人工验收。
 
 - 中心线反馈（执行补充6036995116）：以正式main_3d原玩家位置/FOV70正视图中球头中心与闭合书本封面中心的水平投影线为准，整体下移10.2472cm。8个固定机构Mesh随轴下移，下壳开口下沿和上方收口同步延伸，共修改10个Mesh，41个源Mesh保持；只重导出外壳。铭牌整体下移后被原底部折边遮挡，局部上调6.5cm到压框下沿（世界Y=0.662528m），文字同步，原折边保持。原生2560×1440截图两中心Y分别为1224.01355/1224.01343px，误差约0.00012px；这是正视投影对齐，书本位置保持。逐键36射线、握把3射线、16°采样最小余量17.5mm、双请求一次提交/回位及书本开合翻页均通过。继续停在A.1视觉审阅，未进入后续Pass B。
+
+## 舱壁喷漆钢板 V2（#72 / ART-07）
+
+- 专属源为 `art_source/cabin_wall_panels_v2.blend`，Scene“舱壁金属面板V2”，Collection `AgentGenerated_ART07_WallPanels`；所有对象均为本资产生成对象。原主/左/右台源保持。源和单一运行 `assets/art/models/cabin_wall_panels_v2.glb` 沿用既有 Git LFS；没有外部模型或新增贴图。
+- 独立 `scenes/visuals/cabin_wall_panels_v2_visual.tscn` 只覆盖 GLB 的静态材质并使用玩家渲染层 1，由 `cabin_assembly_v3_visual.tscn` 挂接。该 V3 装配保留并隐藏旧四面 Quad、四条顶边、四条地脚和八条护角；后墙检修门、点检记录、天花盖板继续沿用。原舱体 CSG、台位、Gameplay、Input、Camera、灯光和监控乘客舱不改写。
+- 共 12 块板、8 条接缝背衬、4 个闭合 L 护角、4 顶边、4 地脚与 6 枚固定件。板大面位于原 V3 的 ±1.693m，24mm 厚度向原墙体内部展开，3mm 三段倒角；仅后墙中央替换板退后 4mm。接缝净宽 16mm，模型背衬位于大面后 8mm。保留的 CSG 内面 ±1.700m 使普通板实机可见缝底约深 7mm，退后板一侧约 3mm；不把此边界写成已达到 8–15mm 可见深度。
+- 每面三块、宽度不均：左墙缝轴 ±1.21m，右墙 ±0.75m，前墙 ±1.35m，后墙局部 -1.10/+0.40m。护角 45mm 翼宽、10mm 突出、2.5mm 倒角；顶边 30mm，地脚 60mm、均 2mm 倒角。
+- 主台/右台已有部分外壳穿过旧墙平面；新板在台体隐藏安装范围内局部避让，不能移动台位解决相交。避让矩形（墙局部 u / Godot Y）为前墙 u±1.335m、Y0.065–2.439m，右墙 u±0.715m、Y0.635–2.282m。逐个闭合 Mesh 分量的保守 AABB 与正式三台世界 AABB 检查，主台/右台最小约 15mm，左台约 10.5mm；板面不得整体向玩家内推。
+- 四种外部 StandardMaterial3D 位于 `assets/art/materials/cabin_wall_panels_v2/`：主板冷蓝灰 Color(0.36,0.415,0.45)、metallic 0、有效 roughness 0.64；后墙中央和右墙边板色值 +5%、有效 roughness 0.71；护角/收边暗 15%、有效 roughness 0.48；小固定件 metallic 0.75、roughness 0.48。主板保持喷漆表面，规格中没有锈、污迹或大面积裸钢。
+- Main/Replacement/Trim 复用 `elevator_cabin_v1/paint_normal.png` 与 `paint_roughness.png` 的既有 1024 CC0 派生微表面；原来源和 SHA 位于该目录 provenance，派生源见 `elevator_cabin_texture_source.py`。世界三平面映射每 4m 一次重复（256 texel/m），mipmaps/filter=5；法线 Main/Replacement=0.12、Trim=0.08，roughness 按贴图中值 247/255 补偿。GLB 的正交 UV 提供导入切线，模型不嵌入或复制位图。
+
+### 独立再生成与回滚
+
+关闭正在使用该资源的 Godot 游戏，先确认专属 Blender 源没有未保存的人工修改。在当前 worktree 根执行：
+
+```powershell
+& "<Blender executable>" art_source/cabin_wall_panels_v2.blend --background --python art_source/cabin_wall_panels_v2_source.py -- --root "<当前 worktree 绝对路径>" --stage C --rebuild
+```
+
+生成器强制校验 project.godot、专属 filepath、Scene 与 Collection，只替换本资产生成对象，保存专属源并导出选中的静态 Mesh / 原点 Empty。标准 glTF Y-up；不导出 Camera/Light/碰撞，不改写 Godot wrapper 或四种外部材质。A 只生成基础几何，不含固定件；正式资产使用 C。Godot 对同路径 GLB reimport 后，在正式 `main_3d`、ART-04 正常灯光和 FOV70 复查五个完整玩家视角及热点/监控。
+
+`elevator_cabin_visual_v3_source.py` 是 #66 历史 worktree 的原生资源重建工具，未发现当前正式 regenerate 入口引用；本次保持不变。它会重建旧 V3 装配，不能把 #66 历史重建命令当作当前舱壁再生成入口，也不要为兼容它重新耦合新墙板。回滚当前 Issue commit 可恢复旧装配显隐并移除独立挂接；原 V3 资源、台体、检修门和记录不依赖新 GLB。

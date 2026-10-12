@@ -236,7 +236,7 @@ func _initialize_terminal_text() -> void:
 
 
 func _apply_terminal_theme() -> void:
-	# 档案屏采用深蓝黑与冷青白；保留系统等宽字体和中文回退。
+	# 氛围实验采用深绿黑与灰绿文字；保留系统等宽字体和中文回退。
 	var terminal_font := SystemFont.new()
 	terminal_font.font_names = PackedStringArray([
 		"Consolas",
@@ -247,21 +247,21 @@ func _apply_terminal_theme() -> void:
 	var terminal_theme := Theme.new()
 	terminal_theme.default_font = terminal_font
 	terminal_theme.default_font_size = 19
-	terminal_theme.set_color("font_color", "Label", Color("c4e0e5"))
+	terminal_theme.set_color("font_color", "Label", Color("bdcfa8"))
 	terminal_theme.set_color("font_shadow_color", "Label", Color(0.0, 0.025, 0.04, 0.85))
 	terminal_theme.set_constant("shadow_offset_x", "Label", 1)
 	terminal_theme.set_constant("shadow_offset_y", "Label", 1)
 	terminal_theme.set_stylebox("panel", "PanelContainer", _create_terminal_style(
-		Color("101e26"), Color("4d6671"), 1
+		Color("142019"), Color("51684c"), 1
 	))
 	theme = terminal_theme
 	# 设备头以字号区分名称与状态，亮度贴近正文，不抢阅读内容。
 	title_label.add_theme_font_size_override("font_size", 24)
-	title_label.add_theme_color_override("font_color", Color("c4e0e5"))
+	title_label.add_theme_color_override("font_color", Color("bdcfa8"))
 	access_status_label.add_theme_font_size_override("font_size", 14)
-	access_status_label.add_theme_color_override("font_color", Color("8099a4"))
+	access_status_label.add_theme_color_override("font_color", Color("819774"))
 	terminal_hint_label.add_theme_font_size_override("font_size", 16)
-	terminal_hint_label.add_theme_color_override("font_color", Color("8099a4"))
+	terminal_hint_label.add_theme_color_override("font_color", Color("819774"))
 
 
 func _create_terminal_style(
