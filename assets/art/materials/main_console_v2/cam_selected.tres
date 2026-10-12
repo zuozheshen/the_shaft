@@ -1,8 +1,20 @@
-[gd_resource type="StandardMaterial3D" format=3]
+[gd_resource type="StandardMaterial3D" load_steps=5 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/art/textures/main_console_v2/control_roughness_256.png" id="1_roughness"]
 
 [ext_resource type="Texture2D" path="res://assets/art/textures/main_console_v2/control_normal_256.png" id="2_normal"]
+
+[sub_resource type="Gradient" id="face_gradient"]
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(1, 1, 1, 1, 0.6, 0.6, 0.6, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="face_emission_mask"]
+gradient = SubResource("face_gradient")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.231, 0.753)
+fill_to = Vector2(0.401, 0.753)
 
 [resource]
 resource_name = "cam_selected"
@@ -11,7 +23,9 @@ roughness = 0.8052631579
 roughness_texture = ExtResource("1_roughness")
 emission_enabled = true
 emission = Color(0.27, 0.4, 0.35, 1)
-emission_energy_multiplier = 0.2
+emission_energy_multiplier = 0.30
+emission_operator = 1
+emission_texture = SubResource("face_emission_mask")
 
 normal_enabled = true
 normal_scale = 0.75

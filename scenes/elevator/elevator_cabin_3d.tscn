@@ -61,6 +61,7 @@
 [ext_resource type="PackedScene" path="res://scenes/visuals/cabin_assembly_v3_visual.tscn" id="66_assembly"]
 
 [ext_resource type="Environment" path="res://assets/art/lighting/normal_cabin_environment.tres" id="68_environment"]
+[ext_resource type="Environment" path="res://assets/art/lighting/atmosphere_cabin_experiment.tres" id="72_atmosphere_env"]
 
 [ext_resource type="PackedScene" path="res://scenes/visuals/left_archive_terminal_shell_visual.tscn" id="69_left_shell"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/left_archive_key_visual.tscn" id="69_left_key"]
@@ -234,8 +235,10 @@ height = 0.02
 
 [sub_resource type="StandardMaterial3D" id="52_comm"]
 resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.2, 0.8, 0.5, 1)
+albedo_color = Color(0, 0, 0, 1)
+emission_enabled = true
+emission = Color(0.28, 1, 0.62, 1)
+emission_energy_multiplier = 0.8
 
 [sub_resource type="CylinderMesh" id="52_comm_lens"]
 resource_local_to_scene = true
@@ -256,8 +259,10 @@ height = 0.02
 
 [sub_resource type="StandardMaterial3D" id="52_closed"]
 resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.19, 0.25, 0.24, 1)
+albedo_color = Color(0, 0, 0, 1)
+emission_enabled = true
+emission = Color(0.25, 0.48, 0.38, 1)
+emission_energy_multiplier = 0.6
 
 [sub_resource type="CylinderMesh" id="52_door_lens"]
 resource_local_to_scene = true
@@ -278,8 +283,10 @@ height = 0.02
 
 [sub_resource type="StandardMaterial3D" id="52_fault"]
 resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.85, 0.08, 0.045, 1)
+albedo_color = Color(0, 0, 0, 1)
+emission_enabled = true
+emission = Color(1, 0.14, 0.06, 1)
+emission_energy_multiplier = 0.65
 
 [sub_resource type="CylinderMesh" id="52_fault_lens"]
 resource_local_to_scene = true
@@ -306,8 +313,12 @@ albedo_color = Color(0.045, 0.055, 0.065, 1)
 
 [sub_resource type="StandardMaterial3D" id="65_status_screen"]
 resource_local_to_scene = true
-shading_mode = 0
 texture_filter = 0
+albedo_color = Color(0, 0, 0, 1)
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 1.18
+emission_operator = 1
 
 [sub_resource type="QuadMesh" id="65_status_quad"]
 size = Vector2(1.024, 0.128)
@@ -393,13 +404,17 @@ size = Vector2(2, 2)
 
 [sub_resource type="StandardMaterial3D" id="52_moving"]
 resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.9, 0.5, 0.09, 1)
+albedo_color = Color(0, 0, 0, 1)
+emission_enabled = true
+emission = Color(0.95, 0.58, 0.16, 1)
+emission_energy_multiplier = 0.55
 
 [sub_resource type="StandardMaterial3D" id="52_open"]
 resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.12, 0.7, 0.26, 1)
+albedo_color = Color(0, 0, 0, 1)
+emission_enabled = true
+emission = Color(0.22, 1, 0.4, 1)
+emission_energy_multiplier = 0.65
 
 [sub_resource type="StandardMaterial3D" id="53_body"]
 resource_local_to_scene = true
@@ -547,6 +562,17 @@ radius = 0.09655
 height = 0.1931
 radial_segments = 16
 rings = 8
+
+[sub_resource type="Gradient" id="72_structure_slit_gradient"]
+offsets = PackedFloat32Array(0, 0.465, 0.49, 0.51, 0.535, 1)
+colors = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="72_structure_slit"]
+gradient = SubResource("72_structure_slit_gradient")
+width = 256
+height = 64
+fill_from = Vector2(0, 0)
+fill_to = Vector2(1, 0)
 
 [node name="三维操作舱" type="Node3D" unique_id=699471354]
 script = ExtResource("1_wegik")
@@ -993,7 +1019,7 @@ offset_top = 8.0
 offset_right = 504.0
 offset_bottom = 56.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.65, 0.86, 0.79, 1)
+theme_override_colors/font_color = Color(0.741176, 0.811765, 0.658824, 1)
 theme_override_font_sizes/font_size = 24
 text = "CASE — · 值班待命"
 horizontal_alignment = 1
@@ -1207,10 +1233,11 @@ size = Vector3(0.025, 0.63, 1.874405)
 position = Vector3(1.425, 2.086667, -0.897321)
 rotation = Vector3(0, -1.5707963, 0)
 pixel_size = 0.0025
+modulate = Color(0.741176, 0.811765, 0.658824, 1)
 text = "当前楼层：---\n系统推荐：—\n目标楼层：---\n地址状态：未验证\n派单关联度：—\n稳定度影响：—"
 font = SubResource("71_terminal_font")
 font_size = 30
-outline_size = 5
+outline_size = 1
 horizontal_alignment = 0
 width = 600.0
 
@@ -2008,10 +2035,11 @@ visible = false
 [node name="正常值班照明" type="Node3D" parent="灯光"]
 
 [node name="前部工作主光" type="SpotLight3D" parent="灯光/正常值班照明"]
-transform = Transform3D(1, 0, 0, 0, 0.42261824, 0.9063078, 0, -0.9063078, 0.42261824, 0, 2.32, -0.45)
+position = Vector3(-0.25, 2.15, -0.55)
+rotation = Vector3(-0.97130924, -0.27159956, 0)
 layers = 1
-light_color = Color(1, 0.9476, 0.8919, 1)
-light_energy = 2.0
+light_color = Color(1, 0.79, 0.62, 1)
+light_energy = 2.7
 light_size = 0.0
 light_specular = 0.5
 light_cull_mask = 1
@@ -2021,16 +2049,16 @@ shadow_normal_bias = 0.5
 shadow_reverse_cull_face = true
 shadow_blur = 1.5
 shadow_caster_mask = 1
-spot_range = 4.8
+spot_range = 2.7
 spot_attenuation = 1.0
-spot_angle = 75.0
-spot_angle_attenuation = 1.6
+spot_angle = 34.0
+spot_angle_attenuation = 1.5
 
 [node name="后部辅光" type="SpotLight3D" parent="灯光/正常值班照明"]
 transform = Transform3D(1, 0, 0, 0, -0.5, 0.8660253, 0, -0.8660253, -0.5, 0, 2.32, 0.5)
 layers = 1
-light_color = Color(1, 0.9476, 0.8919, 1)
-light_energy = 1.3
+light_color = Color(0.73, 0.81, 0.93, 1)
+light_energy = 0.65
 light_size = 0.0
 light_specular = 0.5
 light_cull_mask = 1
@@ -2040,9 +2068,81 @@ shadow_normal_bias = 0.5
 shadow_reverse_cull_face = true
 shadow_blur = 1.5
 shadow_caster_mask = 1
-spot_range = 4.5
+spot_range = 3.0
 spot_attenuation = 1.0
-spot_angle = 75.0
+spot_angle = 40.0
+spot_angle_attenuation = 2.0
+
+[node name="左台工作补光" type="SpotLight3D" parent="灯光/正常值班照明"]
+position = Vector3(-1.05, 2.25, 0.15)
+rotation = Vector3(-1.2390777, 1.2679114, 0)
+layers = 1
+light_color = Color(1, 0.86, 0.7, 1)
+light_energy = 1.6
+light_specular = 0.18
+light_cull_mask = 1
+shadow_caster_mask = 1
+spot_range = 2.8
+spot_angle = 34.0
+spot_angle_attenuation = 1.8
+
+[node name="右台工作补光" type="SpotLight3D" parent="灯光/正常值班照明"]
+position = Vector3(1.05, 2.25, 0.15)
+rotation = Vector3(-0.98001254, -1.3045443, 0)
+layers = 1
+light_color = Color(1, 0.86, 0.7, 1)
+light_energy = 0.7
+light_specular = 0.18
+light_cull_mask = 1
+shadow_enabled = true
+shadow_blur = 1.5
+shadow_caster_mask = 1
+spot_range = 2.8
+spot_angle = 40.0
+spot_angle_attenuation = 1.8
+
+[node name="COMM次级工作光" type="SpotLight3D" parent="灯光/正常值班照明"]
+position = Vector3(-0.95, 1.75, -0.45)
+rotation = Vector3(-0.72441393, -0.07849009, 0)
+layers = 1
+light_color = Color(1, 0.79, 0.62, 1)
+light_energy = 0.48
+light_specular = 0.35
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+spot_range = 1.65
+spot_angle = 27.0
+spot_angle_attenuation = 1.4
+
+[node name="左前结构掠光" type="SpotLight3D" parent="灯光/正常值班照明"]
+position = Vector3(-1.35, 1.85, -0.75)
+rotation = Vector3(-0.05128641, 0.33473673, 0)
+layers = 1
+light_color = Color(0.72, 0.80, 0.90, 1)
+light_energy = 0.38
+light_specular = 0.8
+light_projector = SubResource("72_structure_slit")
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+spot_range = 1.8
+spot_angle = 10.0
+spot_angle_attenuation = 2.0
+
+[node name="右墙接缝掠光" type="SpotLight3D" parent="灯光/正常值班照明"]
+position = Vector3(0.9, 2.36, 0.75)
+rotation = Vector3(0, -1.57079637, 0)
+layers = 1
+light_color = Color(0.72, 0.80, 0.90, 1)
+light_energy = 0.32
+light_specular = 0.8
+light_projector = SubResource("72_structure_slit")
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+spot_range = 1.3
+spot_angle = 6.0
 spot_angle_attenuation = 2.0
 
 [node name="玩家视角" type="Node3D" parent="." unique_id=309831261]
@@ -2052,6 +2152,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
 [node name="玩家摄像机" type="Camera3D" parent="玩家视角/摄像机旋转轴" unique_id=1715136786]
 cull_mask = 1048569
+environment = ExtResource("72_atmosphere_env")
 current = true
 fov = 70.0
 far = 100.0
@@ -2212,6 +2313,72 @@ input_label_path = NodePath("../操作台占位/右操作台定位/数字显示�
 feedback_label_path = NodePath("../操作台占位/右操作台定位/数字显示组/反馈文字")
 verify_attention_visual_path = NodePath("../操作台占位/右操作台定位/数字显示组/验证楼层热点/拒绝提示高亮")
 lever_pivot_path = NodePath("../操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴")
+
+[node name="屏幕左框溢光" type="OmniLight3D" parent="操作台占位/主操作台定位"]
+position = Vector3(-0.73, 1.86, -1.35)
+layers = 1
+light_color = Color(0.72, 0.82, 0.88, 1)
+light_energy = 0.0006
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+omni_range = 0.22
+omni_attenuation = 2.0
+
+[node name="屏幕右框溢光" type="OmniLight3D" parent="操作台占位/主操作台定位"]
+position = Vector3(0.73, 1.86, -1.35)
+layers = 1
+light_color = Color(0.72, 0.82, 0.88, 1)
+light_energy = 0.0006
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+omni_range = 0.22
+omni_attenuation = 2.0
+
+[node name="状态条溢光" type="OmniLight3D" parent="操作台占位/主操作台定位"]
+position = Vector3(0, 1.23, -1.41)
+layers = 1
+light_color = Color(0.74, 0.81, 0.66, 1)
+light_energy = 0.0006
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+omni_range = 0.22
+omni_attenuation = 2.0
+
+[node name="近距溢光" type="OmniLight3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯/灯面"]
+position = Vector3(0, 0.028, 0)
+layers = 1
+light_color = Color(0.28, 1, 0.62, 1)
+light_energy = 0.001
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+omni_range = 0.14
+omni_attenuation = 2.0
+
+[node name="近距溢光" type="OmniLight3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯/灯面"]
+position = Vector3(0, 0.028, 0)
+layers = 1
+light_color = Color(0.25, 0.48, 0.38, 1)
+light_energy = 0.001
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+omni_range = 0.14
+omni_attenuation = 2.0
+
+[node name="近距溢光" type="OmniLight3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯/灯面"]
+position = Vector3(0, 0.028, 0)
+layers = 1
+light_color = Color(1, 0.14, 0.06, 1)
+light_energy = 0.001
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+omni_range = 0.14
+omni_attenuation = 2.0
 
 [editable path="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮"]
 

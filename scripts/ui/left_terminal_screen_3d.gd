@@ -78,11 +78,15 @@ func rotate_scroll_wheel(direction: int) -> void:
 func _configure_screen_material() -> void:
 	if _screen_mesh == null or _sub_viewport == null:
 		return
-	var screen_material := StandardMaterial3D.new()
+	# 沿用主台的显示表面；只给档案视口轻微曲面与扫描线，不改变正文和滚动。
+	var screen_material := ShaderMaterial.new()
 	screen_material.resource_local_to_scene = true
-	screen_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	screen_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	screen_material.albedo_texture = _sub_viewport.get_texture()
+	screen_material.shader = preload("res://assets/art/shaders/main_console_crt.gdshader")
+	screen_material.set_shader_parameter("feed_texture", _sub_viewport.get_texture())
+	screen_material.set_shader_parameter("curvature", 0.006)
+	screen_material.set_shader_parameter("scanline_strength", 0.025)
+	screen_material.set_shader_parameter("vignette_strength", 0.04)
+	screen_material.set_shader_parameter("brightness", 1.0)
 	_screen_mesh.material_override = screen_material
 
 
