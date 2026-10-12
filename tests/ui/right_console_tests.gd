@@ -148,8 +148,8 @@ func run(t: Variant, tree: SceneTree) -> void:
 			str(accepted_snapshot.validated_floor))
 
 	var slope := right_root.get_node("下部斜面根") as Node3D
-	t.assert_true("右台 / 斜面初始约 20 度",
-			is_equal_approx(rad_to_deg(absf(slope.rotation.z)), 20.0))
+	t.assert_true("右台 / ART-06 冻结斜面为 12 度",
+			is_equal_approx(rad_to_deg(absf(slope.rotation.z)), 12.0))
 	t.assert_equal("右台 / 导引书常态继承斜面根", slope,
 			right_root.get_node("下部斜面根/楼层导引书").get_parent())
 	var lever := right_root.get_node(
@@ -163,18 +163,52 @@ func run(t: Variant, tree: SceneTree) -> void:
 	destination.destination_travel_result.connect(func(result: FlowCommandResult) -> void:
 		submit_results.append(result)
 	)
+	# 固定本次悬停意图，用真实展示 Tween 分段推进，避免帧率影响30°峰值断言。
+	var was_processing := interaction.is_processing()
+	interaction.set_process(false)
+	interaction._set_hovered_hotspot(lever)
+	var hover := lever.get_node(lever.hover_visual_path) as Node3D
+	t.assert_true("右台 / 静止握柄可显示悬停", hover.visible)
 	interaction._execute_action(&"destination_submit")
 	interaction._execute_action(&"destination_submit")
 	t.assert_true("右台 / 拨杆动作期间防重复触发", presentation.is_lever_animating())
 	t.assert_equal("右台 / 连续触发只提交一次", 1, submit_results.size())
-	await tree.create_timer(
-		presentation.lever_forward_duration + presentation.lever_return_duration + 0.05
-	).timeout
-	await _frames(tree, 2)
+	t.assert_false("右台 / 动画开始立即收起握柄高亮", hover.visible)
+	t.assert_true("右台 / 抑制高亮不禁用原热点", lever.can_interact())
+	var tween := presentation.get("_lever_tween") as Tween
+	tween.custom_step(presentation.lever_forward_duration * 0.5)
+	t.assert_true("右台 / 真实 Tween 推动握柄前进",
+			pivot.rotation.z > rest_rotation.z)
+	lever.set_hovered(false)
+	lever.set_hovered(true)
+	t.assert_false("右台 / 前进中重新悬停不会点亮", hover.visible)
+	tween.custom_step(presentation.lever_forward_duration * 0.5)
+	t.assert_true("右台 / 冻结行程实际达到30度",
+			is_equal_approx(rad_to_deg(pivot.rotation.z - rest_rotation.z), 30.0))
+	t.assert_false("右台 / 前进行程顶点不高亮", hover.visible)
+	tween.custom_step(presentation.lever_return_duration * 0.5)
+	t.assert_true("右台 / 真实 Tween 正在自动回位",
+			pivot.rotation.z > rest_rotation.z
+			and rad_to_deg(pivot.rotation.z - rest_rotation.z) < 30.0)
+	lever.set_hovered(true)
+	t.assert_false("右台 / 回位中重复悬停仍不高亮", hover.visible)
+	tween.custom_step(presentation.lever_return_duration * 0.5 + 0.001)
 	t.assert_false("右台 / 拨杆自动回位后解锁", presentation.is_lever_animating())
 	t.assert_equal("右台 / 回位不产生第二次提交", 1, submit_results.size())
 	t.assert_true("右台 / 拨杆精确返回 Inspector 姿态",
 			pivot.rotation.is_equal_approx(rest_rotation))
+	t.assert_true("右台 / 回位后恢复仍在握柄上的悬停", hover.visible)
+	interaction._execute_action(&"destination_submit")
+	lever.set_hovered(false)
+	tween = presentation.get("_lever_tween") as Tween
+	tween.custom_step(
+		presentation.lever_forward_duration + presentation.lever_return_duration + 0.001
+	)
+	t.assert_equal("右台 / 新动作也只新增一次提交", 2, submit_results.size())
+	t.assert_false("右台 / 动画期间离开握柄后不恢复高亮", hover.visible)
+	t.assert_false("右台 / 离开握柄不阻止自动回位", presentation.is_lever_animating())
+	interaction.set_process(was_processing)
+	await _frames(tree, 2)
 
 	main.queue_free()
 	await _frames(tree, 3)
