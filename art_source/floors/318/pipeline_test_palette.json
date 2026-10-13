@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "id": "pipeline-fixture-v1",
+  "purpose": "C1/C2/C3 structural calibration only; not the final residential art palette",
+  "art_approved": false,
+  "colors": [
+    [
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      24,
+      28,
+      32,
+      255
+    ],
+    [
+      52,
+      60,
+      68,
+      255
+    ],
+    [
+      104,
+      116,
+      124,
+      255
+    ],
+    [
+      168,
+      180,
+      188,
+      255
+    ],
+    [
+      216,
+      224,
+      216,
+      255
+    ],
+    [
+      80,
+      144,
+      128,
+      255
+    ],
+    [
+      208,
+      168,
+      88,
+      255
+    ],
+    [
+      184,
+      92,
+      80,
+      255
+    ]
+  ]
+}

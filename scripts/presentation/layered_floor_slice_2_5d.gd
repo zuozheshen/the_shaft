@@ -31,6 +31,7 @@ const SUPPORTED_LAYER_IDS: Array[StringName] = [
 var _layer_nodes: Dictionary = {}
 var _fallback_states: Dictionary = {}
 var _runtime_materials: Dictionary = {}
+var _ambient_tint: Color = Color.WHITE
 
 
 func _ready() -> void:
@@ -73,8 +74,14 @@ func set_layer_texture(layer_id: StringName, texture: Texture2D) -> bool:
 		_runtime_materials[layer_id] = runtime_material
 		layer.material_override = runtime_material
 
-	# 只替换材质纹理，不触碰图层 Transform、QuadMesh 尺寸或可见状态。
+	# 只更新实例材质，不触碰图层 Transform、QuadMesh 尺寸或可见状态。
 	runtime_material.albedo_texture = texture
+	# 有纹理时按源像素原色绘制；空纹理必须恢复旧灰盒透明设置。
+	var fallback_state: Dictionary = _fallback_states[layer_id]
+	runtime_material.albedo_color = (Color.WHITE if texture != null
+			else fallback_state["albedo_color"]) * _ambient_tint
+	runtime_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR if texture != null else fallback_state["transparency"]
+	runtime_material.alpha_scissor_threshold = 0.5 if texture != null else fallback_state["alpha_scissor_threshold"]
 	return true
 
 
@@ -84,6 +91,7 @@ func apply_visual_profile(profile: FloorVisualProfile) -> bool:
 		reset_visual_profile()
 		return false
 
+	_ambient_tint = profile.ambient_tint
 	var succeeded := true
 	for layer_id in SUPPORTED_LAYER_IDS:
 		# 固定七层的字段一一对应；null 也是需要覆盖的纹理值。
@@ -95,13 +103,14 @@ func apply_visual_profile(profile: FloorVisualProfile) -> bool:
 		succeeded = texture_applied and visibility_applied and succeeded
 		if texture_applied:
 			var material := _runtime_materials[layer_id] as BaseMaterial3D
-			var base_color: Color = _fallback_states[layer_id]["albedo_color"]
+			var base_color: Color = Color.WHITE if texture != null else _fallback_states[layer_id]["albedo_color"]
 			material.albedo_color = base_color * profile.ambient_tint
 	return succeeded
 
 
 func reset_visual_profile() -> void:
 	# 恢复初始材质入口与显隐，不让空 Profile 沿用上一个楼层的状态。
+	_ambient_tint = Color.WHITE
 	clear_runtime_textures()
 	for layer_id in _layer_nodes:
 		var layer := _layer_nodes[layer_id] as MeshInstance3D
@@ -151,6 +160,8 @@ func _cache_layer(layer_id: StringName, node_path: NodePath) -> void:
 		"albedo_color": fallback_color,
 		"albedo_texture": fallback_texture,
 		"visible": layer.visible,
+		"transparency": (active_material as BaseMaterial3D).transparency if active_material is BaseMaterial3D else BaseMaterial3D.TRANSPARENCY_DISABLED,
+		"alpha_scissor_threshold": (active_material as BaseMaterial3D).alpha_scissor_threshold if active_material is BaseMaterial3D else 0.5,
 	}
 
 

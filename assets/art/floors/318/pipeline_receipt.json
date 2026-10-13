@@ -1,0 +1,148 @@
+{
+    "schema_version":  1,
+    "producer":  "the-shaft-floor-pipeline-v1",
+    "floor_id":  "318",
+    "asset_stage":  "structural_test_only",
+    "density_candidate":  64,
+    "art_palette_approved":  false,
+    "palette_id":  "pipeline-fixture-v1",
+    "palette_colors":  [
+                           [
+                               0,
+                               0,
+                               0,
+                               0
+                           ],
+                           [
+                               24,
+                               28,
+                               32,
+                               255
+                           ],
+                           [
+                               52,
+                               60,
+                               68,
+                               255
+                           ],
+                           [
+                               104,
+                               116,
+                               124,
+                               255
+                           ],
+                           [
+                               168,
+                               180,
+                               188,
+                               255
+                           ],
+                           [
+                               216,
+                               224,
+                               216,
+                               255
+                           ],
+                           [
+                               80,
+                               144,
+                               128,
+                               255
+                           ],
+                           [
+                               208,
+                               168,
+                               88,
+                               255
+                           ],
+                           [
+                               184,
+                               92,
+                               80,
+                               255
+                           ]
+                       ],
+    "palette_source":  "art_source/floors/318/pipeline_test_palette.json",
+    "palette_sha256":  "4479ba5dd068e381ce244035a62b59283080d9a755a6772868a44c5e0084223d",
+    "source":  "art_source/floors/318/floor_318.aseprite",
+    "source_sha256":  "2f75cc4eac4322f3ae47c7a3dab66a39bc749528225780d2f5fbc8be0ace9c0f",
+    "layout_sha256":  "64f9b26a849704b9d34a9f4d4a42b9a7d1a1fd423d065fee5a9c753a59c2ca49",
+    "canvas":  [
+                   541,
+                   272
+               ],
+    "pngs":  [
+                 {
+                     "id":  "far",
+                     "width":  541,
+                     "file":  "far.png",
+                     "color_count":  3,
+                     "height":  266,
+                     "opaque":  143906,
+                     "transparent":  0,
+                     "sha256":  "70f8a850e6f7c9b9a0c704bcd3467c69177f5385372eb41e0f32654ea08d30ac"
+                 },
+                 {
+                     "id":  "main",
+                     "width":  532,
+                     "file":  "main.png",
+                     "color_count":  5,
+                     "height":  272,
+                     "opaque":  127099,
+                     "transparent":  17605,
+                     "sha256":  "b3987330bfe74c1dadda786d65144dc62d0aaf35a16cfaf86632a1180255357f"
+                 },
+                 {
+                     "id":  "mid_left",
+                     "width":  164,
+                     "file":  "mid_left.png",
+                     "color_count":  6,
+                     "height":  230,
+                     "opaque":  21746,
+                     "transparent":  15974,
+                     "sha256":  "62d496f48a7f46ffa74b2396207f60bd510fd2713208af4e1aab8ab2cd365ad3"
+                 },
+                 {
+                     "id":  "mid_right",
+                     "width":  169,
+                     "file":  "mid_right.png",
+                     "color_count":  6,
+                     "height":  233,
+                     "opaque":  22576,
+                     "transparent":  16801,
+                     "sha256":  "b9e9255ffbe2d95b0af6c181567ca3e75fba88948e6c49d9ef63ab8cfc49a4a0"
+                 },
+                 {
+                     "id":  "ground",
+                     "width":  541,
+                     "file":  "ground.png",
+                     "color_count":  3,
+                     "height":  240,
+                     "opaque":  129840,
+                     "transparent":  0,
+                     "sha256":  "a0b82ea532b4e16dbda4d91e2ddb9f5b245d2785f18c549d5806023d6c193261"
+                 },
+                 {
+                     "id":  "front_left",
+                     "width":  42,
+                     "file":  "front_left.png",
+                     "color_count":  3,
+                     "height":  154,
+                     "opaque":  5004,
+                     "transparent":  1464,
+                     "sha256":  "76fea760b39e49d95b65ef057814dce788148fb179f1c6095e4b1ce347b8334f"
+                 },
+                 {
+                     "id":  "front_right",
+                     "width":  45,
+                     "file":  "front_right.png",
+                     "color_count":  3,
+                     "height":  160,
+                     "opaque":  5435,
+                     "transparent":  1765,
+                     "sha256":  "2683fc43fac646a4896829ed931b91701f13b038eadece8b9cdb635cb7e2a950"
+                 }
+             ],
+    "profile_sha256":  "e739c731ee0e21c2c56cd40ec317480f401e0ffc34802ae23c344775deee3be5",
+    "source_disk_only":  true
+}

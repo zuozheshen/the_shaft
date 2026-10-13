@@ -3,7 +3,7 @@
   "layout_version": "floor-slice-v1-pass-b",
   "status": {
     "geometry": "runtime_verified",
-    "pass_c": "not_authorized",
+    "pass_c": "c1_c2_density_comparison_complete",
     "export_ready": false,
     "final_pixel_density_px_per_m": null,
     "final_export_rectangles": null,
@@ -11,12 +11,14 @@
     "palette_id": null,
     "palette_colors": null,
     "palette_sha256": null,
-    "alpha_contract": "far/ground opaque; mid/front binary alpha 0 or 255; main holes backed by far; verify in Pass C"
+    "alpha_contract": "C2 verified: far/ground opaque; main/mid/front binary alpha; main holes backed by far; Scissor 0.5; normal depth"
   },
   "provenance": {
     "issue": 75,
     "plan": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6126210461",
     "approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6126281928",
+    "pass_c_approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6139421496",
+    "pass_c_base_commit": "daebe9f437ebfaaba7bd1a96f62ac739ed3b4444",
     "base_commit": "08f54769794337f82215dcc5e6cecefe84398b2e",
     "layout_commit_reference": "Git commit containing this manifest; resolve git log -1 -- this path",
     "godot_version": "4.7.2-stable",
@@ -211,7 +213,7 @@
     "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,2.05,-3]},
     "text": "FLOOR 318",
     "central_channel_x": [-0.85,0.85],
-    "plaque_on_main": {"state":"Pass C candidate; no texture or extra mesh created","center_stage":[0,2.085,-3.1],"candidate_size_m":[1.95,0.65],"text_must_not_be_baked":true},
+    "plaque_on_main": {"state":"C2 structural PNG blank carrier; no extra mesh; not final art","center_stage":[0,2.085,-3.1],"candidate_size_m":[1.95,0.65],"text_must_not_be_baked":true},
     "keep_runtime_number_update": true
   },
   "layers": [
@@ -351,6 +353,10 @@
     "old_profiles_and_3_digit_fallback_checked": true,
     "uv_direction_marker_removed": true,
     "user_experience_acceptance": "pending",
-    "cli_export_validation": "Pass C pending"
+    "cli_export_validation": "C1 real CLI + Godot imported RGBA verified; 58 fixture checks passed",
+    "density_comparison": "48/64/80 re-rasterized; main_3d 320x240 feed + actual CRT; both cameras",
+    "recommended_density_candidate": 64,
+    "recommendation_is_approval": false,
+    "final_318_art": "not_started; final D and palette require approval"
   }
 }

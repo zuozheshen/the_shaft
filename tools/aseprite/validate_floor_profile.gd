@@ -1,5 +1,5 @@
 extends SceneTree
-## Pass B 只读门：从正式 main_3d 检查几何清单；Pass C 纹理/CLI 检查尚未实现。
+## B/C 只读门：校验正式 main_3d 几何与实际 PNG/Profile；不保存源或清单。
 
 const MAIN_PATH := "res://scenes/main/main_3d.tscn"
 const MANIFEST_PATH := "res://art_source/floors/floor_slice_layout_v1.json"
@@ -14,9 +14,20 @@ func _initialize() -> void:
 
 func _run() -> void:
 	var print_layout := false
+	var check_profile := false
+	var density := 64
 	for argument in OS.get_cmdline_user_args():
 		if argument == "--print-layout":
 			print_layout = true
+		elif argument == "--check-profile":
+			check_profile = true
+		elif argument.begins_with("--density="):
+			var value := argument.trim_prefix("--density=")
+			if value not in ["48", "64", "80"]:
+				printerr("Unsupported density")
+				quit(2)
+				return
+			density = int(value)
 		elif argument != "--check-layout":
 			printerr("Unsupported Pass B argument: " + argument)
 			quit(2)
@@ -40,6 +51,9 @@ func _run() -> void:
 
 	# --script 在 autoload 注册前解析入口脚本；正式场景延后到运行期加载。
 	await process_frame
+	var configured_main := String(ProjectSettings.get_setting("application/run/main_scene", ""))
+	_check("main UID resolves to formal scene",
+			ResourceUID.get_id_path(ResourceUID.text_to_id(configured_main)), MAIN_PATH)
 	var main_scene := load(MAIN_PATH) as PackedScene
 	var main := main_scene.instantiate()
 	root.add_child(main)
@@ -107,6 +121,8 @@ func _run() -> void:
 		if node == null:
 			_failures.append("Missing retained node: " + node_path)
 
+	if check_profile:
+		_check_profile(cabin, manifest, density)
 	if print_layout:
 		print(JSON.stringify({"layers": report_layers, "stage_world_transform":
 				_transform(stage.global_transform), "viewport": [viewport.size.x, viewport.size.y]}))
@@ -115,7 +131,7 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	if _failures.is_empty():
-		print("LAYOUT CHECKS PASS | seven Quads, camera, fixed occluders, markers, label, source hashes")
+		print("FLOOR PROFILE CHECKS PASS" if check_profile else "LAYOUT CHECKS PASS | seven Quads, camera, fixed occluders, markers, label, source hashes")
 		quit(0)
 	else:
 		for failure in _failures:
@@ -182,3 +198,119 @@ func _matches(actual: Variant, expected: Variant) -> bool:
 				return false
 		return true
 	return actual == expected
+
+# C 侧：实际加载绑定资源，并与原生 PNG 像素/受控色板对照。
+func _check_profile(cabin: Node, manifest: Dictionary, density: int) -> void:
+	var receipt_path := "res://assets/art/floors/318/pipeline_receipt.json"
+	var receipt: Variant = JSON.parse_string(FileAccess.get_file_as_string(receipt_path))
+	if not receipt is Dictionary:
+		_failures.append("Missing pipeline receipt")
+		return
+	_check("receipt schema", receipt.get("schema_version"), 1)
+	_check("receipt density", receipt.get("density_candidate"), density)
+	_check("receipt PNG count", receipt.get("pngs", []).size(), 7)
+	_check("receipt layout hash", receipt.get("layout_sha256"), _text_hash(MANIFEST_PATH))
+	var profile := load("res://data/presentation/floor_visuals/floor_318_visual.tres") as FloorVisualProfile
+	if profile == null:
+		_failures.append("Cannot load 318 FloorVisualProfile")
+		return
+	_check("Profile ID", String(profile.floor_id), "318")
+	_check("Profile hash", receipt.get("profile_sha256"),
+			_text_hash("res://data/presentation/floor_visuals/floor_318_visual.tres"))
+	var coordinator = cabin.get_node("监控表现协调器")
+	_check("formal Profile registration", profile in coordinator.get("floor_visual_profiles"), true)
+	var source_path := String(receipt.get("source", ""))
+	var palette_path := String(receipt.get("palette_source", ""))
+	if (not source_path.begins_with("art_source/floors/") or ".." in source_path
+			or not source_path.ends_with(".aseprite")
+			or not palette_path.begins_with("art_source/floors/318/") or ".." in palette_path):
+		_failures.append("Invalid receipt source/palette path")
+		return
+	_check("saved source hash", FileAccess.get_sha256("res://" + source_path), receipt.get("source_sha256"))
+	_check("palette hash", _text_hash("res://" + palette_path), receipt.get("palette_sha256"))
+	var palette: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://" + palette_path))
+	if not palette is Dictionary:
+		_failures.append("Invalid palette JSON")
+		return
+	_check("palette identity", palette.get("id"), receipt.get("palette_id"))
+	_check("palette colors", palette.get("colors"), receipt.get("palette_colors"))
+	_check("palette approval", palette.get("art_approved"), receipt.get("art_palette_approved"))
+	var allowed: Dictionary = {}
+	for value in receipt.palette_colors:
+		allowed[_rgba_key(value)] = true
+	var stage = cabin.get_node("监控摄影棚定位/监控测试摄影棚")
+	_check("apply actual 318 textures", stage.apply_floor_visual_profile(profile), true)
+	for geometry in manifest.layers:
+		var id := String(geometry.id)
+		var path := "res://assets/art/floors/318/" + id + ".png"
+		var texture := profile.get(id + "_texture") as Texture2D
+		if texture == null:
+			_failures.append("Unbound Texture2D: " + id)
+			continue
+		_check(id + " resource path", texture.resource_path, path)
+		var size := [ceili(float(geometry.quad_size_m[0]) * density),
+				ceili(float(geometry.quad_size_m[1]) * density)]
+		_check(id + " Texture2D size", [texture.get_width(), texture.get_height()], size)
+		var png: Dictionary = {}
+		for entry in receipt.pngs:
+			if entry.id == id:
+				png = entry
+		if png.is_empty():
+			_failures.append("Missing PNG receipt: " + id)
+			continue
+		_check(id + " PNG hash", FileAccess.get_sha256(path), png.sha256)
+		var raw := Image.load_from_file(ProjectSettings.globalize_path(path))
+		var imported := texture.get_image()
+		if raw == null or imported == null:
+			_failures.append("Image decode failed: " + id)
+			continue
+		_check(id + " lossless import", imported.is_compressed(), false)
+		_check(id + " no mipmaps", imported.has_mipmaps(), false)
+		raw.convert(Image.FORMAT_RGBA8)
+		imported.convert(Image.FORMAT_RGBA8)
+		_check(id + " imported pixels identical", imported.get_data(), raw.get_data())
+		var opaque := 0
+		var transparent := 0
+		var invalid := false
+		for y in raw.get_height():
+			for x in raw.get_width():
+				var color := raw.get_pixel(x, y)
+				var rgba := [roundi(color.r * 255), roundi(color.g * 255),
+						roundi(color.b * 255), roundi(color.a * 255)]
+				if not allowed.has(_rgba_key(rgba)) or rgba[3] not in [0, 255]:
+					invalid = true
+				if rgba[3] == 0:
+					transparent += 1
+				else:
+					opaque += 1
+		_check(id + " exact palette / binary alpha", invalid, false)
+		_check(id + " opaque count", opaque, png.opaque)
+		_check(id + " transparent count", transparent, png.transparent)
+		if id in ["far", "ground"]:
+			_check(id + " continuous fallback", transparent, 0)
+		var config := ConfigFile.new()
+		_check(id + " import config", config.load(path + ".import"), OK)
+		for setting in {"compress/mode": 0, "mipmaps/generate": false,
+				"process/size_limit": 0, "process/premult_alpha": false,
+				"process/fix_alpha_border": false, "detect_3d/compress_to": 0}:
+			var expected: Variant = {"compress/mode": 0, "mipmaps/generate": false,
+					"process/size_limit": 0, "process/premult_alpha": false,
+					"process/fix_alpha_border": false, "detect_3d/compress_to": 0}[setting]
+			_check(id + " import " + setting, config.get_value("params", setting), expected)
+		var material := stage.get_current_floor_slice().get_layer_node(StringName(id)).get_active_material(0) as BaseMaterial3D
+		_check(id + " Alpha Scissor", material.transparency, BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR)
+		_check(id + " scissor threshold", material.alpha_scissor_threshold, 0.5)
+		_check(id + " source color", material.albedo_color, profile.ambient_tint)
+		_check(id + " nearest", material.texture_filter, BaseMaterial3D.TEXTURE_FILTER_NEAREST)
+		_check(id + " Unshaded", material.shading_mode, BaseMaterial3D.SHADING_MODE_UNSHADED)
+
+
+func _rgba_key(value: Array) -> String:
+	return "%d,%d,%d,%d" % [int(value[0]), int(value[1]), int(value[2]), int(value[3])]
+
+
+func _text_hash(path: String) -> String:
+	var context := HashingContext.new()
+	context.start(HashingContext.HASH_SHA256)
+	context.update(FileAccess.get_file_as_string(path).replace("\r\n", "\n").to_utf8_buffer())
+	return context.finish().hex_encode()

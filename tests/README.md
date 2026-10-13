@@ -160,7 +160,7 @@ Headless 使用无画面驱动，不能证明 D3D12 画面、焦点、字体、�
 
 `ui/main_console_tests.gd` 在内存正式主场景中，将台体、按钮和轴外形替换为不同内部结构，检查热点碰撞、CAM、数字/验证（含 004）、原监控纹理、滚轮轴、拨杆轴和左台栏目不丢失。旧控件移除断言覆盖主台面板、左台页签及右台 LineEdit/按钮；门与协调器测试继续通过真实命令和展示快照检查 busy 拒绝及释放。真实 Blender 导出与 Godot 同路径 reimport 属于独立人工工具验证，不由这组 headless 替换测试冒充。
 
-#75 Pass A/B 的只读布局门（不执行 Aseprite、PNG 导出或 Pass C）：
+#75 Pass A/B 的只读布局门（不执行 Aseprite 或 PNG 导出）：
 
 ```powershell
 godot.cmd --headless --path . --script res://tools/aseprite/validate_floor_profile.gd -- --check-layout
@@ -172,3 +172,19 @@ godot.cmd --headless --path . --script res://tools/aseprite/validate_floor_profi
 `--print-layout` 可附加输出当前几何 JSON；命令始终只读正式源和清单。
 mask 来自 B 的实机校对与固定 Box 射线计算，命令不把几何一致性冒充截图验收。
 像素密度、Palette 和正式导出矩形仍未冻结，清单的 `export_ready=false`。
+
+#75 Pass C 的真实 CLI / 导入校验（需本地 Aseprite 1.3.x，先设置 ASEPRITE_PATH）：
+
+```powershell
+powershell.exe -NoProfile -File .\tests\tools\aseprite_pipeline_tests.ps1 -AsepritePath "$env:ASEPRITE_PATH"
+godot.cmd --headless --path . --script res://tools/aseprite/validate_floor_profile.gd -- --check-profile --density=64
+```
+
+CLI fixture 覆盖正式隐藏层违规、辅助层/参考层排除、RGB 精确 palette、
+二值 alpha、固定空层、重复七图 hash/source 不变、新参考副本及拒绝覆盖、
+部分发布失败回滚、未知输出与越界路径、未批准正式导出门。
+Profile 检查实际七图导入尺寸/像素与 receipt、材质 Scissor 0.5、白色 × tint 和冻结几何。
+运行时测试另验证 null/reset 恢复原透明模式、threshold 与 material_override。
+CLI 不替代上方统一入口；截图与用户体验也不由 headless 代验。
+当前 318 是结构测试；48/64/80 实机对比只给推荐，最终 D/palette 仍未批准。
+完整命令和失败恢复见 [管线文档](../docs/development/aseprite-floor-pipeline.md)。
