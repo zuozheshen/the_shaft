@@ -106,10 +106,12 @@ unique_name_in_owner = true
 
 [node name="门外楼层编号" type="Label3D" parent="门外楼层区域" unique_id=928003148]
 unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.05, -3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.16, -3.095)
 layers = 4
-text = "FLOOR TEST"
+modulate = Color(0.1882353, 0.2039216, 0.2078431, 1)
+text = "---"
 font_size = 64
+outline_size = 0
 
 [node name="门外灰盒参考" type="Node3D" parent="门外楼层区域" unique_id=1347584728]
 visible = false

@@ -23,7 +23,7 @@ signal passenger_exited
 signal presentation_busy_changed(is_busy: bool)
 
 
-const FLOOR_LABEL_FALLBACK: String = "FLOOR ---"
+const FLOOR_LABEL_FALLBACK: String = "---"
 const CURRENT_SLICE_NAME: String = "当前楼层切片"
 const CURRENT_PASSENGER_VISUAL_NAME: String = "当前乘客视觉"
 const PASSENGER_POSITION_OUTSIDE: StringName = &"outside"
@@ -302,9 +302,10 @@ func set_floor_display_id(floor_id: StringName) -> bool:
 	if _floor_label == null:
 		push_warning("监控摄影棚缺少楼层编号节点，无法更新显示。")
 		return false
+	# 编号像墙面喷涂：共用动态节点只显示原编号，保留 004 等前导零。
 	var display_id := String(floor_id)
 	_floor_label.text = FLOOR_LABEL_FALLBACK \
-			if display_id.is_empty() else "FLOOR %s" % display_id
+			if display_id.is_empty() else display_id
 	return true
 
 

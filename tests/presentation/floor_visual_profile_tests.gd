@@ -103,7 +103,7 @@ func _test_complete_overwrite(r: Variant, tree: SceneTree) -> void:
 	b.floor_id = &"004"
 	b.display_label = "测试附注"
 	stage.apply_floor_visual_profile(b)
-	r.assert_equal("楼层标签 / 附注不替代前导零编号", "FLOOR 004 — 测试附注", label.text)
+	r.assert_equal("楼层标签 / 附注不替代前导零编号", "004 — 测试附注", label.text)
 	r.assert_equal("楼层覆盖 / B 清空七层纹理并恢复显隐色调灯光", original, _snapshot(stage))
 	r.assert_equal("楼层 getter / Profile", b, stage.get_current_floor_visual_profile())
 	r.assert_equal("楼层 getter / 004", &"004", stage.get_current_floor_visual_id())
@@ -115,7 +115,7 @@ func _test_complete_overwrite(r: Variant, tree: SceneTree) -> void:
 	r.assert_false("楼层覆盖 / null 安全失败", stage.apply_floor_visual_profile(null))
 	r.assert_equal("楼层覆盖 / null 恢复安全默认", original, _snapshot(stage))
 	r.assert_equal("楼层覆盖 / null 清除旧 getter", null, stage.get_current_floor_visual_profile())
-	r.assert_equal("楼层覆盖 / null 清除旧编号", "FLOOR ---", label.text)
+	r.assert_equal("楼层覆盖 / null 清除旧编号", "---", label.text)
 
 	var coordinator := configured_coordinator()
 	for floor_id in [&"900", &"612", &"004", &"900"]:
@@ -178,7 +178,7 @@ func _test_arrival_and_fallback(r: Variant, tree: SceneTree) -> void:
 		if state == MonitorStageController3D.PassengerPresentationState.OUTSIDE_WAITING:
 			ordering.seen = true
 			ordering.correct = ordering.correct and stage.get_current_floor_visual_id() == &"612" \
-					and (stage.get_node(stage.floor_label_path) as Label3D).text == "FLOOR 612"
+					and (stage.get_node(stage.floor_label_path) as Label3D).text == "612"
 	)
 	var before_move := _snapshot(stage)
 	var result := manager.request_travel_to_floor("612")
@@ -206,7 +206,7 @@ func _test_arrival_and_fallback(r: Variant, tree: SceneTree) -> void:
 		r.assert_equal("楼层映射 / 使用正式资源 " + String(floor_data.floor_id),
 				expected, stage.get_current_floor_visual_profile())
 		r.assert_equal("楼层映射 / 动态编号 " + String(floor_data.floor_id),
-				"FLOOR " + String(floor_data.floor_id),
+				String(floor_data.floor_id),
 				(stage.get_node(stage.floor_label_path) as Label3D).text)
 
 	# 删除一个已注册业务楼层的表现配置，业务仍可正常完成移动。
@@ -226,7 +226,7 @@ func _test_arrival_and_fallback(r: Variant, tree: SceneTree) -> void:
 		await manager.elevator_movement_completed
 	r.assert_true("fallback / 缺视觉不阻止业务抵达", travel.succeeded and manager.get_current_floor() == "004")
 	r.assert_equal("fallback / 不残留旧视觉", fallback_base, _snapshot(stage))
-	r.assert_equal("fallback / 标签保留真实编号", "FLOOR 004",
+	r.assert_equal("fallback / 标签保留真实编号", "004",
 			(stage.get_node(stage.floor_label_path) as Label3D).text)
 	r.assert_equal("fallback / 不修改共享 fallback ID", &"fallback", original_fallback.floor_id)
 	var custom_fallback := original_fallback.duplicate() as FloorVisualProfile
@@ -240,7 +240,7 @@ func _test_arrival_and_fallback(r: Variant, tree: SceneTree) -> void:
 			stage.get_current_floor_visual_profile().ambient_tint)
 	r.assert_false("fallback / 使用导出的显隐",
 			stage.get_current_floor_slice().get_layer_node(&"front_right").visible)
-	r.assert_equal("fallback / 模板名称不替代真实编号", "FLOOR 004",
+	r.assert_equal("fallback / 模板名称不替代真实编号", "004",
 			(stage.get_node(stage.floor_label_path) as Label3D).text)
 	r.assert_equal("fallback / 不修改自定义模板 ID", &"fallback", custom_fallback.floor_id)
 
@@ -374,7 +374,7 @@ func _test_missing_light(r: Variant, tree: SceneTree) -> void:
 	var profile := FloorVisualProfile.new()
 	profile.floor_id = &"004"
 	r.assert_true("灯光降级 / 缺灯仍可应用视觉", stage.apply_floor_visual_profile(profile))
-	r.assert_equal("灯光降级 / 标签保持真实编号", "FLOOR 004",
+	r.assert_equal("灯光降级 / 标签保持真实编号", "004",
 			(stage.get_node(stage.floor_label_path) as Label3D).text)
 	stage.queue_free()
 	await tree.process_frame

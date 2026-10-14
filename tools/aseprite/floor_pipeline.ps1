@@ -307,7 +307,14 @@ try {
    $profileHash=Text-Hash $candidate
    $targets.Add(@{staged=$candidate;target=$profilePath})
   }
-  $assetStage='structural_test_only'; if (-not $Diagnostic) { $assetStage='residential_art_v1' }
+  $assetStage='structural_test_only'
+  if (-not $Diagnostic) {
+   $assetStage='residential_art_v1'
+   if ($palette.asset_stage) {
+    if ($palette.asset_stage -notin @('residential_art_v1','residential_art_v2')) { throw 'Unknown approved art stage' }
+    $assetStage=$palette.asset_stage
+   }
+  }
   $receipt=[ordered]@{schema_version=1;producer='the-shaft-floor-pipeline-v1';floor_id='318';asset_stage=$assetStage;
    density_candidate=$PixelDensity;art_palette_approved=[bool]$palette.art_approved;palette_id=$palette.id;palette_colors=$palette.colors;
    palette_source=(Relative-Path $palettePath);palette_sha256=(Text-Hash $palettePath);source=(Relative-Path $sourcePath);source_sha256=$sourceHash;

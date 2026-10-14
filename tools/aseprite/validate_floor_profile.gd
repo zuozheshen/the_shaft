@@ -113,6 +113,8 @@ func _run() -> void:
 	for property_name in ["font_size", "pixel_size", "outline_size", "billboard", "no_depth_test"]:
 		_check("label " + property_name, label.get(property_name),
 				manifest.shared_label[property_name])
+	_check("label modulate", [label.modulate.r, label.modulate.g,
+			label.modulate.b, label.modulate.a], manifest.shared_label.modulate)
 	_check("label transform", _transform(stage.global_transform.affine_inverse()
 			* label.global_transform), manifest.shared_label.stage_transform)
 	for node_path in manifest.retained_hidden_nodes:

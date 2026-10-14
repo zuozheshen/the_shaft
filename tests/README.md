@@ -152,7 +152,7 @@ godot.cmd --headless --path . --scene res://tests/project_check_runner.tscn -- -
 
 Headless 使用无画面驱动，不能证明 D3D12 画面、焦点、字体、音频或体验节奏正确。
 楼层视觉还需人工确认：启动 CAM 02 与实际楼层一致，900→612→900→004→387
-只在抵达后切换，FLOOR 004 编号完整，回访无纹理/显隐/色调残留；
+只在抵达后切换，004 编号完整，回访无纹理/显隐/色调残留；
 接乘层先显示正确背景再出现乘客，门与乘客动画连续，CAM 01 舱内照明不受影响。
 已有材质可能报告 triplanar / height mapping Warning；查看具体日志，不自动改美术来消除它。
 
@@ -168,10 +168,10 @@ godot.cmd --headless --path . --script res://tools/aseprite/validate_floor_profi
 
 成功标记为 `LAYOUT CHECKS PASS`。它实例化正式 main_3d，对照
 `art_source/floors/floor_slice_layout_v1.json` 检查七个 Quad、完整 Transform、
-320×240 机位参数、固定遮挡、Marker、共享字号和规范化 LF 源文件 hash。
+320×240 机位参数、固定遮挡、Marker、共享编号字号/描边/颜色/贴墙位置和规范化 LF 源文件 hash。
 `--print-layout` 可附加输出当前几何 JSON；命令始终只读正式源和清单。
 mask 来自 B 的实机校对与固定 Box 射线计算，命令不把几何一致性冒充截图验收。
-几何门只读冻结清单；318 美术V1已批准64 px/m与26色，export_ready=true。
+几何门只读冻结清单；318 美术V2已批准64 px/m与20色，export_ready=true。
 
 #75 Pass C 的真实 CLI / 导入校验（需本地 Aseprite 1.3.x，先设置 ASEPRITE_PATH）：
 
@@ -186,5 +186,5 @@ CLI fixture 覆盖正式隐藏层违规、辅助层/参考层排除、RGB 精确
 Profile 检查实际七图导入尺寸/像素与 receipt、材质 Scissor 0.5、白色 × tint 和冻结几何。
 运行时测试另验证 null/reset 恢复原透明模式、threshold 与 material_override。
 CLI 不替代上方统一入口；截图与用户体验也不由 headless 代验。
-当前318使用64 px/m / 26色住宅美术V1；原9色源继续用于CLI fixture，正式输入使用显式 Source/PaletteFile；正式美术拒绝诊断输入误覆盖。
+当前318使用64 px/m / 20色住宅美术V2；原9色源继续用于CLI fixture，正式输入使用显式 Source/PaletteFile；正式美术拒绝诊断输入误覆盖。
 完整命令和失败恢复见 [管线文档](../docs/development/aseprite-floor-pipeline.md)。

@@ -303,13 +303,13 @@ func _test_monitor_stage_controller(
 	)
 	test_runner.assert_equal(
 		"MonitorStageController3D / 楼层编号保留 004",
-		"FLOOR 004",
+		"004",
 		floor_label.text
 	)
 	stage.set_floor_display_id(&"")
 	test_runner.assert_equal(
 		"MonitorStageController3D / 空楼层编号使用 fallback",
-		"FLOOR ---",
+		"---",
 		floor_label.text
 	)
 	test_runner.assert_equal(

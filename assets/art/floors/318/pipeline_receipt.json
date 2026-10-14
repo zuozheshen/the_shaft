@@ -2,10 +2,10 @@
     "schema_version":  1,
     "producer":  "the-shaft-floor-pipeline-v1",
     "floor_id":  "318",
-    "asset_stage":  "residential_art_v1",
+    "asset_stage":  "residential_art_v2",
     "density_candidate":  64,
     "art_palette_approved":  true,
-    "palette_id":  "floor-318-residential-v1",
+    "palette_id":  "floor-318-residential-v2",
     "palette_colors":  [
                            [
                                0,
@@ -14,161 +14,125 @@
                                0
                            ],
                            [
-                               18,
-                               22,
-                               23,
+                               25,
+                               28,
+                               29,
                                255
                            ],
                            [
-                               32,
-                               38,
                                39,
-                               255
-                           ],
-                           [
                                43,
-                               51,
-                               48,
+                               45,
                                255
                            ],
                            [
+                               54,
                                59,
-                               70,
-                               63,
+                               61,
                                255
                            ],
                            [
-                               78,
-                               91,
+                               74,
                                80,
-                               255
-                           ],
-                           [
-                               99,
-                               112,
-                               95,
-                               255
-                           ],
-                           [
-                               125,
-                               130,
-                               105,
-                               255
-                           ],
-                           [
-                               48,
-                               51,
-                               48,
-                               255
-                           ],
-                           [
-                               70,
-                               73,
-                               65,
-                               255
-                           ],
-                           [
-                               92,
-                               93,
                                82,
                                255
                            ],
                            [
-                               116,
-                               115,
+                               93,
+                               99,
                                101,
                                255
                            ],
                            [
-                               141,
-                               137,
-                               119,
+                               98,
+                               103,
+                               103,
                                255
                            ],
                            [
-                               172,
-                               165,
+                               117,
+                               121,
+                               121,
+                               255
+                           ],
+                           [
+                               136,
+                               140,
                                139,
                                255
                            ],
                            [
-                               197,
-                               189,
-                               163,
+                               158,
+                               162,
+                               160,
+                               255
+                           ],
+                           [
+                               185,
+                               188,
+                               183,
+                               255
+                           ],
+                           [
+                               209,
+                               211,
+                               204,
+                               255
+                           ],
+                           [
+                               102,
+                               111,
+                               105,
+                               255
+                           ],
+                           [
+                               129,
+                               138,
+                               128,
+                               255
+                           ],
+                           [
+                               45,
+                               56,
+                               60,
+                               255
+                           ],
+                           [
+                               70,
+                               84,
+                               90,
+                               255
+                           ],
+                           [
+                               48,
+                               52,
+                               53,
+                               255
+                           ],
+                           [
+                               103,
+                               119,
+                               124,
+                               255
+                           ],
+                           [
+                               139,
+                               134,
+                               122,
                                255
                            ],
                            [
                                223,
-                               215,
-                               187,
-                               255
-                           ],
-                           [
-                               240,
-                               234,
-                               208,
-                               255
-                           ],
-                           [
-                               62,
-                               48,
-                               35,
-                               255
-                           ],
-                           [
-                               99,
-                               84,
-                               61,
-                               255
-                           ],
-                           [
-                               134,
-                               113,
-                               84,
-                               255
-                           ],
-                           [
-                               174,
-                               147,
-                               112,
-                               255
-                           ],
-                           [
-                               40,
-                               48,
-                               36,
-                               255
-                           ],
-                           [
-                               82,
-                               99,
-                               61,
-                               255
-                           ],
-                           [
-                               120,
-                               136,
-                               87,
-                               255
-                           ],
-                           [
-                               137,
-                               151,
-                               148,
-                               255
-                           ],
-                           [
-                               179,
-                               183,
-                               165,
+                               225,
+                               216,
                                255
                            ]
                        ],
-    "palette_source":  "art_source/floors/318/palette_residential_v1.json",
-    "palette_sha256":  "e4d28fd1c57d92956e7a77f9ffe8e4b415b5c4c89a3877dcc8152043a1e5d631",
-    "source":  "art_source/floors/318/floor_318_residential_v1.aseprite",
-    "source_sha256":  "ffb652c9b9bca087220f02f5d8a85f640b192e2772fead76f4106ddb87d8e66b",
-    "layout_sha256":  "9406e9a68d7493765cc2e406812d3aa8c211bf935b4fd915db8c478c068a0476",
+    "palette_source":  "art_source/floors/318/palette_residential_v2.json",
+    "palette_sha256":  "115eb3d246d7e8fa5e9544d7f2a1abd0270bdd734d77498c4f7ab3fb9bf34b37",
+    "source":  "art_source/floors/318/floor_318_residential_v2.aseprite",
+    "source_sha256":  "97b7005c2766eda3fb3e4bde7e0bc96044abab8ae184d85d322cdfd82689335a",
+    "layout_sha256":  "db7a020bb3758aeb091762b50e3ecaed6823b9c6bb0a7b9d2d76a2ca65a79f6f",
     "canvas":  [
                    541,
                    272
@@ -178,71 +142,71 @@
                      "id":  "far",
                      "width":  541,
                      "file":  "far.png",
-                     "color_count":  8,
+                     "color_count":  5,
                      "height":  266,
                      "opaque":  143906,
                      "transparent":  0,
-                     "sha256":  "8641f9b933e3af7de325db4aa9c477cdb1e3aa63477155609ada46031ca8fc97"
+                     "sha256":  "3c94dd2b698e747dd81663df46c16bb920781987e9a59ac949afaca11904e539"
                  },
                  {
                      "id":  "main",
                      "width":  532,
                      "file":  "main.png",
-                     "color_count":  17,
+                     "color_count":  12,
                      "height":  272,
-                     "opaque":  144356,
-                     "transparent":  348,
-                     "sha256":  "42dc4de1c2fda1bab28a155d955e0df24ab025d2d9cf13d98f5ae45f31d6d0a2"
+                     "opaque":  144581,
+                     "transparent":  123,
+                     "sha256":  "79b38bae595e0907762168276db09b87210987cd218395a3e31fe8e3f44f4c3f"
                  },
                  {
                      "id":  "mid_left",
                      "width":  164,
                      "file":  "mid_left.png",
-                     "color_count":  15,
+                     "color_count":  11,
                      "height":  230,
-                     "opaque":  4360,
-                     "transparent":  33360,
-                     "sha256":  "0e201dcdecbbb74033db7a5af0a601c93590f9105ca918a1491e4a0c5c91a512"
+                     "opaque":  5409,
+                     "transparent":  32311,
+                     "sha256":  "ea88ee10205831a207bec796334f092cb4b75b50d9fb1c0db537b3d6f0a5e0e8"
                  },
                  {
                      "id":  "mid_right",
                      "width":  169,
                      "file":  "mid_right.png",
-                     "color_count":  12,
+                     "color_count":  6,
                      "height":  233,
-                     "opaque":  2675,
-                     "transparent":  36702,
-                     "sha256":  "45760a66128510894f164ab6690b84cdfbef32c23233091a20f9c3b9aa8d3635"
+                     "opaque":  1510,
+                     "transparent":  37867,
+                     "sha256":  "488fd9f1b08a8e11ad72a3424ab401eb168b41058fdd2724a9b123799eadfb5b"
                  },
                  {
                      "id":  "ground",
                      "width":  541,
                      "file":  "ground.png",
-                     "color_count":  7,
+                     "color_count":  1,
                      "height":  240,
                      "opaque":  129840,
                      "transparent":  0,
-                     "sha256":  "ef6a005031c1216d64e4126ea1ca5d803eb8dc4aae38856af5def62e485c4ac5"
+                     "sha256":  "1a9eeb8cfc5a6114c8c2b8e543f9ba1b50e9a273fdd1fbebc04acb739dcea102"
                  },
                  {
                      "id":  "front_left",
                      "width":  42,
                      "file":  "front_left.png",
-                     "color_count":  6,
+                     "color_count":  4,
                      "height":  154,
-                     "opaque":  5737,
-                     "transparent":  731,
-                     "sha256":  "650fc543fe5a21349f9b48e733858f3ecbcb3d87d5f732fddaf885390b2d7edd"
+                     "opaque":  6436,
+                     "transparent":  32,
+                     "sha256":  "3529823f843af203c085724e3849a249d0abeea9a60f64e443cd1070788ade0b"
                  },
                  {
                      "id":  "front_right",
                      "width":  45,
                      "file":  "front_right.png",
-                     "color_count":  6,
+                     "color_count":  4,
                      "height":  160,
-                     "opaque":  6433,
-                     "transparent":  767,
-                     "sha256":  "5894ab8da3413d37188270eccbd46fe43b2f28417be7f498cc2757b77c07177a"
+                     "opaque":  7168,
+                     "transparent":  32,
+                     "sha256":  "ef9d56e3b2103bac98a92b6213fbc3104930546ff5c1cb17310fa54f46d74521"
                  }
              ],
     "profile_sha256":  "e739c731ee0e21c2c56cd40ec317480f401e0ffc34802ae23c344775deee3be5",
