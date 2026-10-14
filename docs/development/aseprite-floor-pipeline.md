@@ -1,15 +1,15 @@
 # Aseprite 楼层切片管线 V1
 
 #75 的 C1/C2 采用 Codex → 本地 Aseprite CLI / Lua，不增加 MCP Adapter。
-当前 318 七图是结构测试，最终密度与住宅美术 palette 尚未批准。
+318 住宅美术 V1 使用获批 64 px/m 与26色；正式源为 floor_318_residential_v1.aseprite，原结构模板保留。
 依据 [Pass C REVIEW](https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6139421496)
-在 C1、C2 和三档实机对比后停止，不能将测试色板当作正式美术冻结。
+C1/C2与三档对比后已按停止点回报；后续用户授权见 [C4记录](https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6165722805)。最终画面验收仍独立进行。
 
 ## 输入与边界
 
 - 几何真相：`art_source/floors/floor_slice_layout_v1.json` 的七个 Quad 与完整 Transform；
   先验证 Pass B 的场景/脚本 LF hash。不得为了贴图改摄像机、Label3D 或世界尺寸。
-- 主源：`art_source/floors/318/floor_318.aseprite`，RGB、单帧，九个唯一顶层图像层。
+- 正式主源：`art_source/floors/318/floor_318_residential_v1.aseprite`；`floor_318.aseprite` 保留为结构 fixture。两者均 RGB、单帧，九个唯一顶层图像层。
   七个正式层为 far、main、mid_left、mid_right、ground、front_left、front_right；
   REFERENCE 必须是原生 reference layer；GUIDES 只作辅助。
 - REFERENCE / GUIDES 永不参与 Validate 的正式像素扫描或 Export，哪怕可见；
@@ -21,8 +21,7 @@
 - 每层矩形从 (0,0) 起，宽高为 ceil(Quad 米数 × 候选 D)；共享画布取最大宽高。
   地面图片顶端指向深处 -Z，底端指向门口 +Z。空的 mid/front 仍导出固定大小透明图。
 - `pipeline_test_palette.json` 只有九个技术校验色，`art_approved=false`。
-  64 是当前测试绑定，48/80 只作忽略目录中的候选比较。
-  清单保持 `export_ready=false`，最终 D、palette 与正式导出矩形留空。
+  48/80 保留为忽略目录中的历史候选比较。正式 Palette 为 palette_residential_v1.json；清单已冻结64/26色/固定矩形，export_ready=true。
 
 ## 命令
 
@@ -33,14 +32,14 @@
 在仓库根目录，一条命令导出七 PNG、更新已有 318 Profile、导入并检查实际 Godot 像素：
 
 ```powershell
-powershell.exe -NoProfile -File .\tools\aseprite\floor_pipeline.ps1 -Action Export -Diagnostic -PixelDensity 64 -BindProfile -VerifyGodot -AsepritePath "$env:ASEPRITE_PATH" -GodotPath "$env:GODOT_BIN"
+powershell.exe -NoProfile -File .\tools\aseprite\floor_pipeline.ps1 -Action Export -Source art_source/floors/318/floor_318_residential_v1.aseprite -PaletteFile art_source/floors/318/palette_residential_v1.json -PixelDensity 64 -BindProfile -VerifyGodot -AsepritePath "$env:ASEPRITE_PATH" -GodotPath "$env:GODOT_BIN"
 ```
 
 成功需要 Aseprite nonce 完成标记、exit 0、七图校验和 `FLOOR PROFILE CHECKS PASS`，
 最后输出 `FLOOR PIPELINE PASS`、七图尺寸/hash 及本次 report 路径。
 日志中的 ERROR、缺完成标记或超时都算失败。Godot 首次扫描只精确允许 project.godot 配置的入口 UID 初始化诊断一次，且必须与正式 main_3d 源 UID 一致；随后 checker 验证 ResourceUID 解析路径，其他错误不放行。
 
-其余操作同样必须显式使用 `-Diagnostic`，直到未来 D/palette 通过门：
+原9色模板操作显式使用 `-Diagnostic`；正式26色源应指定 Source/PaletteFile并通过正式门：
 
 | Action | 行为 |
 | --- | --- |
@@ -68,7 +67,7 @@ CreateTemplate 用于本 Issue 的极简测试矩形，不能生成或替代住�
 仅新模板和新参考副本可保存；既有 source 从不 Save / Save As。
 
 每个 floor 有独占锁；每次运行有独立 request、日志、七图暂存、备份与恢复 journal。
-只允许管理已有 receipt 且 PNG hash 未改的输出；未知或手动修改的图拒绝覆盖。
+只允许管理已有 receipt 且 PNG hash 未改的输出；未知或手动修改的图拒绝覆盖。正式美术输出还拒绝 Diagnostic 输入误覆盖。
 绑定只修改现有 318 FloorVisualProfile 的七个纹理字段与依赖声明，保留 tint、显隐和其他字段；
 receipt 的 Profile hash 不符时拒绝覆盖。
 
@@ -78,6 +77,8 @@ receipt 的 Profile hash 不符时拒绝覆盖。
 随后记录 .import 新 hash，保证验证失败能恢复准确字节。
 进程强制终止/机器断电可能留下部分发布；应停下，按保留的 journal 和 backup 人工核对恢复，
 不要删除 recovery 证据或盲目重跑。
+
+住宅美术原生重构、来源/大小与重现命令见 [318源说明](../../art_source/floors/318/README.md)。
 
 PNG 固定 lossless、mipmap=false、size_limit=0、fix_alpha_border=false、
 premult_alpha=false、detect_3d/compress_to=0。Godot 检查实际 Texture2D、导入后像素、

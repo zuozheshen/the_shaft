@@ -269,6 +269,7 @@ try {
    $oldReceipt=Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8 | ConvertFrom-Json
    if ($oldReceipt.producer -ne 'the-shaft-floor-pipeline-v1' -or $oldReceipt.floor_id -ne '318' -or $oldReceipt.pngs.Count -ne 7) { throw 'Unowned output receipt' }
   }
+  if ($Diagnostic -and $output -eq $defaultOutput -and $oldReceipt -and $oldReceipt.art_palette_approved) { throw 'Approved art output requires approved pipeline inputs' }
   foreach ($id in $ids) {
    $target=Join-Path $output ($id+'.png')
    if (Test-Path -LiteralPath $target) {
@@ -306,7 +307,8 @@ try {
    $profileHash=Text-Hash $candidate
    $targets.Add(@{staged=$candidate;target=$profilePath})
   }
-  $receipt=[ordered]@{schema_version=1;producer='the-shaft-floor-pipeline-v1';floor_id='318';asset_stage='structural_test_only';
+  $assetStage='structural_test_only'; if (-not $Diagnostic) { $assetStage='residential_art_v1' }
+  $receipt=[ordered]@{schema_version=1;producer='the-shaft-floor-pipeline-v1';floor_id='318';asset_stage=$assetStage;
    density_candidate=$PixelDensity;art_palette_approved=[bool]$palette.art_approved;palette_id=$palette.id;palette_colors=$palette.colors;
    palette_source=(Relative-Path $palettePath);palette_sha256=(Text-Hash $palettePath);source=(Relative-Path $sourcePath);source_sha256=$sourceHash;
    layout_sha256=(Text-Hash $manifestPath);canvas=@($canvasW,$canvasH);pngs=$pngs;profile_sha256=$profileHash;source_disk_only=$true}
@@ -347,7 +349,7 @@ try {
    Check-Native $checkResult 'FLOOR PROFILE CHECKS PASS'
   }
   foreach ($png in $pngs) { Write-Host "PNG | $($png.id) | $($png.width)x$($png.height) | $($png.sha256)" }
-  Write-Host "EXPORT PASS | density=$PixelDensity | source hash unchanged | diagnostic art"
+  Write-Host "EXPORT PASS | density=$PixelDensity | source hash unchanged | asset_stage=$assetStage"
  }
  Write-Host "FLOOR PIPELINE PASS | $Action | report=$reportPath"
  @{ok=$true;action=$Action;job=(Relative-Path $jobPath);source_sha256=$sourceHash;report_file=(Relative-Path $reportPath)} | ConvertTo-Json -Depth 12

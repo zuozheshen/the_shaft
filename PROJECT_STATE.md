@@ -33,7 +33,7 @@
 - ContentRegistry 从 `data/catalogs/` 的四个 Catalog 加载楼层、乘客、派单、值班资源。楼层 Catalog 登记八层，318 居民住宅层追加为楼层书第八页，地址识别与空舱停靠沿用现有数据链。当前演示有三条正式派单，尚无 destination_318 送达对白；对白位于 `dialogues/passengers/`，通过 DialogueManagerAdapter 接入现有插件。
 - `scenes/presentation/monitor_test_stage_3d.tscn` 是正式主场景当前使用的监控摄影棚：可替换楼层切片、纸片乘客、双开门。MonitorCameraController3D 使用同一个世界和一台监控摄像机切换两个机位；MonitorPresentationCoordinator3D 协调门与乘客动作。
 - 楼层视觉由独立 FloorVisualProfile Resource 配置，位于 `data/presentation/floor_visuals/`。现有协调器在 setup 和实际到站时先应用楼层视觉，再同步乘客；移动中保持上一楼层。正式 Profile 与 fallback 由操作舱场景显式注入。
-- #75 的 318 Profile 已绑定七层结构测试 PNG（64 px/m 候选），可编辑九层 RGB 源位于 `art_source/floors/318/`；CLI/Lua 管线与保护见 `docs/development/aseprite-floor-pipeline.md`。有纹理使用白色 × Profile tint、Nearest / Unshaded / Alpha Scissor 0.5；空纹理/reset 恢复原材质。最终密度与正式 palette 尚待批准，住宅走廊精修未开始。
+- #75 的 318 Profile 已绑定七层住宅美术 V1 PNG（获批64 px/m、26色），可编辑九层 RGB 源位于 `art_source/floors/318/`；CLI/Lua 管线与保护见 `docs/development/aseprite-floor-pipeline.md`。有纹理使用白色 × Profile tint、Nearest / Unshaded / Alpha Scissor 0.5；空纹理/reset 恢复原材质。正式源为 floor_318_residential_v1.aseprite，原结构源保留；采用灰绿墙裙、住户门、公告栏和少量生活物件，最终画面验收待用户完成。
 - 监控舱内、固定门区与乘客使用渲染层 2；门外环境使用层 3 和一盏共用门外灯。监控摄像机可见层 2+3，玩家摄像机排除这两层。七层保持 Unshaded，主要依靠 Profile tint 区分楼层。
 - #66 的舱体材质 V1 保留原生 CSG/BoxMesh，在操作舱四壁/地面/天花、监控乘客舱已有大面及门/框/槛绑定六个共享外部材质；三条无碰撞地脚收边独立挂在“灰盒环境/基础收边”。六张 1024 Normal/Roughness 与独立派生脚本不修改 ART-02 资产或灯光。来源、重建与 reimport 边界见资产规范；实际验收状态以 #66 有效评论为准。
 

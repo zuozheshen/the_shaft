@@ -3,14 +3,14 @@
   "layout_version": "floor-slice-v1-pass-b",
   "status": {
     "geometry": "runtime_verified",
-    "pass_c": "c1_c2_density_comparison_complete",
-    "export_ready": false,
-    "final_pixel_density_px_per_m": null,
-    "final_export_rectangles": null,
-    "shared_sprite_canvas": null,
-    "palette_id": null,
-    "palette_colors": null,
-    "palette_sha256": null,
+    "pass_c": "residential_art_v1_pending_human_acceptance",
+    "export_ready": true,
+    "final_pixel_density_px_per_m": 64,
+    "final_export_rectangles": {"far":[541,266],"main":[532,272],"mid_left":[164,230],"mid_right":[169,233],"ground":[541,240],"front_left":[42,154],"front_right":[45,160]},
+    "shared_sprite_canvas": [541,272],
+    "palette_id": "floor-318-residential-v1",
+    "palette_colors": [[0,0,0,0],[18,22,23,255],[32,38,39,255],[43,51,48,255],[59,70,63,255],[78,91,80,255],[99,112,95,255],[125,130,105,255],[48,51,48,255],[70,73,65,255],[92,93,82,255],[116,115,101,255],[141,137,119,255],[172,165,139,255],[197,189,163,255],[223,215,187,255],[240,234,208,255],[62,48,35,255],[99,84,61,255],[134,113,84,255],[174,147,112,255],[40,48,36,255],[82,99,61,255],[120,136,87,255],[137,151,148,255],[179,183,165,255]],
+    "palette_sha256": "e4d28fd1c57d92956e7a77f9ffe8e4b415b5c4c89a3877dcc8152043a1e5d631",
     "alpha_contract": "C2 verified: far/ground opaque; main/mid/front binary alpha; main holes backed by far; Scissor 0.5; normal depth"
   },
   "provenance": {
@@ -18,6 +18,8 @@
     "plan": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6126210461",
     "approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6126281928",
     "pass_c_approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6139421496",
+    "art_approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6165722805",
+    "art_base_commit": "6c35d9688222190cec017a5b6bb11d9f19406fc7",
     "pass_c_base_commit": "daebe9f437ebfaaba7bd1a96f62ac739ed3b4444",
     "base_commit": "08f54769794337f82215dcc5e6cecefe84398b2e",
     "layout_commit_reference": "Git commit containing this manifest; resolve git log -1 -- this path",
@@ -353,10 +355,10 @@
     "old_profiles_and_3_digit_fallback_checked": true,
     "uv_direction_marker_removed": true,
     "user_experience_acceptance": "pending",
-    "cli_export_validation": "C1 real CLI + Godot imported RGBA verified; 58 fixture checks passed",
+    "cli_export_validation": "approved residential source: real CLI + Godot imported RGBA verified; original fixture retained",
     "density_comparison": "48/64/80 re-rasterized; main_3d 320x240 feed + actual CRT; both cameras",
     "recommended_density_candidate": 64,
-    "recommendation_is_approval": false,
-    "final_318_art": "not_started; final D and palette require approval"
+    "recommendation_is_approval": true,
+    "final_318_art": "native residential v1, 64 px/m and approved 26 colors; human appearance acceptance pending"
   }
 }

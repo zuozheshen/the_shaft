@@ -171,7 +171,7 @@ godot.cmd --headless --path . --script res://tools/aseprite/validate_floor_profi
 320×240 机位参数、固定遮挡、Marker、共享字号和规范化 LF 源文件 hash。
 `--print-layout` 可附加输出当前几何 JSON；命令始终只读正式源和清单。
 mask 来自 B 的实机校对与固定 Box 射线计算，命令不把几何一致性冒充截图验收。
-像素密度、Palette 和正式导出矩形仍未冻结，清单的 `export_ready=false`。
+几何门只读冻结清单；318 美术V1已批准64 px/m与26色，export_ready=true。
 
 #75 Pass C 的真实 CLI / 导入校验（需本地 Aseprite 1.3.x，先设置 ASEPRITE_PATH）：
 
@@ -186,5 +186,5 @@ CLI fixture 覆盖正式隐藏层违规、辅助层/参考层排除、RGB 精确
 Profile 检查实际七图导入尺寸/像素与 receipt、材质 Scissor 0.5、白色 × tint 和冻结几何。
 运行时测试另验证 null/reset 恢复原透明模式、threshold 与 material_override。
 CLI 不替代上方统一入口；截图与用户体验也不由 headless 代验。
-当前 318 是结构测试；48/64/80 实机对比只给推荐，最终 D/palette 仍未批准。
+当前318使用64 px/m / 26色住宅美术V1；原9色源继续用于CLI fixture，正式输入使用显式 Source/PaletteFile；正式美术拒绝诊断输入误覆盖。
 完整命令和失败恢复见 [管线文档](../docs/development/aseprite-floor-pipeline.md)。
