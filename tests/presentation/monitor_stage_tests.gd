@@ -42,8 +42,8 @@ func _test_layered_floor_slice(
 	)
 	var layer_ids := slice.get_supported_layer_ids()
 	test_runner.assert_equal(
-		"LayeredFloorSlice25D / 支持七个固定图层",
-		7,
+		"LayeredFloorSlice25D / 支持原七层与天花板",
+		8,
 		layer_ids.size()
 	)
 
@@ -55,7 +55,7 @@ func _test_layered_floor_slice(
 		if layer != null:
 			original_transforms[layer_id] = layer.transform
 	test_runner.assert_true(
-		"LayeredFloorSlice25D / 七个 ID 均对应 MeshInstance3D",
+		"LayeredFloorSlice25D / 八个 ID 均对应 MeshInstance3D",
 		all_layers_valid
 	)
 	test_runner.assert_equal(
@@ -123,7 +123,7 @@ func _test_layered_floor_slice(
 		transforms_unchanged = transforms_unchanged \
 				and layer.transform == original_transforms[layer_id]
 	test_runner.assert_true(
-		"LayeredFloorSlice25D / 接口不修改七层 Transform",
+		"LayeredFloorSlice25D / 接口不修改楼层 Transform",
 		transforms_unchanged
 	)
 

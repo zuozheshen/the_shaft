@@ -1,5 +1,13 @@
 # 318 住宅走廊美术 V2
 
+## 当前状态：provisional / placeholder-quality
+
+2026-10-16：最新V4材质pass人工视觉验收失败，已撤回至紧邻前版V3混凝土候选。
+最终318及天花材质未完成，整体灯光与表面美术方向延期到独立Issue。
+#75的数据、Profile、七层几何、64 px/m与CLI导出工程保留；旧V2资料如下仅是历史制作记录，
+其Palette/管线获批不等于最终美术验收。详见同目录VISUAL_STATUS.json。
+
+
 用户在 2026-10-14 批准已展示的构图参考、64 px/m 与 20 色 Palette。
 [批准记录与实施范围](https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6167315204)。
 最终画面与体验仍需用户验收。

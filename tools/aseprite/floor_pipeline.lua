@@ -1,5 +1,5 @@
 -- The Shaft floor pipeline V1. Batch only; existing source files are never saved.
-local IDS = {"far","main","mid_left","mid_right","ground","front_left","front_right"}
+local IDS = {"far","main","mid_left","mid_right","ground","front_left","front_right","ceiling"}
 local EXPECTED = {REFERENCE=true, GUIDES=true}
 for _, id in ipairs(IDS) do EXPECTED[id] = true end
 
@@ -69,7 +69,7 @@ local function extract(sprite, id, geometry)
     if pc.rgbaA(p) == 0 then transparent = transparent + 1 else opaque = opaque + 1 end
     colors[pixel_key(p)] = true
   end
-  if id == "far" or id == "ground" then assert(transparent == 0, id.." must be continuous opaque fallback") end
+  if id == "far" or id == "ground" or id == "ceiling" then assert(transparent == 0, id.." must be continuous opaque fallback") end
   local count = 0; for _ in pairs(colors) do count = count + 1 end
   return image, {id=id,width=image.width,height=image.height,opaque=opaque,transparent=transparent,color_count=count}
 end
@@ -78,7 +78,7 @@ local function validate(sprite)
   assert(sprite.colorMode == ColorMode.RGB, "Master source must be RGB")
   assert(#sprite.frames == 1, "Only one frame is allowed")
   assert(sprite.width == request.canvas[1] and sprite.height == request.canvas[2], "Wrong Sprite canvas")
-  assert(#sprite.layers == 9, "Exactly nine top-level layers required")
+  assert(#sprite.layers == #IDS + 2, "Expected named environment layers plus REFERENCE/GUIDES")
   assert(#sprite.palettes == 1 and #sprite.palettes[1] == #request.palette.colors, "Wrong source palette")
   for i, c in ipairs(request.palette.colors) do
     assert(sprite.palettes[1]:getColor(i-1).rgbaPixel == rgba(c), "Wrong palette entry "..(i-1))
@@ -109,7 +109,7 @@ local function rect(image, g, x0, y0, x1, y1, color_index)
   local px0 = math.floor((x0-left)/g.size[1]*image.width)
   local px1 = math.ceil((x1-left)/g.size[1]*image.width)-1
   local py0, py1
-  if g.id == "ground" then
+  if g.id == "ground" or g.id == "ceiling" then
     local back = g.origin[3] - g.size[2]/2
     py0 = math.floor((y0-back)/g.size[2]*image.height)
     py1 = math.ceil((y1-back)/g.size[2]*image.height)-1
@@ -152,6 +152,8 @@ local function structure(id, g)
     local x = side == -1 and -1.58 or 1.51
     r(x,1.2,x+0.12,1.36,8)
     for y=0.4,2.2,0.12 do r(lo,y,lo+0.25,y+0.018,5) end
+  elseif id == "ceiling" then
+    image:clear(rgba(request.palette.colors[5]))
   elseif id == "ground" then
     image:clear(rgba(request.palette.colors[3]))
     for z=-3.5,0,0.5 do r(-4.225,z,4.225,z+0.035,4) end
@@ -208,6 +210,10 @@ local function run()
     return {ok=true,template=create_template()}
   end
   local sprite = assert(app.open(request.source), "Cannot open saved source")
+  -- Saved nine-layer V1/V2 masters remain readable/exportable; new templates have ceiling.
+  local has_ceiling=false
+  for _,layer in ipairs(sprite.layers) do if layer.name=="ceiling" then has_ceiling=true end end
+  if not has_ceiling then table.remove(IDS,#IDS) end
   if request.action == "Inspect" then
     local info = describe(sprite); sprite:close(); return {ok=true,inspection=info}
   end

@@ -132,7 +132,7 @@
     "palette_sha256":  "115eb3d246d7e8fa5e9544d7f2a1abd0270bdd734d77498c4f7ab3fb9bf34b37",
     "source":  "art_source/floors/318/floor_318_residential_v2.aseprite",
     "source_sha256":  "97b7005c2766eda3fb3e4bde7e0bc96044abab8ae184d85d322cdfd82689335a",
-    "layout_sha256":  "db7a020bb3758aeb091762b50e3ecaed6823b9c6bb0a7b9d2d76a2ca65a79f6f",
+    "layout_sha256":  "27789f24ceb356c88b7ffe86ad8ece38668936110af5d6d4c9daa9d2b326d094",
     "canvas":  [
                    541,
                    272
@@ -210,5 +210,6 @@
                  }
              ],
     "profile_sha256":  "e739c731ee0e21c2c56cd40ec317480f401e0ffc34802ae23c344775deee3be5",
-    "source_disk_only":  true
+    "source_disk_only":  true,
+  "ceiling_extension_migration": {"previous_layout_sha256":"db7a020bb3758aeb091762b50e3ecaed6823b9c6bb0a7b9d2d76a2ca65a79f6f","reason":"Shared ceiling appended; original seven layer geometry and art unchanged","automated_revalidation":false}
 }

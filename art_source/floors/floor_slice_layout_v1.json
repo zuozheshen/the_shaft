@@ -1,22 +1,25 @@
 {
   "schema_version": 1,
-  "layout_version": "floor-slice-v1-pass-b",
+  "layout_version": "floor-slice-v1-ceiling-extension",
   "status": {
     "geometry": "runtime_verified",
     "pass_c": "residential_art_v2_pending_human_acceptance",
     "export_ready": true,
     "final_pixel_density_px_per_m": 64,
-    "final_export_rectangles": {"far":[541,266],"main":[532,272],"mid_left":[164,230],"mid_right":[169,233],"ground":[541,240],"front_left":[42,154],"front_right":[45,160]},
+    "final_export_rectangles": {"far":[541,266],"main":[532,272],"mid_left":[164,230],"mid_right":[169,233],"ground":[541,240],"front_left":[42,154],"front_right":[45,160],"ceiling":[541,240]},
     "shared_sprite_canvas": [541,272],
     "palette_id": "floor-318-residential-v2",
     "palette_colors": [[0,0,0,0],[25,28,29,255],[39,43,45,255],[54,59,61,255],[74,80,82,255],[93,99,101,255],[98,103,103,255],[117,121,121,255],[136,140,139,255],[158,162,160,255],[185,188,183,255],[209,211,204,255],[102,111,105,255],[129,138,128,255],[45,56,60,255],[70,84,90,255],[48,52,53,255],[103,119,124,255],[139,134,122,255],[223,225,216,255]],
     "palette_sha256": "115eb3d246d7e8fa5e9544d7f2a1abd0270bdd734d77498c4f7ab3fb9bf34b37",
-    "alpha_contract": "C2 verified: far/ground opaque; main/mid/front binary alpha; main holes backed by far; Scissor 0.5; normal depth"
+    "alpha_contract": "C2 verified: far/ground opaque; main/mid/front binary alpha; main holes backed by far; Scissor 0.5; normal depth",
+    "ceiling": "shared generated concrete, 2.6m; observed in formal main_3d CAM01/CAM02; human acceptance pending; no automated tests run",
+    "legacy_sources": "nine-layer V1/V2 sources retain seven PNG exports; ten-layer sources include ceiling"
   },
   "provenance": {
     "issue": 75,
     "plan": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6126210461",
     "approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6126281928",
+    "ceiling_approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6207572871",
     "pass_c_approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6139421496",
     "art_approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6167315204",
     "art_base_commit": "45bb802295d2a598a00ab3556bfcc348f3aab035",
@@ -30,7 +33,7 @@
     "sources": {
       "scenes/elevator/elevator_cabin_3d.tscn": "babfcc3f216ca304b6f4506dee9f3cfe10d27211b390935f31245bc9d8b211cd",
       "scenes/presentation/monitor_test_stage_3d.tscn": "8408fae15d81217afa0abe176eaa765bd9647d2ef7c3aa557bf66225f57fb4a4",
-      "scenes/presentation/layered_floor_slice_2_5d.tscn": "d6551ae805e009b5f6e7d6cff3e6c319cf9348ef05fda80435af2f02b128a4b6",
+      "scenes/presentation/layered_floor_slice_2_5d.tscn": "be114d5f0c4a613090cdb99c2cd31ff6658fb5c528df9122590c68bc104b95f3",
       "scenes/presentation/elevator_door_visual_3d.tscn": "890e472423d5eaa78fe2be05d548e540feed78e4de3b53190154734a7de8826c",
       "scenes/presentation/passenger_visual_3d.tscn": "999283143f5a1da70ea22138cb2479433be580b65c6b765510d41695a82e93af",
       "scenes/visuals/passenger_cabin_assembly_v3_visual.tscn": "34bc7dbe57f39ecb0e9dc8ec059fb0dc10f3237cb984672efae5550e103e6068",
@@ -380,6 +383,112 @@
         {"camera_id":"CAM02","sampled_world_bounds":null,"pixel_count":0,"row_runs":[]}
       ],
       "pixel_size_candidates": {"48":[34,120],"64":[45,160],"80":[56,200]}
+    },
+    {
+      "id": "ceiling",
+      "node_path": "门外楼层区域/门外楼层挂载点/当前楼层切片/天花板层",
+      "quad_size_m": [
+        8.45,
+        3.75
+      ],
+      "render_layers": 4,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "uv": {
+        "image_right_stage_axis": "+X",
+        "image_top_stage_axis": "+Z (near door)",
+        "image_bottom_stage_axis": "-Z (deep corridor)",
+        "rotation_x_degrees": 90
+      },
+      "pixel_size_candidates": {
+        "48": [
+          406,
+          180
+        ],
+        "64": [
+          541,
+          240
+        ],
+        "80": [
+          676,
+          300
+        ]
+      },
+      "local_transform": {
+        "basis_columns": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            -1,
+            0
+          ]
+        ],
+        "origin": [
+          0,
+          2.6,
+          -1.825
+        ]
+      },
+      "stage_transform": {
+        "basis_columns": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            -1,
+            0
+          ]
+        ],
+        "origin": [
+          0,
+          2.6,
+          -1.825
+        ]
+      },
+      "world_transform": {
+        "basis_columns": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            -1,
+            0
+          ]
+        ],
+        "origin": [
+          100,
+          2.6,
+          -1.825
+        ]
+      }
     }
   ],
   "retained_hidden_nodes": ["门外楼层区域/门外基础地面","门外楼层区域/门外灰盒参考"],
@@ -398,5 +507,7 @@
     "recommended_density_candidate": 64,
     "recommendation_is_approval": true,
     "final_318_art": "native residential v1, 64 px/m and approved 26 colors; human appearance acceptance pending"
-  }
+  },
+  "shared_ceiling": {"source":"art_source/floors/shared/ceiling_concrete_v1.aseprite","texture":"assets/art/floors/shared/ceiling_concrete_v1.png","density_px_per_m":64,"height_m":2.6,"default_for_all_profiles":true,"palette_independent_of_legacy_318":true},
+  "historical_masks_note": "Original seven-layer effective masks predate the ceiling. Preserved as history, not recalculated or claimed current."
 }

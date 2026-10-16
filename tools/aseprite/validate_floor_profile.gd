@@ -39,7 +39,7 @@ func _run() -> void:
 		return
 
 	_check("schema", manifest.get("schema_version"), 1)
-	_check("layer count", manifest.get("layers", []).size(), 7)
+	_check("layer count", manifest.get("layers", []).size(), 8)
 	for source_path in manifest.get("provenance", {}).get("sources", {}):
 		# 仓库 LF 为 hash 依据，允许 Windows checkout 使用 CRLF。
 		var source := FileAccess.get_file_as_string("res://" + source_path).replace("\r\n", "\n")
@@ -133,7 +133,7 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	if _failures.is_empty():
-		print("FLOOR PROFILE CHECKS PASS" if check_profile else "LAYOUT CHECKS PASS | seven Quads, camera, fixed occluders, markers, label, source hashes")
+		print("FLOOR PROFILE CHECKS PASS" if check_profile else "LAYOUT CHECKS PASS | seven Quads + ceiling, camera, fixed occluders, markers, label, source hashes")
 		quit(0)
 	else:
 		for failure in _failures:
@@ -210,7 +210,7 @@ func _check_profile(cabin: Node, manifest: Dictionary, density: int) -> void:
 		return
 	_check("receipt schema", receipt.get("schema_version"), 1)
 	_check("receipt density", receipt.get("density_candidate"), density)
-	_check("receipt PNG count", receipt.get("pngs", []).size(), 7)
+	_check("receipt PNG count supported", receipt.get("pngs", []).size() in [7, 8], true)
 	_check("receipt layout hash", receipt.get("layout_sha256"), _text_hash(MANIFEST_PATH))
 	var profile := load("res://data/presentation/floor_visuals/floor_318_visual.tres") as FloorVisualProfile
 	if profile == null:
@@ -246,6 +246,13 @@ func _check_profile(cabin: Node, manifest: Dictionary, density: int) -> void:
 		var id := String(geometry.id)
 		var path := "res://assets/art/floors/318/" + id + ".png"
 		var texture := profile.get(id + "_texture") as Texture2D
+		# 旧七图源通过场景默认材质获得共享顶面，不冒充源自其20色色板。
+		if id == "ceiling" and receipt.pngs.size() == 7:
+			var ceiling_material := stage.get_current_floor_slice().get_layer_node(&"ceiling").get_active_material(0) as BaseMaterial3D
+			_check("legacy ceiling uses shared texture",
+					ceiling_material.albedo_texture.resource_path,
+					"res://assets/art/floors/shared/ceiling_concrete_v1.png")
+			continue
 		if texture == null:
 			_failures.append("Unbound Texture2D: " + id)
 			continue

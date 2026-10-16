@@ -1,5 +1,41 @@
 # Aseprite 楼层切片管线 V1
 
+## 2026-10-16 收尾：工程保留，美术占位
+
+最新V4材质pass因用户人工视觉验收失败而回滚，当前318美术明确为
+provisional / placeholder-quality。恢复V4前的V3混凝土候选，不继续材质迭代或灯光。
+共用天花板结构保留，最终顶面材质不属于本Issue完成条件。详见
+art_source/floors/318/VISUAL_STATUS.json。下文工程导出规则和历史验收继续有效；
+技术Palette获批、PNG验证通过不代表最终美术验收。
+
+本次针对性收尾检查补正两处共享天花板后的兼容记录：入口层数按当前支持ID数量判断，
+receipt清单hash按既定canonical LF计算。没有改layout manifest、原七图或Profile字节，
+也没有放宽Palette、透明或导入检查。七PNG重新导出及只读Profile/layout检查通过。
+
+
+## 2026-10-16：共享天花板扩展（已批准实现，未运行自动测试）
+
+[本轮直接批准与范围](https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6207572871)。
+共用切片现在为原七层加 ceiling，合计八个环境平面。原七层职责与尺寸不变；
+天花板为 8.45×3.75m 的水平 Quad，中心 (0,2.6,-1.825)，64 px/m 时 541×240。
+每个 FloorVisualProfile 均继承 ceiling_visible=true；ceiling_texture=null 时恢复
+场景自带的共享混凝土顶面，不沿用上一楼层覆盖。可按楼层替换或隐藏，不复制业务数据。
+
+- 新 CreateTemplate 生成八个环境层＋REFERENCE/GUIDES，合计十层；导出八 PNG。
+- 历史九层 V1/V2 源保持原样，读取/参考副本/导出仍接受七环境层；导出七 PNG，
+  天花板由共用场景兜底。不得把共享顶面冒充为历史20色色板或旧源中的像素。
+- shared/ceiling_concrete_v1.aseprite 是独立顶面源；共享 PNG 为 lossless RGBA、
+  nearest、无 mipmaps，色板独立于旧318 Palette。
+- 下文的九层/七图命令仍针对保留的 V1/V2 源。新模板按十层/八图执行，
+  仍须满足各自获批 Palette 和实际像素门，未放宽发布检查。
+- 318三材质新版源、八图、生成原图/完整提示词、两机位截图保留于本地忽略目录
+  art_source/floors/.preview/318-material-ceiling-v3。当前仅在正式main_3d中运行时预览；
+  正式V2七图、源和Palette未替换。旧receipt只迁移几何清单hash并记录未重新验证。
+- 本轮依用户要求不运行CLI fixtures、layout/profile checker、测试套件或统一入口。
+  已查看正式场景与两机位画面；最终美术验收仍由用户决定。
+- 原有效像素遮罩是新增天花板前的历史记录，本轮未重算，不宣称仍是当前遮罩。
+
+
 #75 的 C1/C2 采用 Codex → 本地 Aseprite CLI / Lua，不增加 MCP Adapter。
 318当前住宅美术V2使用获批64 px/m与20色；正式源为floor_318_residential_v2.aseprite，原结构源与V1保留。
 依据 [Pass C REVIEW](https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6139421496)

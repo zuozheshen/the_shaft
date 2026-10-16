@@ -13,7 +13,7 @@ param(
 $ErrorActionPreference='Stop'
 $rootPath=[IO.Path]::GetFullPath((Split-Path -Parent (Split-Path -Parent $PSScriptRoot)))
 $utf8=[Text.UTF8Encoding]::new($false)
-$ids=@('far','main','mid_left','mid_right','ground','front_left','front_right')
+$ids=@('far','main','mid_left','mid_right','ground','front_left','front_right','ceiling')
 $lockStream=$null
 $jobPath=$null
 $sourceHash=$null
@@ -206,7 +206,7 @@ try {
  }
  $manifestPath=Join-Path $rootPath 'art_source/floors/floor_slice_layout_v1.json'
  $manifest=Get-Content -LiteralPath $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
- if ($manifest.status.geometry -ne 'runtime_verified' -or $manifest.layers.Count -ne 7) { throw 'Pass B layout gate failed' }
+ if ($manifest.status.geometry -ne 'runtime_verified' -or $manifest.layers.Count -ne $ids.Count) { throw 'Pass B layout gate failed' }
  if (-not $Diagnostic -and -not $manifest.status.export_ready) { throw 'Final D/Palette not approved; use -Diagnostic for C1/C2' }
  $palettePath=Safe-Path $PaletteFile @('art_source/floors/318')
  $palette=Get-Content -LiteralPath $palettePath -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -247,6 +247,12 @@ try {
  Check-Native $result ('FLOOR_PIPELINE_OK '+$requestId)
  $luaReport=Get-Content -LiteralPath $reportPath -Raw -Encoding UTF8 | ConvertFrom-Json
  if (-not $luaReport.ok -or $luaReport.request_id -ne $requestId) { throw 'Unverified Lua report' }
+ # 旧源保留七图发布；新源包含独立 ceiling。不可伪造旧源中不存在的顶面像素。
+ if ($Action -eq 'Export') {
+  $exportIds=@($luaReport.pngs | ForEach-Object { $_.id })
+  if ($exportIds.Count -notin @(7,8) -or @($exportIds | Select-Object -Unique).Count -ne $exportIds.Count -or @($exportIds | Where-Object { $_ -notin $ids }).Count -gt 0) { throw 'Invalid exported layer IDs' }
+  $ids=$exportIds
+ }
  if ($sourceHash -and (File-Hash $sourcePath) -ne $sourceHash) { throw 'Saved source changed during batch' }
  if ($Action -in @('CreateTemplate','PrepareReferenceCopy')) {
   $target=$sourcePath
@@ -267,7 +273,7 @@ try {
   $oldReceipt=$null
   if (Test-Path -LiteralPath $receiptPath) {
    $oldReceipt=Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8 | ConvertFrom-Json
-   if ($oldReceipt.producer -ne 'the-shaft-floor-pipeline-v1' -or $oldReceipt.floor_id -ne '318' -or $oldReceipt.pngs.Count -ne 7) { throw 'Unowned output receipt' }
+   if ($oldReceipt.producer -ne 'the-shaft-floor-pipeline-v1' -or $oldReceipt.floor_id -ne '318' -or $oldReceipt.pngs.Count -notin @(7,8)) { throw 'Unowned output receipt' }
   }
   if ($Diagnostic -and $output -eq $defaultOutput -and $oldReceipt -and $oldReceipt.art_palette_approved) { throw 'Approved art output requires approved pipeline inputs' }
   foreach ($id in $ids) {
@@ -277,7 +283,7 @@ try {
     if ($owned.Count -ne 1 -or (File-Hash $target) -ne $owned[0].sha256) { throw "Unowned/modified PNG: $id" }
    }
   }
-  if (@(Get-ChildItem -LiteralPath $pngStage -File -Filter '*.png').Count -ne 7) { throw 'Expected exactly seven staged PNGs' }
+  if (@(Get-ChildItem -LiteralPath $pngStage -File -Filter '*.png').Count -ne $ids.Count) { throw 'Staged PNG count does not match source layers' }
   $pngs=@()
   $targets=[Collections.Generic.List[object]]::new()
   foreach ($id in $ids) {
