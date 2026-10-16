@@ -13,6 +13,7 @@ func run(r: Variant, tree: SceneTree) -> void:
 	await _test_arrival_and_fallback(r, tree)
 	await _test_animation_and_camera_isolation(r, tree)
 	await _test_missing_light(r, tree)
+	await _test_texture_material_restore(r, tree)
 
 
 func configured_coordinator() -> MonitorPresentationCoordinator3D:
@@ -32,6 +33,10 @@ func _test_scene_configuration(r: Variant) -> void:
 		r.assert_true("楼层配置 / 有效且无重复", profile != null and profile.floor_id not in ids)
 		if profile != null:
 			ids.append(profile.floor_id)
+			if profile.floor_id == &"318":
+				r.assert_equal("318 / 正式独立 Profile 路径",
+						"res://data/presentation/floor_visuals/floor_318_visual.tres",
+						profile.resource_path)
 	r.assert_equal("楼层配置 / 数量与真实 Catalog 一致", CATALOG.floors.size(), ids.size())
 	for floor_data in CATALOG.floors:
 		r.assert_true("楼层配置 / 覆盖 " + String(floor_data.floor_id), floor_data.floor_id in ids)
@@ -80,8 +85,12 @@ func _test_complete_overwrite(r: Variant, tree: SceneTree) -> void:
 		var material := layer.get_active_material(0) as BaseMaterial3D
 		r.assert_true("楼层覆盖 / A 纹理与隐藏 " + String(layer_id),
 				material.albedo_texture == texture and not layer.visible)
-		r.assert_true("楼层覆盖 / tint 按基础颜色 " + String(layer_id),
-				material.albedo_color.is_equal_approx(original[layer_id].color * a.ambient_tint))
+		r.assert_true("楼层覆盖 / 纹理按白色基底乘 tint " + String(layer_id),
+				material.albedo_color.is_equal_approx(a.ambient_tint))
+		r.assert_equal("纹理 / Alpha Scissor " + String(layer_id),
+				BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR, material.transparency)
+		r.assert_true("纹理 / 0.5 裁切 " + String(layer_id),
+				is_equal_approx(material.alpha_scissor_threshold, 0.5))
 	var a_snapshot := _snapshot(stage)
 	stage.apply_floor_visual_profile(a)
 	r.assert_equal("楼层覆盖 / 重复应用不累积", a_snapshot, _snapshot(stage))
@@ -94,7 +103,7 @@ func _test_complete_overwrite(r: Variant, tree: SceneTree) -> void:
 	b.floor_id = &"004"
 	b.display_label = "测试附注"
 	stage.apply_floor_visual_profile(b)
-	r.assert_equal("楼层标签 / 附注不替代前导零编号", "FLOOR 004 — 测试附注", label.text)
+	r.assert_equal("楼层标签 / 附注不替代前导零编号", "004 — 测试附注", label.text)
 	r.assert_equal("楼层覆盖 / B 清空七层纹理并恢复显隐色调灯光", original, _snapshot(stage))
 	r.assert_equal("楼层 getter / Profile", b, stage.get_current_floor_visual_profile())
 	r.assert_equal("楼层 getter / 004", &"004", stage.get_current_floor_visual_id())
@@ -106,7 +115,7 @@ func _test_complete_overwrite(r: Variant, tree: SceneTree) -> void:
 	r.assert_false("楼层覆盖 / null 安全失败", stage.apply_floor_visual_profile(null))
 	r.assert_equal("楼层覆盖 / null 恢复安全默认", original, _snapshot(stage))
 	r.assert_equal("楼层覆盖 / null 清除旧 getter", null, stage.get_current_floor_visual_profile())
-	r.assert_equal("楼层覆盖 / null 清除旧编号", "FLOOR ---", label.text)
+	r.assert_equal("楼层覆盖 / null 清除旧编号", "---", label.text)
 
 	var coordinator := configured_coordinator()
 	for floor_id in [&"900", &"612", &"004", &"900"]:
@@ -131,6 +140,8 @@ func _snapshot(stage: MonitorStageController3D) -> Dictionary:
 			"texture": material.albedo_texture, "visible": layer.visible,
 			"color": material.albedo_color, "transform": layer.transform,
 			"shading": material.shading_mode,
+		"transparency": material.transparency,
+		"scissor": material.alpha_scissor_threshold,
 		}
 	var light := stage.get_node(stage.floor_light_path) as Light3D
 	result["energy"] = light.light_energy
@@ -167,7 +178,7 @@ func _test_arrival_and_fallback(r: Variant, tree: SceneTree) -> void:
 		if state == MonitorStageController3D.PassengerPresentationState.OUTSIDE_WAITING:
 			ordering.seen = true
 			ordering.correct = ordering.correct and stage.get_current_floor_visual_id() == &"612" \
-					and (stage.get_node(stage.floor_label_path) as Label3D).text == "FLOOR 612"
+					and (stage.get_node(stage.floor_label_path) as Label3D).text == "612"
 	)
 	var before_move := _snapshot(stage)
 	var result := manager.request_travel_to_floor("612")
@@ -194,6 +205,9 @@ func _test_arrival_and_fallback(r: Variant, tree: SceneTree) -> void:
 				expected = profile
 		r.assert_equal("楼层映射 / 使用正式资源 " + String(floor_data.floor_id),
 				expected, stage.get_current_floor_visual_profile())
+		r.assert_equal("楼层映射 / 动态编号 " + String(floor_data.floor_id),
+				String(floor_data.floor_id),
+				(stage.get_node(stage.floor_label_path) as Label3D).text)
 
 	# 删除一个已注册业务楼层的表现配置，业务仍可正常完成移动。
 	coordinator.floor_visual_profiles = []
@@ -212,7 +226,7 @@ func _test_arrival_and_fallback(r: Variant, tree: SceneTree) -> void:
 		await manager.elevator_movement_completed
 	r.assert_true("fallback / 缺视觉不阻止业务抵达", travel.succeeded and manager.get_current_floor() == "004")
 	r.assert_equal("fallback / 不残留旧视觉", fallback_base, _snapshot(stage))
-	r.assert_equal("fallback / 标签保留真实编号", "FLOOR 004",
+	r.assert_equal("fallback / 标签保留真实编号", "004",
 			(stage.get_node(stage.floor_label_path) as Label3D).text)
 	r.assert_equal("fallback / 不修改共享 fallback ID", &"fallback", original_fallback.floor_id)
 	var custom_fallback := original_fallback.duplicate() as FloorVisualProfile
@@ -226,7 +240,7 @@ func _test_arrival_and_fallback(r: Variant, tree: SceneTree) -> void:
 			stage.get_current_floor_visual_profile().ambient_tint)
 	r.assert_false("fallback / 使用导出的显隐",
 			stage.get_current_floor_slice().get_layer_node(&"front_right").visible)
-	r.assert_equal("fallback / 模板名称不替代真实编号", "FLOOR 004",
+	r.assert_equal("fallback / 模板名称不替代真实编号", "004",
 			(stage.get_node(stage.floor_label_path) as Label3D).text)
 	r.assert_equal("fallback / 不修改自定义模板 ID", &"fallback", custom_fallback.floor_id)
 
@@ -360,7 +374,42 @@ func _test_missing_light(r: Variant, tree: SceneTree) -> void:
 	var profile := FloorVisualProfile.new()
 	profile.floor_id = &"004"
 	r.assert_true("灯光降级 / 缺灯仍可应用视觉", stage.apply_floor_visual_profile(profile))
-	r.assert_equal("灯光降级 / 标签保持真实编号", "FLOOR 004",
+	r.assert_equal("灯光降级 / 标签保持真实编号", "004",
 			(stage.get_node(stage.floor_label_path) as Label3D).text)
+	stage.queue_free()
+	await tree.process_frame
+
+func _test_texture_material_restore(r: Variant, tree: SceneTree) -> void:
+	var stage := STAGE.instantiate() as MonitorStageController3D
+	var slice := stage.get_node("门外楼层区域/门外楼层挂载点/当前楼层切片") as LayeredFloorSlice25D
+	var layer := slice.get_node("中景左层") as MeshInstance3D
+	# 独立实例的非默认透明设置用于证明 null/reset 真正恢复缓存。
+	var original := StandardMaterial3D.new()
+	original.albedo_color = Color(0.3, 0.4, 0.5, 0.8)
+	original.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	original.alpha_scissor_threshold = 0.37
+	layer.material_override = original
+	r.add_child(stage)
+	var image := Image.create(2, 2, false, Image.FORMAT_RGBA8)
+	image.fill(Color.WHITE)
+	var texture := ImageTexture.create_from_image(image)
+	var tinted := FloorVisualProfile.new()
+	tinted.floor_id = &"318"
+	tinted.ambient_tint = Color(0.6, 0.7, 0.8, 1)
+	tinted.mid_left_texture = texture
+	stage.apply_floor_visual_profile(tinted)
+	var material := layer.get_active_material(0) as BaseMaterial3D
+	r.assert_equal("材质恢复 / 纹理保留源色", tinted.ambient_tint, material.albedo_color)
+	r.assert_equal("材质恢复 / 纹理启用 Scissor", BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR, material.transparency)
+	r.assert_true("材质恢复 / 不修改原 override", original.albedo_texture == null and is_equal_approx(original.alpha_scissor_threshold, 0.37))
+	var old := FloorVisualProfile.new()
+	old.floor_id = &"004"
+	stage.apply_floor_visual_profile(old)
+	r.assert_equal("材质恢复 / null 纹理恢复原透明模式", BaseMaterial3D.TRANSPARENCY_ALPHA, material.transparency)
+	r.assert_true("材质恢复 / null 纹理恢复原 threshold", is_equal_approx(material.alpha_scissor_threshold, 0.37))
+	r.assert_equal("材质恢复 / null 纹理恢复基色", original.albedo_color, material.albedo_color)
+	stage.apply_floor_visual_profile(tinted)
+	stage.apply_floor_visual_profile(null)
+	r.assert_equal("材质恢复 / reset 恢复原 override 对象", original, layer.material_override)
 	stage.queue_free()
 	await tree.process_frame

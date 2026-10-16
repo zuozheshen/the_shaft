@@ -10,6 +10,7 @@ const FlowCommandResultScript := preload(
 func run(test_runner: Variant, tree: SceneTree) -> void:
 	await _test_open_close_and_greeting_commands(test_runner, tree)
 	await _test_validation_and_travel_commands(test_runner, tree)
+	await _test_registered_housing_floor(test_runner, tree)
 	await _test_dropoff_and_shift_completion_commands(test_runner, tree)
 	_test_ui_command_boundary(test_runner)
 
@@ -305,6 +306,22 @@ func _test_validation_and_travel_commands(
 		)
 	)
 	await _destroy_manager(no_dispatch_manager, tree)
+
+
+func _test_registered_housing_floor(test_runner: Variant, tree: SceneTree) -> void:
+	# 318 只验证登记与空舱抵达，不借本测试补写乘客送达剧情。
+	var manager: DemoFlowManager = await _create_manager(tree)
+	var validation := manager.request_validate_destination(" 318 ")
+	test_runner.assert_true("318 / 正式地址命令识别登记楼层", validation.succeeded)
+	test_runner.assert_equal("318 / 地址去首尾空白", "318", validation.floor_id)
+	test_runner.assert_false("318 / 此处为空舱", manager.is_passenger_onboard())
+	var travel := manager.request_travel_to_floor("318")
+	test_runner.assert_true("318 / 空舱正式旅行命令成功", travel.succeeded)
+	if manager.is_elevator_moving():
+		await manager.elevator_movement_completed
+	test_runner.assert_equal("318 / 实际到站编号", "318", manager.get_current_floor())
+	test_runner.assert_equal("318 / 自由停靠不写派单目标", "", manager.get_selected_target_floor())
+	await _destroy_manager(manager, tree)
 
 
 func _test_dropoff_and_shift_completion_commands(

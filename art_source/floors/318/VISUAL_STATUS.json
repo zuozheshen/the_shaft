@@ -1,0 +1,17 @@
+{
+  "issue": 75,
+  "art_quality": "provisional / placeholder-quality",
+  "final_visual_acceptance": false,
+  "latest_material_pass": "V4 rejected by human visual review and rolled back",
+  "restored_runtime_baseline": "318-material-ceiling-v3; byte-identical before-V4 PNG/native source",
+  "source_clarification": "Immediate V3 predecessor is ImageGen -> Aseprite concrete candidate. Earlier direct Brutal Base pack preview is separate and not restored because this rollback is limited to the latest pass.",
+  "formal_profile": "data/presentation/floor_visuals/floor_318_visual.tres",
+  "formal_V2_assets": "preserved; not overwritten by V4 or this rollback",
+  "engineering": "FloorDefinition/Catalog/book/Profile/seven layer geometry/cameras/64px/m/CLI export/transparency/nearest/layout manifest preserved",
+  "shared_ceiling": "standard structure for normal floors preserved; final material deferred",
+  "deferred": [
+    "final 318 wall/ground/ceiling/door/vending/bin art",
+    "overall floor lighting and surface art direction in independent Issue"
+  ],
+  "stop": "No new art iteration, no lighting work, no Pass D; push/merge not performed"
+}

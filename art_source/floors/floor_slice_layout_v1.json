@@ -1,0 +1,513 @@
+{
+  "schema_version": 1,
+  "layout_version": "floor-slice-v1-ceiling-extension",
+  "status": {
+    "geometry": "runtime_verified",
+    "pass_c": "residential_art_v2_pending_human_acceptance",
+    "export_ready": true,
+    "final_pixel_density_px_per_m": 64,
+    "final_export_rectangles": {"far":[541,266],"main":[532,272],"mid_left":[164,230],"mid_right":[169,233],"ground":[541,240],"front_left":[42,154],"front_right":[45,160],"ceiling":[541,240]},
+    "shared_sprite_canvas": [541,272],
+    "palette_id": "floor-318-residential-v2",
+    "palette_colors": [[0,0,0,0],[25,28,29,255],[39,43,45,255],[54,59,61,255],[74,80,82,255],[93,99,101,255],[98,103,103,255],[117,121,121,255],[136,140,139,255],[158,162,160,255],[185,188,183,255],[209,211,204,255],[102,111,105,255],[129,138,128,255],[45,56,60,255],[70,84,90,255],[48,52,53,255],[103,119,124,255],[139,134,122,255],[223,225,216,255]],
+    "palette_sha256": "115eb3d246d7e8fa5e9544d7f2a1abd0270bdd734d77498c4f7ab3fb9bf34b37",
+    "alpha_contract": "C2 verified: far/ground opaque; main/mid/front binary alpha; main holes backed by far; Scissor 0.5; normal depth",
+    "ceiling": "shared generated concrete, 2.6m; observed in formal main_3d CAM01/CAM02; human acceptance pending; no automated tests run",
+    "legacy_sources": "nine-layer V1/V2 sources retain seven PNG exports; ten-layer sources include ceiling"
+  },
+  "provenance": {
+    "issue": 75,
+    "plan": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6126210461",
+    "approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6126281928",
+    "ceiling_approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6207572871",
+    "pass_c_approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6139421496",
+    "art_approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6167315204",
+    "art_base_commit": "45bb802295d2a598a00ab3556bfcc348f3aab035",
+    "pass_c_base_commit": "daebe9f437ebfaaba7bd1a96f62ac739ed3b4444",
+    "base_commit": "08f54769794337f82215dcc5e6cecefe84398b2e",
+    "layout_commit_reference": "Git commit containing this manifest; resolve git log -1 -- this path",
+    "godot_version": "4.7.2-stable",
+    "runtime_read_utc": "2026-10-12T15:05:53",
+    "source_hash_format": "sha256 of canonical LF UTF-8 source bytes",
+    "runtime_float_tolerance_m": 0.00001,
+    "sources": {
+      "scenes/elevator/elevator_cabin_3d.tscn": "babfcc3f216ca304b6f4506dee9f3cfe10d27211b390935f31245bc9d8b211cd",
+      "scenes/presentation/monitor_test_stage_3d.tscn": "8408fae15d81217afa0abe176eaa765bd9647d2ef7c3aa557bf66225f57fb4a4",
+      "scenes/presentation/layered_floor_slice_2_5d.tscn": "be114d5f0c4a613090cdb99c2cd31ff6658fb5c528df9122590c68bc104b95f3",
+      "scenes/presentation/elevator_door_visual_3d.tscn": "890e472423d5eaa78fe2be05d548e540feed78e4de3b53190154734a7de8826c",
+      "scenes/presentation/passenger_visual_3d.tscn": "999283143f5a1da70ea22138cb2479433be580b65c6b765510d41695a82e93af",
+      "scenes/visuals/passenger_cabin_assembly_v3_visual.tscn": "34bc7dbe57f39ecb0e9dc8ec059fb0dc10f3237cb984672efae5550e103e6068",
+      "scripts/presentation/monitor_camera_controller_3d.gd": "83800ca199a37795b3cfd96ca30da3791ca315bf68eb0c0bc53648031963a0a0"
+    }
+  },
+  "main_scene": "scenes/main/main_3d.tscn",
+  "stage_scene": "scenes/presentation/monitor_test_stage_3d.tscn",
+  "slice_scene": "scenes/presentation/layered_floor_slice_2_5d.tscn",
+  "stage_world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[100,0,0]},
+  "viewport": [320,240],
+  "camera": {
+    "anchors": [
+      {"node_path":"摄像机锚点/舱内摄像机锚点","stage_transform":{"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,0.74,2.1]},"world_transform":{"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[100,0.74,2.1]}},
+      {"node_path":"摄像机锚点/门外摄像机锚点","stage_transform":{"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,0.74,-0.18]},"world_transform":{"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[100,0.74,-0.18]}}
+    ],
+    "cull_mask": 6,
+    "far": 30,
+    "fov": 60,
+    "keep_aspect": 1,
+    "near": 0.05
+  },
+  "mask_contract": {
+    "method": "pixel-centre ray/axis-aligned fixed Box intersection at 320x240; target-plane points behind ground/far or outside the layer responsibility are excluded; no clipping to the candidate Quad",
+    "row_runs_format": "[v_start,v_end,[[u_start,u_end],...]], inclusive; absent rows are empty",
+    "focal_length_px": 207.84609690826528,
+    "permanent_occlusion": "visible fixed stage Layer 2 boxes only; passenger, door leaves, optional front/mid layers excluded",
+    "union": "each camera mask retained separately; world-space union is bounded by conservative_envelopes",
+    "envelope_method": "Continuous conservative bounds from actual runtime camera/stage/side-wall geometry, rounded outwards to 1mm. PLAN v2 approximate bounds corrected for safe rounding; mid responsibilities corrected to inner edges +/-0.85. Checked against pixel masks and native formal-main-scene screenshots.",
+    "conditions": ["ground continuous opaque at y=0.004; external z in [-3.45,0]","far continuous opaque","no invented ceiling; no player Layer 1 cabin occlusion","door state does not change permanent mask"]
+  },
+  "fixed_occluders": [
+    {
+      "node_path": "固定门区/乘客舱装配V3/门槛前沿收边",
+      "render_layers": 2,
+      "size": [2.03,0.01,0.018],
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,0.055,0.142]},
+      "visible": true,
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[100,0.055,0.142]}
+    },
+    {
+      "node_path": "固定门区/乘客舱装配V3/门槛导向槽0.06",
+      "render_layers": 2,
+      "size": [2.035,0.006,0.017],
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,0.053,0.06]},
+      "visible": true,
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[100,0.053,0.06]}
+    },
+    {
+      "node_path": "固定门区/乘客舱装配V3/门槛导向槽-0.06",
+      "render_layers": 2,
+      "size": [2.035,0.006,0.017],
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,0.053,-0.06]},
+      "visible": true,
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[100,0.053,-0.06]}
+    },
+    {
+      "node_path": "固定门区/乘客舱装配V3/门框内折边1.017",
+      "render_layers": 2,
+      "size": [0.025,2.43,0.016],
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[1.016998,1.25,0.106]},
+      "visible": true,
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[101.016998,1.25,0.106]}
+    },
+    {
+      "node_path": "固定门区/乘客舱装配V3/门框内折边-1.017",
+      "render_layers": 2,
+      "size": [0.025,2.43,0.016],
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[-1.016998,1.25,0.106]},
+      "visible": true,
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[98.983002,1.25,0.106]}
+    },
+    {
+      "node_path": "固定门区/门槛",
+      "render_layers": 2,
+      "size": [2.05,0.05,0.3],
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,0.025,0]},
+      "visible": true,
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[100,0.025,0]}
+    },
+    {
+      "node_path": "固定门区/右门框",
+      "render_layers": 2,
+      "size": [0.25,2.5,0.2],
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[1.150002,1.25,0]},
+      "visible": true,
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[101.150002,1.25,0]}
+    },
+    {
+      "node_path": "固定门区/左门框",
+      "render_layers": 2,
+      "size": [0.25,2.5,0.2],
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[-1.150002,1.25,0]},
+      "visible": true,
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[98.849998,1.25,0]}
+    },
+    {
+      "node_path": "固定乘客舱/舱内右墙",
+      "render_layers": 2,
+      "size": [0.1,2.6,2.2],
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[1.5,1.3,1.1]},
+      "visible": true,
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[101.5,1.3,1.1]}
+    },
+    {
+      "node_path": "固定乘客舱/舱内左墙",
+      "render_layers": 2,
+      "size": [0.1,2.6,2.2],
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[-1.5,1.3,1.1]},
+      "visible": true,
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[98.5,1.3,1.1]}
+    },
+    {
+      "node_path": "固定乘客舱/舱内后墙",
+      "render_layers": 2,
+      "size": [3,2.6,0.1],
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,1.3,2.2]},
+      "visible": true,
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[100,1.3,2.2]}
+    },
+    {
+      "node_path": "固定乘客舱/舱内地面",
+      "render_layers": 2,
+      "size": [3,0.1,2.2],
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,-0.05,1.1]},
+      "visible": true,
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[100,-0.05,1.1]}
+    }
+  ],
+  "dynamic_door": {
+    "node_path": "固定门区/双开门视觉3D",
+    "leaf_size": [1.04,2.35,0.08],
+    "closed_x": [-0.52,0.52],
+    "open_x": [-1.55,1.55],
+    "y": 1.2,
+    "z": 0,
+    "duration_s": 1,
+    "permanent_mask": false,
+    "runtime_samples": [
+      {"busy":true,"camera":0,"door_state":3,"floor":"318","left_origin":[-1.138066,1.2,0],"phase":"closing","right_origin":[1.138066,1.2,0]},
+      {"busy":true,"camera":1,"door_state":3,"floor":"318","left_origin":[-1.133775,1.2,0],"phase":"closing","right_origin":[1.133775,1.2,0]},
+      {"busy":false,"camera":0,"door_state":0,"floor":"318","left_origin":[-0.52,1.2,0],"phase":"closed","right_origin":[0.52,1.2,0]},
+      {"busy":false,"camera":1,"door_state":0,"floor":"318","left_origin":[-0.52,1.2,0],"phase":"closed","right_origin":[0.52,1.2,0]},
+      {"busy":true,"camera":0,"door_state":1,"floor":"318","left_origin":[-0.931934,1.2,0],"phase":"opening","right_origin":[0.931934,1.2,0]},
+      {"busy":true,"camera":1,"door_state":1,"floor":"318","left_origin":[-0.936225,1.2,0],"phase":"opening","right_origin":[0.936225,1.2,0]},
+      {"busy":false,"camera":0,"door_state":2,"floor":"318","left_origin":[-1.55,1.2,0],"phase":"open","right_origin":[1.55,1.2,0]},
+      {"busy":false,"camera":1,"door_state":2,"floor":"318","left_origin":[-1.55,1.2,0],"phase":"open","right_origin":[1.55,1.2,0]}
+    ]
+  },
+  "passenger": {
+    "markers": [
+      {"node_path":"乘客视觉区域/位置参考点/门外等待点","stage_transform":{"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,0,-1.7]}},
+      {"node_path":"乘客视觉区域/位置参考点/门槛点","stage_transform":{"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,0,0]}},
+      {"node_path":"乘客视觉区域/位置参考点/舱内站位","stage_transform":{"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,0,0.7]}},
+      {"node_path":"乘客视觉区域/位置参考点/门外离场点","stage_transform":{"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[-1.650002,0,-1.85]}}
+    ],
+    "boarding_duration_s": [0.5,0.5],
+    "disembark_duration_s": [0.5,0.5,0.35],
+    "runtime_bounds": {
+      "billboard": 2,
+      "global_basis_columns": [[0.583,0,0],[0,1.008,0],[0,0,1]],
+      "global_position": [100,0.74,-1.7],
+      "local_aabb": {"position":[-0.64,-0.64,-0.64],"size":[1.28,1.28,1.28]},
+      "pixel_size": 0.01,
+      "profile": "res://data/presentation/passenger_visuals/passenger_003_visual.tres",
+      "scale": [0.583,1.008,1],
+      "shadow_center_y": 0.006,
+      "shadow_height": 0.01,
+      "shadow_material_alpha": 0,
+      "texture_size": [128,128]
+    },
+    "aabb_note": "Sprite3D.get_aabb() returns a conservative billboard cube, not the rendered quad. 128*0.01*0.583 = 0.74624m width; conservative rendered half-width depth 0.37312m. Deepest exit corner -2.22312m remains before both mid planes.",
+    "shadow_note": "Existing contact shadow alpha is 0; y=0.004 coverage/feet checked, no visible-shadow acceptance claimed."
+  },
+  "shared_label": {
+    "billboard": 0,
+    "font_size": 64,
+    "no_depth_test": false,
+    "outline_size": 0,
+    "pixel_size": 0.005,
+    "render_layers": 4,
+    "stage_transform": {
+      "basis_columns": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "origin": [
+        0,
+        2.16,
+        -3.095
+      ]
+    },
+    "text": "318",
+    "central_channel_x": [
+      -0.85,
+      0.85
+    ],
+    "keep_runtime_number_update": true,
+    "modulate": [
+      0.18823529411764706,
+      0.20392156862745098,
+      0.20784313725490197,
+      1
+    ],
+    "wall_number": {
+      "state": "V2 digits painted visually on main wall; no carrier plaque or separate mesh",
+      "wall_z_m": -3.1,
+      "label_wall_offset_m": 0.005,
+      "text_must_not_be_baked": true,
+      "common_digits_only": true
+    }
+  },
+  "layers": [
+    {
+      "id": "far",
+      "node_path": "门外楼层区域/门外楼层挂载点/当前楼层切片/远景层",
+      "quad_size_m": [8.45,4.15],
+      "local_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,2.07,-3.45]},
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,2.07,-3.45]},
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[100,2.07,-3.45]},
+      "render_layers": 4,
+      "scale": [1,1,1],
+      "uv": {"image_right_stage_axis":"+X","image_top_stage_axis":"+Y"},
+      "conservative_envelopes": {"coordinates":"x/y in stage space","CAM01":[-3.833,3.833,0.004,3.945],"CAM02":[-2.518,2.518,0.004,2.628]},
+      "effective_masks": [
+        {"camera_id":"CAM01","sampled_world_bounds":{"min":[-3.831802,0.005683,-3.45],"max":[3.831802,3.930943,-3.45]},"pixel_count":31968,"row_runs":[[0,147,[[16,26],[63,256],[293,303]]]]},
+        {"camera_id":"CAM02","sampled_world_bounds":{"min":[-2.509381,0.008425,-3.45],"max":[2.509381,2.620069,-3.45]},"pixel_count":53440,"row_runs":[[0,166,[[0,319]]]]}
+      ],
+      "pixel_size_candidates": {"48":[406,200],"64":[541,266],"80":[676,332]}
+    },
+    {
+      "id": "main",
+      "node_path": "门外楼层区域/门外楼层挂载点/当前楼层切片/主背景层",
+      "quad_size_m": [8.3,4.25],
+      "local_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,2.08,-3.1]},
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[0,2.08,-3.1]},
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[100,2.08,-3.1]},
+      "render_layers": 4,
+      "scale": [1,1,1],
+      "uv": {"image_right_stage_axis":"+X","image_top_stage_axis":"+Y"},
+      "conservative_envelopes": {"coordinates":"x/y in stage space","CAM01":[-3.591,3.591,0.004,3.743],"CAM02":[-2.248,2.248,0.004,2.426]},
+      "effective_masks": [
+        {"camera_id":"CAM01","sampled_world_bounds":{"min":[-3.590156,0.026972,-3.1],"max":[3.590156,3.729712,-3.1]},"pixel_count":32184,"row_runs":[[0,148,[[16,26],[63,256],[293,303]]]]},
+        {"camera_id":"CAM02","sampled_world_bounds":{"min":[-2.240793,0.016484,-3.1],"max":[2.240793,2.418838,-3.1]},"pixel_count":55040,"row_runs":[[0,171,[[0,319]]]]}
+      ],
+      "pixel_size_candidates": {"48":[399,204],"64":[532,272],"80":[664,340]}
+    },
+    {
+      "id": "mid_left",
+      "node_path": "门外楼层区域/门外楼层挂载点/当前楼层切片/中景左层",
+      "quad_size_m": [2.55,3.58],
+      "local_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[-2.125,1.78,-2.35]},
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[-2.125,1.78,-2.35]},
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[97.875,1.78,-2.35]},
+      "render_layers": 4,
+      "scale": [1,1,1],
+      "uv": {"image_right_stage_axis":"+X","image_top_stage_axis":"+Y"},
+      "conservative_envelopes": {"coordinates":"x/y in stage space","CAM01":[-3.073,-0.85,0.004,3.31],"CAM02":[-1.671,-0.85,0.004,1.993]},
+      "effective_masks": [
+        {"camera_id":"CAM01","sampled_world_bounds":{"min":[-3.072345,0.022763,-2.35],"max":[-0.867108,3.298504,-2.35]},"pixel_count":10472,"row_runs":[[0,153,[[16,26],[63,119]]]]},
+        {"camera_id":"CAM02","sampled_world_bounds":{"min":[-1.665247,0.014391,-2.35],"max":[-0.850894,1.98763,-2.35]},"pixel_count":15010,"row_runs":[[0,189,[[0,78]]]]}
+      ],
+      "pixel_size_candidates": {"48":[123,172],"64":[164,230],"80":[204,287]}
+    },
+    {
+      "id": "mid_right",
+      "node_path": "门外楼层区域/门外楼层挂载点/当前楼层切片/中景右层",
+      "quad_size_m": [2.63,3.64],
+      "local_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[2.165,1.81,-2.45]},
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[2.165001,1.81,-2.45]},
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[102.165001,1.81,-2.45]},
+      "render_layers": 4,
+      "scale": [1,1,1],
+      "uv": {"image_right_stage_axis":"+X","image_top_stage_axis":"+Y"},
+      "conservative_envelopes": {"coordinates":"x/y in stage space","CAM01":[0.85,3.142,0.004,3.367],"CAM02":[0.85,1.748,0.004,2.051]},
+      "effective_masks": [
+        {"camera_id":"CAM01","sampled_world_bounds":{"min":[0.864702,0.006645,-2.45],"max":[3.141387,3.355998,-2.45]},"pixel_count":10626,"row_runs":[[0,153,[[199,256],[293,303]]]]},
+        {"camera_id":"CAM02","sampled_world_bounds":{"min":[0.857341,0.013717,-2.45],"max":[1.741986,2.045124,-2.45]},"pixel_count":15334,"row_runs":[[0,186,[[238,319]]]]}
+      ],
+      "pixel_size_candidates": {"48":[127,175],"64":[169,233],"80":[211,292]}
+    },
+    {
+      "id": "ground",
+      "node_path": "门外楼层区域/门外楼层挂载点/当前楼层切片/地面贴片层",
+      "quad_size_m": [8.45,3.75],
+      "local_transform": {"basis_columns":[[1,0,0],[0,0,-1],[0,1,0]],"origin":[0,0.004,-1.825]},
+      "stage_transform": {"basis_columns":[[1,0,0],[0,0,-1],[0,1,0]],"origin":[0,0.004,-1.825]},
+      "world_transform": {"basis_columns":[[1,0,0],[0,0,-1],[0,1,0]],"origin":[100,0.004,-1.825]},
+      "render_layers": 4,
+      "scale": [1,1,1],
+      "uv": {"image_right_stage_axis":"+X","image_top_stage_axis":"-Z (deep corridor)","image_bottom_stage_axis":"+Z (near door)","rotation_x_degrees":-90,"direction_marker_verified":true},
+      "conservative_envelopes": {"coordinates":"x/z in stage space","CAM01":[-3.833,3.833,-3.45,0],"CAM02":[-2.518,2.518,-3.45,-1.454]},
+      "effective_masks": [
+        {
+          "camera_id": "CAM01",
+          "sampled_world_bounds": {"min":[-3.705825,0.004,-3.267534],"max":[3.705825,0.004,-0.009996]},
+          "pixel_count": 7976,
+          "row_runs": [[148,183,[[16,26],[63,256],[293,303]]],[184,184,[[16,26],[63,63],[256,256],[293,303]]],[185,192,[[16,26],[293,303]]]]
+        },
+        {"camera_id":"CAM02","sampled_world_bounds":{"min":[-2.471411,0.004,-3.400521],"max":[2.471411,0.004,-1.460123]},"pixel_count":23360,"row_runs":[[167,239,[[0,319]]]]}
+      ],
+      "pixel_size_candidates": {"48":[406,180],"64":[541,240],"80":[676,300]}
+    },
+    {
+      "id": "front_left",
+      "node_path": "门外楼层区域/门外楼层挂载点/当前楼层切片/前景左层",
+      "quad_size_m": [0.65,2.4],
+      "local_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[-1.605,1.18,-0.38]},
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[-1.605003,1.18,-0.38]},
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[98.394997,1.18,-0.38]},
+      "render_layers": 4,
+      "scale": [1,1,1],
+      "uv": {"image_right_stage_axis":"+X","image_top_stage_axis":"+Y"},
+      "conservative_envelopes": {"coordinates":"x/y in stage space","CAM01":[-1.713,-1.28,0.004,2.172],"CAM02":null},
+      "effective_masks": [
+        {"camera_id":"CAM01","sampled_world_bounds":{"min":[-1.712228,0.006188,-0.38],"max":[-1.592909,2.165863,-0.38]},"pixel_count":2002,"row_runs":[[0,181,[[16,26]]]]},
+        {"camera_id":"CAM02","sampled_world_bounds":null,"pixel_count":0,"row_runs":[]}
+      ],
+      "pixel_size_candidates": {"48":[32,116],"64":[42,154],"80":[52,192]}
+    },
+    {
+      "id": "front_right",
+      "node_path": "门外楼层区域/门外楼层挂载点/当前楼层切片/前景右层",
+      "quad_size_m": [0.7,2.5],
+      "local_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[1.68,1.22,-0.52]},
+      "stage_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[1.68,1.22,-0.52]},
+      "world_transform": {"basis_columns":[[1,0,0],[0,1,0],[0,0,1]],"origin":[101.68,1.22,-0.52]},
+      "render_layers": 4,
+      "scale": [1,1,1],
+      "uv": {"image_right_stage_axis":"+X","image_top_stage_axis":"+Y"},
+      "conservative_envelopes": {"coordinates":"x/y in stage space","CAM01":[1.33,1.81,0.004,2.253],"CAM02":null},
+      "effective_masks": [
+        {"camera_id":"CAM01","sampled_world_bounds":{"min":[1.682832,0.015185,-0.52],"max":[1.808887,2.246355,-0.52]},"pixel_count":1958,"row_runs":[[0,177,[[293,303]]]]},
+        {"camera_id":"CAM02","sampled_world_bounds":null,"pixel_count":0,"row_runs":[]}
+      ],
+      "pixel_size_candidates": {"48":[34,120],"64":[45,160],"80":[56,200]}
+    },
+    {
+      "id": "ceiling",
+      "node_path": "门外楼层区域/门外楼层挂载点/当前楼层切片/天花板层",
+      "quad_size_m": [
+        8.45,
+        3.75
+      ],
+      "render_layers": 4,
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "uv": {
+        "image_right_stage_axis": "+X",
+        "image_top_stage_axis": "+Z (near door)",
+        "image_bottom_stage_axis": "-Z (deep corridor)",
+        "rotation_x_degrees": 90
+      },
+      "pixel_size_candidates": {
+        "48": [
+          406,
+          180
+        ],
+        "64": [
+          541,
+          240
+        ],
+        "80": [
+          676,
+          300
+        ]
+      },
+      "local_transform": {
+        "basis_columns": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            -1,
+            0
+          ]
+        ],
+        "origin": [
+          0,
+          2.6,
+          -1.825
+        ]
+      },
+      "stage_transform": {
+        "basis_columns": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            -1,
+            0
+          ]
+        ],
+        "origin": [
+          0,
+          2.6,
+          -1.825
+        ]
+      },
+      "world_transform": {
+        "basis_columns": [
+          [
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            -1,
+            0
+          ]
+        ],
+        "origin": [
+          100,
+          2.6,
+          -1.825
+        ]
+      }
+    }
+  ],
+  "retained_hidden_nodes": ["门外楼层区域/门外基础地面","门外楼层区域/门外灰盒参考"],
+  "verification": {
+    "formal_main_scene": true,
+    "empty_arrival_318": true,
+    "floor_book_page": 8,
+    "floor_book_page_count": 8,
+    "cameras_open_closed_checked": true,
+    "passenger_visual_rehearsal": "passenger_003 waiting -> boarding -> disembark; sampled both cameras; not 318 narrative delivery",
+    "old_profiles_and_3_digit_fallback_checked": true,
+    "uv_direction_marker_removed": true,
+    "user_experience_acceptance": "pending",
+    "cli_export_validation": "approved residential source: real CLI + Godot imported RGBA verified; original fixture retained",
+    "density_comparison": "48/64/80 re-rasterized; main_3d 320x240 feed + actual CRT; both cameras",
+    "recommended_density_candidate": 64,
+    "recommendation_is_approval": true,
+    "final_318_art": "native residential v1, 64 px/m and approved 26 colors; human appearance acceptance pending"
+  },
+  "shared_ceiling": {"source":"art_source/floors/shared/ceiling_concrete_v1.aseprite","texture":"assets/art/floors/shared/ceiling_concrete_v1.png","density_px_per_m":64,"height_m":2.6,"default_for_all_profiles":true,"palette_independent_of_legacy_318":true},
+  "historical_masks_note": "Original seven-layer effective masks predate the ceiling. Preserved as history, not recalculated or claimed current."
+}

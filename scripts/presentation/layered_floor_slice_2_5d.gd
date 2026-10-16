@@ -9,6 +9,7 @@ const LAYER_MID_RIGHT: StringName = &"mid_right"
 const LAYER_GROUND: StringName = &"ground"
 const LAYER_FRONT_LEFT: StringName = &"front_left"
 const LAYER_FRONT_RIGHT: StringName = &"front_right"
+const LAYER_CEILING: StringName = &"ceiling"
 
 const SUPPORTED_LAYER_IDS: Array[StringName] = [
 	LAYER_FAR,
@@ -18,6 +19,7 @@ const SUPPORTED_LAYER_IDS: Array[StringName] = [
 	LAYER_GROUND,
 	LAYER_FRONT_LEFT,
 	LAYER_FRONT_RIGHT,
+	LAYER_CEILING,
 ]
 
 @export var far_layer_path: NodePath
@@ -27,10 +29,12 @@ const SUPPORTED_LAYER_IDS: Array[StringName] = [
 @export var ground_layer_path: NodePath
 @export var front_left_layer_path: NodePath
 @export var front_right_layer_path: NodePath
+@export var ceiling_layer_path: NodePath
 
 var _layer_nodes: Dictionary = {}
 var _fallback_states: Dictionary = {}
 var _runtime_materials: Dictionary = {}
+var _ambient_tint: Color = Color.WHITE
 
 
 func _ready() -> void:
@@ -73,8 +77,15 @@ func set_layer_texture(layer_id: StringName, texture: Texture2D) -> bool:
 		_runtime_materials[layer_id] = runtime_material
 		layer.material_override = runtime_material
 
-	# 只替换材质纹理，不触碰图层 Transform、QuadMesh 尺寸或可见状态。
-	runtime_material.albedo_texture = texture
+	# 只更新实例材质，不触碰图层 Transform、QuadMesh 尺寸或可见状态。
+	var fallback_state: Dictionary = _fallback_states[layer_id]
+	# null 恢复本层默认纹理：旧楼层也有共享天花板，且不会残留上一层的自定义顶面。
+	var effective_texture: Texture2D = texture if texture != null else fallback_state["albedo_texture"]
+	runtime_material.albedo_texture = effective_texture
+	runtime_material.albedo_color = (Color.WHITE if effective_texture != null
+			else fallback_state["albedo_color"]) * _ambient_tint
+	runtime_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR if effective_texture != null else fallback_state["transparency"]
+	runtime_material.alpha_scissor_threshold = 0.5 if effective_texture != null else fallback_state["alpha_scissor_threshold"]
 	return true
 
 
@@ -84,9 +95,10 @@ func apply_visual_profile(profile: FloorVisualProfile) -> bool:
 		reset_visual_profile()
 		return false
 
+	_ambient_tint = profile.ambient_tint
 	var succeeded := true
 	for layer_id in SUPPORTED_LAYER_IDS:
-		# 固定七层的字段一一对应；null 也是需要覆盖的纹理值。
+		# 原七层与天花板的字段一一对应；null 也是需要覆盖的纹理值。
 		var texture := profile.get(String(layer_id) + "_texture") as Texture2D
 		var texture_applied := set_layer_texture(layer_id, texture)
 		var visibility_applied := set_layer_visible(
@@ -95,13 +107,14 @@ func apply_visual_profile(profile: FloorVisualProfile) -> bool:
 		succeeded = texture_applied and visibility_applied and succeeded
 		if texture_applied:
 			var material := _runtime_materials[layer_id] as BaseMaterial3D
-			var base_color: Color = _fallback_states[layer_id]["albedo_color"]
+			var base_color: Color = Color.WHITE if texture != null else _fallback_states[layer_id]["albedo_color"]
 			material.albedo_color = base_color * profile.ambient_tint
 	return succeeded
 
 
 func reset_visual_profile() -> void:
 	# 恢复初始材质入口与显隐，不让空 Profile 沿用上一个楼层的状态。
+	_ambient_tint = Color.WHITE
 	clear_runtime_textures()
 	for layer_id in _layer_nodes:
 		var layer := _layer_nodes[layer_id] as MeshInstance3D
@@ -151,6 +164,8 @@ func _cache_layer(layer_id: StringName, node_path: NodePath) -> void:
 		"albedo_color": fallback_color,
 		"albedo_texture": fallback_texture,
 		"visible": layer.visible,
+		"transparency": (active_material as BaseMaterial3D).transparency if active_material is BaseMaterial3D else BaseMaterial3D.TRANSPARENCY_DISABLED,
+		"alpha_scissor_threshold": (active_material as BaseMaterial3D).alpha_scissor_threshold if active_material is BaseMaterial3D else 0.5,
 	}
 
 
@@ -177,7 +192,7 @@ func _create_runtime_material(
 	runtime_material.resource_local_to_scene = true
 	runtime_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	runtime_material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	# 七个平面都是纯绘制环境图层；运行时副本延续当前 Unshaded 表现。
+	# 楼层平面都是纯绘制环境图层；运行时副本延续当前 Unshaded 表现。
 	runtime_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	return runtime_material
 
@@ -198,5 +213,7 @@ func _get_layer_path(layer_id: StringName) -> NodePath:
 			return front_left_layer_path
 		LAYER_FRONT_RIGHT:
 			return front_right_layer_path
+		LAYER_CEILING:
+			return ceiling_layer_path
 		_:
 			return NodePath()

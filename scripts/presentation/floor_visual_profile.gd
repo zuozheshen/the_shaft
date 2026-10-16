@@ -6,7 +6,7 @@ extends Resource
 @export var floor_id: StringName
 @export var display_label: String = ""
 
-@export_group("七层纹理")
+@export_group("楼层纹理（原七层＋天花板）")
 @export var far_texture: Texture2D
 @export var main_texture: Texture2D
 @export var mid_left_texture: Texture2D
@@ -14,8 +14,10 @@ extends Resource
 @export var ground_texture: Texture2D
 @export var front_left_texture: Texture2D
 @export var front_right_texture: Texture2D
+## 空值使用共用切片的混凝土顶面；旧楼层资源无需逐份复制。
+@export var ceiling_texture: Texture2D
 
-@export_group("七层显隐")
+@export_group("楼层显隐")
 @export var far_visible: bool = true
 @export var main_visible: bool = true
 @export var mid_left_visible: bool = true
@@ -23,6 +25,7 @@ extends Resource
 @export var ground_visible: bool = true
 @export var front_left_visible: bool = true
 @export var front_right_visible: bool = true
+@export var ceiling_visible: bool = true
 
 @export_group("色调与灯光")
 @export var ambient_tint: Color = Color.WHITE

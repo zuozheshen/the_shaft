@@ -87,8 +87,8 @@ func run(test_runner: Variant) -> void:
 		)
 
 	test_runner.assert_equal(
-		"正式内容 / 楼层数量仍为 7",
-		7,
+		"正式内容 / 318 登记后楼层数量为 8",
+		8,
 		ContentRegistry.get_all_floor_definitions().size()
 	)
 	test_runner.assert_equal(

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="FloorVisualProfile" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/presentation/floor_visual_profile.gd" id="1_profile"]
+
+[ext_resource type="Texture2D" path="res://assets/art/floors/318/far.png" id="pipeline_far"]
+[ext_resource type="Texture2D" path="res://assets/art/floors/318/main.png" id="pipeline_main"]
+[ext_resource type="Texture2D" path="res://assets/art/floors/318/mid_left.png" id="pipeline_mid_left"]
+[ext_resource type="Texture2D" path="res://assets/art/floors/318/mid_right.png" id="pipeline_mid_right"]
+[ext_resource type="Texture2D" path="res://assets/art/floors/318/ground.png" id="pipeline_ground"]
+[ext_resource type="Texture2D" path="res://assets/art/floors/318/front_left.png" id="pipeline_front_left"]
+[ext_resource type="Texture2D" path="res://assets/art/floors/318/front_right.png" id="pipeline_front_right"]
+
+[resource]
+script = ExtResource("1_profile")
+floor_id = &"318"
+display_label = ""
+far_visible = true
+main_visible = true
+mid_left_visible = true
+mid_right_visible = true
+ground_visible = true
+front_left_visible = true
+front_right_visible = true
+ambient_tint = Color(1, 1, 1, 1)
+light_energy_multiplier = 1.0
+far_texture = ExtResource("pipeline_far")
+main_texture = ExtResource("pipeline_main")
+mid_left_texture = ExtResource("pipeline_mid_left")
+mid_right_texture = ExtResource("pipeline_mid_right")
+ground_texture = ExtResource("pipeline_ground")
+front_left_texture = ExtResource("pipeline_front_left")
+front_right_texture = ExtResource("pipeline_front_right")

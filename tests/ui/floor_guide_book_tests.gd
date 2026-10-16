@@ -17,7 +17,28 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var destination := router.get_right_interface()
 	var floors: Array[FloorDefinition] = ContentRegistry.get_all_floors()
 
-	t.assert_equal("楼层书 / 正式 Catalog 七层", 7, floors.size())
+	t.assert_equal("楼层书 / 正式 Catalog 八层", 8, floors.size())
+	var ordered_ids: Array[String] = []
+	for floor_definition in floors:
+		ordered_ids.append(String(floor_definition.floor_id))
+	t.assert_equal("楼层书 / 318 追加且旧七页不重排",
+			["900", "742", "612", "004", "387", "392", "547", "318"], ordered_ids)
+	var housing_page: Dictionary = destination.get_floor_book_snapshot(7)
+	t.assert_equal("楼层书 / 318 排序为 80", 80, floors[7].book_order)
+	t.assert_equal("楼层书 / 318 编号", "318", housing_page["floor_id"])
+	t.assert_equal("楼层书 / 318 名称", "居民住宅层", housing_page["display_name"])
+	t.assert_equal("楼层书 / 318 介绍",
+			"常规居民居住楼层。电梯口连接住宅走廊，沿线分布住户房间与基础公共设施。",
+			housing_page["description"])
+	t.assert_equal("楼层书 / 318 功能", "居民居住、日常通行与基础生活服务。",
+			housing_page["function_description"])
+	t.assert_equal("楼层书 / 318 维修历史",
+			"电梯前室与住宅走廊照明按常规周期检修，近期无长期封闭记录。",
+			housing_page["maintenance_history"])
+	t.assert_equal("楼层书 / 318 备注",
+			"请勿在电梯门前及主要通行区域堆放私人物品。", housing_page["book_note"])
+	t.assert_equal("楼层书 / 318 第八页", 8, housing_page["page_number"])
+	t.assert_equal("楼层书 / 318 总页数", 8, housing_page["page_count"])
 	t.assert_equal("楼层书 / 条数来自正式 Catalog", floors.size(),
 			destination.get_floor_book_page_count())
 	t.assert_true("楼层书 / 负索引为空", destination.get_floor_book_snapshot(-1).is_empty())
