@@ -20,7 +20,7 @@ V3 工作记录的126个唯一色，加上已存在于正式V3像素中、但漏
 | 文件 | SHA-256 |
 | --- | --- |
 | 原 V3 native source | 211fe3a0e0594a4cf893a56534d670b3b26a12ac325d6ceab83d6173fa66785f |
-| Surface V1 / door-edge R1 native source | 47ce0384fcb53da85f2800eea22d311aca45cad1cb67d4ca6fbb70d107903fa2 |
+| Surface V1 / door-edge R1 / vending-right R1 native source | efc5e04e5c9330e5afe5648a32b16213f0ecd4e4470f8e32a20a187ea670e33f |
 | 候选 Palette（制作时文件字节） | fde4d676b83281c31f1327230c41ca7fc5d904e5efdd5d924226a08a7a9db6dc |
 | 候选 Palette（canonical LF UTF-8） | 339806ca3ff3420acced4d15d15c4895e204a3eff636c5cfcb0749823bc92004 |
 
@@ -28,7 +28,7 @@ V3 工作记录的126个唯一色，加上已存在于正式V3像素中、但漏
 没有引入第三方原始纹理、ImageGen新图、LFS规则或新的资产目录约定。
 
 **这是待验收候选预览，不是已发布默认版本。** 正式启动仍读取 V3。
-用于复查的候选已保存为 art_source/floors/.preview/issue-76-surface-v1/floor_318_surface_v1.res；
+最新复查候选已保存为 art_source/floors/.preview/issue-76-vending-edge-v1/floor_318_surface_vending_right_final.res；
 可重载，不依赖未保存的编辑器内存。Gate2批准后才安排正式Palette/发布stage/receipt接入。
 
 ## 确定区域与表面操作
@@ -126,7 +126,7 @@ existing-tests报告43条warning，包含已有destination反馈缺失、非法�
 main实际修改3065个像素；区域外0变化、alpha0变化。
 门板主体及把手逐像素保留，其余七层导出PNG与首次Surface候选逐字节相同。
 
-当前原生源SHA256更新为47ce0384fcb53da85f2800eea22d311aca45cad1cb67d4ca6fbb70d107903fa2；
+门框修正时原生源SHA256更新为47ce0384fcb53da85f2800eea22d311aca45cad1cb67d4ca6fbb70d107903fa2；
 首次Surface源67bfad5c...保留在提交59d8d5b及本地修改前备份，V3源仍未改。
 Palette127色及art_approved=false保持。没有改相机、Quad、灯光、tint或CRT。
 
@@ -140,7 +140,7 @@ report为本地报告路径、palette读取palette_art09_surface_v1.json。
 
 证据目录：art_source/floors/.preview/issue-76-door-edge-v1/。
 index.md包含门原生1× / nearest3× / 6×与正式CAM01/CAM02的before-after。
-当前可重载候选为floor_318_surface_door_r1_final.res，已应用于同一worktree正式main_3d，
+该轮可重载候选为floor_318_surface_door_r1_final.res，已应用于同一worktree正式main_3d，
 Game留在CAM02。正式默认Profile仍为V3；Gate2尚未通过，没有发布或进入Lighting。
 
 本轮Aseprite作者步骤与八层精确RGBA导出均exit0。
@@ -148,3 +148,31 @@ Game留在CAM02。正式默认Profile仍为V3；Gate2尚未通过，没有发布
 JSON往返的最大数值差约9.8e-19，没有实际调灯。
 纯视觉局部修正未重复Godot全量测试；前述1561/0属于首次Surface统一检查。
 当前修正的依据是局部像素约束、严格导出和正式双机位复查，最终边缘观感仍待人工确认。
+
+## 售货机右侧局部反馈修正 R1
+
+用户反馈“自动售货机右边这一小部分也可以修一下”，并给出局部图。
+正式实机定位为售货机后方露出的壁灯右框和墙面毛边。
+最终仅整理main的x185–193、y142–181：保持壁灯名义右边界，收成连续的暗缝/金属边；
+外侧碎亮点按相邻既有墙色恢复，不增加照明或移动灯体。
+实际改282像素，区域外0变化、alpha0变化，壁灯左部与发光面保留。
+售货机整层mid_left及其余六层PNG与门框R1逐字节相同；门框R1区域未改。
+
+最终源SHA256为efc5e04e5c9330e5afe5648a32b16213f0ecd4e4470f8e32a20a187ea670e33f。
+修改前47ce0384...保留于提交66dd569及本地surface-before-vending-edge.aseprite。
+复现补充步骤为tools/aseprite/refine_floor_318_vending_edge.lua：
+在门框R1源上执行，request仍为source/output/report/palette，output须为新路径；
+沿用上述Aseprite batch命令，成功标记ART09 VENDING EDGE PASS，再用floor_pipeline.lua严格Export。
+
+本地证据目录art_source/floors/.preview/issue-76-vending-edge-v1/index.md包含
+原生局部、实际CAM01/CAM02 feed及完整CRT前后对照。
+最终文件为author-final-report.json、export-final-report.json、layer-final-hashes.json、
+runtime-final-check.json和floor_318_surface_vending_right_final.res。
+候选从保存资源重载并应用于同一worktree正式main_3d，当前留在CAM02。
+首次定位机身的中间候选未写入跟踪源，最终采用的main局部修正由final文件明确区分。
+
+Aseprite作者步骤与严格Export均exit0，固定尺寸、127色及精确RGBA Indexed round-trip通过。
+运行时直接比较内存属性相等：八层/相机/17灯/动态编号/tint/energy/CRT均保持。
+诊断eval曾因缩进混用中断，未改项目脚本；重启正式场景后完成最终验证，当前live且最新game日志无错误。
+本轮纯视觉局部修正未重复全量测试，1561/0仍仅为首次Surface统一检查结果。
+Gate2待人工确认，art_approved=false；正式V3未发布替换，未进入Lighting，未push/merge。
