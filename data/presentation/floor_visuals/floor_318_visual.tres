@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="FloorVisualProfile" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="FloorVisualProfile" load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/presentation/floor_visual_profile.gd" id="1_profile"]
 
@@ -9,6 +9,8 @@
 [ext_resource type="Texture2D" path="res://assets/art/floors/318/ground.png" id="pipeline_ground"]
 [ext_resource type="Texture2D" path="res://assets/art/floors/318/front_left.png" id="pipeline_front_left"]
 [ext_resource type="Texture2D" path="res://assets/art/floors/318/front_right.png" id="pipeline_front_right"]
+
+[ext_resource type="Texture2D" path="res://assets/art/floors/318/ceiling.png" id="pipeline_ceiling"]
 
 [resource]
 script = ExtResource("1_profile")
@@ -30,3 +32,6 @@ mid_right_texture = ExtResource("pipeline_mid_right")
 ground_texture = ExtResource("pipeline_ground")
 front_left_texture = ExtResource("pipeline_front_left")
 front_right_texture = ExtResource("pipeline_front_right")
+ceiling_texture = ExtResource("pipeline_ceiling")
+metadata/art_version = "V3 archival restore"
+metadata/art_quality = "provisional / placeholder-quality"

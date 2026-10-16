@@ -3,7 +3,7 @@
   "layout_version": "floor-slice-v1-ceiling-extension",
   "status": {
     "geometry": "runtime_verified",
-    "pass_c": "residential_art_v2_pending_human_acceptance",
+    "pass_c": "provisional_v3_restored_persistently",
     "export_ready": true,
     "final_pixel_density_px_per_m": 64,
     "final_export_rectangles": {"far":[541,266],"main":[532,272],"mid_left":[164,230],"mid_right":[169,233],"ground":[541,240],"front_left":[42,154],"front_right":[45,160],"ceiling":[541,240]},
@@ -13,7 +13,8 @@
     "palette_sha256": "115eb3d246d7e8fa5e9544d7f2a1abd0270bdd734d77498c4f7ab3fb9bf34b37",
     "alpha_contract": "C2 verified: far/ground opaque; main/mid/front binary alpha; main holes backed by far; Scissor 0.5; normal depth",
     "ceiling": "shared generated concrete, 2.6m; observed in formal main_3d CAM01/CAM02; human acceptance pending; no automated tests run",
-    "legacy_sources": "nine-layer V1/V2 sources retain seven PNG exports; ten-layer sources include ceiling"
+    "legacy_sources": "nine-layer V1/V2 sources retain seven PNG exports; ten-layer sources include ceiling",
+    "active_visual_restore": {"version":"V3","art_quality":"provisional / placeholder-quality","source":"art_source/floors/318/floor_318_surfaces_v3.aseprite","palette":"art_source/floors/318/palette_surfaces_v3_provisional.json","approval":"https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6214381282","legacy_export_gate":"Existing approved V2 20-color CLI contract above is preserved; this is an exact archival placeholder restore, not a new approved-palette export."}
   },
   "provenance": {
     "issue": 75,
@@ -32,7 +33,7 @@
     "runtime_float_tolerance_m": 0.00001,
     "sources": {
       "scenes/elevator/elevator_cabin_3d.tscn": "babfcc3f216ca304b6f4506dee9f3cfe10d27211b390935f31245bc9d8b211cd",
-      "scenes/presentation/monitor_test_stage_3d.tscn": "8408fae15d81217afa0abe176eaa765bd9647d2ef7c3aa557bf66225f57fb4a4",
+      "scenes/presentation/monitor_test_stage_3d.tscn": "56fbcb917c99c5ab8f0a403d0891cdc7004b90bc6a8b1d8cc8e18a65d422a910",
       "scenes/presentation/layered_floor_slice_2_5d.tscn": "be114d5f0c4a613090cdb99c2cd31ff6658fb5c528df9122590c68bc104b95f3",
       "scenes/presentation/elevator_door_visual_3d.tscn": "890e472423d5eaa78fe2be05d548e540feed78e4de3b53190154734a7de8826c",
       "scenes/presentation/passenger_visual_3d.tscn": "999283143f5a1da70ea22138cb2479433be580b65c6b765510d41695a82e93af",
@@ -234,7 +235,7 @@
         ]
       ],
       "origin": [
-        0,
+        1.05,
         2.16,
         -3.095
       ]
@@ -252,7 +253,7 @@
       1
     ],
     "wall_number": {
-      "state": "V2 digits painted visually on main wall; no carrier plaque or separate mesh",
+      "state": "V3 restored shared dynamic digits on clean wall right of the door; no baked text or carrier plaque",
       "wall_z_m": -3.1,
       "label_wall_offset_m": 0.005,
       "text_must_not_be_baked": true,

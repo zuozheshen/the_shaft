@@ -1,215 +1,879 @@
 {
-    "schema_version":  1,
-    "producer":  "the-shaft-floor-pipeline-v1",
-    "floor_id":  "318",
-    "asset_stage":  "residential_art_v2",
-    "density_candidate":  64,
-    "art_palette_approved":  true,
-    "palette_id":  "floor-318-residential-v2",
-    "palette_colors":  [
-                           [
-                               0,
-                               0,
-                               0,
-                               0
-                           ],
-                           [
-                               25,
-                               28,
-                               29,
-                               255
-                           ],
-                           [
-                               39,
-                               43,
-                               45,
-                               255
-                           ],
-                           [
-                               54,
-                               59,
-                               61,
-                               255
-                           ],
-                           [
-                               74,
-                               80,
-                               82,
-                               255
-                           ],
-                           [
-                               93,
-                               99,
-                               101,
-                               255
-                           ],
-                           [
-                               98,
-                               103,
-                               103,
-                               255
-                           ],
-                           [
-                               117,
-                               121,
-                               121,
-                               255
-                           ],
-                           [
-                               136,
-                               140,
-                               139,
-                               255
-                           ],
-                           [
-                               158,
-                               162,
-                               160,
-                               255
-                           ],
-                           [
-                               185,
-                               188,
-                               183,
-                               255
-                           ],
-                           [
-                               209,
-                               211,
-                               204,
-                               255
-                           ],
-                           [
-                               102,
-                               111,
-                               105,
-                               255
-                           ],
-                           [
-                               129,
-                               138,
-                               128,
-                               255
-                           ],
-                           [
-                               45,
-                               56,
-                               60,
-                               255
-                           ],
-                           [
-                               70,
-                               84,
-                               90,
-                               255
-                           ],
-                           [
-                               48,
-                               52,
-                               53,
-                               255
-                           ],
-                           [
-                               103,
-                               119,
-                               124,
-                               255
-                           ],
-                           [
-                               139,
-                               134,
-                               122,
-                               255
-                           ],
-                           [
-                               223,
-                               225,
-                               216,
-                               255
-                           ]
-                       ],
-    "palette_source":  "art_source/floors/318/palette_residential_v2.json",
-    "palette_sha256":  "115eb3d246d7e8fa5e9544d7f2a1abd0270bdd734d77498c4f7ab3fb9bf34b37",
-    "source":  "art_source/floors/318/floor_318_residential_v2.aseprite",
-    "source_sha256":  "97b7005c2766eda3fb3e4bde7e0bc96044abab8ae184d85d322cdfd82689335a",
-    "layout_sha256":  "27789f24ceb356c88b7ffe86ad8ece38668936110af5d6d4c9daa9d2b326d094",
-    "canvas":  [
-                   541,
-                   272
-               ],
-    "pngs":  [
-                 {
-                     "id":  "far",
-                     "width":  541,
-                     "file":  "far.png",
-                     "color_count":  5,
-                     "height":  266,
-                     "opaque":  143906,
-                     "transparent":  0,
-                     "sha256":  "3c94dd2b698e747dd81663df46c16bb920781987e9a59ac949afaca11904e539"
-                 },
-                 {
-                     "id":  "main",
-                     "width":  532,
-                     "file":  "main.png",
-                     "color_count":  12,
-                     "height":  272,
-                     "opaque":  144581,
-                     "transparent":  123,
-                     "sha256":  "79b38bae595e0907762168276db09b87210987cd218395a3e31fe8e3f44f4c3f"
-                 },
-                 {
-                     "id":  "mid_left",
-                     "width":  164,
-                     "file":  "mid_left.png",
-                     "color_count":  11,
-                     "height":  230,
-                     "opaque":  5409,
-                     "transparent":  32311,
-                     "sha256":  "ea88ee10205831a207bec796334f092cb4b75b50d9fb1c0db537b3d6f0a5e0e8"
-                 },
-                 {
-                     "id":  "mid_right",
-                     "width":  169,
-                     "file":  "mid_right.png",
-                     "color_count":  6,
-                     "height":  233,
-                     "opaque":  1510,
-                     "transparent":  37867,
-                     "sha256":  "488fd9f1b08a8e11ad72a3424ab401eb168b41058fdd2724a9b123799eadfb5b"
-                 },
-                 {
-                     "id":  "ground",
-                     "width":  541,
-                     "file":  "ground.png",
-                     "color_count":  1,
-                     "height":  240,
-                     "opaque":  129840,
-                     "transparent":  0,
-                     "sha256":  "1a9eeb8cfc5a6114c8c2b8e543f9ba1b50e9a273fdd1fbebc04acb739dcea102"
-                 },
-                 {
-                     "id":  "front_left",
-                     "width":  42,
-                     "file":  "front_left.png",
-                     "color_count":  4,
-                     "height":  154,
-                     "opaque":  6436,
-                     "transparent":  32,
-                     "sha256":  "3529823f843af203c085724e3849a249d0abeea9a60f64e443cd1070788ade0b"
-                 },
-                 {
-                     "id":  "front_right",
-                     "width":  45,
-                     "file":  "front_right.png",
-                     "color_count":  4,
-                     "height":  160,
-                     "opaque":  7168,
-                     "transparent":  32,
-                     "sha256":  "ef9d56e3b2103bac98a92b6213fbc3104930546ff5c1cb17310fa54f46d74521"
-                 }
-             ],
-    "profile_sha256":  "e739c731ee0e21c2c56cd40ec317480f401e0ffc34802ae23c344775deee3be5",
-    "source_disk_only":  true,
-  "ceiling_extension_migration": {"previous_layout_sha256":"db7a020bb3758aeb091762b50e3ecaed6823b9c6bb0a7b9d2d76a2ca65a79f6f","reason":"Shared ceiling appended; original seven layer geometry and art unchanged","automated_revalidation":false}
+  "schema_version": 1,
+  "producer": "the-shaft-floor-pipeline-v1",
+  "floor_id": "318",
+  "asset_stage": "provisional_v3_restore",
+  "density_candidate": 64,
+  "art_palette_approved": false,
+  "palette_id": "floor-318-surfaces-v3-provisional",
+  "palette_colors": [
+    [
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      11,
+      11,
+      12,
+      255
+    ],
+    [
+      16,
+      15,
+      15,
+      255
+    ],
+    [
+      15,
+      16,
+      15,
+      255
+    ],
+    [
+      16,
+      16,
+      15,
+      255
+    ],
+    [
+      15,
+      15,
+      17,
+      255
+    ],
+    [
+      16,
+      15,
+      17,
+      255
+    ],
+    [
+      14,
+      19,
+      21,
+      255
+    ],
+    [
+      22,
+      23,
+      24,
+      255
+    ],
+    [
+      33,
+      31,
+      30,
+      255
+    ],
+    [
+      31,
+      32,
+      31,
+      255
+    ],
+    [
+      35,
+      33,
+      30,
+      255
+    ],
+    [
+      50,
+      42,
+      30,
+      255
+    ],
+    [
+      25,
+      30,
+      33,
+      255
+    ],
+    [
+      32,
+      31,
+      32,
+      255
+    ],
+    [
+      28,
+      37,
+      41,
+      255
+    ],
+    [
+      40,
+      41,
+      42,
+      255
+    ],
+    [
+      49,
+      46,
+      43,
+      255
+    ],
+    [
+      46,
+      48,
+      47,
+      255
+    ],
+    [
+      54,
+      50,
+      45,
+      255
+    ],
+    [
+      44,
+      46,
+      49,
+      255
+    ],
+    [
+      48,
+      47,
+      49,
+      255
+    ],
+    [
+      44,
+      50,
+      53,
+      255
+    ],
+    [
+      53,
+      54,
+      56,
+      255
+    ],
+    [
+      64,
+      56,
+      47,
+      255
+    ],
+    [
+      66,
+      61,
+      56,
+      255
+    ],
+    [
+      61,
+      64,
+      61,
+      255
+    ],
+    [
+      72,
+      67,
+      60,
+      255
+    ],
+    [
+      83,
+      74,
+      62,
+      255
+    ],
+    [
+      93,
+      81,
+      58,
+      255
+    ],
+    [
+      46,
+      61,
+      65,
+      255
+    ],
+    [
+      60,
+      62,
+      65,
+      255
+    ],
+    [
+      64,
+      63,
+      65,
+      255
+    ],
+    [
+      62,
+      65,
+      67,
+      255
+    ],
+    [
+      59,
+      76,
+      82,
+      255
+    ],
+    [
+      62,
+      81,
+      87,
+      255
+    ],
+    [
+      71,
+      70,
+      71,
+      255
+    ],
+    [
+      82,
+      77,
+      73,
+      255
+    ],
+    [
+      77,
+      80,
+      79,
+      255
+    ],
+    [
+      88,
+      83,
+      76,
+      255
+    ],
+    [
+      77,
+      78,
+      81,
+      255
+    ],
+    [
+      81,
+      79,
+      80,
+      255
+    ],
+    [
+      76,
+      83,
+      85,
+      255
+    ],
+    [
+      88,
+      87,
+      85,
+      255
+    ],
+    [
+      98,
+      88,
+      77,
+      255
+    ],
+    [
+      99,
+      93,
+      86,
+      255
+    ],
+    [
+      95,
+      96,
+      94,
+      255
+    ],
+    [
+      107,
+      99,
+      92,
+      255
+    ],
+    [
+      113,
+      104,
+      94,
+      255
+    ],
+    [
+      75,
+      93,
+      97,
+      255
+    ],
+    [
+      90,
+      94,
+      97,
+      255
+    ],
+    [
+      97,
+      95,
+      96,
+      255
+    ],
+    [
+      93,
+      99,
+      102,
+      255
+    ],
+    [
+      95,
+      107,
+      112,
+      255
+    ],
+    [
+      108,
+      103,
+      99,
+      255
+    ],
+    [
+      116,
+      108,
+      102,
+      255
+    ],
+    [
+      122,
+      116,
+      108,
+      255
+    ],
+    [
+      102,
+      109,
+      113,
+      255
+    ],
+    [
+      106,
+      114,
+      117,
+      255
+    ],
+    [
+      125,
+      120,
+      114,
+      255
+    ],
+    [
+      134,
+      113,
+      94,
+      255
+    ],
+    [
+      129,
+      121,
+      110,
+      255
+    ],
+    [
+      130,
+      124,
+      117,
+      255
+    ],
+    [
+      137,
+      131,
+      110,
+      255
+    ],
+    [
+      146,
+      133,
+      105,
+      255
+    ],
+    [
+      136,
+      131,
+      123,
+      255
+    ],
+    [
+      145,
+      136,
+      126,
+      255
+    ],
+    [
+      149,
+      146,
+      126,
+      255
+    ],
+    [
+      161,
+      140,
+      117,
+      255
+    ],
+    [
+      167,
+      150,
+      125,
+      255
+    ],
+    [
+      176,
+      150,
+      123,
+      255
+    ],
+    [
+      92,
+      121,
+      137,
+      255
+    ],
+    [
+      111,
+      123,
+      128,
+      255
+    ],
+    [
+      121,
+      125,
+      129,
+      255
+    ],
+    [
+      103,
+      134,
+      146,
+      255
+    ],
+    [
+      105,
+      149,
+      165,
+      255
+    ],
+    [
+      118,
+      156,
+      170,
+      255
+    ],
+    [
+      123,
+      162,
+      176,
+      255
+    ],
+    [
+      140,
+      136,
+      130,
+      255
+    ],
+    [
+      146,
+      140,
+      133,
+      255
+    ],
+    [
+      143,
+      144,
+      143,
+      255
+    ],
+    [
+      152,
+      146,
+      140,
+      255
+    ],
+    [
+      137,
+      142,
+      144,
+      255
+    ],
+    [
+      141,
+      147,
+      149,
+      255
+    ],
+    [
+      156,
+      152,
+      146,
+      255
+    ],
+    [
+      162,
+      156,
+      137,
+      255
+    ],
+    [
+      162,
+      156,
+      150,
+      255
+    ],
+    [
+      166,
+      162,
+      141,
+      255
+    ],
+    [
+      187,
+      166,
+      140,
+      255
+    ],
+    [
+      168,
+      163,
+      155,
+      255
+    ],
+    [
+      182,
+      172,
+      151,
+      255
+    ],
+    [
+      184,
+      178,
+      156,
+      255
+    ],
+    [
+      129,
+      158,
+      171,
+      255
+    ],
+    [
+      155,
+      157,
+      163,
+      255
+    ],
+    [
+      131,
+      163,
+      174,
+      255
+    ],
+    [
+      156,
+      164,
+      165,
+      255
+    ],
+    [
+      141,
+      176,
+      189,
+      255
+    ],
+    [
+      168,
+      167,
+      165,
+      255
+    ],
+    [
+      179,
+      172,
+      166,
+      255
+    ],
+    [
+      175,
+      178,
+      175,
+      255
+    ],
+    [
+      186,
+      181,
+      166,
+      255
+    ],
+    [
+      164,
+      174,
+      178,
+      255
+    ],
+    [
+      172,
+      181,
+      185,
+      255
+    ],
+    [
+      182,
+      185,
+      186,
+      255
+    ],
+    [
+      193,
+      173,
+      150,
+      255
+    ],
+    [
+      197,
+      179,
+      157,
+      255
+    ],
+    [
+      200,
+      185,
+      166,
+      255
+    ],
+    [
+      209,
+      189,
+      168,
+      255
+    ],
+    [
+      196,
+      189,
+      183,
+      255
+    ],
+    [
+      189,
+      192,
+      190,
+      255
+    ],
+    [
+      200,
+      193,
+      173,
+      255
+    ],
+    [
+      211,
+      193,
+      173,
+      255
+    ],
+    [
+      201,
+      195,
+      185,
+      255
+    ],
+    [
+      214,
+      198,
+      181,
+      255
+    ],
+    [
+      225,
+      210,
+      189,
+      255
+    ],
+    [
+      138,
+      177,
+      192,
+      255
+    ],
+    [
+      137,
+      191,
+      209,
+      255
+    ],
+    [
+      179,
+      189,
+      193,
+      255
+    ],
+    [
+      186,
+      196,
+      200,
+      255
+    ],
+    [
+      184,
+      218,
+      231,
+      255
+    ],
+    [
+      203,
+      204,
+      204,
+      255
+    ],
+    [
+      229,
+      219,
+      206,
+      255
+    ],
+    [
+      237,
+      229,
+      217,
+      255
+    ],
+    [
+      218,
+      220,
+      224,
+      255
+    ],
+    [
+      210,
+      230,
+      237,
+      255
+    ],
+    [
+      237,
+      237,
+      235,
+      255
+    ],
+    [
+      237,
+      237,
+      235,
+      255
+    ]
+  ],
+  "palette_source": "art_source/floors/318/palette_surfaces_v3_provisional.json",
+  "palette_sha256": "539adfc4f9ff89e11ba8ccb44e0c51180387a02bdb975e6bace9e279ef77dd68",
+  "source": "art_source/floors/318/floor_318_surfaces_v3.aseprite",
+  "source_sha256": "211fe3a0e0594a4cf893a56534d670b3b26a12ac325d6ceab83d6173fa66785f",
+  "layout_sha256": "2cde557e6e51ecb2d09a8a3253592863620dc73a551de1f3b14e0764247e473a",
+  "canvas": [
+    541,
+    272
+  ],
+  "pngs": [
+    {
+      "id": "far",
+      "file": "far.png",
+      "width": 541,
+      "height": 266,
+      "sha256": "d8389d61f14e589180dc5ef4c45dbe76f85f08b29e37d783a28dfd8909c7ae1f",
+      "opaque": 143906,
+      "transparent": 0,
+      "color_count": 81
+    },
+    {
+      "id": "main",
+      "file": "main.png",
+      "width": 532,
+      "height": 272,
+      "sha256": "465ccaa58360aa61d119fb8174566cccf10ddc6bd40ed74b0f9ab38ddeb41cbf",
+      "opaque": 144704,
+      "transparent": 0,
+      "color_count": 100
+    },
+    {
+      "id": "mid_left",
+      "file": "mid_left.png",
+      "width": 164,
+      "height": 230,
+      "sha256": "7d1e2fc1259aa38d2edcfc391a83ce30231f987dfc1762ae9a0c7a3499836a70",
+      "opaque": 5497,
+      "transparent": 32223,
+      "color_count": 116
+    },
+    {
+      "id": "mid_right",
+      "file": "mid_right.png",
+      "width": 169,
+      "height": 233,
+      "sha256": "9f47bdb51c81fa395308f3815fda83784837b735e237a9a4feef0438af9b283b",
+      "opaque": 1603,
+      "transparent": 37774,
+      "color_count": 67
+    },
+    {
+      "id": "ground",
+      "file": "ground.png",
+      "width": 541,
+      "height": 240,
+      "sha256": "f751c8c37e53bb1f0421cfc38e08756ef0651047f9a63b9f5fa5c03f7a2cdcc8",
+      "opaque": 129840,
+      "transparent": 0,
+      "color_count": 44
+    },
+    {
+      "id": "front_left",
+      "file": "front_left.png",
+      "width": 42,
+      "height": 154,
+      "sha256": "953853a72532be24a47867e5aad268dda6da5af301df10f0317dbbd4461a3080",
+      "opaque": 0,
+      "transparent": 6468,
+      "color_count": 1
+    },
+    {
+      "id": "front_right",
+      "file": "front_right.png",
+      "width": 45,
+      "height": 160,
+      "sha256": "975e7f987f41e68f877cf52197e6b41d86d21ad561b4e1a60f39d3683433e739",
+      "opaque": 0,
+      "transparent": 7200,
+      "color_count": 1
+    },
+    {
+      "id": "ceiling",
+      "file": "ceiling.png",
+      "width": 541,
+      "height": 240,
+      "sha256": "dccc8d84b7cf9e66516cb643e247559d75920ffdf4078373964991aa3d164219",
+      "opaque": 129840,
+      "transparent": 0,
+      "color_count": 25
+    }
+  ],
+  "profile_sha256": "611e9d139b44f11b3376965b3e13433317a8ee3b41c1d256287aaed4e1198c78",
+  "source_disk_only": true,
+  "restoration": {
+    "mode": "byte-for-byte archival restore; not a fresh CLI export",
+    "approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6214381282",
+    "final_visual_acceptance": false,
+    "source_archive": "issue-75-floor-318-20261016 / 75-closeout-rollback/restored-v3",
+    "cli_export_and_tests_rerun": false
+  }
 }

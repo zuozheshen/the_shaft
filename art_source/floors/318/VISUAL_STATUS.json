@@ -3,15 +3,17 @@
   "art_quality": "provisional / placeholder-quality",
   "final_visual_acceptance": false,
   "latest_material_pass": "V4 rejected by human visual review and rolled back",
-  "restored_runtime_baseline": "318-material-ceiling-v3; byte-identical before-V4 PNG/native source",
+  "restored_runtime_baseline": "V3 now persistently bound to the formal Profile; no runtime-only texture override required",
   "source_clarification": "Immediate V3 predecessor is ImageGen -> Aseprite concrete candidate. Earlier direct Brutal Base pack preview is separate and not restored because this rollback is limited to the latest pass.",
   "formal_profile": "data/presentation/floor_visuals/floor_318_visual.tres",
-  "formal_V2_assets": "preserved; not overwritten by V4 or this rollback",
+  "formal_V2_assets": "V2 native source and palette preserved as history; the active seven PNGs are replaced by exact V3 bytes, and V3 ceiling is explicitly bound",
   "engineering": "FloorDefinition/Catalog/book/Profile/seven layer geometry/cameras/64px/m/CLI export/transparency/nearest/layout manifest preserved",
   "shared_ceiling": "standard structure for normal floors preserved; final material deferred",
   "deferred": [
     "final 318 wall/ground/ceiling/door/vending/bin art",
     "overall floor lighting and surface art direction in independent Issue"
   ],
-  "stop": "No new art iteration, no lighting work, no Pass D; push/merge not performed"
+  "stop": "No new art iteration, no lighting work, no Pass D; V3 is persistently restored and publication status is recorded in Issue 75",
+  "current_art_version": "V3",
+  "restore_approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6214381282"
 }

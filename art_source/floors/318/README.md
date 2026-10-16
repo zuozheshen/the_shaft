@@ -1,6 +1,18 @@
-# 318 住宅走廊美术 V2
+# 318 住宅走廊美术（当前 V3 占位）
 
-## 当前状态：provisional / placeholder-quality
+## V3 已持久恢复到 main
+
+2026-10-16，按用户直接授权，将归档 V3 八 PNG 原样接入既有正式 FloorVisualProfile。
+重启项目后读取正式 assets/art/floors/318/ 下的 V3，不再依赖运行时预览替换。
+原生源 floor_318_surfaces_v3.aseprite、原128条工作色板 palette_surfaces_v3_provisional.json
+保留归档内容；图片无重绘、重采样或再量化。共享动态318号恢复V3既有位置。
+V3仍为 provisional / placeholder-quality；V4仍被拒绝，最终材质与灯光延期。
+receipt明确为归档恢复，非本轮CLI重新导出；未运行测试。
+V2源和20色Palette继续保留，既有CLI发布门不放宽。V3的工作Palette含重复项，
+不冒充已获批20色，也不宣称它通过正式新作发布门；后续制作在独立Issue处理。
+下文V2及早前收尾说明是历史记录，由本节当前状态取代。
+
+## 历史收尾状态：provisional / placeholder-quality
 
 2026-10-16：最新V4材质pass人工视觉验收失败，已撤回至紧邻前版V3混凝土候选。
 最终318及天花材质未完成，整体灯光与表面美术方向延期到独立Issue。
