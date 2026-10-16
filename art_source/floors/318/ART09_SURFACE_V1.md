@@ -20,7 +20,7 @@ V3 工作记录的126个唯一色，加上已存在于正式V3像素中、但漏
 | 文件 | SHA-256 |
 | --- | --- |
 | 原 V3 native source | 211fe3a0e0594a4cf893a56534d670b3b26a12ac325d6ceab83d6173fa66785f |
-| Surface V1 native source | 67bfad5c80e15847332bc1db73b94e7c9089c2bee800ea28a55bb19f17b24057 |
+| Surface V1 / door-edge R1 native source | 47ce0384fcb53da85f2800eea22d311aca45cad1cb67d4ca6fbb70d107903fa2 |
 | 候选 Palette（制作时文件字节） | fde4d676b83281c31f1327230c41ca7fc5d904e5efdd5d924226a08a7a9db6dc |
 | 候选 Palette（canonical LF UTF-8） | 339806ca3ff3420acced4d15d15c4895e204a3eff636c5cfcb0749823bc92004 |
 
@@ -118,3 +118,33 @@ existing-tests报告43条warning，包含已有destination反馈缺失、非法�
 完整五份日志保存在本地候选目录validation/，不提交Git。
 
 本轮自动验证不等于Gate2人工视觉通过。正式V3绑定与源未被候选替换，未push/merge。
+
+## 门框边缘反馈修正 R1
+
+用户反馈“门的边缘比较粗糙”。仅整理main既有门框周边的84×134像素区域：
+外缘碎亮点 / 灰白毛边、窄金属面、内侧暗缝和原门槛边带收成连续线。
+main实际修改3065个像素；区域外0变化、alpha0变化。
+门板主体及把手逐像素保留，其余七层导出PNG与首次Surface候选逐字节相同。
+
+当前原生源SHA256更新为47ce0384fcb53da85f2800eea22d311aca45cad1cb67d4ca6fbb70d107903fa2；
+首次Surface源67bfad5c...保留在提交59d8d5b及本地修改前备份，V3源仍未改。
+Palette127色及art_approved=false保持。没有改相机、Quad、灯光、tint或CRT。
+
+补充作者步骤为tools/aseprite/refine_floor_318_door_edge.lua：
+先执行本文件原制作命令生成首次Surface源，再给该脚本传入request JSON，
+source指向首次Surface源、output为不存在的新.aseprite路径、
+report为本地报告路径、palette读取palette_art09_surface_v1.json。
+沿用--batch --script-param "request=<request.json>" --script调用；
+成功标记ART09 DOOR EDGE PASS，之后仍用既有floor_pipeline.lua严格Export。
+脚本拒绝覆盖输入；校验通过后才更新本Issue候选源，原稿由Git及忽略目录备份保留。
+
+证据目录：art_source/floors/.preview/issue-76-door-edge-v1/。
+index.md包含门原生1× / nearest3× / 6×与正式CAM01/CAM02的before-after。
+当前可重载候选为floor_318_surface_door_r1_final.res，已应用于同一worktree正式main_3d，
+Game留在CAM02。正式默认Profile仍为V3；Gate2尚未通过，没有发布或进入Lighting。
+
+本轮Aseprite作者步骤与八层精确RGBA导出均exit0。
+运行时八层属性、17盏既有灯、CRT、编号及tint/energy保持；浮点比对容差1e-6，
+JSON往返的最大数值差约9.8e-19，没有实际调灯。
+纯视觉局部修正未重复Godot全量测试；前述1561/0属于首次Surface统一检查。
+当前修正的依据是局部像素约束、严格导出和正式双机位复查，最终边缘观感仍待人工确认。
