@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "id": "floor-318-art09-surface-v1",
-  "art_approved": false,
+  "art_approved": true,
   "asset_stage": "art09_surface_candidate",
   "density_px_per_m": 64,
   "parent_palette_id": "floor-318-surfaces-v3-provisional",
-  "note": "Gate 2 pending. The 126 unique V3 working-palette colors plus opaque black already present in formal V3 PNGs. Duplicate entries removed; no new visual color.",
+  "note": "Gate 2 human approved at Surface commit 4b488a4; exact 127 existing RGBA colors. Formal publication pending. Historical author requests keep the pre-approval metadata snapshot.",
   "colors": [
     [
       0,
@@ -769,5 +769,12 @@
       0,
       255
     ]
-  ]
+  ],
+  "approval": {
+    "gate": 2,
+    "source_sha256": "efc5e04e5c9330e5afe5648a32b16213f0ecd4e4470f8e32a20a187ea670e33f",
+    "surface_commit": "4b488a48dd01180672e5b28e52890adeecc7660e",
+    "state": "human_approved",
+    "record": "https://github.com/zuozheshen/the_shaft/issues/76#issuecomment-6229976280"
+  }
 }

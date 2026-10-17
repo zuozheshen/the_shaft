@@ -1,6 +1,6 @@
 # ART-09 Surface V1 候选
 
-本文件只记录 #76 Pass B。Gate 1 已通过；Gate 2 待人工视觉验收，尚未进入 Lighting Pass。
+本文件记录 #76 Pass B 及其制作历史。Gate 2 已由用户“批准继续”通过；对应源为4b488a4 / efc5e04e...，后续Lighting候选见ART09_LIGHTING_V1.md。
 
 - base：0bf68370b511eb942e8b05baf29ea90028fc371e。
 - [PLAN v1](https://github.com/zuozheshen/the_shaft/issues/76#issuecomment-6215155999)。
@@ -13,7 +13,7 @@
 从已提交 V3 另存 floor_318_art09_surface_v1.aseprite，541×272、RGB、单帧、八环境层加隐藏 REFERENCE / GUIDES。
 原 V3 源、正式 PNG、Profile、receipt、layout manifest 均保持基线，不覆盖历史 V4 或混用其失败版本。
 
-候选 Palette 为 palette_art09_surface_v1.json，art_approved=false，127 个唯一 RGBA：
+Surface Palette 为 palette_art09_surface_v1.json，制作时art_approved=false；Gate 2通过后审批元数据更新为true，127个唯一RGBA保持：
 V3 工作记录的126个唯一色，加上已存在于正式V3像素中、但漏记于工作记录的不透明黑色。
 这只是补齐已有颜色盘点，不新增画面颜色。V3工作色板原文件保留，不把它改成“已通过”。
 
@@ -22,14 +22,14 @@ V3 工作记录的126个唯一色，加上已存在于正式V3像素中、但漏
 | 原 V3 native source | 211fe3a0e0594a4cf893a56534d670b3b26a12ac325d6ceab83d6173fa66785f |
 | Surface V1 / door-edge R1 / vending-right R1 native source | efc5e04e5c9330e5afe5648a32b16213f0ecd4e4470f8e32a20a187ea670e33f |
 | 候选 Palette（制作时文件字节） | fde4d676b83281c31f1327230c41ca7fc5d904e5efdd5d924226a08a7a9db6dc |
-| 候选 Palette（canonical LF UTF-8） | 339806ca3ff3420acced4d15d15c4895e204a3eff636c5cfcb0749823bc92004 |
+| 候选 Palette（Gate 2前canonical LF UTF-8） | 339806ca3ff3420acced4d15d15c4895e204a3eff636c5cfcb0749823bc92004 |
 
 新源约4MB，沿用原生 Aseprite 普通Git跟踪；候选PNG、截图、压缩Profile和日志只留既有忽略目录。
 没有引入第三方原始纹理、ImageGen新图、LFS规则或新的资产目录约定。
 
-**这是待验收候选预览，不是已发布默认版本。** 正式启动仍读取 V3。
+**这是已通过Gate 2的Surface源；尚未发布默认绑定。** 正式启动仍读取V3，Lighting另存候选等待Gate 3。
 最新复查候选已保存为 art_source/floors/.preview/issue-76-vending-edge-v1/floor_318_surface_vending_right_final.res；
-可重载，不依赖未保存的编辑器内存。Gate2批准后才安排正式Palette/发布stage/receipt接入。
+可重载，不依赖未保存的编辑器内存。Gate 2已记录；最终发布stage/receipt与绑定在Gate 3通过后接入。
 
 ## 确定区域与表面操作
 
@@ -53,6 +53,8 @@ V3 工作记录的126个唯一色，加上已存在于正式V3像素中、但漏
 输出必须是不存在的新路径；脚本拒绝覆盖已有源。以下 request 只生成候选，不调用 BindProfile 或正式发布：
 
     $palette = Get-Content art_source/floors/318/palette_art09_surface_v1.json -Raw | ConvertFrom-Json
+    $palette.art_approved = $false # 只重建当时的候选请求，不修改已批准色板文件
+    $palette.PSObject.Properties.Remove('approval') # 历史候选副本不携带当前批准字段
     $layout = Get-Content art_source/floors/floor_slice_layout_v1.json -Raw | ConvertFrom-Json
     $source = Join-Path (Get-Location) 'art_source/floors/318/floor_318_surfaces_v3.aseprite'
     if ((Get-FileHash -LiteralPath $source).Hash -ne '211FE3A0E0594A4CF893A56534D670B3B26A12AC325D6CEAB83D6173FA66785F') { throw 'V3 source mismatch' }
@@ -176,3 +178,16 @@ Aseprite作者步骤与严格Export均exit0，固定尺寸、127色及精确RGBA
 诊断eval曾因缩进混用中断，未改项目脚本；重启正式场景后完成最终验证，当前live且最新game日志无错误。
 本轮纯视觉局部修正未重复全量测试，1561/0仍仅为首次Surface统一检查结果。
 Gate2待人工确认，art_approved=false；正式V3未发布替换，未进入Lighting，未push/merge。
+
+## Gate 2 人工批准与 Pass C 续接
+
+用户在当前Codex对话明确“批准继续”，审批记录：
+https://github.com/zuozheshen/the_shaft/issues/76#issuecomment-6229976280 。
+批准对象为提交4b488a48dd01180672e5b28e52890adeecc7660e中的Surface源与127项RGBA，
+包含门框R1和售货机旁壁灯右缘R1。本文前述“待Gate2”均为当时制作历史，不再代表当前审批状态。
+Surface原生源SHA256保持efc5e04e5c9330e5afe5648a32b16213f0ecd4e4470f8e32a20a187ea670e33f。
+Palette仅增加批准元数据、art_approved=true；颜色逐项不变，canonical LF SHA256更新为
+fe6ac53cc6cc9fc526e669fcf23625d53e8687087c0f8c2b6b7475ab6e77d983。
+旧false版JSON可从4b488a4及Lighting预览目录surface-palette-before-gate2.json恢复。
+已批准Surface不再重绘；Lighting另存独立native/Palette，见ART09_LIGHTING_V1.md。
+Gate 3仍待人工验收，正式默认V3保持；未push/merge。
