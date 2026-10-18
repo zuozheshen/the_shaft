@@ -1,19 +1,37 @@
 {
-  "issue": 75,
-  "art_quality": "provisional / placeholder-quality",
-  "final_visual_acceptance": false,
-  "latest_material_pass": "V4 rejected by human visual review and rolled back",
-  "restored_runtime_baseline": "V3 now persistently bound to the formal Profile; no runtime-only texture override required",
-  "source_clarification": "Immediate V3 predecessor is ImageGen -> Aseprite concrete candidate. Earlier direct Brutal Base pack preview is separate and not restored because this rollback is limited to the latest pass.",
+  "issue": 76,
+  "art_quality": "human accepted",
+  "final_visual_acceptance": true,
+  "current_art_version": "ART09 Darker R3",
+  "accepted_on": "2026-10-18",
+  "acceptance_url": "https://github.com/zuozheshen/the_shaft/issues/76#issuecomment-6250616387",
+  "source": "art_source/floors/318/floor_318_art09_darker_r3.aseprite",
+  "source_sha256": "ef578a598b67d89f7713689e9086a5734f5a5bd1463d6bc48df324e78a8e2537",
+  "approved_palette": "art_source/floors/318/palette_art09_darker_r3_approved.json",
   "formal_profile": "data/presentation/floor_visuals/floor_318_visual.tres",
-  "formal_V2_assets": "V2 native source and palette preserved as history; the active seven PNGs are replaced by exact V3 bytes, and V3 ceiling is explicitly bound",
-  "engineering": "FloorDefinition/Catalog/book/Profile/seven layer geometry/cameras/64px/m/CLI export/transparency/nearest/layout manifest preserved",
-  "shared_ceiling": "standard structure for normal floors preserved; final material deferred",
-  "deferred": [
-    "final 318 wall/ground/ceiling/door/vending/bin art",
-    "overall floor lighting and surface art direction in independent Issue"
-  ],
-  "stop": "No new art iteration, no lighting work, no Pass D; V3 is persistently restored and publication status is recorded in Issue 75",
-  "current_art_version": "V3",
-  "restore_approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6214381282"
+  "receipt": "assets/art/floors/318/pipeline_receipt.json",
+  "formal_assets": "Eight PNGs strictly exported from accepted R3 native and persistently bound; no runtime override needed",
+  "shared_ceiling": "Standard eight-plane geometry unchanged; 318 uses its accepted explicit ceiling texture; other floors retain fallback",
+  "engineering": "Existing FloorDefinition/Catalog/book/cameras/64px/m/alpha/nearest/Unshaded/tint white/energy 1 preserved",
+  "authoring": "Approved Surface + separate recipe/masks + asset-specific vending rim refinement; original candidates retained",
+  "deferred": [],
+  "previous_visual_status": {
+    "issue": 75,
+    "art_quality": "provisional / placeholder-quality",
+    "final_visual_acceptance": false,
+    "latest_material_pass": "V4 rejected by human visual review and rolled back",
+    "restored_runtime_baseline": "V3 now persistently bound to the formal Profile; no runtime-only texture override required",
+    "source_clarification": "Immediate V3 predecessor is ImageGen -> Aseprite concrete candidate. Earlier direct Brutal Base pack preview is separate and not restored because this rollback is limited to the latest pass.",
+    "formal_profile": "data/presentation/floor_visuals/floor_318_visual.tres",
+    "formal_V2_assets": "V2 native source and palette preserved as history; the active seven PNGs are replaced by exact V3 bytes, and V3 ceiling is explicitly bound",
+    "engineering": "FloorDefinition/Catalog/book/Profile/seven layer geometry/cameras/64px/m/CLI export/transparency/nearest/layout manifest preserved",
+    "shared_ceiling": "standard structure for normal floors preserved; final material deferred",
+    "deferred": [
+      "final 318 wall/ground/ceiling/door/vending/bin art",
+      "overall floor lighting and surface art direction in independent Issue"
+    ],
+    "stop": "No new art iteration, no lighting work, no Pass D; V3 is persistently restored and publication status is recorded in Issue 75",
+    "current_art_version": "V3",
+    "restore_approval": "https://github.com/zuozheshen/the_shaft/issues/75#issuecomment-6214381282"
+  }
 }

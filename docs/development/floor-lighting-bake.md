@@ -64,3 +64,11 @@ powershell.exe -NoProfile -File .\tests\tools\floor_lighting_bake_tests.ps1 -Ase
 失败时检查进程退出码与 report.ok；工具使用与现有导出器一致的 Lua error 出口，不打印成功标记。
 日志位于命令显示的 art_source/floors/.staging/lighting-tests-* 忽略目录。
 此局部工具验证不能替代 tests/README.md 中的统一入口或人工视觉验收。
+
+## 318 已验收版本
+
+#76当前正式版本为ART09 Darker R3；输入仍为批准Surface和R3 recipe/masks，之后执行
+refine_floor_318_lighting_r3.lua仅简化售货机外框亮边，再严格Export。该脚本ROI属于318专用数据。
+候选palette_art09_darker_r3.json继续保留art_approved=false供作者请求使用；
+正式发布使用独立批准副本palette_art09_darker_r3_approved.json，不把候选标记冒充发布审批。
+两份颜色逐项相同。正式绑定命令见aseprite-floor-pipeline.md。

@@ -1,4 +1,14 @@
-# 318 住宅走廊美术（当前 V3 占位）
+# 318 住宅走廊美术（ART09 Darker R3，已验收）
+
+## 当前正式版本：ART09 Darker R3
+
+2026-10-18，用户通过#76 Gate 3验收。正式八PNG已由floor_318_art09_darker_r3.aseprite严格导出，
+现有FloorVisualProfile持久绑定；正式启动无需临时纹理替换。
+批准Palette为palette_art09_darker_r3_approved.json（原127项RGBA），独立发布阶段art09_darker_r3；
+receipt记录源/Palette/manifest/Profile哈希。原Surface、Lighting V1、Darker R1/R2以及V2/V3保留历史。
+制作采用Surface＋具名遮罩＋参数分离，R3售货机外框归并为专用作者步骤。
+正式发布命令见docs/development/aseprite-floor-pipeline.md，制作记录见ART09_DARKER_R3.md。
+以下V3占位恢复和V2说明均为历史记录，不代表当前正式版本。
 
 ## V3 已持久恢复到 main
 

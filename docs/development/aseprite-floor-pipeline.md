@@ -1,5 +1,21 @@
 # Aseprite 楼层切片管线 V1
 
+## 2026-10-18：ART09 Darker R3 人工验收并正式发布
+
+#76 Gate 3由用户明确验收，正式八PNG从固定R3原生源严格导出；318 Profile持久绑定，
+不再标记placeholder-quality。原V2/V3和中间候选保留为历史，下面的V3恢复记录不再代表当前状态。
+批准Palette使用palette_art09_darker_r3_approved.json（127项原色，art_approved=true），
+发布阶段为art09_darker_r3；候选Palette原文件保持false用于制作，不冒用旧V2或Diagnostic身份。
+
+```powershell
+powershell.exe -NoProfile -File .\tools\aseprite\floor_pipeline.ps1 -Action Export -Source art_source/floors/318/floor_318_art09_darker_r3.aseprite -PaletteFile art_source/floors/318/palette_art09_darker_r3_approved.json -PixelDensity 64 -BindProfile -VerifyGodot -AsepritePath "$env:ASEPRITE_PATH" -GodotPath "$env:GODOT_BIN"
+```
+
+当前127色RGBA集合、八矩形、二值alpha、nearest/Scissor及几何规则不变。
+receipt记录真实原生源、批准Palette和manifest/Profile哈希。318 ceiling显式覆盖，其他楼层fallback不变。
+批准与验证结果见[验收记录](https://github.com/zuozheshen/the_shaft/issues/76#issuecomment-6250616387)及art_source/floors/318/ART09_DARKER_R3.md。
+
+
 ## 2026-10-16：V3 归档恢复已写入正式资源
 
 用户直接授权在 main 修正此前仅运行时恢复的遗漏。现有318 Profile身份及注册不变，

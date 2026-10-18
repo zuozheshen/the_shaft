@@ -1,5 +1,13 @@
 # ART-09 Darker R3
 
+## 2026-10-18：已验收并正式发布
+
+用户已通过Gate 3并授权推送/合并/清理；[验收记录](https://github.com/zuozheshen/the_shaft/issues/76#issuecomment-6250616387)。
+固定native和原候选Palette均保持；正式八图从该native重新严格导出，使用独立批准Palette副本，
+现有318 Profile已持久绑定并移除placeholder状态。受影响CLI 58项、发布后统一1561/0通过。
+本轮正式接入与整合结果见ART09_RELEASE.md。下方是制作阶段原始记录，待验收表述为历史状态。
+
+
 按用户六点反馈制作，见[本轮授权与计划](https://github.com/zuozheshen/the_shaft/issues/76#issuecomment-6250237392)。
 起点4d15a484ba2f029c09da137ff67fd4af91a8f610，dev/76-floor-318-art-direction。
 R3为独立Gate 3候选；原Surface、Lighting V1、Darker R1/R2及配置保留。

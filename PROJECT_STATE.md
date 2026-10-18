@@ -33,7 +33,7 @@
 - ContentRegistry 从 `data/catalogs/` 的四个 Catalog 加载楼层、乘客、派单、值班资源。楼层 Catalog 登记八层，318 居民住宅层追加为楼层书第八页，地址识别与空舱停靠沿用现有数据链。当前演示有三条正式派单，尚无 destination_318 送达对白；对白位于 `dialogues/passengers/`，通过 DialogueManagerAdapter 接入现有插件。
 - `scenes/presentation/monitor_test_stage_3d.tscn` 是正式主场景当前使用的监控摄影棚：可替换楼层切片、纸片乘客、双开门。MonitorCameraController3D 使用同一个世界和一台监控摄像机切换两个机位；MonitorPresentationCoordinator3D 协调门与乘客动作。
 - 楼层视觉由独立 FloorVisualProfile Resource 配置，位于 `data/presentation/floor_visuals/`。现有协调器在 setup 和实际到站时先应用楼层视觉，再同步乘客；移动中保持上一楼层。正式 Profile 与 fallback 由操作舱场景显式注入。
-- #75 的318 Profile绑定七层住宅美术V2 PNG（获批64 px/m、20色），正式源floor_318_residential_v2.aseprite，结构源与V1保留；CLI/Lua管线见docs/development/aseprite-floor-pipeline.md。V2为单扇左门、灰色裸混凝土、左售货机/右垃圾桶和整张单色地面。共享动态编号只显示数字并保留前导零，深灰无描边贴墙；所有楼层共用同一节点/排版。纹理保持白色×Profile tint、Nearest/Unshaded/Alpha Scissor .5，空纹理/reset恢复原材质，最终画面验收待用户完成。
+- #76 的318已通过人工视觉验收并正式绑定 ART09 Darker R3：八平面、64 px/m、原127色、烘焙为主的Hybrid；正式源floor_318_art09_darker_r3.aseprite，批准Palette和receipt独立记录。Surface、具名遮罩与光照参数分离，通用baker供同结构楼层复用；R3售货机收边为资产专用步骤。原V2/V3及Surface/Lighting候选保留历史。共享动态编号仍深灰无描边贴墙，318位置/大小/颜色冻结；纹理保持白色×Profile tint、Nearest/Unshaded/Alpha Scissor .5，空纹理/reset恢复原材质。制作与正式发布命令见docs/development/floor-lighting-bake.md和docs/development/aseprite-floor-pipeline.md。
 - 监控舱内、固定门区与乘客使用渲染层 2；门外环境使用层 3 和一盏共用门外灯。监控摄像机可见层 2+3，玩家摄像机排除这两层。七层保持 Unshaded，主要依靠 Profile tint 区分楼层。
 - #66 的舱体材质 V1 保留原生 CSG/BoxMesh，在操作舱四壁/地面/天花、监控乘客舱已有大面及门/框/槛绑定六个共享外部材质；三条无碰撞地脚收边独立挂在“灰盒环境/基础收边”。六张 1024 Normal/Roughness 与独立派生脚本不修改 ART-02 资产或灯光。来源、重建与 reimport 边界见资产规范；实际验收状态以 #66 有效评论为准。
 

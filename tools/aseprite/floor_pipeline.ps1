@@ -317,7 +317,7 @@ try {
   if (-not $Diagnostic) {
    $assetStage='residential_art_v1'
    if ($palette.asset_stage) {
-    if ($palette.asset_stage -notin @('residential_art_v1','residential_art_v2')) { throw 'Unknown approved art stage' }
+    if ($palette.asset_stage -notin @('residential_art_v1','residential_art_v2','art09_darker_r3')) { throw 'Unknown approved art stage' }
     $assetStage=$palette.asset_stage
    }
   }
