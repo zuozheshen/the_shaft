@@ -9,7 +9,6 @@
 [ext_resource type="Texture2D" path="res://assets/art/floors/318/ground.png" id="pipeline_ground"]
 [ext_resource type="Texture2D" path="res://assets/art/floors/318/front_left.png" id="pipeline_front_left"]
 [ext_resource type="Texture2D" path="res://assets/art/floors/318/front_right.png" id="pipeline_front_right"]
-
 [ext_resource type="Texture2D" path="res://assets/art/floors/318/ceiling.png" id="pipeline_ceiling"]
 
 [resource]
@@ -25,6 +24,8 @@ front_left_visible = true
 front_right_visible = true
 ambient_tint = Color(1, 1, 1, 1)
 light_energy_multiplier = 1.0
+metadata/art_version = "ART09 Darker R3"
+metadata/art_quality = "human accepted"
 far_texture = ExtResource("pipeline_far")
 main_texture = ExtResource("pipeline_main")
 mid_left_texture = ExtResource("pipeline_mid_left")
@@ -33,5 +34,4 @@ ground_texture = ExtResource("pipeline_ground")
 front_left_texture = ExtResource("pipeline_front_left")
 front_right_texture = ExtResource("pipeline_front_right")
 ceiling_texture = ExtResource("pipeline_ceiling")
-metadata/art_version = "V3 archival restore"
-metadata/art_quality = "provisional / placeholder-quality"
+metadata/art_approval = "https://github.com/zuozheshen/the_shaft/issues/76#issuecomment-6250616387"

@@ -1,0 +1,341 @@
+{
+  "schema_version": 1,
+  "id": "floor-318-art09-lighting-regions-r2",
+  "note": "Darker R2 authoring masks: broad soft light pools, narrow existing-frame shade and localized contacts. R1 mask source preserved.",
+  "masks": {
+    "wall_overhead": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -0.3,
+        2.6
+      ],
+      "radius": [
+        2.7,
+        1.8
+      ]
+    },
+    "wall_overhead_focused": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -0.3,
+        2.6
+      ],
+      "radius": [
+        1.4,
+        0.75
+      ]
+    },
+    "wall_sides": {
+      "kind": "x_squared",
+      "space": "world",
+      "radius": 4.2
+    },
+    "wall_foot": {
+      "kind": "line_second",
+      "space": "world",
+      "center": 0,
+      "radius": 0.22
+    },
+    "wall_lamp": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -1.32,
+        1.68
+      ],
+      "radius": [
+        0.7,
+        0.65
+      ]
+    },
+    "door": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          210,
+          140,
+          287,
+          270
+        ]
+      ]
+    },
+    "door_reveal": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          215,
+          140,
+          215,
+          270
+        ],
+        [
+          282,
+          140,
+          282,
+          270
+        ],
+        [
+          210,
+          145,
+          287,
+          145
+        ]
+      ]
+    },
+    "lamp_and_handle": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          178,
+          147,
+          183,
+          174
+        ],
+        [
+          271,
+          191,
+          281,
+          225
+        ]
+      ]
+    },
+    "ground_overhead": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -0.3,
+        -1.5
+      ],
+      "radius": [
+        3,
+        2.5
+      ]
+    },
+    "ground_overhead_focused": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -0.3,
+        -1.5
+      ],
+      "radius": [
+        1.9,
+        1.65
+      ]
+    },
+    "ground_wall_contact": {
+      "kind": "line_second",
+      "space": "world",
+      "center": -3.1,
+      "radius": 0.2
+    },
+    "ground_vending_contact": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -1.25,
+        -2.35
+      ],
+      "radius": [
+        0.44,
+        0.11
+      ]
+    },
+    "ground_bin_contact": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        1.42,
+        -2.45
+      ],
+      "radius": [
+        0.28,
+        0.1
+      ]
+    },
+    "ceiling_overhead": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -0.3,
+        -0.65
+      ],
+      "radius": [
+        2.8,
+        2.4
+      ]
+    },
+    "ceiling_overhead_focused": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -0.3,
+        -0.65
+      ],
+      "radius": [
+        2,
+        1.6
+      ]
+    },
+    "ceiling_wall_contact": {
+      "kind": "line_second",
+      "space": "world",
+      "center": -3.1,
+      "radius": 0.16
+    },
+    "vending_glass_payment": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          120,
+          117,
+          153,
+          195
+        ]
+      ]
+    },
+    "vending_side": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          158,
+          0,
+          163,
+          229
+        ]
+      ]
+    },
+    "vending_top": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          0,
+          0,
+          163,
+          115
+        ]
+      ]
+    },
+    "bin_opening": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          28,
+          187,
+          47,
+          196
+        ]
+      ]
+    },
+    "bin_side": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          48,
+          0,
+          168,
+          232
+        ]
+      ]
+    },
+    "bin_top": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          0,
+          0,
+          168,
+          185
+        ]
+      ]
+    },
+    "wall_upper_pool": {
+      "kind": "ellipse",
+      "center": [
+        -0.3,
+        2.35
+      ],
+      "radius": [
+        1.75,
+        0.85
+      ],
+      "space": "world"
+    },
+    "wall_bin_back": {
+      "kind": "ellipse",
+      "center": [
+        1.5,
+        0.45
+      ],
+      "radius": [
+        0.44,
+        0.48
+      ],
+      "space": "world"
+    },
+    "door_inner_frame": {
+      "kind": "rect_union",
+      "rects": [
+        [
+          212,
+          145,
+          216,
+          270
+        ],
+        [
+          281,
+          145,
+          285,
+          270
+        ],
+        [
+          213,
+          142,
+          284,
+          144
+        ]
+      ],
+      "space": "pixel"
+    },
+    "ground_center_pool": {
+      "kind": "ellipse",
+      "center": [
+        -0.2,
+        -1.6
+      ],
+      "radius": [
+        1.45,
+        1.8
+      ],
+      "space": "world"
+    },
+    "ground_sides": {
+      "kind": "x_squared",
+      "radius": 2.3,
+      "space": "world"
+    },
+    "ground_bin_back": {
+      "kind": "ellipse",
+      "center": [
+        1.42,
+        -2.65
+      ],
+      "radius": [
+        0.4,
+        0.25
+      ],
+      "space": "world"
+    }
+  }
+}

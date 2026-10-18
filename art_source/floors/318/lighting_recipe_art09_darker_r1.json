@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "id": "floor-318-art09-darker-r1",
+  "density": 64,
+  "note": "Lower unlit base, retain peak pools. Same approved Surface and colors; Gate 3 selection pending.",
+  "layers": {
+    "far": {
+      "coordinates": "vertical",
+      "clamp": [
+        0.62,
+        1.06
+      ],
+      "model": {
+        "base": 0.7,
+        "height": {
+          "origin": 0,
+          "range": 2.6,
+          "gain": 0.12
+        },
+        "fields": [
+          {
+            "mask": "wall_overhead_focused",
+            "gain": 0.215
+          },
+          {
+            "mask": "wall_sides",
+            "gain": -0.065
+          },
+          {
+            "mask": "wall_foot",
+            "gain": -0.075
+          }
+        ]
+      }
+    },
+    "main": {
+      "coordinates": "vertical",
+      "clamp": [
+        0.62,
+        1.06
+      ],
+      "protect": [
+        "lamp_and_handle"
+      ],
+      "model": {
+        "base": 0.7,
+        "height": {
+          "origin": 0,
+          "range": 2.6,
+          "gain": 0.12
+        },
+        "fields": [
+          {
+            "mask": "wall_overhead_focused",
+            "gain": 0.215
+          },
+          {
+            "mask": "wall_sides",
+            "gain": -0.065
+          },
+          {
+            "mask": "wall_foot",
+            "gain": -0.075
+          },
+          {
+            "mask": "wall_lamp",
+            "gain": 0.2
+          }
+        ]
+      },
+      "regions": [
+        {
+          "mask": "door",
+          "model": {
+            "base": 0.8084,
+            "height": {
+              "origin": 0,
+              "range": 2.6,
+              "gain": 0.141
+            },
+            "fields": [
+              {
+                "mask": "door_reveal",
+                "gain": -0.094
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ground": {
+      "coordinates": "ground",
+      "clamp": [
+        0.62,
+        1.02
+      ],
+      "model": {
+        "base": 0.76,
+        "fields": [
+          {
+            "mask": "ground_overhead_focused",
+            "gain": 0.25
+          },
+          {
+            "mask": "ground_wall_contact",
+            "gain": -0.1
+          },
+          {
+            "mask": "ground_vending_contact",
+            "gain": -0.12
+          },
+          {
+            "mask": "ground_bin_contact",
+            "gain": -0.12
+          }
+        ]
+      }
+    },
+    "ceiling": {
+      "coordinates": "ceiling",
+      "clamp": [
+        0.81,
+        1.11
+      ],
+      "model": {
+        "base": 0.9,
+        "fields": [
+          {
+            "mask": "ceiling_overhead_focused",
+            "gain": 0.21
+          },
+          {
+            "mask": "ceiling_wall_contact",
+            "gain": -0.1
+          },
+          {
+            "mask": "wall_sides",
+            "gain": -0.04
+          }
+        ]
+      }
+    },
+    "mid_left": {
+      "coordinates": "vertical",
+      "clamp": [
+        0.7143999999999999,
+        0.9964
+      ],
+      "protect": [
+        "vending_glass_payment"
+      ],
+      "model": {
+        "base": 0.8271999999999999,
+        "height": {
+          "origin": 0,
+          "range": 1.8,
+          "gain": 0.141
+        },
+        "fields": [
+          {
+            "mask": "vending_side",
+            "gain": -0.094
+          },
+          {
+            "mask": "vending_top",
+            "gain": 0.0235
+          }
+        ]
+      }
+    },
+    "mid_right": {
+      "coordinates": "vertical",
+      "clamp": [
+        0.7332,
+        1.0152
+      ],
+      "protect": [
+        "bin_opening"
+      ],
+      "model": {
+        "base": 0.8271999999999999,
+        "height": {
+          "origin": 0,
+          "range": 0.8,
+          "gain": 0.1316
+        },
+        "fields": [
+          {
+            "mask": "bin_side",
+            "gain": -0.0658
+          },
+          {
+            "mask": "bin_top",
+            "gain": 0.05639999999999999
+          }
+        ]
+      }
+    },
+    "front_left": {
+      "coordinates": "vertical",
+      "passthrough": true
+    },
+    "front_right": {
+      "coordinates": "vertical",
+      "passthrough": true
+    }
+  }
+}

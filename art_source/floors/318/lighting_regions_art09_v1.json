@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "id": "floor-318-art09-lighting-regions-v1",
+  "note": "Editable masks before baking. Inclusive pixel rectangles; world X/Y for vertical planes, X/Z for horizontal planes. Preview PNGs are inspection outputs.",
+  "masks": {
+    "wall_overhead": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -0.3,
+        2.6
+      ],
+      "radius": [
+        2.7,
+        1.8
+      ]
+    },
+    "wall_overhead_focused": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -0.3,
+        2.6
+      ],
+      "radius": [
+        1.4,
+        0.75
+      ]
+    },
+    "wall_sides": {
+      "kind": "x_squared",
+      "space": "world",
+      "radius": 4.2
+    },
+    "wall_foot": {
+      "kind": "line_second",
+      "space": "world",
+      "center": 0,
+      "radius": 0.15
+    },
+    "wall_lamp": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -1.32,
+        1.68
+      ],
+      "radius": [
+        0.7,
+        0.65
+      ]
+    },
+    "door": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          210,
+          140,
+          287,
+          270
+        ]
+      ]
+    },
+    "door_reveal": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          215,
+          140,
+          215,
+          270
+        ],
+        [
+          282,
+          140,
+          282,
+          270
+        ],
+        [
+          210,
+          145,
+          287,
+          145
+        ]
+      ]
+    },
+    "lamp_and_handle": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          178,
+          147,
+          183,
+          174
+        ],
+        [
+          271,
+          191,
+          281,
+          225
+        ]
+      ]
+    },
+    "ground_overhead": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -0.3,
+        -1.5
+      ],
+      "radius": [
+        3,
+        2.5
+      ]
+    },
+    "ground_overhead_focused": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -0.3,
+        -1.5
+      ],
+      "radius": [
+        1.9,
+        1.65
+      ]
+    },
+    "ground_wall_contact": {
+      "kind": "line_second",
+      "space": "world",
+      "center": -3.1,
+      "radius": 0.14
+    },
+    "ground_vending_contact": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -1.25,
+        -2.35
+      ],
+      "radius": [
+        0.44,
+        0.11
+      ]
+    },
+    "ground_bin_contact": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        1.42,
+        -2.45
+      ],
+      "radius": [
+        0.28,
+        0.1
+      ]
+    },
+    "ceiling_overhead": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -0.3,
+        -0.65
+      ],
+      "radius": [
+        2.8,
+        2.4
+      ]
+    },
+    "ceiling_overhead_focused": {
+      "kind": "ellipse",
+      "space": "world",
+      "center": [
+        -0.3,
+        -0.65
+      ],
+      "radius": [
+        2,
+        1.6
+      ]
+    },
+    "ceiling_wall_contact": {
+      "kind": "line_second",
+      "space": "world",
+      "center": -3.1,
+      "radius": 0.16
+    },
+    "vending_glass_payment": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          120,
+          117,
+          153,
+          195
+        ]
+      ]
+    },
+    "vending_side": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          158,
+          0,
+          163,
+          229
+        ]
+      ]
+    },
+    "vending_top": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          0,
+          0,
+          163,
+          115
+        ]
+      ]
+    },
+    "bin_opening": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          28,
+          187,
+          47,
+          196
+        ]
+      ]
+    },
+    "bin_side": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          48,
+          0,
+          168,
+          232
+        ]
+      ]
+    },
+    "bin_top": {
+      "kind": "rect_union",
+      "space": "pixel",
+      "rects": [
+        [
+          0,
+          0,
+          168,
+          185
+        ]
+      ]
+    }
+  }
+}
