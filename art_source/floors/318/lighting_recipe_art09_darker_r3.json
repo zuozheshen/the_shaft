@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "id": "floor-318-art09-darker-r3",
+  "density": 64,
+  "note": "User-directed broad simple upper wall band, floor -5%, narrow door rim reflections, removal of detached bin-wall spot; separate cabinet rim simplification follows bake.",
+  "layers": {
+    "far": {
+      "coordinates": "vertical",
+      "clamp": [
+        0.62,
+        1.1
+      ],
+      "model": {
+        "base": 0.7,
+        "height": {
+          "origin": 0,
+          "range": 2.6,
+          "gain": 0.12
+        },
+        "fields": [
+          {
+            "mask": "wall_upper_band",
+            "gain": 0.2
+          },
+          {
+            "mask": "wall_sides",
+            "gain": -0.065
+          },
+          {
+            "mask": "wall_foot",
+            "gain": -0.11
+          }
+        ]
+      }
+    },
+    "main": {
+      "coordinates": "vertical",
+      "clamp": [
+        0.62,
+        1.45
+      ],
+      "protect": [
+        "lamp_and_handle"
+      ],
+      "model": {
+        "base": 0.7,
+        "height": {
+          "origin": 0,
+          "range": 2.6,
+          "gain": 0.12
+        },
+        "fields": [
+          {
+            "mask": "wall_upper_band",
+            "gain": 0.2
+          },
+          {
+            "mask": "wall_sides",
+            "gain": -0.065
+          },
+          {
+            "mask": "wall_foot",
+            "gain": -0.11
+          },
+          {
+            "mask": "wall_lamp",
+            "gain": 0.04
+          }
+        ]
+      },
+      "regions": [
+        {
+          "mask": "door",
+          "model": {
+            "base": 0.8084,
+            "height": {
+              "origin": 0,
+              "range": 2.6,
+              "gain": 0.141
+            },
+            "fields": [
+              {
+                "mask": "door_reveal",
+                "gain": -0.12
+              },
+              {
+                "gain": -0.06,
+                "mask": "door_inner_frame"
+              }
+            ]
+          }
+        },
+        {
+          "model": {
+            "base": 1.35,
+            "fields": []
+          },
+          "mask": "door_top_glint"
+        },
+        {
+          "model": {
+            "base": 1.3,
+            "fields": []
+          },
+          "mask": "door_left_glint"
+        },
+        {
+          "model": {
+            "base": 1.25,
+            "fields": []
+          },
+          "mask": "door_handle_near_glint"
+        }
+      ]
+    },
+    "ground": {
+      "coordinates": "ground",
+      "clamp": [
+        0.589,
+        1.026
+      ],
+      "model": {
+        "base": 0.722,
+        "fields": [
+          {
+            "mask": "ground_center_pool",
+            "gain": 0.304
+          },
+          {
+            "mask": "ground_wall_contact",
+            "gain": -0.133
+          },
+          {
+            "mask": "ground_vending_contact",
+            "gain": -0.114
+          },
+          {
+            "mask": "ground_bin_contact",
+            "gain": -0.133
+          },
+          {
+            "gain": -0.03325,
+            "mask": "ground_sides"
+          }
+        ]
+      }
+    },
+    "ceiling": {
+      "coordinates": "ceiling",
+      "clamp": [
+        0.81,
+        1.11
+      ],
+      "model": {
+        "base": 0.9,
+        "fields": [
+          {
+            "mask": "ceiling_overhead_focused",
+            "gain": 0.21
+          },
+          {
+            "mask": "ceiling_wall_contact",
+            "gain": -0.1
+          },
+          {
+            "mask": "wall_sides",
+            "gain": -0.04
+          }
+        ]
+      }
+    },
+    "mid_left": {
+      "coordinates": "vertical",
+      "clamp": [
+        0.7143999999999999,
+        0.9964
+      ],
+      "protect": [
+        "vending_glass_payment"
+      ],
+      "model": {
+        "base": 0.8271999999999999,
+        "height": {
+          "origin": 0,
+          "range": 1.8,
+          "gain": 0.141
+        },
+        "fields": [
+          {
+            "mask": "vending_side",
+            "gain": -0.094
+          },
+          {
+            "mask": "vending_top",
+            "gain": 0.0235
+          }
+        ]
+      }
+    },
+    "mid_right": {
+      "coordinates": "vertical",
+      "clamp": [
+        0.7332,
+        1.0152
+      ],
+      "protect": [
+        "bin_opening"
+      ],
+      "model": {
+        "base": 0.8271999999999999,
+        "height": {
+          "origin": 0,
+          "range": 0.8,
+          "gain": 0.1316
+        },
+        "fields": [
+          {
+            "mask": "bin_side",
+            "gain": -0.0658
+          },
+          {
+            "mask": "bin_top",
+            "gain": 0.05639999999999999
+          }
+        ]
+      }
+    },
+    "front_left": {
+      "coordinates": "vertical",
+      "passthrough": true
+    },
+    "front_right": {
+      "coordinates": "vertical",
+      "passthrough": true
+    }
+  }
+}
