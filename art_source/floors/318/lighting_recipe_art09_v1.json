@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "id": "floor-318-art09-lighting-v1-separated",
+  "density": 64,
+  "note": "Exact extraction of cd4a70b Lighting V1. Frozen V1 PNG regression must pass.",
+  "layers": {
+    "far": {
+      "coordinates": "vertical",
+      "clamp": [
+        0.74,
+        1.06
+      ],
+      "model": {
+        "base": 0.86,
+        "height": {
+          "origin": 0,
+          "range": 2.6,
+          "gain": 0.14
+        },
+        "fields": [
+          {
+            "mask": "wall_overhead",
+            "gain": 0.035
+          },
+          {
+            "mask": "wall_sides",
+            "gain": -0.045
+          },
+          {
+            "mask": "wall_foot",
+            "gain": -0.055
+          }
+        ]
+      }
+    },
+    "main": {
+      "coordinates": "vertical",
+      "clamp": [
+        0.74,
+        1.06
+      ],
+      "protect": [
+        "lamp_and_handle"
+      ],
+      "model": {
+        "base": 0.86,
+        "height": {
+          "origin": 0,
+          "range": 2.6,
+          "gain": 0.14
+        },
+        "fields": [
+          {
+            "mask": "wall_overhead",
+            "gain": 0.035
+          },
+          {
+            "mask": "wall_sides",
+            "gain": -0.045
+          },
+          {
+            "mask": "wall_foot",
+            "gain": -0.055
+          },
+          {
+            "mask": "wall_lamp",
+            "gain": 0.025
+          }
+        ]
+      },
+      "regions": [
+        {
+          "mask": "door",
+          "model": {
+            "base": 0.86,
+            "height": {
+              "origin": 0,
+              "range": 2.6,
+              "gain": 0.15
+            },
+            "fields": [
+              {
+                "mask": "door_reveal",
+                "gain": -0.1
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "ground": {
+      "coordinates": "ground",
+      "clamp": [
+        0.7,
+        1.02
+      ],
+      "model": {
+        "base": 0.84,
+        "fields": [
+          {
+            "mask": "ground_overhead",
+            "gain": 0.17
+          },
+          {
+            "mask": "ground_wall_contact",
+            "gain": -0.085
+          },
+          {
+            "mask": "ground_vending_contact",
+            "gain": -0.11
+          },
+          {
+            "mask": "ground_bin_contact",
+            "gain": -0.11
+          }
+        ]
+      }
+    },
+    "ceiling": {
+      "coordinates": "ceiling",
+      "clamp": [
+        0.93,
+        1.11
+      ],
+      "model": {
+        "base": 1.04,
+        "fields": [
+          {
+            "mask": "ceiling_overhead",
+            "gain": 0.07
+          },
+          {
+            "mask": "ceiling_wall_contact",
+            "gain": -0.07
+          },
+          {
+            "mask": "wall_sides",
+            "gain": -0.04
+          }
+        ]
+      }
+    },
+    "mid_left": {
+      "coordinates": "vertical",
+      "clamp": [
+        0.76,
+        1.06
+      ],
+      "protect": [
+        "vending_glass_payment"
+      ],
+      "model": {
+        "base": 0.88,
+        "height": {
+          "origin": 0,
+          "range": 1.8,
+          "gain": 0.15
+        },
+        "fields": [
+          {
+            "mask": "vending_side",
+            "gain": -0.1
+          },
+          {
+            "mask": "vending_top",
+            "gain": 0.025
+          }
+        ]
+      }
+    },
+    "mid_right": {
+      "coordinates": "vertical",
+      "clamp": [
+        0.78,
+        1.08
+      ],
+      "protect": [
+        "bin_opening"
+      ],
+      "model": {
+        "base": 0.88,
+        "height": {
+          "origin": 0,
+          "range": 0.8,
+          "gain": 0.14
+        },
+        "fields": [
+          {
+            "mask": "bin_side",
+            "gain": -0.07
+          },
+          {
+            "mask": "bin_top",
+            "gain": 0.06
+          }
+        ]
+      }
+    },
+    "front_left": {
+      "coordinates": "vertical",
+      "passthrough": true
+    },
+    "front_right": {
+      "coordinates": "vertical",
+      "passthrough": true
+    }
+  }
+}
