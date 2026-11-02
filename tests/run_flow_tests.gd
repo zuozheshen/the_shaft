@@ -1,9 +1,11 @@
 extends Node
 
+const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
+const ContentResetTests := preload("res://tests/content/content_reset_tests.gd")
+
 const MainConsoleTests := preload("res://tests/ui/main_console_tests.gd")
 const LeftConsoleTests := preload("res://tests/ui/left_console_tests.gd")
 const RightConsoleTests := preload("res://tests/ui/right_console_tests.gd")
-const FloorGuideBookTests := preload("res://tests/ui/floor_guide_book_tests.gd")
 const GamepadSupportTests := preload("res://tests/ui/gamepad_support_tests.gd")
 
 
@@ -26,9 +28,6 @@ const ContentValidationReportTests := preload(
 )
 const ContentValidatorTests := preload(
 	"res://tests/content/content_validator_tests.gd"
-)
-const Case003ContentTests := preload(
-	"res://tests/content/case_003_content_tests.gd"
 )
 const MonitorStageTests := preload(
 	"res://tests/presentation/monitor_stage_tests.gd"
@@ -62,8 +61,9 @@ func _run() -> void:
 	var content_validator_tests := ContentValidatorTests.new()
 	content_validator_tests.run(self)
 
-	var case_003_content_tests := Case003ContentTests.new()
-	case_003_content_tests.run(self)
+
+	await ContentResetTests.new().run(self, get_tree())
+	TestContent.install(ContentRegistry)
 
 	var dispatch_phase_tests := DispatchPhaseTests.new()
 	dispatch_phase_tests.run(self)
@@ -103,8 +103,9 @@ func _run() -> void:
 	await MainConsoleTests.new().run(self, get_tree())
 	await LeftConsoleTests.new().run(self, get_tree())
 	await RightConsoleTests.new().run(self, get_tree())
-	await FloorGuideBookTests.new().run(self, get_tree())
 	await GamepadSupportTests.new().run(self, get_tree())
+
+	TestContent.restore(ContentRegistry)
 
 	print("=== 测试汇总：通过 %d，失败 %d ===" % [passed_count, failed_count])
 	get_tree().quit(0 if failed_count == 0 else 1)

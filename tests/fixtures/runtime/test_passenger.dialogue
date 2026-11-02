@@ -1,0 +1,72 @@
+~ pickup_start
+Passenger: TEST PICKUP
+- TEST CONFIRM
+    do mark_door_greeting_done()
+    do status_hint("TEST CONFIRMED")
+    Passenger: TEST READY
+    => END
+- TEST WAIT
+    do mark_door_greeting_done()
+    Passenger: TEST WAITING
+    => END
+
+~ onboard_start
+Passenger: TEST ONBOARD
+- TEST QUESTION A
+    do status_hint("TEST RESPONSE A")
+    Passenger: TEST ANSWER A
+    => END
+- TEST QUESTION B
+    do status_hint("TEST RESPONSE B")
+    Passenger: TEST ANSWER B
+    => END
+
+~ destination_900
+do status_hint("TEST ARRIVAL 900")
+Passenger: TEST COMPLETE 900
+=> END
+
+~ destination_742
+do status_hint("TEST ARRIVAL 742")
+Passenger: TEST COMPLETE 742
+=> END
+
+~ destination_612
+do status_hint("TEST ARRIVAL 612")
+Passenger: TEST COMPLETE 612
+=> END
+
+~ destination_004
+do status_hint("TEST ARRIVAL 004")
+Passenger: TEST COMPLETE 004
+=> END
+
+~ destination_387
+do status_hint("TEST ARRIVAL 387")
+Passenger: TEST COMPLETE 387
+=> END
+
+~ destination_392
+do status_hint("TEST ARRIVAL 392")
+Passenger: TEST COMPLETE 392
+=> END
+
+~ destination_547
+do status_hint("TEST ARRIVAL 547")
+Passenger: TEST COMPLETE 547
+=> END
+
+~ destination_318
+do status_hint("TEST ARRIVAL 318")
+Passenger: TEST COMPLETE 318
+=> END
+
+~ destination_001
+do status_hint("TEST ARRIVAL 001")
+Passenger: TEST COMPLETE 001
+=> END
+
+~ destination_002
+do status_hint("TEST ARRIVAL 002")
+Passenger: TEST COMPLETE 002
+=> END

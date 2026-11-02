@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FloorVisualProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/presentation/floor_visual_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+floor_id = &"001"
+display_label = ""
+ambient_tint = Color(0.7, 0.85, 1, 1)
+mid_left_visible = false
+mid_right_visible = false
+front_left_visible = false
+front_right_visible = false

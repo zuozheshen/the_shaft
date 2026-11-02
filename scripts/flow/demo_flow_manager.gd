@@ -30,7 +30,7 @@ const FlowCommandResultScript := preload(
 	"res://scripts/runtime/commands/flow_command_result.gd"
 )
 
-@export var initial_floor: String = "900"
+@export var initial_floor: String = "318"
 @export_range(0.1, 5.0, 0.1, "suffix:s") var movement_duration_seconds: float = 0.6
 @export var initial_shift: ShiftDefinition
 
@@ -44,7 +44,9 @@ func _ready() -> void:
 	_initialize_runtime_components()
 	elevator_runtime_state.initialize(initial_floor, movement_duration_seconds)
 	case_updated.emit()
-	start_shift(initial_shift)
+	# 未配置值班时正常空舱待机；后续流程由显式命令启动。
+	if initial_shift != null:
+		start_shift(initial_shift)
 
 
 func _initialize_runtime_components() -> void:
@@ -312,20 +314,6 @@ func get_after_close_status_hint() -> String:
 
 func get_outside_audio_idle() -> String:
 	return _get_pickup_text("outside_audio_idle")
-
-
-func get_camera_feed_for_phase(phase: String, camera_index: int) -> String:
-	var dispatch: DispatchDefinition = get_active_dispatch()
-	if dispatch == null:
-		return ""
-	var camera_feeds: Dictionary = dispatch.camera_feeds
-	var phase_feeds: Array = camera_feeds.get(
-		phase,
-		camera_feeds.get(DispatchPhase.WAITING_FOR_PICKUP, [])
-	)
-	if camera_index < 0 or camera_index >= phase_feeds.size():
-		return ""
-	return str(phase_feeds[camera_index])
 
 
 func get_front_phase_text(phase: String) -> Dictionary:

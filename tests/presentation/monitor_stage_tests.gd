@@ -1,5 +1,7 @@
 extends RefCounted
 
+const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
+
 
 const LAYERED_SLICE_SCENE := preload(
 	"res://scenes/presentation/layered_floor_slice_2_5d.tscn"
@@ -10,15 +12,9 @@ const MONITOR_STAGE_SCENE := preload(
 const PASSENGER_VISUAL_SCENE := preload(
 	"res://scenes/presentation/passenger_visual_3d.tscn"
 )
-const PASSENGER_PROFILE_001 := preload(
-	"res://data/presentation/passenger_visuals/passenger_001_visual.tres"
-)
-const PASSENGER_PROFILE_002 := preload(
-	"res://data/presentation/passenger_visuals/passenger_002_visual.tres"
-)
-const PASSENGER_PROFILE_003 := preload(
-	"res://data/presentation/passenger_visuals/passenger_003_visual.tres"
-)
+var PASSENGER_PROFILE_001 = TestContent.profile(1)
+var PASSENGER_PROFILE_002 = TestContent.profile(2)
+var PASSENGER_PROFILE_003 = TestContent.profile(3)
 
 
 func run(test_runner: Variant, tree: SceneTree) -> void:
@@ -141,9 +137,9 @@ func _test_passenger_visual(
 		PASSENGER_PROFILE_003,
 	]
 	var expected_ids: Array[StringName] = [
-		&"passenger_001",
-		&"passenger_002",
-		&"passenger_003",
+		&"TEST_PERSON_001",
+		&"TEST_PERSON_002",
+		&"TEST_PERSON_003",
 	]
 	var profiles_valid := true
 	for index in profiles.size():
@@ -156,6 +152,7 @@ func _test_passenger_visual(
 	)
 
 	var visual := PASSENGER_VISUAL_SCENE.instantiate() as PassengerVisual3D
+	TestContent.prepare_visual(visual)
 	test_runner.add_child(visual)
 	await tree.process_frame
 	test_runner.assert_not_equal(
@@ -188,7 +185,7 @@ func _test_passenger_visual(
 	)
 	test_runner.assert_equal(
 		"PassengerVisual3D / 应用后 passenger_id 正确",
-		&"passenger_002",
+		&"TEST_PERSON_002",
 		visual.get_passenger_id()
 	)
 	test_runner.assert_equal(
@@ -284,6 +281,7 @@ func _test_monitor_stage_controller(
 		tree: SceneTree
 ) -> void:
 	var stage := MONITOR_STAGE_SCENE.instantiate() as MonitorStageController3D
+	TestContent.prepare_visual(stage)
 	test_runner.add_child(stage)
 	await tree.process_frame
 

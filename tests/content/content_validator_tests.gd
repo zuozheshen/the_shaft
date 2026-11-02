@@ -124,8 +124,6 @@ func _test_dispatch_data_contracts(test_runner: Variant) -> void:
 	var bundle := _make_valid_bundle()
 	var dispatch: DispatchDefinition = bundle.dispatches[0]
 	dispatch.pickup_data.erase("after_open_hint")
-	dispatch.camera_feeds.erase(DispatchPhase.ARRIVED_AT_PICKUP)
-	dispatch.camera_feeds[DispatchPhase.WAITING_FOR_PICKUP] = ["only one"]
 	var front_state: Dictionary = dispatch.front_phase_texts[
 		DispatchPhase.ARRIVED_AT_PICKUP
 	]
@@ -138,14 +136,6 @@ func _test_dispatch_data_contracts(test_runner: Variant) -> void:
 	test_runner.assert_true(
 		"ContentValidator / pickup_data 缺键",
 		_has_code(report, "PICKUP_DATA_KEY_MISSING")
-	)
-	test_runner.assert_true(
-		"ContentValidator / camera 缺阶段",
-		_has_code(report, "CAMERA_PHASE_MISSING")
-	)
-	test_runner.assert_true(
-		"ContentValidator / camera 数量不是 2",
-		_has_code(report, "CAMERA_FEED_COUNT_INVALID")
 	)
 	test_runner.assert_true(
 		"ContentValidator / front 缺 state 或 task",
@@ -353,7 +343,6 @@ func _make_dispatch(
 	for phase: String in DispatchPhase.get_all():
 		if phase == DispatchPhase.SHIFT_IDLE:
 			continue
-		dispatch.camera_feeds[phase] = ["cabin", "outside"]
 		dispatch.front_phase_texts[phase] = {
 			"state": "state",
 			"task": "task",

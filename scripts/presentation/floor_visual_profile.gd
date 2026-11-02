@@ -2,7 +2,7 @@ class_name FloorVisualProfile
 extends Resource
 
 
-## 楼层视觉独立于业务资料；字符串编号保留 004 的前导零。
+## 楼层视觉独立于业务资料；字符串编号保留 001 的前导零。
 @export var floor_id: StringName
 @export var display_label: String = ""
 

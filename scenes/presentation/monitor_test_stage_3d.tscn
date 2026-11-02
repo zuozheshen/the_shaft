@@ -4,8 +4,6 @@
 [ext_resource type="Script" uid="uid://d4jv71ygqbo5d" path="res://scripts/presentation/monitor_stage_controller_3d.gd" id="2_stage"]
 [ext_resource type="PackedScene" uid="uid://d24sotn8npq7j" path="res://scenes/presentation/elevator_door_visual_3d.tscn" id="3_1rmkh"]
 [ext_resource type="PackedScene" uid="uid://pwk8iyr654yu" path="res://scenes/presentation/passenger_visual_3d.tscn" id="3_q8crp"]
-[ext_resource type="Resource" uid="uid://qboej4pygmj3" path="res://data/presentation/passenger_visuals/passenger_001_visual.tres" id="4_profile"]
-
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/wall.tres" id="66_wall"]
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/floor.tres" id="66_floor"]
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/frame.tres" id="66_frame"]
@@ -32,7 +30,6 @@ threshold_anchor_path = NodePath("乘客视觉区域/位置参考点/门槛点")
 cabin_position_anchor_path = NodePath("乘客视觉区域/位置参考点/舱内站位")
 outside_exit_anchor_path = NodePath("乘客视觉区域/位置参考点/门外离场点")
 door_visual_path = NodePath("固定门区/双开门视觉3D")
-initial_passenger_profile = ExtResource("4_profile")
 
 [node name="固定乘客舱" type="Node3D" parent="." unique_id=1566578310]
 

@@ -2,7 +2,6 @@ extends Control
 class_name BuildingTerminalInterface
 
 
-signal return_requested
 signal section_changed(section: int)
 signal unread_state_changed(snapshot: Dictionary)
 
@@ -88,13 +87,6 @@ func _disconnect_demo_flow_manager() -> void:
 		demo_flow_manager.left_terminal_session_reset.disconnect(
 			_on_left_terminal_session_reset
 		)
-
-
-func show_terminal() -> void:
-	show_system_log()
-	show()
-	if not embedded_3d_mode:
-		set_actively_viewed(true)
 
 
 func set_embedded_3d_mode(is_enabled: bool) -> void:
@@ -232,7 +224,7 @@ func _emit_unread_state() -> void:
 
 func _initialize_terminal_text() -> void:
 	_set_label_text(title_label, "ARCHIVE TERMINAL")
-	_set_label_text(access_status_label, "SHAFT FACILITIES // L-612-A // OPERATOR ACCESS // LINK ACTIVE")
+	_set_label_text(access_status_label, "SHAFT FACILITIES // OPERATOR ACCESS // LINK ACTIVE")
 
 
 func _apply_terminal_theme() -> void:
@@ -290,21 +282,8 @@ func _render_current_section() -> void:
 			_render_system_log()
 
 
-# 保留旧私有入口，现有调用者仍会落到唯一栏目状态。
-func _show_record_tab() -> void:
-	show_passenger_record()
-
-
-func _show_transcript_tab() -> void:
-	show_transcript()
-
-
-func _show_system_log_tab() -> void:
-	show_system_log()
-
-
 func _render_record() -> void:
-	_set_content(_build_record_content(), "乘客记录来自当前复核案例。")
+	_set_content(_build_record_content(), "乘客记录来自当前派单。")
 
 
 func _build_record_content() -> String:

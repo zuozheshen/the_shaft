@@ -1,5 +1,7 @@
 extends RefCounted
-## 使用正式 main_3d 接线和原 Dialogue；只在测试实例中缩短动画等待。
+
+const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
+## 使用正式 main_3d 接线和无剧情 Dialogue 夹具；只在测试实例中缩短动画等待。
 
 const MAIN := preload("res://scenes/main/main_3d.tscn")
 const ConsoleButtonVisualScript := preload("res://scripts/presentation/console_button_visual_3d.gd")
@@ -7,6 +9,7 @@ const ConsoleButtonVisualScript := preload("res://scripts/presentation/console_b
 
 func run(t: Variant, tree: SceneTree) -> void:
 	var main := MAIN.instantiate()
+	TestContent.prepare_scene(main)
 	var cabin := main.get_node("三维操作舱") as CabinViewController3D
 	var manager := main.get_node("游戏运行层/演示流程管理器") as DemoFlowManager
 	var stage := main.find_child("监控测试摄影棚", true, false) as MonitorStageController3D
@@ -34,7 +37,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var status_screen := presentation.get_node(presentation.status_mesh_path) as MeshInstance3D
 	t.assert_equal("主台 / 唯一 ConsoleInterface", 1, main.find_children("ConsoleInterface", "", true, false).size())
 	t.assert_equal("主台 / 唯一 DialogueManagerAdapter", 1, main.find_children("DialogueManagerAdapter", "", true, false).size())
-	t.assert_equal("主台 / 原四个视口加 CASE 纯 2D 视口", 5, main.find_children("*", "SubViewport", true, false).size())
+	t.assert_equal("主台 / 左台、监控与 CASE 三个视口", 3, main.find_children("*", "SubViewport", true, false).size())
 	t.assert_equal("主台 / 原监控实际 320x240", Vector2i(320, 240), viewport.size)
 	t.assert_equal("主台 / 原监控保持纵向视野", Camera3D.KEEP_HEIGHT, camera.keep_aspect)
 	t.assert_equal("主台 / 原监控复用正式 World3D", cabin.get_viewport().world_3d, viewport.world_3d)
@@ -117,13 +120,13 @@ func run(t: Variant, tree: SceneTree) -> void:
 	_assert_shared_button_meshes(t, open_button, close_button, "DOOR")
 	var open_caps := open_button.get_node("按钮按压轴/按钮帽模型").find_children("*", "MeshInstance3D", true, false)
 	var close_caps := close_button.get_node("按钮按压轴/按钮帽模型").find_children("*", "MeshInstance3D", true, false)
-	var distinct_door_colors := false
+	# e46053c 正式素材的两枚按钮帽共用灰色材质；颜色验收不再断言旧配色。
+	var door_materials_valid := not open_caps.is_empty() and open_caps.size() == close_caps.size()
 	for index in mini(open_caps.size(), close_caps.size()):
 		var open_material := (open_caps[index] as MeshInstance3D).get_active_material(0) as StandardMaterial3D
 		var close_material := (close_caps[index] as MeshInstance3D).get_active_material(0) as StandardMaterial3D
-		if open_material != null and close_material != null:
-			distinct_door_colors = distinct_door_colors or open_material.albedo_color != close_material.albedo_color
-	t.assert_true("主台 / 共用门按钮几何仍区分 OPEN 和 CLOSE 颜色", distinct_door_colors)
+		door_materials_valid = door_materials_valid and open_material != null and close_material != null
+	t.assert_true("主台 / 两枚门按钮帽保留有效材质", door_materials_valid)
 	await tree.physics_frame
 	for name in ["麦克风热点", "CAM01热点", "CAM02热点", "开门热点", "关门热点"]:
 		var hotspot := main.find_child(name, true, false) as InteractionHotspot3D
@@ -194,7 +197,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 			t.assert_true("主台 / 三单不提前结束", false)
 			break
 		var dispatch := manager.get_active_dispatch()
-		t.assert_equal("主台 / 三单顺序", StringName("CASE_%03d" % case_number), dispatch.dispatch_id)
+		t.assert_equal("主台 / 三单顺序", StringName("TEST_CASE_%03d" % case_number), dispatch.dispatch_id)
 		await _travel(destination, manager, String(dispatch.pickup_floor_id), false, tree)
 		t.assert_true("主台 / 右台到达接乘点", manager.get_current_floor() == String(dispatch.pickup_floor_id))
 		_action(main, interaction, "麦克风热点")
@@ -231,7 +234,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 		t.assert_equal("主台 / 实体关门启动 CLOSING", ElevatorDoorVisual3D.DoorPresentationState.CLOSING, door.get_door_state())
 		await _settle(stage, tree)
 		await _test_dialogue(t, tree, console, manager)
-		router.get_left_interface()._show_transcript_tab()
+		router.get_left_interface().show_transcript()
 		t.assert_true("主台 / 对话记录仍写入左台", not manager.get_front_dialogue_history().is_empty())
 		t.assert_true("主台 / 系统判断仍写入左台", not manager.get_system_message_history().is_empty())
 		await _travel(destination, manager, String(dispatch.default_destination_floor_id), true, tree)
@@ -246,7 +249,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 		await _settle(stage, tree)
 		t.assert_true("主台 / 换单复位 MIC 和 COMM", not console.mic_enabled and not comm_light.visible)
 		t.assert_false("主台 / 三单无虚假 FAULT", fault.visible)
-	t.assert_equal("主台 / 三单全部结算", [&"CASE_001", &"CASE_002", &"CASE_003"], completed)
+	t.assert_equal("主台 / 三单全部结算", [&"TEST_CASE_001", &"TEST_CASE_002", &"TEST_CASE_003"], completed)
 	t.assert_false("主台 / 值班结束", manager.has_active_dispatch())
 	t.assert_equal("主台 / 结束后状态条不残留编号", "CASE — · 值班待命", status.text)
 	for value in ElevatorDoorVisual3D.DoorPresentationState.values():
@@ -663,6 +666,7 @@ func _frames(tree: SceneTree, count: int = 8) -> void:
 # 把所有台体/按钮/轴外形换成不同内部结构，证明业务不读取模型子节点。
 func _test_visual_replacement(t: Variant, tree: SceneTree) -> void:
 	var main := MAIN.instantiate()
+	TestContent.prepare_scene(main)
 	var mounts := main.find_children("视觉资产", "Node3D", true, false)
 	for part_name in ["麦克风视觉", "开门视觉", "关门视觉"]:
 		mounts.append(main.find_child(part_name, true, false))

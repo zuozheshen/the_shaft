@@ -1,5 +1,7 @@
 extends RefCounted
 
+const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
+
 
 const DOOR_SCENE: PackedScene = preload(
 	"res://scenes/presentation/elevator_door_visual_3d.tscn"
@@ -16,9 +18,7 @@ const PASSENGER_VISUAL_SCENE: PackedScene = preload(
 const CONSOLE_SCENE: PackedScene = preload(
 	"res://scenes/ui/ConsoleInterface.tscn"
 )
-const DEMO_SHIFT: ShiftDefinition = preload(
-	"res://data/shifts/demo_shift_001.tres"
-)
+var DEMO_SHIFT: ShiftDefinition = TestContent.shift()
 
 
 func run(test_runner: Variant, tree: SceneTree) -> void:
@@ -277,6 +277,7 @@ func _test_stage_door_module(
 		tree: SceneTree
 ) -> void:
 	var stage_candidate := MONITOR_STAGE_SCENE.instantiate()
+	TestContent.prepare_visual(stage_candidate)
 	test_runner.assert_true(
 		"MonitorStageController3D / 摄影棚场景可加载",
 		stage_candidate is MonitorStageController3D
@@ -423,6 +424,7 @@ func _test_console_door_integration(
 ) -> void:
 	var manager := await _create_manager(test_runner, tree)
 	var stage := MONITOR_STAGE_SCENE.instantiate() as MonitorStageController3D
+	TestContent.prepare_visual(stage)
 	var console := CONSOLE_SCENE.instantiate() as ConsoleInterface
 	test_runner.add_child(stage)
 	test_runner.add_child(console)
@@ -534,7 +536,7 @@ func _test_console_door_integration(
 		"ConsoleInterface / DISPATCH_COMPLETED 前先触发关门动画",
 		manager.has_active_dispatch()
 				and String(manager.get_active_dispatch().dispatch_id)
-						== "CASE_002"
+						== "TEST_CASE_002"
 				and door.get_door_state()
 						== ElevatorDoorVisual3D.DoorPresentationState.CLOSING
 	)

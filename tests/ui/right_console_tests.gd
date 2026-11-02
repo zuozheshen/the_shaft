@@ -1,4 +1,6 @@
 extends RefCounted
+
+const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
 ## 使用正式 main_3d 验证右台实体入口仍复用唯一 DestinationControlInterface。
 
 const MAIN := preload("res://scenes/main/main_3d.tscn")
@@ -6,6 +8,7 @@ const MAIN := preload("res://scenes/main/main_3d.tscn")
 
 func run(t: Variant, tree: SceneTree) -> void:
 	var main := MAIN.instantiate()
+	TestContent.prepare_scene(main)
 	t.add_child(main)
 	await _frames(tree)
 	var cabin := main.get_node("三维操作舱") as CabinViewController3D
@@ -150,8 +153,6 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var slope := right_root.get_node("下部斜面根") as Node3D
 	t.assert_true("右台 / ART-06 冻结斜面为 12 度",
 			is_equal_approx(rad_to_deg(absf(slope.rotation.z)), 12.0))
-	t.assert_equal("右台 / 导引书常态继承斜面根", slope,
-			right_root.get_node("下部斜面根/楼层导引书").get_parent())
 	var lever := right_root.get_node(
 		"下部斜面根/执行拨杆热点"
 	) as InteractionHotspot3D

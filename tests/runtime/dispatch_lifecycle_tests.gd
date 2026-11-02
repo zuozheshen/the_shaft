@@ -1,8 +1,10 @@
 extends RefCounted
 
+const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
 
-const CASE_001: DispatchDefinition = preload("res://data/dispatches/case_001.tres")
-const CASE_002: DispatchDefinition = preload("res://data/dispatches/case_002.tres")
+
+var CASE_001: DispatchDefinition = TestContent.dispatch(1)
+var CASE_002: DispatchDefinition = TestContent.dispatch(2)
 const DispatchLifecycleScript := preload(
 	"res://scripts/runtime/dispatch/dispatch_lifecycle.gd"
 )

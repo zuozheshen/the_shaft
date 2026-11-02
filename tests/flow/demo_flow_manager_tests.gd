@@ -1,7 +1,9 @@
 extends RefCounted
 
+const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
 
-const DEMO_SHIFT: ShiftDefinition = preload("res://data/shifts/demo_shift_001.tres")
+
+var DEMO_SHIFT: ShiftDefinition = TestContent.shift()
 const CONSOLE_SCENE: PackedScene = preload("res://scenes/ui/ConsoleInterface.tscn")
 const BUILDING_TERMINAL_SCENE: PackedScene = preload(
 	"res://scenes/ui/BuildingTerminalInterface.tscn"
@@ -34,7 +36,7 @@ func _test_initial_runtime_components(
 	)
 	test_runner.assert_equal(
 		"DemoFlowManager / 第一条派单正常建立",
-		"CASE_001",
+		"TEST_CASE_001",
 		String(manager.get_active_dispatch().dispatch_id)
 	)
 
@@ -123,7 +125,7 @@ func _test_dispatch_order_state_isolation_and_signals(
 	)
 	test_runner.assert_equal(
 		"派单顺序 / 第一条完成后载入第二条",
-		"CASE_002",
+		"TEST_CASE_002",
 		String(manager.get_active_dispatch().dispatch_id)
 	)
 	_assert_fresh_dispatch_state(test_runner, manager, "第二条")
@@ -134,7 +136,7 @@ func _test_dispatch_order_state_isolation_and_signals(
 	)
 	test_runner.assert_equal(
 		"派单顺序 / 第二条完成后载入第三条",
-		"CASE_003",
+		"TEST_CASE_003",
 		String(manager.get_active_dispatch().dispatch_id)
 	)
 	_assert_fresh_dispatch_state(test_runner, manager, "第三条")
@@ -154,7 +156,7 @@ func _test_dispatch_order_state_isolation_and_signals(
 	)
 	test_runner.assert_equal(
 		"流程信号 / 三条派单按顺序发送 dispatch_started",
-		[&"CASE_001", &"CASE_002", &"CASE_003"],
+		[&"TEST_CASE_001", &"TEST_CASE_002", &"TEST_CASE_003"],
 		started_dispatch_ids
 	)
 	test_runner.assert_equal(

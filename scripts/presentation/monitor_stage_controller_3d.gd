@@ -302,7 +302,7 @@ func set_floor_display_id(floor_id: StringName) -> bool:
 	if _floor_label == null:
 		push_warning("监控摄影棚缺少楼层编号节点，无法更新显示。")
 		return false
-	# 编号像墙面喷涂：共用动态节点只显示原编号，保留 004 等前导零。
+	# 编号像墙面喷涂：共用动态节点只显示原编号，保留 001 等前导零。
 	var display_id := String(floor_id)
 	_floor_label.text = FLOOR_LABEL_FALLBACK \
 			if display_id.is_empty() else display_id

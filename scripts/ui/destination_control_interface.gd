@@ -7,7 +7,6 @@ const FlowCommandResultScript := preload(
 )
 
 
-signal return_requested
 signal presentation_effects_requested(effects: Array[StringName])
 signal destination_presentation_changed(snapshot: Dictionary)
 signal destination_travel_result(result: FlowCommandResult)
@@ -118,13 +117,6 @@ func _on_shift_completed() -> void:
 
 func _refresh_case_display() -> void:
 	_notify_destination_presentation_changed()
-
-
-func show_destination_console() -> void:
-	_initialize_destination_text()
-	_notify_destination_presentation_changed()
-	if not embedded_3d_mode:
-		show()
 
 
 func set_embedded_3d_mode(is_enabled: bool) -> void:
@@ -249,21 +241,13 @@ func get_destination_presentation() -> Dictionary:
 	var current_floor := "---"
 	var validated_floor := _standalone_validated_floor
 	var recommendations: Array[String] = []
-	var relevance_text := "—"
-	var stability_text := "—"
 	if demo_flow_manager != null:
 		current_floor = demo_flow_manager.get_current_floor()
 		for recommendation: String in _get_recommended_destinations():
 			recommendations.append(recommendation)
 		if demo_flow_manager.has_active_dispatch():
 			validated_floor = demo_flow_manager.get_validated_floor()
-		if not validated_floor.is_empty() and _can_show_dispatch_evaluation():
-			var relation := _get_dispatch_floor_relation(validated_floor)
-			if relation != null:
-				relevance_text = "%d%%" % relation.relevance
-				stability_text = _get_stability_preview_label(
-					String(relation.stability_preview)
-				)
+
 	var recommendation_text := "—"
 	if _should_show_recommendations() and not recommendations.is_empty():
 		recommendation_text = " / ".join(recommendations)
@@ -273,8 +257,6 @@ func get_destination_presentation() -> Dictionary:
 		"recommended": recommendation_text,
 		"validated_floor": validated_floor if not validated_floor.is_empty() else "---",
 		"address_status": _address_status,
-		"relevance": relevance_text,
-		"stability": stability_text,
 		"feedback": _destination_feedback,
 		"presentation_busy": _is_presentation_busy(),
 	}
@@ -301,7 +283,7 @@ func _notify_destination_presentation_changed() -> void:
 
 
 func _get_current_destination() -> String:
-	# 保留字符串编号，例如 004；只清理首尾空格。
+	# 保留字符串编号，例如 001；只清理首尾空格。
 	return _destination_input.strip_edges()
 
 
@@ -322,58 +304,3 @@ func _should_show_recommendations() -> bool:
 		DispatchPhase.ARRIVED_AT_PICKUP,
 		DispatchPhase.DOOR_GREETING_DONE,
 	]
-
-
-func _get_dispatch_floor_relation(floor_id: String) -> DispatchFloorRelation:
-	if demo_flow_manager == null:
-		return null
-	return demo_flow_manager.get_dispatch_floor_relation(floor_id)
-
-
-# 3D 纸质书只读取楼层固有资料；不接入当前派单或目的地验证状态。
-func get_floor_book_page_count() -> int:
-	return _get_floor_definitions().size()
-
-
-func get_floor_book_snapshot(page_index: int) -> Dictionary:
-	var floors: Array[FloorDefinition] = _get_floor_definitions()
-	if page_index < 0 or page_index >= floors.size():
-		return {}
-	var floor: FloorDefinition = floors[page_index]
-	return {
-		"floor_id": String(floor.floor_id),
-		"display_name": floor.display_name,
-		"description": floor.description,
-		"function_description": floor.function_description,
-		"maintenance_history": floor.maintenance_history,
-		"book_note": floor.book_note,
-		"page_number": page_index + 1,
-		"page_count": floors.size(),
-	}
-
-
-func _get_floor_definitions() -> Array[FloorDefinition]:
-	return ContentRegistry.get_all_floors()
-
-
-func _get_stability_preview_label(stability_preview: String) -> String:
-	match stability_preview:
-		"basic_stable":
-			return "基本稳定"
-		"stable":
-			return "稳定"
-		"minor_fluctuation":
-			return "轻微波动"
-		"moderate_fluctuation":
-			return "中等波动"
-		"major_fluctuation":
-			return "严重波动"
-		_:
-			return "无当前数据"
-
-
-func _can_show_dispatch_evaluation() -> bool:
-	# 已有派单和乘客已进舱是两个条件；只有舱内阶段才展示派单关联评估。
-	return demo_flow_manager != null \
-			and demo_flow_manager.has_active_dispatch() \
-			and demo_flow_manager.is_passenger_onboard()

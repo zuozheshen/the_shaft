@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://bcuj85e0qibpq" path="res://scripts/presentation/elevator_movement_audio.gd" id="elevator_movement_audio"]
 [ext_resource type="AudioStream" uid="uid://7vwof084qst3" path="res://assets/audio/sfx/cabin/elevator_running.wav" id="elevator_running"]
-
 [ext_resource type="Script" uid="uid://bfnx7v1oyqct0" path="res://scripts/elevator/cabin_view_controller_3d.gd" id="1_wegik"]
 [ext_resource type="PackedScene" uid="uid://dwgr21xrksmb4" path="res://scenes/ui/ConsoleInterface.tscn" id="2_laov4"]
 [ext_resource type="PackedScene" uid="uid://2mxpahaa3nm2" path="res://scenes/ui/BuildingTerminalInterface.tscn" id="3_tyhlv"]
@@ -15,23 +14,28 @@
 [ext_resource type="PackedScene" uid="uid://dqvlv34vy8o8r" path="res://scenes/presentation/monitor_test_stage_3d.tscn" id="21_1mpkw"]
 [ext_resource type="Script" uid="uid://dueo2abjakhgp" path="res://scripts/presentation/monitor_camera_controller_3d.gd" id="22_monitor"]
 [ext_resource type="Script" uid="uid://c133bgm4b8y6o" path="res://scripts/presentation/monitor_presentation_coordinator_3d.gd" id="23_coordinator"]
-[ext_resource type="Script" uid="uid://bab6xcd6cis7y" path="res://scripts/presentation/passenger_visual_profile.gd" id="24_profile_type"]
-[ext_resource type="Resource" uid="uid://qboej4pygmj3" path="res://data/presentation/passenger_visuals/passenger_001_visual.tres" id="25_profile_001"]
-[ext_resource type="Resource" uid="uid://gw55fsmksqss" path="res://data/presentation/passenger_visuals/passenger_002_visual.tres" id="26_profile_002"]
-[ext_resource type="Resource" uid="uid://cx6gtb1u7v8xq" path="res://data/presentation/passenger_visuals/passenger_003_visual.tres" id="27_profile_003"]
-[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_004_visual.tres" id="50_floor_004"]
-[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_318_visual.tres" id="50_floor_318"]
-[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_387_visual.tres" id="50_floor_387"]
-[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_392_visual.tres" id="50_floor_392"]
-[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_547_visual.tres" id="50_floor_547"]
-[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_612_visual.tres" id="50_floor_612"]
-[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_742_visual.tres" id="50_floor_742"]
-[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_900_visual.tres" id="50_floor_900"]
-[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_fallback_visual.tres" id="50_floor_fallback"]
 [ext_resource type="Script" uid="uid://bf4fhxjlwlla6" path="res://scripts/presentation/floor_visual_profile.gd" id="50_floor_type"]
 [ext_resource type="Script" uid="uid://cjs2vtxivfkth" path="res://scripts/presentation/main_console_presentation_3d.gd" id="52_presentation"]
 [ext_resource type="Script" uid="uid://u2qihnbwl7la" path="res://scripts/presentation/right_console_presentation_3d.gd" id="53_right_presentation"]
-[ext_resource type="Script" uid="uid://bhfuy0jvwqvjg" path="res://scripts/presentation/floor_guide_book_3d.gd" id="57_book"]
+[ext_resource type="AudioStream" uid="uid://bihhlixiv37ax" path="res://assets/audio/sfx/cabin/ambience.mp3" id="cabin_ambience"]
+[ext_resource type="AudioStream" uid="uid://ce47x48y632vm" path="res://assets/audio/sfx/cabin/chair_1.wav" id="chair_turn_1"]
+[ext_resource type="AudioStream" uid="uid://dgwdpfq4c01pt" path="res://assets/audio/sfx/cabin/left_click_1.wav" id="left_click_1"]
+[ext_resource type="AudioStream" uid="uid://dxbleokuoqb4e" path="res://assets/audio/sfx/cabin/left_click_2.wav" id="left_click_2"]
+[ext_resource type="AudioStream" uid="uid://cajcfqv1vftk5" path="res://assets/audio/sfx/cabin/left_click_3.wav" id="left_click_3"]
+[ext_resource type="AudioStream" uid="uid://bsop2nk3n3hhs" path="res://assets/audio/sfx/cabin/left_click_4.wav" id="left_click_4"]
+[ext_resource type="AudioStream" uid="uid://dx80p0n64rdgp" path="res://assets/audio/sfx/cabin/left_switch.wav" id="left_switch"]
+[ext_resource type="AudioStream" uid="uid://bac54dip0uayi" path="res://assets/audio/sfx/cabin/main_click_1.wav" id="main_click_1"]
+[ext_resource type="AudioStream" uid="uid://bpwrbakacl5kp" path="res://assets/audio/sfx/cabin/main_click_2.wav" id="main_click_2"]
+[ext_resource type="AudioStream" uid="uid://cbxif42tqp35n" path="res://assets/audio/sfx/cabin/main_click_3.wav" id="main_click_3"]
+[ext_resource type="AudioStream" uid="uid://b7hxfsesxj7f1" path="res://assets/audio/sfx/cabin/mic_off.wav" id="mic_off"]
+[ext_resource type="AudioStream" uid="uid://ctd27k15ryhfr" path="res://assets/audio/sfx/cabin/mic_on.wav" id="mic_on"]
+[ext_resource type="AudioStream" uid="uid://v2xxert2jui4" path="res://assets/audio/sfx/cabin/right_lever.wav" id="right_lever"]
+[ext_resource type="AudioStream" uid="uid://dk12qp03xm1e2" path="res://assets/audio/sfx/cabin/right_numbers_1.wav" id="right_numbers_1"]
+[ext_resource type="AudioStream" uid="uid://nxxtgtv3usqr" path="res://assets/audio/sfx/cabin/right_numbers_2.wav" id="right_numbers_2"]
+[ext_resource type="AudioStream" uid="uid://w07m7qllbeok" path="res://assets/audio/sfx/cabin/right_numbers_3.wav" id="right_numbers_3"]
+[ext_resource type="AudioStream" uid="uid://b34w0ovjasotn" path="res://assets/audio/sfx/cabin/right_verify.wav" id="right_verify"]
+[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_318_visual.tres" id="50_floor_318"]
+[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_fallback_visual.tres" id="50_floor_fallback"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/main_console_shell_visual.tscn" id="62_main_shell"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/indicator_lamp_visual.tscn" id="63_lamp"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/button_large_visual.tscn" id="63_large"]
@@ -58,33 +62,13 @@
 [ext_resource type="PackedScene" path="res://scenes/visuals/left_archive_key_visual.tscn" id="69_left_key"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/left_archive_scroll_visual.tscn" id="69_left_scroll"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/left_archive_terminal_shell_visual.tscn" id="69_left_shell"]
-[ext_resource type="Texture2D" uid="uid://dd7n2h81nq21e" path="res://assets/art/textures/main_console_v2/control_normal_256.png" id="71_book_micro_normal"]
-[ext_resource type="Texture2D" uid="uid://3knpge48nm3k" path="res://assets/art/textures/main_console_v2/control_roughness_256.png" id="71_book_micro_rough"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/right_route_lever_handle_visual.tscn" id="71_handle"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/right_route_key_cap_visual.tscn" id="71_key"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/right_route_terminal_shell_visual.tscn" id="71_shell"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/right_route_verify_cap_visual.tscn" id="71_verify"]
 [ext_resource type="Environment" path="res://assets/art/lighting/atmosphere_cabin_experiment.tres" id="72_atmosphere_env"]
-[ext_resource type="AudioStream" uid="uid://bihhlixiv37ax" path="res://assets/audio/sfx/cabin/ambience.mp3" id="cabin_ambience"]
-[ext_resource type="AudioStream" uid="uid://ce47x48y632vm" path="res://assets/audio/sfx/cabin/chair_1.wav" id="chair_turn_1"]
-[ext_resource type="AudioStream" uid="uid://dgwdpfq4c01pt" path="res://assets/audio/sfx/cabin/left_click_1.wav" id="left_click_1"]
-[ext_resource type="AudioStream" uid="uid://dxbleokuoqb4e" path="res://assets/audio/sfx/cabin/left_click_2.wav" id="left_click_2"]
-[ext_resource type="AudioStream" uid="uid://cajcfqv1vftk5" path="res://assets/audio/sfx/cabin/left_click_3.wav" id="left_click_3"]
-[ext_resource type="AudioStream" uid="uid://bsop2nk3n3hhs" path="res://assets/audio/sfx/cabin/left_click_4.wav" id="left_click_4"]
-[ext_resource type="AudioStream" uid="uid://dx80p0n64rdgp" path="res://assets/audio/sfx/cabin/left_switch.wav" id="left_switch"]
-[ext_resource type="AudioStream" uid="uid://bac54dip0uayi" path="res://assets/audio/sfx/cabin/main_click_1.wav" id="main_click_1"]
-[ext_resource type="AudioStream" uid="uid://bpwrbakacl5kp" path="res://assets/audio/sfx/cabin/main_click_2.wav" id="main_click_2"]
-[ext_resource type="AudioStream" uid="uid://cbxif42tqp35n" path="res://assets/audio/sfx/cabin/main_click_3.wav" id="main_click_3"]
-[ext_resource type="AudioStream" uid="uid://b7hxfsesxj7f1" path="res://assets/audio/sfx/cabin/mic_off.wav" id="mic_off"]
-[ext_resource type="AudioStream" uid="uid://ctd27k15ryhfr" path="res://assets/audio/sfx/cabin/mic_on.wav" id="mic_on"]
-[ext_resource type="AudioStream" uid="uid://cctn3ta7huewx" path="res://assets/audio/sfx/cabin/right_book_close.wav" id="right_book_close"]
-[ext_resource type="AudioStream" uid="uid://clrotqieqxax0" path="res://assets/audio/sfx/cabin/right_book_open.wav" id="right_book_open"]
-[ext_resource type="AudioStream" uid="uid://chidduy575t4m" path="res://assets/audio/sfx/cabin/right_book_turn.wav" id="right_book_turn"]
-[ext_resource type="AudioStream" uid="uid://v2xxert2jui4" path="res://assets/audio/sfx/cabin/right_lever.wav" id="right_lever"]
-[ext_resource type="AudioStream" uid="uid://dk12qp03xm1e2" path="res://assets/audio/sfx/cabin/right_numbers_1.wav" id="right_numbers_1"]
-[ext_resource type="AudioStream" uid="uid://nxxtgtv3usqr" path="res://assets/audio/sfx/cabin/right_numbers_2.wav" id="right_numbers_2"]
-[ext_resource type="AudioStream" uid="uid://w07m7qllbeok" path="res://assets/audio/sfx/cabin/right_numbers_3.wav" id="right_numbers_3"]
-[ext_resource type="AudioStream" uid="uid://b34w0ovjasotn" path="res://assets/audio/sfx/cabin/right_verify.wav" id="right_verify"]
+[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_001_visual.tres" id="reset_001"]
+[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_002_visual.tres" id="reset_002"]
 
 [sub_resource type="BoxMesh" id="66_floor_trim"]
 material = ExtResource("66_trim")
@@ -292,63 +276,6 @@ size = Vector3(0.1, 0.176667, 0.243333)
 material = SubResource("53_hover")
 size = Vector3(0.005, 0.176667, 0.246667)
 
-[sub_resource type="StandardMaterial3D" id="53_book_cover"]
-resource_local_to_scene = true
-albedo_color = Color(0.22, 0.08, 0.055, 1)
-roughness = 0.8
-roughness_texture = ExtResource("71_book_micro_rough")
-normal_enabled = true
-normal_scale = 0.12
-normal_texture = ExtResource("71_book_micro_normal")
-uv1_scale = Vector3(3, 3, 1)
-
-[sub_resource type="BoxMesh" id="53_book_cover_mesh"]
-material = SubResource("53_book_cover")
-size = Vector3(0.105, 0.49, 0.65)
-
-[sub_resource type="BoxMesh" id="57_book_spine_mesh"]
-material = SubResource("53_book_cover")
-size = Vector3(0.12, 0.5, 0.06)
-
-[sub_resource type="StandardMaterial3D" id="53_pages"]
-resource_local_to_scene = true
-albedo_color = Color(0.72, 0.68, 0.55, 1)
-roughness = 0.85
-
-[sub_resource type="BoxMesh" id="53_book_pages_mesh"]
-material = SubResource("53_pages")
-size = Vector3(0.09, 0.46, 0.62)
-
-[sub_resource type="BoxMesh" id="57_left_page_base_mesh"]
-material = SubResource("53_pages")
-size = Vector3(0.09, 0.46, 0.62)
-
-[sub_resource type="QuadMesh" id="57_page_mesh"]
-size = Vector2(0.6, 0.44)
-
-[sub_resource type="StandardMaterial3D" id="57_turn_page_material"]
-cull_mode = 2
-shading_mode = 0
-albedo_color = Color(0.92, 0.88, 0.75, 1)
-
-[sub_resource type="QuadMesh" id="57_turn_page_mesh"]
-material = SubResource("57_turn_page_material")
-size = Vector2(0.6, 0.44)
-
-[sub_resource type="BoxShape3D" id="57_closed_book_shape"]
-size = Vector3(0.15, 0.5, 0.66)
-
-[sub_resource type="BoxMesh" id="57_book_hover_mesh"]
-material = SubResource("53_hover")
-size = Vector3(0.11, 0.51, 0.68)
-
-[sub_resource type="BoxShape3D" id="57_page_hotspot_shape"]
-size = Vector3(0.1, 0.46, 0.18)
-
-[sub_resource type="BoxMesh" id="57_page_hover_mesh"]
-material = SubResource("53_hover")
-size = Vector3(0.015, 0.44, 0.17)
-
 [sub_resource type="BoxShape3D" id="53_lever_shape"]
 size = Vector3(0.69, 0.3, 0.29)
 
@@ -412,8 +339,8 @@ script = ExtResource("1_wegik")
 
 [node name="监控表现协调器" type="Node" parent="." unique_id=333989727]
 script = ExtResource("23_coordinator")
-passenger_visual_profiles = Array[ExtResource("24_profile_type")]([ExtResource("25_profile_001"), ExtResource("26_profile_002"), ExtResource("27_profile_003")])
-floor_visual_profiles = Array[ExtResource("50_floor_type")]([ExtResource("50_floor_900"), ExtResource("50_floor_742"), ExtResource("50_floor_612"), ExtResource("50_floor_004"), ExtResource("50_floor_387"), ExtResource("50_floor_392"), ExtResource("50_floor_547"), ExtResource("50_floor_318")])
+passenger_visual_profiles = []
+floor_visual_profiles = Array[ExtResource("50_floor_type")]([ExtResource("50_floor_318"), ExtResource("reset_001"), ExtResource("reset_002")])
 fallback_floor_visual_profile = ExtResource("50_floor_fallback")
 
 [node name="灰盒环境" type="Node3D" parent="." unique_id=408541640]
@@ -1563,289 +1490,6 @@ transform = Transform3D(0.9781476, 0.2079117, 0, -0.2079117, 0.9781476, 0, 0, 0,
 
 [node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根" unique_id=161293220]
 
-[node name="楼层导引书" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根" unique_id=347147836]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13, 0.01, -0.48)
-script = ExtResource("57_book")
-book_open_sound = ExtResource("right_book_open")
-book_close_sound = ExtResource("right_book_close")
-book_turn_sound = ExtResource("right_book_turn")
-
-[node name="书本音效" type="AudioStreamPlayer" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书" unique_id=1800758414]
-stream = ExtResource("right_book_open")
-
-[node name="RestPose" type="Marker3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书" unique_id=772449292]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3773166, -0.084123135, 0)
-
-[node name="InspectPose" type="Marker3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书" unique_id=54953061]
-transform = Transform3D(1.246955, -0.087196015, 0, 0.087196015, 1.246955, 0, 0, 0, 1.25, -1.8164902, 0.66005445, 0.89999986)
-
-[node name="BookRoot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书" unique_id=107506778]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3773166, -0.084123135, 0)
-
-[node name="CoverPivot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=166836138]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.325)
-
-[node name="封面" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CoverPivot" unique_id=1859705566]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.08, 0, 0.325)
-mesh = SubResource("53_book_cover_mesh")
-
-[node name="封面标题" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CoverPivot" unique_id=288881985]
-transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.15, 0, 0.325)
-pixel_size = 0.0022
-text = "楼层导引 / FLOOR DIRECTORY"
-font = SubResource("71_terminal_font")
-font_size = 22
-outline_size = 3
-
-[node name="Spine" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=1537983762]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.012, 0, -0.325)
-mesh = SubResource("57_book_spine_mesh")
-
-[node name="PageStack" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=205177389]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.012, 0, 0)
-mesh = SubResource("53_book_pages_mesh")
-
-[node name="LeftPageBase" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=79313042]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.012, 0, -0.65)
-visible = false
-mesh = SubResource("57_left_page_base_mesh")
-
-[node name="LeftPageMesh" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=2090467621]
-transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.065, 0, -0.65)
-visible = false
-mesh = SubResource("57_page_mesh")
-
-[node name="RightPageMesh" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=1817598701]
-transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.065, 0, 0)
-visible = false
-mesh = SubResource("57_page_mesh")
-
-[node name="TurnPagePivot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=876631643]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, 0, -0.325)
-
-[node name="TurnPage" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/TurnPagePivot" unique_id=1173876556]
-transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, 0, 0, 0.325)
-visible = false
-mesh = SubResource("57_turn_page_mesh")
-
-[node name="BookHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=282330147]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, 0, 0)
-collision_layer = 128
-collision_mask = 0
-script = ExtResource("8_hotspot")
-action_id = &"floor_book_open"
-prompt_text = "拿起楼层导引书"
-station_id = &"right_console"
-hover_visual_path = NodePath("Hover")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/BookHotspot" unique_id=390612271]
-shape = SubResource("57_closed_book_shape")
-
-[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/BookHotspot" unique_id=438741148]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.095, 0, 0)
-visible = false
-mesh = SubResource("57_book_hover_mesh")
-
-[node name="PrevPageHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=1735830577]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, 0, -0.91)
-collision_layer = 0
-collision_mask = 0
-script = ExtResource("8_hotspot")
-action_id = &"floor_book_previous"
-prompt_text = "上一页"
-station_id = &"right_console"
-interaction_enabled = false
-hover_visual_path = NodePath("Hover")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/PrevPageHotspot" unique_id=1884994094]
-shape = SubResource("57_page_hotspot_shape")
-
-[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/PrevPageHotspot" unique_id=1250371057]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.052, 0, 0)
-visible = false
-mesh = SubResource("57_page_hover_mesh")
-
-[node name="NextPageHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=1208915294]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, 0, 0.27)
-collision_layer = 0
-collision_mask = 0
-script = ExtResource("8_hotspot")
-action_id = &"floor_book_next"
-prompt_text = "下一页"
-station_id = &"right_console"
-interaction_enabled = false
-hover_visual_path = NodePath("Hover")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/NextPageHotspot" unique_id=1428059663]
-shape = SubResource("57_page_hotspot_shape")
-
-[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/NextPageHotspot" unique_id=1931101320]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.052, 0, 0)
-visible = false
-mesh = SubResource("57_page_hover_mesh")
-
-[node name="CloseBookHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=1553125134]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, 0, -0.325)
-collision_layer = 0
-collision_mask = 0
-script = ExtResource("8_hotspot")
-action_id = &"floor_book_close"
-prompt_text = "合上导引书"
-station_id = &"right_console"
-interaction_enabled = false
-hover_visual_path = NodePath("Hover")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CloseBookHotspot" unique_id=1006434285]
-shape = SubResource("57_page_hotspot_shape")
-
-[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CloseBookHotspot" unique_id=154334960]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.052, 0, 0)
-visible = false
-mesh = SubResource("57_page_hover_mesh")
-
-[node name="LeftPageViewport" type="SubViewport" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书" unique_id=712209627]
-disable_3d = true
-size = Vector2i(1024, 768)
-render_target_update_mode = 0
-
-[node name="Page" type="Control" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport" unique_id=381786215]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 1024.0
-offset_bottom = 768.0
-mouse_filter = 2
-
-[node name="Paper" type="ColorRect" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page" unique_id=204024929]
-layout_mode = 0
-offset_right = 1024.0
-offset_bottom = 768.0
-mouse_filter = 2
-color = Color(0.93, 0.9, 0.81, 1)
-
-[node name="Number" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page" unique_id=529943932]
-layout_mode = 0
-offset_left = 65.0
-offset_top = 35.0
-offset_right = 950.0
-offset_bottom = 125.0
-theme_override_colors/font_color = Color(0.15, 0.19, 0.19, 1)
-theme_override_font_sizes/font_size = 80
-text = "900"
-
-[node name="Name" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page" unique_id=996395140]
-layout_mode = 0
-offset_left = 65.0
-offset_top = 150.0
-offset_right = 950.0
-offset_bottom = 230.0
-theme_override_colors/font_color = Color(0.15, 0.19, 0.19, 1)
-theme_override_font_sizes/font_size = 50
-text = "楼层名称"
-
-[node name="Description" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page" unique_id=146788508]
-layout_mode = 0
-offset_left = 65.0
-offset_top = 275.0
-offset_right = 950.0
-offset_bottom = 690.0
-theme_override_colors/font_color = Color(0.19, 0.22, 0.22, 1)
-theme_override_font_sizes/font_size = 42
-text = "楼层介绍"
-autowrap_mode = 3
-
-[node name="RightPageViewport" type="SubViewport" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书" unique_id=1455483811]
-disable_3d = true
-size = Vector2i(1024, 768)
-render_target_update_mode = 0
-
-[node name="Page" type="Control" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport" unique_id=1428814330]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 1024.0
-offset_bottom = 768.0
-mouse_filter = 2
-
-[node name="Paper" type="ColorRect" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=1281627078]
-layout_mode = 0
-offset_right = 1024.0
-offset_bottom = 768.0
-mouse_filter = 2
-color = Color(0.93, 0.9, 0.81, 1)
-
-[node name="FunctionHeading" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=1397456236]
-layout_mode = 0
-offset_left = 60.0
-offset_top = 32.0
-offset_right = 960.0
-offset_bottom = 80.0
-theme_override_colors/font_color = Color(0.2, 0.34, 0.33, 1)
-theme_override_font_sizes/font_size = 36
-text = "主要功能"
-
-[node name="FunctionText" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=1838238425]
-layout_mode = 0
-offset_left = 60.0
-offset_top = 90.0
-offset_right = 960.0
-offset_bottom = 205.0
-theme_override_colors/font_color = Color(0.19, 0.22, 0.22, 1)
-theme_override_font_sizes/font_size = 38
-text = "主要功能正文"
-autowrap_mode = 3
-
-[node name="HistoryHeading" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=1315979156]
-layout_mode = 0
-offset_left = 60.0
-offset_top = 238.0
-offset_right = 960.0
-offset_bottom = 286.0
-theme_override_colors/font_color = Color(0.2, 0.34, 0.33, 1)
-theme_override_font_sizes/font_size = 36
-text = "维修历史"
-
-[node name="HistoryText" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=1950001516]
-layout_mode = 0
-offset_left = 60.0
-offset_top = 296.0
-offset_right = 960.0
-offset_bottom = 425.0
-theme_override_colors/font_color = Color(0.19, 0.22, 0.22, 1)
-theme_override_font_sizes/font_size = 38
-text = "维修历史正文"
-autowrap_mode = 3
-
-[node name="NoteHeading" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=428464515]
-layout_mode = 0
-offset_left = 60.0
-offset_top = 456.0
-offset_right = 960.0
-offset_bottom = 504.0
-theme_override_colors/font_color = Color(0.2, 0.34, 0.33, 1)
-theme_override_font_sizes/font_size = 36
-text = "备注"
-
-[node name="NoteText" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=1498888652]
-layout_mode = 0
-offset_left = 60.0
-offset_top = 514.0
-offset_right = 960.0
-offset_bottom = 655.0
-theme_override_colors/font_color = Color(0.19, 0.22, 0.22, 1)
-theme_override_font_sizes/font_size = 38
-text = "备注正文"
-autowrap_mode = 3
-
-[node name="PageCount" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=1192063820]
-layout_mode = 0
-offset_left = 60.0
-offset_top = 690.0
-offset_right = 960.0
-offset_bottom = 748.0
-theme_override_colors/font_color = Color(0.2, 0.34, 0.33, 1)
-theme_override_font_sizes/font_size = 38
-text = "01 / 07"
-horizontal_alignment = 2
-
 [node name="执行拨杆热点" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根" unique_id=2076703392]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.36210948, 0.23675676, 0.575)
 collision_layer = 128
@@ -2023,7 +1667,6 @@ building_terminal_interface_path = NodePath("../操作台占位/左操作台定�
 left_console_presentation_path = NodePath("../操作台占位/左操作台定位")
 destination_interface_path = NodePath("../操作台界面层/操作台界面根/右操作台界面容器/DestinationControlInterface")
 right_console_presentation_path = NodePath("../右台展示绑定")
-floor_guide_book_path = NodePath("../操作台占位/右操作台定位/下部斜面根/楼层导引书")
 interaction_hint_label_path = NodePath("../调试界面/操作提示文本")
 
 [node name="观察方向" type="Node3D" parent="." unique_id=1741820516]

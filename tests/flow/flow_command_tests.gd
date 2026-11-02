@@ -1,7 +1,9 @@
 extends RefCounted
 
+const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
 
-const DEMO_SHIFT: ShiftDefinition = preload("res://data/shifts/demo_shift_001.tres")
+
+var DEMO_SHIFT: ShiftDefinition = TestContent.shift()
 const FlowCommandResultScript := preload(
 	"res://scripts/runtime/commands/flow_command_result.gd"
 )
@@ -408,7 +410,7 @@ func _test_dropoff_and_shift_completion_commands(
 	)
 	test_runner.assert_equal(
 		"结算命令 / 第一单结束后载入第二单",
-		"CASE_002",
+		"TEST_CASE_002",
 		String(manager.get_active_dispatch().dispatch_id)
 	)
 	test_runner.assert_equal(
@@ -460,7 +462,7 @@ func _test_dropoff_and_shift_completion_commands(
 	)
 	test_runner.assert_equal(
 		"结算命令 / 第二单结束后载入第三单",
-		"CASE_003",
+		"TEST_CASE_003",
 		String(manager.get_active_dispatch().dispatch_id)
 	)
 	test_runner.assert_equal(

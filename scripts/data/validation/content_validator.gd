@@ -186,7 +186,6 @@ static func _validate_dispatches(
 			report
 		)
 		_validate_pickup_data(dispatch, context, report)
-		_validate_camera_feeds(dispatch, context, report)
 		_validate_front_phase_texts(dispatch, context, report)
 		_validate_dialogue(dispatch, context, floor_ids, relations, report)
 
@@ -346,54 +345,6 @@ static func _validate_pickup_data(
 				context,
 				"pickup_data.%s 必须是非空 String。" % key
 			)
-
-
-static func _validate_camera_feeds(
-	dispatch: DispatchDefinition,
-	context: String,
-	report: ContentValidationReport
-) -> void:
-	var active_phases := _get_active_phases()
-	for raw_key: Variant in dispatch.camera_feeds.keys():
-		var phase := String(raw_key)
-		if phase not in active_phases:
-			report.add_error(
-				&"CAMERA_PHASE_INVALID",
-				context,
-				"camera_feeds 包含非法阶段：%s。" % phase
-			)
-
-	for phase: String in active_phases:
-		if not dispatch.camera_feeds.has(phase):
-			report.add_error(
-				&"CAMERA_PHASE_MISSING",
-				context,
-				"camera_feeds 缺少阶段：%s。" % phase
-			)
-			continue
-		var value: Variant = dispatch.camera_feeds[phase]
-		if not (value is Array):
-			report.add_error(
-				&"CAMERA_VALUE_TYPE_INVALID",
-				context,
-				"camera_feeds.%s 必须是 Array。" % phase
-			)
-			continue
-		var feeds := value as Array
-		if feeds.size() != 2:
-			report.add_error(
-				&"CAMERA_FEED_COUNT_INVALID",
-				context,
-				"camera_feeds.%s 必须包含 2 项，实际为 %d 项。" % [phase, feeds.size()]
-			)
-		for feed_index: int in feeds.size():
-			var feed: Variant = feeds[feed_index]
-			if not (feed is String) or String(feed).strip_edges().is_empty():
-				report.add_error(
-					&"CAMERA_FEED_TEXT_INVALID",
-					context,
-					"camera_feeds.%s[%d] 必须是非空 String。" % [phase, feed_index]
-				)
 
 
 static func _validate_front_phase_texts(
@@ -737,5 +688,5 @@ static func _get_active_phases() -> Array[String]:
 
 
 static func _normalized_id(value: Variant) -> String:
-	# ID 只清理首尾空格，保留 004 等前导零。
+	# ID 只清理首尾空格，保留 001 等前导零。
 	return String(value).strip_edges()

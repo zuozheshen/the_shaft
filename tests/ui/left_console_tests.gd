@@ -1,4 +1,6 @@
 extends RefCounted
+
+const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
 ## 使用正式 main_3d 验证左台实体入口复用唯一 BuildingTerminalInterface。
 
 const MAIN := preload("res://scenes/main/main_3d.tscn")
@@ -6,6 +8,7 @@ const MAIN := preload("res://scenes/main/main_3d.tscn")
 
 func run(t: Variant, tree: SceneTree) -> void:
 	var main := MAIN.instantiate()
+	TestContent.prepare_scene(main)
 	t.add_child(main)
 	await _frames(tree)
 	var cabin := main.get_node("三维操作舱") as CabinViewController3D

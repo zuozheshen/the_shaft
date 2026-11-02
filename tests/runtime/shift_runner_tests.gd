@@ -1,7 +1,9 @@
 extends RefCounted
 
+const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
 
-const DEMO_SHIFT: ShiftDefinition = preload("res://data/shifts/demo_shift_001.tres")
+
+var DEMO_SHIFT: ShiftDefinition = TestContent.shift()
 const ShiftRunnerScript := preload("res://scripts/runtime/shift/shift_runner.gd")
 
 
@@ -10,17 +12,17 @@ func run(test_runner: Variant) -> void:
 	test_runner.assert_true("ShiftRunner / 有效值班开始", runner.start_shift(DEMO_SHIFT))
 	test_runner.assert_equal(
 		"ShiftRunner / 第一条派单顺序正确",
-		&"CASE_001",
+		&"TEST_CASE_001",
 		runner.get_next_dispatch_id()
 	)
 	test_runner.assert_equal(
 		"ShiftRunner / 第二条派单顺序正确",
-		&"CASE_002",
+		&"TEST_CASE_002",
 		runner.get_next_dispatch_id()
 	)
 	test_runner.assert_equal(
 		"ShiftRunner / 第三条派单顺序正确",
-		&"CASE_003",
+		&"TEST_CASE_003",
 		runner.get_next_dispatch_id()
 	)
 	test_runner.assert_equal(
@@ -29,7 +31,7 @@ func run(test_runner: Variant) -> void:
 		runner.get_next_dispatch_id()
 	)
 
-	var result := DispatchResult.create(&"CASE_001", &"passenger_001", &"900", 1)
+	var result := DispatchResult.create(&"TEST_CASE_001", &"TEST_PERSON_001", &"900", 1)
 	test_runner.assert_true(
 		"ShiftRunner / 完成结果可以记录",
 		runner.record_completed_result(result)
@@ -52,7 +54,7 @@ func run(test_runner: Variant) -> void:
 	)
 	test_runner.assert_equal(
 		"ShiftRunner / 重启值班从第一条开始",
-		&"CASE_001",
+		&"TEST_CASE_001",
 		runner.get_next_dispatch_id()
 	)
 	test_runner.assert_true("ShiftRunner / 首次结束值班成功", runner.finish_shift())

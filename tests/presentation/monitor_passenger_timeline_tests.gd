@@ -1,5 +1,7 @@
 extends RefCounted
 
+const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
+
 
 const MONITOR_STAGE_SCENE: PackedScene = preload(
 	"res://scenes/presentation/monitor_test_stage_3d.tscn"
@@ -13,18 +15,10 @@ const CONSOLE_SCENE: PackedScene = preload(
 const DESTINATION_SCENE: PackedScene = preload(
 	"res://scenes/ui/DestinationControlInterface.tscn"
 )
-const DEMO_SHIFT: ShiftDefinition = preload(
-	"res://data/shifts/demo_shift_001.tres"
-)
-const PASSENGER_PROFILE_001: PassengerVisualProfile = preload(
-	"res://data/presentation/passenger_visuals/passenger_001_visual.tres"
-)
-const PASSENGER_PROFILE_002: PassengerVisualProfile = preload(
-	"res://data/presentation/passenger_visuals/passenger_002_visual.tres"
-)
-const PASSENGER_PROFILE_003: PassengerVisualProfile = preload(
-	"res://data/presentation/passenger_visuals/passenger_003_visual.tres"
-)
+var DEMO_SHIFT: ShiftDefinition = TestContent.shift()
+var PASSENGER_PROFILE_001: PassengerVisualProfile = TestContent.profile(1)
+var PASSENGER_PROFILE_002: PassengerVisualProfile = TestContent.profile(2)
+var PASSENGER_PROFILE_003: PassengerVisualProfile = TestContent.profile(3)
 
 
 func run(test_runner: Variant, tree: SceneTree) -> void:
@@ -293,7 +287,7 @@ func _test_coordinator_complete_shift(
 	test_runner.assert_true(
 		"表现协调器 / setup 应用 passenger_001 且初始隐藏",
 		passenger.get_current_profile() == PASSENGER_PROFILE_001
-				and passenger.get_passenger_id() == &"passenger_001"
+				and passenger.get_passenger_id() == &"TEST_PERSON_001"
 				and stage.get_passenger_presentation_state()
 						== MonitorStageController3D \
 								.PassengerPresentationState.HIDDEN
@@ -458,7 +452,7 @@ func _test_coordinator_complete_shift(
 	test_runner.assert_true(
 		"表现协调器 / 关门期间隐藏新派单乘客并应用 passenger_002",
 		manager.has_active_dispatch()
-				and manager.get_active_dispatch().dispatch_id == &"CASE_002"
+				and manager.get_active_dispatch().dispatch_id == &"TEST_CASE_002"
 				and passenger.get_current_profile() == PASSENGER_PROFILE_002
 				and stage.get_passenger_presentation_state()
 						== MonitorStageController3D \
@@ -488,7 +482,7 @@ func _test_coordinator_complete_shift(
 	test_runner.assert_true(
 		"表现协调器 / 第二单完成后应用 passenger_003 且未到接乘层时隐藏",
 		manager.has_active_dispatch()
-				and manager.get_active_dispatch().dispatch_id == &"CASE_003"
+				and manager.get_active_dispatch().dispatch_id == &"TEST_CASE_003"
 				and passenger.get_current_profile() == PASSENGER_PROFILE_003
 				and stage.get_passenger_presentation_state()
 						== MonitorStageController3D \
@@ -512,8 +506,8 @@ func _test_coordinator_complete_shift(
 						== MonitorStageController3D \
 								.PassengerPresentationState.HIDDEN
 				and not coordinator.is_presentation_busy()
-				and completed_ids == [&"CASE_001", &"CASE_002", &"CASE_003"]
-				and started_ids == [&"CASE_002", &"CASE_003"]
+				and completed_ids == [&"TEST_CASE_001", &"TEST_CASE_002", &"TEST_CASE_003"]
+				and started_ids == [&"TEST_CASE_002", &"TEST_CASE_003"]
 				and int(shift_completed_count["value"]) == 1
 	)
 
@@ -678,6 +672,7 @@ func _wait_for_short_tween(tree: SceneTree) -> void:
 
 func _create_fast_stage() -> MonitorStageController3D:
 	var stage := MONITOR_STAGE_SCENE.instantiate() as MonitorStageController3D
+	TestContent.prepare_visual(stage)
 	stage.boarding_to_threshold_duration = 0.01
 	stage.boarding_to_cabin_duration = 0.01
 	stage.disembark_to_threshold_duration = 0.01

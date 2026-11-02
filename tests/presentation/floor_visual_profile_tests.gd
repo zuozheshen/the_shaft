@@ -1,10 +1,12 @@
 extends RefCounted
+
+const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
 ## 使用正式场景配置与内存纹理验证切换；不复制业务资源或新增运行时系统。
 
 const STAGE := preload("res://scenes/presentation/monitor_test_stage_3d.tscn")
 const CABIN := preload("res://scenes/elevator/elevator_cabin_3d.tscn")
 const CATALOG := preload("res://data/catalogs/floor_catalog.tres")
-const SHIFT := preload("res://data/shifts/demo_shift_001.tres")
+var SHIFT = TestContent.shift()
 
 
 func run(r: Variant, tree: SceneTree) -> void:
@@ -17,9 +19,11 @@ func run(r: Variant, tree: SceneTree) -> void:
 
 
 func configured_coordinator() -> MonitorPresentationCoordinator3D:
-	# 读取真实导出配置，宿主不上树，不启动正式 UI 或玩家输入。
+	# 通用时序测试注入无剧情楼层，正式三层配置另由 _test_scene_configuration 核对。
 	var cabin := CABIN.instantiate()
 	var coordinator := cabin.get_node("监控表现协调器") as MonitorPresentationCoordinator3D
+	coordinator.floor_visual_profiles = TestContent.floor_profiles()
+	coordinator.passenger_visual_profiles = [TestContent.profile(1), TestContent.profile(2), TestContent.profile(3)]
 	cabin.remove_child(coordinator)
 	cabin.free()
 	return coordinator
@@ -61,7 +65,9 @@ func _test_scene_configuration(r: Variant) -> void:
 
 func _test_complete_overwrite(r: Variant, tree: SceneTree) -> void:
 	var stage := STAGE.instantiate() as MonitorStageController3D
+	TestContent.prepare_visual(stage)
 	var other := STAGE.instantiate() as MonitorStageController3D
+	TestContent.prepare_visual(other)
 	r.add_child(stage)
 	r.add_child(other)
 	var slice := stage.get_current_floor_slice()
@@ -155,6 +161,7 @@ func _test_arrival_and_fallback(r: Variant, tree: SceneTree) -> void:
 	manager.initial_shift = SHIFT
 	manager.movement_duration_seconds = 0.01
 	var stage := STAGE.instantiate() as MonitorStageController3D
+	TestContent.prepare_visual(stage)
 	var coordinator := configured_coordinator()
 	var original_profiles := coordinator.floor_visual_profiles.duplicate()
 	var original_fallback := coordinator.fallback_floor_visual_profile
@@ -369,6 +376,7 @@ func _test_animation_and_camera_isolation(r: Variant, tree: SceneTree) -> void:
 
 func _test_missing_light(r: Variant, tree: SceneTree) -> void:
 	var stage := STAGE.instantiate() as MonitorStageController3D
+	TestContent.prepare_visual(stage)
 	stage.floor_light_path = NodePath("不存在的门外灯")
 	r.add_child(stage)
 	var profile := FloorVisualProfile.new()
@@ -381,6 +389,7 @@ func _test_missing_light(r: Variant, tree: SceneTree) -> void:
 
 func _test_texture_material_restore(r: Variant, tree: SceneTree) -> void:
 	var stage := STAGE.instantiate() as MonitorStageController3D
+	TestContent.prepare_visual(stage)
 	var slice := stage.get_node("门外楼层区域/门外楼层挂载点/当前楼层切片") as LayeredFloorSlice25D
 	var layer := slice.get_node("中景左层") as MeshInstance3D
 	# 独立实例的非默认透明设置用于证明 null/reset 真正恢复缓存。

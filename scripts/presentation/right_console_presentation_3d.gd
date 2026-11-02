@@ -171,15 +171,12 @@ func _on_destination_presentation_changed(snapshot: Dictionary) -> void:
 	if _information_label == null or _input_label == null or _feedback_label == null:
 		return
 	_information_label.text = (
-		"当前楼层：%s\n系统推荐：%s\n目标楼层：%s\n地址状态：%s\n"
-		+ "派单关联度：%s\n稳定度影响：%s"
+		"当前楼层：%s\n系统推荐：%s\n目标楼层：%s\n地址状态：%s"
 	) % [
 		snapshot.get("current_floor", "---"),
 		snapshot.get("recommended", "—"),
 		snapshot.get("validated_floor", "---"),
 		snapshot.get("address_status", "未验证"),
-		snapshot.get("relevance", "—"),
-		snapshot.get("stability", "—"),
 	]
 	_input_label.text = str(snapshot.get("input", ""))
 	_feedback_label.text = str(snapshot.get("feedback", ""))

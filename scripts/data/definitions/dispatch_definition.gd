@@ -11,7 +11,6 @@ extends Resource
 
 ## 当前派单的固定接乘表现。它们随派单变化，但不是运行时状态。
 @export var pickup_data: Dictionary = {}
-@export var camera_feeds: Dictionary = {}
 @export var front_phase_texts: Dictionary = {}
 
 ## 派单内嵌楼层关系；它们不需要单独注册到 ContentRegistry。

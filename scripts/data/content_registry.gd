@@ -37,10 +37,7 @@ func _register_floors() -> void:
 		_floors_by_id[floor_id] = floor
 		_ordered_floors.append(floor)
 
-	_ordered_floors.sort_custom(
-		func(first: FloorDefinition, second: FloorDefinition) -> bool:
-			return first.book_order < second.book_order
-	)
+	# 顺序直接来自 Catalog，不再依赖已移除的楼层书。
 	print("ContentRegistry: 已注册 %d 个楼层。" % _floors_by_id.size())
 
 
@@ -152,7 +149,7 @@ func _validate_dispatch_floors(
 
 
 func normalize_floor_id(raw_value: String) -> StringName:
-	# 只清理首尾空格，绝不转换成整数，确保 004 保持为 004。
+	# 只清理首尾空格，绝不转换成整数，确保 001 保持为 001。
 	return StringName(raw_value.strip_edges())
 
 

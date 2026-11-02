@@ -1,4 +1,6 @@
 extends RefCounted
+
+const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
 ## 使用正式 main_3d 验证手柄语义输入、空间焦点、COMM 仲裁与完整目的地入口。
 
 const MAIN := preload("res://scenes/main/main_3d.tscn")
@@ -7,6 +9,7 @@ const MAIN := preload("res://scenes/main/main_3d.tscn")
 func run(t: Variant, tree: SceneTree) -> void:
 	_test_input_map(t)
 	var main := MAIN.instantiate()
+	TestContent.prepare_scene(main)
 	var cabin := main.get_node("三维操作舱") as CabinViewController3D
 	var manager := main.get_node("游戏运行层/演示流程管理器") as DemoFlowManager
 	manager.movement_duration_seconds = 0.01
@@ -177,7 +180,7 @@ func _test_right_console(
 		&"destination_digit_3", &"destination_digit_4", &"destination_digit_5",
 		&"destination_digit_6", &"destination_digit_7", &"destination_digit_8",
 		&"destination_digit_9", &"destination_clear", &"destination_digit_0",
-		&"destination_backspace", &"destination_submit", &"floor_book_open",
+		&"destination_backspace", &"destination_submit",
 	])
 	var digit_two := _hotspot_for_action(interaction, &"destination_digit_2")
 	digit_two.interaction_enabled = false

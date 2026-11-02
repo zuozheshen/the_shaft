@@ -1,8 +1,7 @@
 [gd_scene format=3 uid="uid://pwk8iyr654yu"]
 
-[ext_resource type="Texture2D" path="res://assets/art/passenger_placeholder.svg" id="1_i6nem"]
+
 [ext_resource type="Script" path="res://scripts/presentation/passenger_visual_3d.gd" id="2_visual"]
-[ext_resource type="Resource" path="res://data/presentation/passenger_visuals/passenger_001_visual.tres" id="3_profile"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_riqys"]
 transparency = 1
@@ -23,7 +22,6 @@ visual_root_path = NodePath("纸片动画根")
 sprite_path = NodePath("纸片动画根/乘客纸片")
 contact_shadow_path = NodePath("接触阴影")
 dialogue_focus_path = NodePath("对话焦点")
-initial_profile = ExtResource("3_profile")
 
 [node name="纸片动画根" type="Node3D" parent="." unique_id=1593573759]
 
@@ -31,7 +29,6 @@ initial_profile = ExtResource("3_profile")
 transform = Transform3D(0.55, 0, 0, 0, 1.05, 0, 0, 0, 1, 0, 0.74, 0)
 layers = 2
 billboard = 2
-texture = ExtResource("1_i6nem")
 
 [node name="接触阴影" type="MeshInstance3D" parent="." unique_id=1462370943]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.006, 0)

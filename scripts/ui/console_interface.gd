@@ -7,7 +7,6 @@ const FlowCommandResultScript := preload(
 )
 
 
-signal return_requested
 signal camera_selected(camera_index: int)
 signal mic_enabled_changed(enabled: bool)
 signal case_phase_display_changed(text: String)
@@ -165,12 +164,6 @@ func _reset_dispatch_ui_state() -> void:
 	_update_dialogue_buttons()
 
 
-func show_main_console() -> void:
-	_refresh_case_display()
-	show()
-	_refresh_comm_view()
-
-
 func set_embedded_3d_mode(is_enabled: bool) -> void:
 	embedded_3d_mode = is_enabled
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -262,10 +255,6 @@ func _refresh_comm_view() -> void:
 	var can_choose := mic_enabled and dm_dialogue_started and not dm_dialogue_finished
 	comm_view.present(mic_enabled, current_passenger_line, dm_choices,
 			can_choose and not _choice_in_progress, dm_dialogue_started)
-
-
-func _select_dialogue_choice(choice_index: int) -> void:
-	_select_dialogue_manager_choice(choice_index)
 
 
 func _select_dialogue_manager_choice(choice_index: int) -> void:
@@ -614,7 +603,7 @@ func _refresh_case_display() -> void:
 
 
 func _clear_pickup_dialogue_after_departure() -> void:
-	# 已完成门外确认但尚未登舱时可以离开；此时不能继续保留 612 门外对话。
+	# 已完成门外确认但尚未登舱时可以离开；此时不能继续保留上一接乘楼层的门外对话。
 	if demo_flow_manager == null \
 			or demo_flow_manager.is_passenger_onboard() \
 			or demo_flow_manager.get_case_phase() != DispatchPhase.WAITING_FOR_PICKUP:

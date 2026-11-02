@@ -64,7 +64,7 @@ func show_title(title: String) -> void:
 
 
 func show_destination_feedback(floor_id: String) -> void:
-	# 楼层反馈统一约定为 destination_楼层号，例如 destination_900。
+	# 楼层反馈统一约定为 destination_楼层号，例如 destination_001。
 	await show_title("destination_%s" % floor_id.strip_edges())
 
 

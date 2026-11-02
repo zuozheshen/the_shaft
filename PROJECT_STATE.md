@@ -17,31 +17,31 @@
 
 ## 核心与结构
 
-- 玩家是操作员：接调度 → 到接乘楼层 → 查看记录/监控/通话 → 开门接乘并关门 → 判断目的地与路线 → 到站开门反馈 → 离舱关门结算 → 后续记录反馈。日志和记录承担责任，不是好坏计分。
+- 当前为重新设计流程准备的空舱基线：初始停靠 318，正式楼层仅 318、001（TEST 01）、002（TEST 02），可手动验证地址并行驶。没有正式乘客、派单、对白或值班资源，不自动启动旧演示。
 - `scenes/main/main_3d.tscn` 组合游戏运行层、三维操作舱和 RuntimeConnector3D。入口 UID 由 Godot 解析。
 - `scenes/runtime/game_runtime.tscn` / GameRuntime 持有唯一 DemoFlowManager；后者协调 ElevatorRuntimeState、DispatchLifecycle、ShiftRunner 和 UIHistoryState。
 - `scenes/elevator/elevator_cabin_3d.tscn` 提供固定视角/交互。CabinInterfaceRouter3D 暴露主、左、右三台；左台使用 3D 屏幕 SubViewport、三枚实体栏目键、独立未读灯和带轴向刻线的滚轮，屏幕不再直接接收触控输入；左/右台屏面统一使用深青底、浅色字和同组机身金属材质。主台使用实体监视器、MIC/CAM/门按钮、三灯与 CASE/PHASE 状态条；右台使用实体信息屏、独立 LCD、验证键、4×3 键盘、可拿起并翻页的实体楼层导引书和执行拨杆。
 - MainConsolePresentation3D 将原监控 320×240 SubViewport 纹理写入主屏局部 CRT ShaderMaterial 的 feed_texture；同一 1.44×1.08 米 Quad 保持 4:3。CASE 使用独立纯 2D 512×64 SubViewport / Label 与 nearest、unshaded 状态屏面，沿用 ConsoleInterface 的 case_phase_display_changed 和 getter；不新增 Camera 或监控链。几何、碰撞、材质和布局保存在场景中，可在 Inspector 调整。MonitorCameraController3D 继续只负责原监控摄像机、机位和视口启停，keep_aspect=KEEP_HEIGHT、FOV60 和锚点保持。
 - 唯一 ConsoleInterface 位于 CanvasLayer 的全局通讯容器中，持有原 DialogueManagerAdapter；其 FloatingCommUI 只呈现当前发言和动态选项，可拖动/最小化，四个朝向及转身时持续可见。左台转发鼠标前避让通讯窗，主台旧大面板及旧按钮已移除；拒绝原因使用短暂提示，短提示数据由 ConsoleInterface 保存。
 - 左台唯一 BuildingTerminalInterface 继续读取 DemoFlowManager 的系统日志、乘客档案和对话记录；实体键只切换栏目，滚轮只改变当前阅读位置。新派单只把已有内容标为未读，且仅当玩家实际朝向左台并打开对应栏目时清除该栏目未读状态。
-- DestinationControlInterface 保留场景根和唯一目的地业务适配职责，数字输入与反馈使用字符串保存，旧 LineEdit、推荐按钮和 2D 书页已移除；RightConsolePresentation3D 只把其展示快照映射到实体屏幕，并负责拨杆回位动画。CabinInteractionController3D 将右台热点转发到同一输入、验证和行驶入口。
-- 三台的静态外形在中文“视觉资产”或既有设备视觉挂载内；Godot 保留热点、碰撞、动态屏面、交互反馈与稳定动画轴。左台滚轮由 Node3D“滚轮转轴”驱动；楼层书、摄影棚门及舱壁/地板沿用已有可替换结构。左台旧页签/返回按钮已移除，真实文字与滚动内容保留。资产流程见 [Blender → Godot 规范](docs/development/blender-godot-assets.md)，主台 V2 Blockout 源为 `art_source/main_console_v2.blend`（`.gdignore` 隔离 Godot import），单一 `main_console_shell.glb` 经 visual wrapper 挂入主台；CRT 前框物理孔口为 1.32×0.99 米（4:3），外宽 1.86 米、纵深 22 厘米的 CRT 模组壳体前凸 7 厘米，bezel 再前伸 4 厘米，屏面相对最前沿内凹 13.9 厘米；后方动态屏面为 1.44×1.08 米。上柜侧带与顶带收窄，主台保持 55° 控件斜面，水平前沿延伸 7 厘米、厚 1.2 厘米，前裙与底座向内收。该 #62 Blockout 为 20 个 Mesh 与一个根 Empty、4 个中性灰材质；结构修正未移动 Godot 场景、Gameplay、热点、碰撞、action_id、CASE 或玩家，FOV 保持 70。当前动态 Quad 与 320×240 feed 保持 4:3 内容；#63 控制件接入既有视觉挂载，#64 在原几何上接入材质/UV/混合来源贴图；#65 局部 CRT 与 CASE 屏面规格见上述展示链路和资产规范。
+- DestinationControlInterface 保留唯一目的地业务适配职责；数字输入、验证反馈和执行拨杆继续驱动原流程命令。楼层索引书、四个书本热点、翻页视口、相关输入锁及专属音效已移除。右台不再显示静态关联度和稳定度评估。
+- 三台的静态外形在中文“视觉资产”或既有设备视觉挂载内；Godot 保留热点、碰撞、动态屏面、交互反馈与稳定动画轴。左台滚轮由 Node3D“滚轮转轴”驱动；摄影棚门及舱壁/地板沿用已有可替换结构。左台旧页签/返回按钮已移除，真实文字与滚动内容保留。资产流程见 [Blender → Godot 规范](docs/development/blender-godot-assets.md)，主台 V2 Blockout 源为 `art_source/main_console_v2.blend`（`.gdignore` 隔离 Godot import），单一 `main_console_shell.glb` 经 visual wrapper 挂入主台；CRT 前框物理孔口为 1.32×0.99 米（4:3），外宽 1.86 米、纵深 22 厘米的 CRT 模组壳体前凸 7 厘米，bezel 再前伸 4 厘米，屏面相对最前沿内凹 13.9 厘米；后方动态屏面为 1.44×1.08 米。上柜侧带与顶带收窄，主台保持 55° 控件斜面，水平前沿延伸 7 厘米、厚 1.2 厘米，前裙与底座向内收。该 #62 Blockout 为 20 个 Mesh 与一个根 Empty、4 个中性灰材质；结构修正未移动 Godot 场景、Gameplay、热点、碰撞、action_id、CASE 或玩家，FOV 保持 70。当前动态 Quad 与 320×240 feed 保持 4:3 内容；#63 控制件接入既有视觉挂载，#64 在原几何上接入材质/UV/混合来源贴图；#65 局部 CRT 与 CASE 屏面规格见上述展示链路和资产规范。
 - 主台 #63 控制件沿用 `art_source/main_console_v2.blend`，专属 `AgentGenerated_ART02_2_Controls` Collection 包含 6 个 Mesh 与 6 个导出根，#62 shell 的 20 个 Mesh、根 Empty 与运行资产保持。运行控制件固定为 6 个 GLB：`desk_microphone`、`button_square`、`button_square_cap`、`button_large`、`button_large_cap`、`indicator_lamp`；通过 4 个中文 visual wrapper 装配，CAM 两键及 OPEN/CLOSE 分别共享框/帽几何。CAM 为 0.17×0.17 米，仅视觉中心收拢到 0.21 米并整体右移 27.5 毫米居中，原热点不动。按钮具有法兰、固定壳体、bezel、凸起帽与真实间隙，大型按钮为 0.25×0.24 米并采用更厚结构；麦克风为厚底座、朝玩家弯出的较长粗鹅颈与短圆柱麦头，TX 靠近麦座。原大 MIC Label3D 隐藏，小型 COMM 保留。CAM 旧选中背光为无 Mesh 的兼容标记，帽自身选中变亮并微弱发光，状态材质按实例隔离；悬停仍使用原 Godot 反馈，麦克风与门控统一为 CAM 的青色薄边框。所有功能文字放在固定面板小铭牌，帽轴不带标签；COMM / CAMERA SELECT / DOOR CONTROL / STATUS 四组铭牌表达层级，DOOR / FAULT 为门控右侧的小圆灯，ConsoleButtonVisual3D 仅作可禁用的短 Tween（CAM 4 毫米、大型按钮 5 毫米），空/缺失轴静默降级；热点、碰撞、action_id 与指示灯不随动。MainConsolePresentation3D 沿用原 CAM 选择与成功开/关门 effect，不新增业务状态机。#62/#63 造型与体验及 #64 材质已获用户人工验收；详细尺寸见资产规范，后续整体验收状态以对应 Issue 为准。
 - 主台 #64 静态表面为米白与各级灰色，CAM未选中帽炭灰、安装框/麦杆近黑，原功能状态色保留。26 Mesh仅补UV/材质，7 GLB边界与槽数保持；1024/512/256微表面采用官方CC0 NormalGL/Roughness派生，项目色板、自制麦头网罩及1024 Atlas独立控制。Atlas仅少量应用于CRT散热/检修条（1处通风、2个固定螺丝、UNIT01）与11个既有固定铭牌，不增几何。铭牌保持原薄盒/Transform，共用外部Atlas材质，原Label3D路径/文本保留隐藏；CAM/OPEN/CLOSE外部状态材质按实例隔离。来源/许可/hash记录、确定性派生脚本与重建命令见资产规范；CASE/监控内容保持动态，实际阶段与验收状态以#64有效评论为准。
 - 标准手柄通过语义 Input Actions 复用固定转向与唯一业务动作；CabinInteractionController3D 依据当前台位热点的相机投影维护互斥的 3D 焦点，FloatingCommUI 有选项时优先使用 Control focus。左台滚轮不进入 A 键焦点，只由鼠标滚轮或限速的右摇杆上下驱动。
 - `scenes/ui/` 下 ConsoleInterface、BuildingTerminalInterface、DestinationControlInterface 通过显式注入和流程命令访问业务。
-- ContentRegistry 从 `data/catalogs/` 的四个 Catalog 加载楼层、乘客、派单、值班资源。楼层 Catalog 登记八层，318 居民住宅层追加为楼层书第八页，地址识别与空舱停靠沿用现有数据链。当前演示有三条正式派单，尚无 destination_318 送达对白；对白位于 `dialogues/passengers/`，通过 DialogueManagerAdapter 接入现有插件。
+- ContentRegistry 从四个 Catalog 加载内容。Floor Catalog 只登记 318、001、002；Passenger、Dispatch、Shift Catalog 均为空。FloorDefinition 仅保存字符串 floor_id 与 display_name，顺序来自 Catalog。Dialogue Manager、适配器及人物/派单/值班 Resource 类型保留，等待后续明确设计。
 - `scenes/presentation/monitor_test_stage_3d.tscn` 是正式主场景当前使用的监控摄影棚：可替换楼层切片、纸片乘客、双开门。MonitorCameraController3D 使用同一个世界和一台监控摄像机切换两个机位；MonitorPresentationCoordinator3D 协调门与乘客动作。
 - 楼层视觉由独立 FloorVisualProfile Resource 配置，位于 `data/presentation/floor_visuals/`。现有协调器在 setup 和实际到站时先应用楼层视觉，再同步乘客；移动中保持上一楼层。正式 Profile 与 fallback 由操作舱场景显式注入。
 - #76 的318已通过人工视觉验收并正式绑定 ART09 Darker R3：八平面、64 px/m、原127色、烘焙为主的Hybrid；正式源floor_318_art09_darker_r3.aseprite，批准Palette和receipt独立记录。Surface、具名遮罩与光照参数分离，通用baker供同结构楼层复用；R3售货机收边为资产专用步骤。原V2/V3及Surface/Lighting候选保留历史。共享动态编号仍深灰无描边贴墙，318位置/大小/颜色冻结；纹理保持白色×Profile tint、Nearest/Unshaded/Alpha Scissor .5，空纹理/reset恢复原材质。制作与正式发布命令见docs/development/floor-lighting-bake.md和docs/development/aseprite-floor-pipeline.md。
-- 监控舱内、固定门区与乘客使用渲染层 2；门外环境使用层 3 和一盏共用门外灯。监控摄像机可见层 2+3，玩家摄像机排除这两层。七层保持 Unshaded，主要依靠 Profile tint 区分楼层。
+- 监控舱内、固定门区与乘客使用渲染层 2；门外环境使用层 3 和一盏共用门外灯。监控摄像机可见层 2+3，玩家摄像机排除这两层。测试层使用通用切片与 Profile tint 区分，318 继续使用既有正式纹理。
 - #66 的舱体材质 V1 保留原生 CSG/BoxMesh，在操作舱四壁/地面/天花、监控乘客舱已有大面及门/框/槛绑定六个共享外部材质；三条无碰撞地脚收边独立挂在“灰盒环境/基础收边”。六张 1024 Normal/Roughness 与独立派生脚本不修改 ART-02 资产或灯光。来源、重建与 reimport 边界见资产规范；实际验收状态以 #66 有效评论为准。
 
 - 舱壁喷漆钢板 V2（#72 / ART-07）使用独立 cabin_wall_panels_v2.blend/source.py → 单一 GLB → visual wrapper，由原 cabin_assembly_v3 装配挂接；原四壁/收边节点保留隐藏，检修门、记录和天花盖板继续沿用。12 块大板的可见面保持旧 V3 ±1.693m，24mm 厚度向墙内展开，台体隐藏安装区局部避让；主/右台约 15mm、左台约 10.5mm 最小间隙。原 CSG、台位、Camera、灯光与业务不变；材质复用既有 V1 微表面。独立重建命令、CSG 对缝底可见深度的限制与历史 #66 生成器边界见资产规范，实际验收仍以 Issue 为准。
 
 ## 已实现与冻结职责
 
-- 已有内容契约校验、统一流程命令结果、三单值班顺序、派单阶段和状态隔离。
+- 已有内容契约校验、统一流程命令、派单阶段与状态隔离；通用流程通过 tests/fixtures/runtime/ 的无剧情夹具验证，夹具不注册进正式 Catalog。
 - 已有三台 UI、实时监控、分层 2.5D 切片、纸片乘客、门动画和登/离舱表现。
 - 正式业务状态归运行层；表现层不另存派单数据库或决定业务结果。摄像头提供证据，乘客内容来自资源而非 UI 硬编码。
 - 不重复创建 GameRuntime、DemoFlowManager、ContentRegistry、DialogueManager、第二套业务状态机或第二 Godot 项目。
@@ -54,3 +54,11 @@
 - RuntimeConnector3D 的若干表现依赖缺失时会降级；结构检查应指出正式接线丢失，不能仅以进程正常退出判断健康。
 - Headless 检查不验证 D3D12 实际画面、鼠标焦点、字体可读性、音频或体验节奏；仍需 Godot 人工体验验收。
 - 操作舱和监控采用简化/占位美术；不得把现有装饰层级、坐标或材质冻结成结构 API。
+
+## 内容重置后的验证边界
+
+- 正式 ContentResetTests 验证空闲启动、零乘客/派单、三层往返与失效楼层拒绝。
+- camera_feeds 及其 getter、内容校验已删除；监控继续使用真实渲染链。
+- 未配置 initial_shift 为正常空闲态，不当成空值班错误或值班已结束。
+- 历史美术源、素材重建工具和开发日志保留；它们不代表旧剧情仍在正式运行。
+- 当前清理只覆盖已批准的第一阶段；独立废弃美术资源清理尚未执行。
