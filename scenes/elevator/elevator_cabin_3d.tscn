@@ -1,17 +1,17 @@
 [gd_scene format=3 uid="uid://pfkh2fdm64ga"]
 
+[ext_resource type="Script" uid="uid://bcuj85e0qibpq" path="res://scripts/presentation/elevator_movement_audio.gd" id="elevator_movement_audio"]
+[ext_resource type="AudioStream" uid="uid://7vwof084qst3" path="res://assets/audio/sfx/cabin/elevator_running.wav" id="elevator_running"]
+
 [ext_resource type="Script" uid="uid://bfnx7v1oyqct0" path="res://scripts/elevator/cabin_view_controller_3d.gd" id="1_wegik"]
 [ext_resource type="PackedScene" uid="uid://dwgr21xrksmb4" path="res://scenes/ui/ConsoleInterface.tscn" id="2_laov4"]
 [ext_resource type="PackedScene" uid="uid://2mxpahaa3nm2" path="res://scenes/ui/BuildingTerminalInterface.tscn" id="3_tyhlv"]
-[ext_resource type="Texture2D" uid="uid://bw80rtlmesldf" path="res://assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_disp_4k.jpg" id="4_cymdg"]
 [ext_resource type="PackedScene" uid="uid://wet3ybwny70j" path="res://scenes/ui/DestinationControlInterface.tscn" id="4_rx0mt"]
 [ext_resource type="Shader" uid="uid://c5ev61meb7jam" path="res://scenes/elevator/overlay.gdshader" id="5_0eoy0"]
 [ext_resource type="Script" uid="uid://d3ik5m87sk8gx" path="res://scripts/ui/cabin_interface_router_3d.gd" id="5_router"]
 [ext_resource type="Script" uid="uid://b7vbl3jrmhedx" path="res://scripts/interaction/interaction_hotspot_3d.gd" id="8_hotspot"]
 [ext_resource type="Script" uid="uid://dmivswclo885p" path="res://scripts/interaction/cabin_interaction_controller.gd" id="9_interaction"]
 [ext_resource type="Script" uid="uid://ctsid46bkuw3b" path="res://scripts/ui/left_terminal_screen_3d.gd" id="10_left_screen"]
-[ext_resource type="Texture2D" uid="uid://dl5r0aw4ar1kx" path="res://assets/art/金属划痕.png" id="11_aod7d"]
-[ext_resource type="Texture2D" uid="uid://doccuhoswfb86" path="res://assets/art/metal_plate_02_4k/metal_plate_frac/blue_metal_plate_disp_4k.jpg" id="13_aod7d"]
 [ext_resource type="PackedScene" uid="uid://dqvlv34vy8o8r" path="res://scenes/presentation/monitor_test_stage_3d.tscn" id="21_1mpkw"]
 [ext_resource type="Script" uid="uid://dueo2abjakhgp" path="res://scripts/presentation/monitor_camera_controller_3d.gd" id="22_monitor"]
 [ext_resource type="Script" uid="uid://c133bgm4b8y6o" path="res://scripts/presentation/monitor_presentation_coordinator_3d.gd" id="23_coordinator"]
@@ -20,89 +20,75 @@
 [ext_resource type="Resource" uid="uid://gw55fsmksqss" path="res://data/presentation/passenger_visuals/passenger_002_visual.tres" id="26_profile_002"]
 [ext_resource type="Resource" uid="uid://cx6gtb1u7v8xq" path="res://data/presentation/passenger_visuals/passenger_003_visual.tres" id="27_profile_003"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_004_visual.tres" id="50_floor_004"]
+[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_318_visual.tres" id="50_floor_318"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_387_visual.tres" id="50_floor_387"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_392_visual.tres" id="50_floor_392"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_547_visual.tres" id="50_floor_547"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_612_visual.tres" id="50_floor_612"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_742_visual.tres" id="50_floor_742"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_900_visual.tres" id="50_floor_900"]
-[ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_318_visual.tres" id="50_floor_318"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_fallback_visual.tres" id="50_floor_fallback"]
 [ext_resource type="Script" uid="uid://bf4fhxjlwlla6" path="res://scripts/presentation/floor_visual_profile.gd" id="50_floor_type"]
 [ext_resource type="Script" uid="uid://cjs2vtxivfkth" path="res://scripts/presentation/main_console_presentation_3d.gd" id="52_presentation"]
-[ext_resource type="Script" path="res://scripts/presentation/right_console_presentation_3d.gd" id="53_right_presentation"]
-[ext_resource type="Script" path="res://scripts/presentation/floor_guide_book_3d.gd" id="57_book"]
+[ext_resource type="Script" uid="uid://u2qihnbwl7la" path="res://scripts/presentation/right_console_presentation_3d.gd" id="53_right_presentation"]
+[ext_resource type="Script" uid="uid://bhfuy0jvwqvjg" path="res://scripts/presentation/floor_guide_book_3d.gd" id="57_book"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/main_console_shell_visual.tscn" id="62_main_shell"]
+[ext_resource type="PackedScene" path="res://scenes/visuals/indicator_lamp_visual.tscn" id="63_lamp"]
+[ext_resource type="PackedScene" path="res://scenes/visuals/button_large_visual.tscn" id="63_large"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/desk_microphone_visual.tscn" id="63_microphone"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/button_square_visual.tscn" id="63_square"]
-[ext_resource type="PackedScene" path="res://scenes/visuals/button_large_visual.tscn" id="63_large"]
-[ext_resource type="PackedScene" path="res://scenes/visuals/indicator_lamp_visual.tscn" id="63_lamp"]
-
-[ext_resource type="Material" path="res://assets/art/materials/main_console_v2/door_open.tres" id="64_door_open"]
-[ext_resource type="Material" path="res://assets/art/materials/main_console_v2/door_close.tres" id="64_door_close"]
-[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_open.tres" id="64_nameplate_open"]
-[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_close.tres" id="64_nameplate_close"]
-[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_comm.tres" id="64_nameplate_comm"]
 [ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_camera_group.tres" id="64_nameplate_camera_group"]
-[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_door_group.tres" id="64_nameplate_door_group"]
-[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_status.tres" id="64_nameplate_status"]
 [ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_cam_01.tres" id="64_nameplate_cam_01"]
 [ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_cam_02.tres" id="64_nameplate_cam_02"]
-[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_tx.tres" id="64_nameplate_tx"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_close.tres" id="64_nameplate_close"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_comm.tres" id="64_nameplate_comm"]
 [ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_door.tres" id="64_nameplate_door"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_door_group.tres" id="64_nameplate_door_group"]
 [ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_fault.tres" id="64_nameplate_fault"]
-
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_open.tres" id="64_nameplate_open"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_status.tres" id="64_nameplate_status"]
+[ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_tx.tres" id="64_nameplate_tx"]
 [ext_resource type="Material" path="res://assets/art/materials/main_console_v2/crt_screen.tres" id="65_crt"]
-
-[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/joint.tres" id="66_wall"]
-[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/floor.tres" id="66_floor"]
-[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/ceiling.tres" id="66_ceiling"]
-[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/trim_rubber.tres" id="66_trim"]
-
 [ext_resource type="PackedScene" path="res://scenes/visuals/cabin_assembly_v3_visual.tscn" id="66_assembly"]
-
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/ceiling.tres" id="66_ceiling"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/floor.tres" id="66_floor"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v1/trim_rubber.tres" id="66_trim"]
+[ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/joint.tres" id="66_wall"]
 [ext_resource type="Environment" path="res://assets/art/lighting/normal_cabin_environment.tres" id="68_environment"]
-[ext_resource type="Environment" path="res://assets/art/lighting/atmosphere_cabin_experiment.tres" id="72_atmosphere_env"]
-
-[ext_resource type="PackedScene" path="res://scenes/visuals/left_archive_terminal_shell_visual.tscn" id="69_left_shell"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/left_archive_key_visual.tscn" id="69_left_key"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/left_archive_scroll_visual.tscn" id="69_left_scroll"]
-
-[ext_resource type="PackedScene" path="res://scenes/visuals/right_route_terminal_shell_visual.tscn" id="71_shell"]
-[ext_resource type="PackedScene" path="res://scenes/visuals/right_route_key_cap_visual.tscn" id="71_key"]
-[ext_resource type="PackedScene" path="res://scenes/visuals/right_route_verify_cap_visual.tscn" id="71_verify"]
+[ext_resource type="PackedScene" path="res://scenes/visuals/left_archive_terminal_shell_visual.tscn" id="69_left_shell"]
+[ext_resource type="Texture2D" uid="uid://dd7n2h81nq21e" path="res://assets/art/textures/main_console_v2/control_normal_256.png" id="71_book_micro_normal"]
+[ext_resource type="Texture2D" uid="uid://3knpge48nm3k" path="res://assets/art/textures/main_console_v2/control_roughness_256.png" id="71_book_micro_rough"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/right_route_lever_handle_visual.tscn" id="71_handle"]
-[ext_resource type="Texture2D" path="res://assets/art/textures/main_console_v2/control_normal_256.png" id="71_book_micro_normal"]
-[ext_resource type="Texture2D" path="res://assets/art/textures/main_console_v2/control_roughness_256.png" id="71_book_micro_rough"]
-
-[sub_resource type="SystemFont" id="71_terminal_font"]
-font_names = PackedStringArray("Consolas", "Cascadia Mono", "Noto Sans Mono CJK SC", "Microsoft YaHei UI")
+[ext_resource type="PackedScene" path="res://scenes/visuals/right_route_key_cap_visual.tscn" id="71_key"]
+[ext_resource type="PackedScene" path="res://scenes/visuals/right_route_terminal_shell_visual.tscn" id="71_shell"]
+[ext_resource type="PackedScene" path="res://scenes/visuals/right_route_verify_cap_visual.tscn" id="71_verify"]
+[ext_resource type="Environment" path="res://assets/art/lighting/atmosphere_cabin_experiment.tres" id="72_atmosphere_env"]
+[ext_resource type="AudioStream" uid="uid://bihhlixiv37ax" path="res://assets/audio/sfx/cabin/ambience.mp3" id="cabin_ambience"]
+[ext_resource type="AudioStream" uid="uid://ce47x48y632vm" path="res://assets/audio/sfx/cabin/chair_1.wav" id="chair_turn_1"]
+[ext_resource type="AudioStream" uid="uid://dgwdpfq4c01pt" path="res://assets/audio/sfx/cabin/left_click_1.wav" id="left_click_1"]
+[ext_resource type="AudioStream" uid="uid://dxbleokuoqb4e" path="res://assets/audio/sfx/cabin/left_click_2.wav" id="left_click_2"]
+[ext_resource type="AudioStream" uid="uid://cajcfqv1vftk5" path="res://assets/audio/sfx/cabin/left_click_3.wav" id="left_click_3"]
+[ext_resource type="AudioStream" uid="uid://bsop2nk3n3hhs" path="res://assets/audio/sfx/cabin/left_click_4.wav" id="left_click_4"]
+[ext_resource type="AudioStream" uid="uid://dx80p0n64rdgp" path="res://assets/audio/sfx/cabin/left_switch.wav" id="left_switch"]
+[ext_resource type="AudioStream" uid="uid://bac54dip0uayi" path="res://assets/audio/sfx/cabin/main_click_1.wav" id="main_click_1"]
+[ext_resource type="AudioStream" uid="uid://bpwrbakacl5kp" path="res://assets/audio/sfx/cabin/main_click_2.wav" id="main_click_2"]
+[ext_resource type="AudioStream" uid="uid://cbxif42tqp35n" path="res://assets/audio/sfx/cabin/main_click_3.wav" id="main_click_3"]
+[ext_resource type="AudioStream" uid="uid://b7hxfsesxj7f1" path="res://assets/audio/sfx/cabin/mic_off.wav" id="mic_off"]
+[ext_resource type="AudioStream" uid="uid://ctd27k15ryhfr" path="res://assets/audio/sfx/cabin/mic_on.wav" id="mic_on"]
+[ext_resource type="AudioStream" uid="uid://cctn3ta7huewx" path="res://assets/audio/sfx/cabin/right_book_close.wav" id="right_book_close"]
+[ext_resource type="AudioStream" uid="uid://clrotqieqxax0" path="res://assets/audio/sfx/cabin/right_book_open.wav" id="right_book_open"]
+[ext_resource type="AudioStream" uid="uid://chidduy575t4m" path="res://assets/audio/sfx/cabin/right_book_turn.wav" id="right_book_turn"]
+[ext_resource type="AudioStream" uid="uid://v2xxert2jui4" path="res://assets/audio/sfx/cabin/right_lever.wav" id="right_lever"]
+[ext_resource type="AudioStream" uid="uid://dk12qp03xm1e2" path="res://assets/audio/sfx/cabin/right_numbers_1.wav" id="right_numbers_1"]
+[ext_resource type="AudioStream" uid="uid://nxxtgtv3usqr" path="res://assets/audio/sfx/cabin/right_numbers_2.wav" id="right_numbers_2"]
+[ext_resource type="AudioStream" uid="uid://w07m7qllbeok" path="res://assets/audio/sfx/cabin/right_numbers_3.wav" id="right_numbers_3"]
+[ext_resource type="AudioStream" uid="uid://b34w0ovjasotn" path="res://assets/audio/sfx/cabin/right_verify.wav" id="right_verify"]
 
 [sub_resource type="BoxMesh" id="66_floor_trim"]
 material = ExtResource("66_trim")
 size = Vector3(3.396, 0.035, 0.002)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k80hx"]
-albedo_texture = ExtResource("11_aod7d")
-metallic_specular = 1.0
-uv1_triplanar = true
-texture_filter = 0
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_microphone"]
-size = Vector3(0.4, 0.04, 0.34)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_djexe"]
-albedo_color = Color(0.41215247, 0.41215247, 0.41215247, 1)
-metallic = 0.2
-roughness = 0.81
-
-[sub_resource type="BoxMesh" id="BoxMesh_bhunq"]
-material = SubResource("StandardMaterial3D_djexe")
-size = Vector3(0.3373413, 0.023, 0.274292)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_db77g"]
-shading_mode = 0
-albedo_color = Color(7.749051e-06, 0.8917738, 0.3193373, 1)
 
 [sub_resource type="StandardMaterial3D" id="52_hover"]
 resource_local_to_scene = true
@@ -111,107 +97,26 @@ albedo_color = Color(0.25, 0.7, 0.58, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_sn0t7"]
 material = SubResource("52_hover")
-size = Vector3(0.270, 0.004, 0.182)
+size = Vector3(0.27, 0.004, 0.182)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sn0t7"]
-albedo_color = Color(0.4117647, 0.4117647, 0.4117647, 1)
-metallic = 0.2
-roughness = 0.81
-
-[sub_resource type="BoxMesh" id="BoxMesh_riqys"]
-material = SubResource("StandardMaterial3D_sn0t7")
-size = Vector3(0.32696915, 0.0637207, 0.27590942)
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_bhunq"]
-material = ExtResource("64_door_open")
-radial_segments = 12
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qr0ht"]
-shading_mode = 0
-albedo_color = Color(0, 0.8901961, 0.31764707, 1)
+[sub_resource type="BoxShape3D" id="BoxShape3D_microphone"]
+size = Vector3(0.4, 0.04, 0.34)
 
 [sub_resource type="BoxMesh" id="BoxMesh_6f8o3"]
 material = SubResource("52_hover")
 size = Vector3(0.256, 0.004, 0.246)
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_34rt5"]
-material = ExtResource("64_door_close")
-radial_segments = 12
-
 [sub_resource type="BoxMesh" id="BoxMesh_efn7a"]
 material = SubResource("52_hover")
 size = Vector3(0.256, 0.004, 0.246)
-
-[sub_resource type="BoxShape3D" id="52_cam01_shape"]
-size = Vector3(0.22, 0.07, 0.22)
-
-[sub_resource type="StandardMaterial3D" id="52_cam01_dark"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.045, 0.055, 0.065, 1)
-
-[sub_resource type="BoxMesh" id="52_cam01_base"]
-resource_local_to_scene = true
-material = SubResource("52_cam01_dark")
-size = Vector3(0.23, 0.04, 0.23)
-
-[sub_resource type="StandardMaterial3D" id="52_cap"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.15, 0.19, 0.2, 1)
-
-[sub_resource type="BoxMesh" id="52_cam01_cap"]
-resource_local_to_scene = true
-material = SubResource("52_cap")
-size = Vector3(0.18, 0.045, 0.17)
-
-[sub_resource type="StandardMaterial3D" id="52_selected"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.12, 0.4, 0.36, 1)
-
-[sub_resource type="BoxMesh" id="52_cam01_selected"]
-resource_local_to_scene = true
-material = SubResource("52_selected")
-size = Vector3(0.19, 0.01, 0.025)
 
 [sub_resource type="BoxMesh" id="52_cam01_hover"]
 resource_local_to_scene = true
 material = SubResource("52_hover")
 size = Vector3(0.176, 0.004, 0.176)
 
-[sub_resource type="BoxShape3D" id="52_cam02_shape"]
+[sub_resource type="BoxShape3D" id="52_cam01_shape"]
 size = Vector3(0.22, 0.07, 0.22)
-
-[sub_resource type="StandardMaterial3D" id="52_cam02_dark"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.045, 0.055, 0.065, 1)
-
-[sub_resource type="BoxMesh" id="52_cam02_base"]
-resource_local_to_scene = true
-material = SubResource("52_cam02_dark")
-size = Vector3(0.23, 0.04, 0.23)
-
-[sub_resource type="StandardMaterial3D" id="52_cam02_cap_material"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.15, 0.19, 0.2, 1)
-
-[sub_resource type="BoxMesh" id="52_cam02_cap"]
-resource_local_to_scene = true
-material = SubResource("52_cam02_cap_material")
-size = Vector3(0.18, 0.045, 0.17)
-
-[sub_resource type="StandardMaterial3D" id="52_cam02_selected_material"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.12, 0.4, 0.36, 1)
-
-[sub_resource type="BoxMesh" id="52_cam02_selected"]
-resource_local_to_scene = true
-material = SubResource("52_cam02_selected_material")
-size = Vector3(0.19, 0.01, 0.025)
 
 [sub_resource type="StandardMaterial3D" id="52_cam02_hover_material"]
 resource_local_to_scene = true
@@ -223,16 +128,8 @@ resource_local_to_scene = true
 material = SubResource("52_cam02_hover_material")
 size = Vector3(0.176, 0.004, 0.176)
 
-[sub_resource type="StandardMaterial3D" id="52_comm_housing_material"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.045, 0.055, 0.065, 1)
-
-[sub_resource type="CylinderMesh" id="52_comm_housing"]
-resource_local_to_scene = true
-top_radius = 0.033
-bottom_radius = 0.033
-height = 0.02
+[sub_resource type="BoxShape3D" id="52_cam02_shape"]
+size = Vector3(0.22, 0.07, 0.22)
 
 [sub_resource type="StandardMaterial3D" id="52_comm"]
 resource_local_to_scene = true
@@ -247,16 +144,9 @@ top_radius = 0.023
 bottom_radius = 0.023
 height = 0.024
 
-[sub_resource type="StandardMaterial3D" id="52_door_housing_material"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.045, 0.055, 0.065, 1)
-
-[sub_resource type="CylinderMesh" id="52_door_housing"]
-resource_local_to_scene = true
-top_radius = 0.033
-bottom_radius = 0.033
-height = 0.02
+[sub_resource type="StandardMaterial3D" id="comm_lens_inactive"]
+albedo_color = Color(0.07, 0.15, 0.11, 1)
+roughness = 0.4
 
 [sub_resource type="StandardMaterial3D" id="52_closed"]
 resource_local_to_scene = true
@@ -271,17 +161,6 @@ top_radius = 0.023
 bottom_radius = 0.023
 height = 0.024
 
-[sub_resource type="StandardMaterial3D" id="52_fault_housing_material"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.045, 0.055, 0.065, 1)
-
-[sub_resource type="CylinderMesh" id="52_fault_housing"]
-resource_local_to_scene = true
-top_radius = 0.033
-bottom_radius = 0.033
-height = 0.02
-
 [sub_resource type="StandardMaterial3D" id="52_fault"]
 resource_local_to_scene = true
 albedo_color = Color(0, 0, 0, 1)
@@ -294,10 +173,6 @@ resource_local_to_scene = true
 top_radius = 0.023
 bottom_radius = 0.023
 height = 0.024
-
-[sub_resource type="StandardMaterial3D" id="comm_lens_inactive"]
-albedo_color = Color(0.07, 0.15, 0.11, 1)
-roughness = 0.4
 
 [sub_resource type="StandardMaterial3D" id="fault_lens_inactive"]
 albedo_color = Color(0.22, 0.045, 0.03, 1)
@@ -312,23 +187,28 @@ resource_local_to_scene = true
 shading_mode = 0
 albedo_color = Color(0.045, 0.055, 0.065, 1)
 
+[sub_resource type="BoxMesh" id="52_status_box"]
+size = Vector3(2.304, 0.14, 0.002)
+
 [sub_resource type="StandardMaterial3D" id="65_status_screen"]
 resource_local_to_scene = true
-texture_filter = 0
 albedo_color = Color(0, 0, 0, 1)
 emission_enabled = true
 emission = Color(1, 1, 1, 1)
 emission_energy_multiplier = 1.18
 emission_operator = 1
+texture_filter = 0
 
 [sub_resource type="QuadMesh" id="65_status_quad"]
 size = Vector2(1.024, 0.128)
 
-[sub_resource type="BoxMesh" id="52_status_box"]
-size = Vector3(2.304, 0.14, 0.002)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_aod7d"]
-albedo_texture = ExtResource("13_aod7d")
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_left_scroll"]
+playback_mode = 1
+streams_count = 4
+stream_0/stream = ExtResource("left_click_1")
+stream_1/stream = ExtResource("left_click_2")
+stream_2/stream = ExtResource("left_click_3")
+stream_3/stream = ExtResource("left_click_4")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_34rt5"]
 albedo_color = Color(0, 0, 0, 1)
@@ -337,51 +217,39 @@ albedo_color = Color(0, 0, 0, 1)
 material = SubResource("StandardMaterial3D_34rt5")
 size = Vector2(2.48, 1.395)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_05vjs"]
-albedo_texture = ExtResource("4_cymdg")
-
+[sub_resource type="BoxShape3D" id="55_key_shape"]
+size = Vector3(0.09, 0.16, 0.44)
 
 [sub_resource type="StandardMaterial3D" id="55_hover_material"]
 resource_local_to_scene = true
 shading_mode = 0
 albedo_color = Color(0.28, 0.46, 0.51, 1)
 
-[sub_resource type="StandardMaterial3D" id="55_selected_material"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.55, 0.76, 0.80, 1)
-
-
-[sub_resource type="StandardMaterial3D" id="55_lamp_on_material"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.95, 0.64, 0.12, 1)
-emission_enabled = true
-emission = Color(0.95, 0.42, 0.04, 1)
-emission_energy_multiplier = 2.6
-
-[sub_resource type="BoxShape3D" id="55_key_shape"]
-size = Vector3(0.09, 0.16, 0.44)
-
-
 [sub_resource type="BoxMesh" id="55_key_hover_mesh"]
 material = SubResource("55_hover_material")
 size = Vector3(0.0015, 0.082, 0.153)
+
+[sub_resource type="StandardMaterial3D" id="55_selected_material"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.55, 0.76, 0.8, 1)
 
 [sub_resource type="BoxMesh" id="55_key_selected_mesh"]
 material = SubResource("55_selected_material")
 size = Vector3(0.002, 0.005, 0.13)
 
+[sub_resource type="StandardMaterial3D" id="55_lamp_on_material"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.95, 0.64, 0.12, 1)
 
 [sub_resource type="BoxMesh" id="55_lamp_on_mesh"]
 material = SubResource("55_lamp_on_material")
 size = Vector3(0.0016, 0.014, 0.022)
 
 [sub_resource type="CylinderShape3D" id="55_scroll_shape"]
-radius = 0.145
 height = 0.24
-
-
+radius = 0.145
 
 [sub_resource type="TorusMesh" id="55_scroll_hover_mesh"]
 material = SubResource("55_hover_material")
@@ -390,6 +258,114 @@ outer_radius = 0.078
 rings = 24
 ring_segments = 6
 
+[sub_resource type="StandardMaterial3D" id="53_screen"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.035, 0.09, 0.085, 1)
+
+[sub_resource type="SystemFont" id="71_terminal_font"]
+font_names = PackedStringArray("Consolas", "Cascadia Mono", "Noto Sans Mono CJK SC", "Microsoft YaHei UI")
+subpixel_positioning = 0
+
+[sub_resource type="StandardMaterial3D" id="53_lcd"]
+resource_local_to_scene = true
+shading_mode = 0
+albedo_color = Color(0.36, 0.43, 0.32, 1)
+
+[sub_resource type="BoxShape3D" id="53_verify_shape"]
+size = Vector3(0.15, 0.19, 0.42)
+
+[sub_resource type="StandardMaterial3D" id="53_hover"]
+resource_local_to_scene = true
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.35, 0.9, 0.72, 0.42)
+
+[sub_resource type="BoxMesh" id="53_verify_hover_mesh"]
+material = SubResource("53_hover")
+size = Vector3(0.005, 0.175, 0.4)
+
+[sub_resource type="BoxShape3D" id="53_key_shape"]
+size = Vector3(0.1, 0.176667, 0.243333)
+
+[sub_resource type="BoxMesh" id="53_hover_mesh"]
+material = SubResource("53_hover")
+size = Vector3(0.005, 0.176667, 0.246667)
+
+[sub_resource type="StandardMaterial3D" id="53_book_cover"]
+resource_local_to_scene = true
+albedo_color = Color(0.22, 0.08, 0.055, 1)
+roughness = 0.8
+roughness_texture = ExtResource("71_book_micro_rough")
+normal_enabled = true
+normal_scale = 0.12
+normal_texture = ExtResource("71_book_micro_normal")
+uv1_scale = Vector3(3, 3, 1)
+
+[sub_resource type="BoxMesh" id="53_book_cover_mesh"]
+material = SubResource("53_book_cover")
+size = Vector3(0.105, 0.49, 0.65)
+
+[sub_resource type="BoxMesh" id="57_book_spine_mesh"]
+material = SubResource("53_book_cover")
+size = Vector3(0.12, 0.5, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="53_pages"]
+resource_local_to_scene = true
+albedo_color = Color(0.72, 0.68, 0.55, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="53_book_pages_mesh"]
+material = SubResource("53_pages")
+size = Vector3(0.09, 0.46, 0.62)
+
+[sub_resource type="BoxMesh" id="57_left_page_base_mesh"]
+material = SubResource("53_pages")
+size = Vector3(0.09, 0.46, 0.62)
+
+[sub_resource type="QuadMesh" id="57_page_mesh"]
+size = Vector2(0.6, 0.44)
+
+[sub_resource type="StandardMaterial3D" id="57_turn_page_material"]
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.92, 0.88, 0.75, 1)
+
+[sub_resource type="QuadMesh" id="57_turn_page_mesh"]
+material = SubResource("57_turn_page_material")
+size = Vector2(0.6, 0.44)
+
+[sub_resource type="BoxShape3D" id="57_closed_book_shape"]
+size = Vector3(0.15, 0.5, 0.66)
+
+[sub_resource type="BoxMesh" id="57_book_hover_mesh"]
+material = SubResource("53_hover")
+size = Vector3(0.11, 0.51, 0.68)
+
+[sub_resource type="BoxShape3D" id="57_page_hotspot_shape"]
+size = Vector3(0.1, 0.46, 0.18)
+
+[sub_resource type="BoxMesh" id="57_page_hover_mesh"]
+material = SubResource("53_hover")
+size = Vector3(0.015, 0.44, 0.17)
+
+[sub_resource type="BoxShape3D" id="53_lever_shape"]
+size = Vector3(0.69, 0.3, 0.29)
+
+[sub_resource type="SphereMesh" id="71_lever_hover"]
+material = SubResource("53_hover")
+radius = 0.09655
+height = 0.1931
+radial_segments = 16
+rings = 8
+
+[sub_resource type="Gradient" id="72_structure_slit_gradient"]
+offsets = PackedFloat32Array(0, 0.465, 0.49, 0.51, 0.535, 1)
+colors = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="72_structure_slit"]
+gradient = SubResource("72_structure_slit_gradient")
+width = 256
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_riqys"]
 render_priority = 0
@@ -417,163 +393,19 @@ emission_enabled = true
 emission = Color(0.22, 1, 0.4, 1)
 emission_energy_multiplier = 0.65
 
-[sub_resource type="StandardMaterial3D" id="53_body"]
-resource_local_to_scene = true
-albedo_color = Color(0.19, 0.215, 0.225, 1)
-metallic = 0.62
-roughness = 0.48
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_main_click"]
+playback_mode = 1
+streams_count = 3
+stream_0/stream = ExtResource("main_click_1")
+stream_1/stream = ExtResource("main_click_2")
+stream_2/stream = ExtResource("main_click_3")
 
-[sub_resource type="StandardMaterial3D" id="53_screen"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.035, 0.09, 0.085, 1)
-
-[sub_resource type="StandardMaterial3D" id="53_lcd"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.36, 0.43, 0.32, 1)
-
-[sub_resource type="StandardMaterial3D" id="53_key"]
-resource_local_to_scene = true
-albedo_color = Color(0.24, 0.255, 0.265, 1)
-metallic = 0.42
-roughness = 0.5
-
-[sub_resource type="StandardMaterial3D" id="53_verify"]
-resource_local_to_scene = true
-albedo_color = Color(0.82, 0.82, 0.76, 1)
-roughness = 0.42
-
-[sub_resource type="StandardMaterial3D" id="53_hover"]
-resource_local_to_scene = true
-shading_mode = 0
-transparency = 1
-albedo_color = Color(0.35, 0.9, 0.72, 0.42)
-
-[sub_resource type="StandardMaterial3D" id="53_book_cover"]
-resource_local_to_scene = true
-albedo_color = Color(0.22, 0.08, 0.055, 1)
-roughness = 0.80
-roughness_texture = ExtResource("71_book_micro_rough")
-normal_enabled = true
-normal_scale = 0.12
-normal_texture = ExtResource("71_book_micro_normal")
-uv1_scale = Vector3(3, 3, 1)
-
-[sub_resource type="StandardMaterial3D" id="53_pages"]
-resource_local_to_scene = true
-albedo_color = Color(0.72, 0.68, 0.55, 1)
-roughness = 0.85
-
-[sub_resource type="StandardMaterial3D" id="53_metal"]
-resource_local_to_scene = true
-albedo_color = Color(0.38, 0.42, 0.44, 1)
-metallic = 0.9
-roughness = 0.24
-
-[sub_resource type="BoxShape3D" id="53_key_shape"]
-size = Vector3(0.1, 0.176667, 0.243333)
-
-[sub_resource type="BoxMesh" id="53_key_mesh"]
-material = SubResource("53_key")
-size = Vector3(0.12, 0.14, 0.22)
-
-[sub_resource type="BoxMesh" id="53_verify_mesh"]
-material = SubResource("53_verify")
-size = Vector3(0.12, 0.16, 0.38)
-
-[sub_resource type="BoxMesh" id="53_hover_mesh"]
-material = SubResource("53_hover")
-size = Vector3(0.005, 0.176667, 0.246667)
-
-[sub_resource type="BoxMesh" id="53_verify_hover_mesh"]
-material = SubResource("53_hover")
-size = Vector3(0.005, 0.175, 0.4)
-
-[sub_resource type="BoxShape3D" id="53_verify_shape"]
-size = Vector3(0.15, 0.19, 0.42)
-
-[sub_resource type="BoxShape3D" id="53_lever_shape"]
-size = Vector3(0.69, 0.3, 0.29)
-
-[sub_resource type="BoxMesh" id="53_book_pages_mesh"]
-material = SubResource("53_pages")
-size = Vector3(0.09, 0.46, 0.62)
-
-[sub_resource type="BoxMesh" id="53_book_cover_mesh"]
-material = SubResource("53_book_cover")
-size = Vector3(0.105, 0.49, 0.65)
-
-[sub_resource type="BoxMesh" id="57_book_spine_mesh"]
-material = SubResource("53_book_cover")
-size = Vector3(0.12, 0.5, 0.06)
-
-[sub_resource type="BoxMesh" id="57_left_page_base_mesh"]
-material = SubResource("53_pages")
-size = Vector3(0.09, 0.46, 0.62)
-
-[sub_resource type="QuadMesh" id="57_page_mesh"]
-size = Vector2(0.6, 0.44)
-
-[sub_resource type="StandardMaterial3D" id="57_turn_page_material"]
-shading_mode = 0
-albedo_color = Color(0.92, 0.88, 0.75, 1)
-roughness = 1.0
-cull_mode = 2
-
-[sub_resource type="QuadMesh" id="57_turn_page_mesh"]
-material = SubResource("57_turn_page_material")
-size = Vector2(0.6, 0.44)
-
-[sub_resource type="BoxShape3D" id="57_closed_book_shape"]
-size = Vector3(0.15, 0.5, 0.66)
-
-[sub_resource type="BoxShape3D" id="57_page_hotspot_shape"]
-size = Vector3(0.1, 0.46, 0.18)
-
-[sub_resource type="BoxMesh" id="57_book_hover_mesh"]
-material = SubResource("53_hover")
-size = Vector3(0.11, 0.51, 0.68)
-
-[sub_resource type="BoxMesh" id="57_page_hover_mesh"]
-material = SubResource("53_hover")
-size = Vector3(0.015, 0.44, 0.17)
-
-[sub_resource type="BoxMesh" id="53_lever_base_mesh"]
-material = SubResource("53_metal")
-size = Vector3(0.13, 0.34, 0.48)
-
-[sub_resource type="CylinderMesh" id="53_lever_handle_mesh"]
-material = SubResource("53_metal")
-top_radius = 0.065
-bottom_radius = 0.085
-height = 0.42
-radial_segments = 16
-
-[sub_resource type="SphereMesh" id="53_lever_grip_mesh"]
-material = SubResource("53_key")
-radius = 0.11
-height = 0.22
-radial_segments = 16
-rings = 8
-
-[sub_resource type="SphereMesh" id="71_lever_hover"]
-material = SubResource("53_hover")
-radius = 0.09655
-height = 0.1931
-radial_segments = 16
-rings = 8
-
-[sub_resource type="Gradient" id="72_structure_slit_gradient"]
-offsets = PackedFloat32Array(0, 0.465, 0.49, 0.51, 0.535, 1)
-colors = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1)
-
-[sub_resource type="GradientTexture2D" id="72_structure_slit"]
-gradient = SubResource("72_structure_slit_gradient")
-width = 256
-height = 64
-fill_from = Vector2(0, 0)
-fill_to = Vector2(1, 0)
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_right_keypad"]
+playback_mode = 1
+streams_count = 3
+stream_0/stream = ExtResource("right_numbers_1")
+stream_1/stream = ExtResource("right_numbers_2")
+stream_2/stream = ExtResource("right_numbers_3")
 
 [node name="三维操作舱" type="Node3D" unique_id=699471354]
 script = ExtResource("1_wegik")
@@ -616,39 +448,37 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 1.25, 0)
 material_override = ExtResource("66_wall")
 size = Vector3(0.2, 2.5, 3.8)
 
-[node name="基础收边" type="Node3D" parent="灰盒环境"]
+[node name="基础收边" type="Node3D" parent="灰盒环境" unique_id=883200824]
 visible = false
 
-[node name="后墙地脚条" type="MeshInstance3D" parent="灰盒环境/基础收边"]
-position = Vector3(0, 0.0175, 1.698)
+[node name="后墙地脚条" type="MeshInstance3D" parent="灰盒环境/基础收边" unique_id=1888761269]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0175, 1.698)
 mesh = SubResource("66_floor_trim")
 
-[node name="左墙地脚条" type="MeshInstance3D" parent="灰盒环境/基础收边"]
-position = Vector3(-1.698, 0.0175, 0)
-rotation = Vector3(0, 1.5707963, 0)
+[node name="左墙地脚条" type="MeshInstance3D" parent="灰盒环境/基础收边" unique_id=1302349509]
+transform = Transform3D(7.54979e-08, 0, 1, 0, 1, 0, -1, 0, 7.54979e-08, -1.698, 0.0175, 0)
 mesh = SubResource("66_floor_trim")
 
-[node name="右墙地脚条" type="MeshInstance3D" parent="灰盒环境/基础收边"]
-position = Vector3(1.698, 0.0175, 0)
-rotation = Vector3(0, 1.5707963, 0)
+[node name="右墙地脚条" type="MeshInstance3D" parent="灰盒环境/基础收边" unique_id=2113403870]
+transform = Transform3D(7.54979e-08, 0, 1, 0, 1, 0, -1, 0, 7.54979e-08, 1.698, 0.0175, 0)
 mesh = SubResource("66_floor_trim")
 
-[node name="装配结构V3" type="Node3D" parent="灰盒环境"]
+[node name="装配结构V3" type="Node3D" parent="灰盒环境" unique_id=1102559572]
 
-[node name="四壁与天花装配" parent="灰盒环境/装配结构V3" instance=ExtResource("66_assembly")]
+[node name="四壁与天花装配" parent="灰盒环境/装配结构V3" unique_id=566137894 instance=ExtResource("66_assembly")]
 
 [node name="操作台占位" type="Node3D" parent="." unique_id=181656154]
 
 [node name="主操作台定位" type="Node3D" parent="操作台占位" unique_id=1804053782]
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/主操作台定位"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/主操作台定位" unique_id=1352108781]
 
-[node name="主操作台外壳" parent="操作台占位/主操作台定位/视觉资产" instance=ExtResource("62_main_shell")]
+[node name="主操作台外壳" parent="操作台占位/主操作台定位/视觉资产" unique_id=977839441 instance=ExtResource("62_main_shell")]
 
 [node name="主台交互热点" type="Node3D" parent="操作台占位/主操作台定位" unique_id=266902568]
 
 [node name="麦克风热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=1122092151]
-transform = Transform3D(1, 0, 0, 0, 0.573576417, -0.819152086, 0, 0.819152086, 0.573576417, -0.6979811, 0.944992457, -1.287881737)
+transform = Transform3D(1, 0, 0, 0, 0.5735764, -0.81915206, 0, 0.81915206, 0.5735764, -0.6979811, 0.9449925, -1.2878817)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -656,30 +486,30 @@ action_id = &"open_microphone"
 prompt_text = "使用麦克风"
 hover_visual_path = NodePath("交互反馈/麦克风高亮")
 
-[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点"]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点" unique_id=548643525]
-shape = SubResource("BoxShape3D_microphone")
-
-[node name="麦克风视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点" unique_id=601847303]
-
-[node name="固定调度麦克风" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/麦克风视觉" instance=ExtResource("63_microphone")]
-position = Vector3(0, -0.023923, -0.035)
+[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点" unique_id=873774747]
 
 [node name="麦克风高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/交互反馈" unique_id=832558151]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.021923, -0.035)
 visible = false
 mesh = SubResource("BoxMesh_sn0t7")
 
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点" unique_id=548643525]
+shape = SubResource("BoxShape3D_microphone")
+
+[node name="麦克风视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点" unique_id=601847303]
+
+[node name="固定调度麦克风" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/麦克风视觉" unique_id=554960848 instance=ExtResource("63_microphone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.023923, -0.035)
+
 [node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点" unique_id=1206620932]
-visible = false
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.14, 0.065)
+visible = false
 pixel_size = 0.002
 text = "MIC"
 font_size = 28
 
 [node name="开门热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=227531788]
-transform = Transform3D(0.62513196, 0, 0, 0, 0.287851969, -0.389150448, 0, 0.411095322, 0.272486038, 0.23426473, 1.01, -1.35)
+transform = Transform3D(0.62513196, 0, 0, 0, 0.28785196, -0.38915044, 0, 0.41109532, 0.27248603, 0.23426473, 1.01, -1.35)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -687,39 +517,36 @@ action_id = &"open_door"
 prompt_text = "开门"
 hover_visual_path = NodePath("交互反馈/开门悬停高亮")
 
-[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点"]
+[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点" unique_id=880720423]
+
+[node name="开门悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/交互反馈" unique_id=1590688762]
+transform = Transform3D(1.5996623, 0, 0, 0, 1.9926087, 1.3464144e-07, 0, -2.555827e-07, 2.1049752, 0, -0.016586903, 2.9079736e-09)
+visible = false
+mesh = SubResource("BoxMesh_6f8o3")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点" unique_id=680504911]
 shape = SubResource("BoxShape3D_microphone")
 
 [node name="开门视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点" unique_id=478558191]
 
-[node name="大型按钮" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉" instance=ExtResource("63_large")]
-transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.34641434e-07, 0, -2.555827e-07, 2.10497531, 0, -0.06156430619, -1.311690676e-10)
+[node name="大型按钮" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉" unique_id=2068812668 instance=ExtResource("63_large")]
+transform = Transform3D(1.5996623, 0, 0, 0, 1.9926087, 1.3464144e-07, 0, -2.555827e-07, 2.1049752, 0, -0.061564308, -1.3116906e-10)
 
-[node name="大型按钮帽模型" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮/按钮按压轴/按钮帽模型/大型按钮帽" index="0"]
-material_override = ExtResource("64_door_open")
-
-[node name="开门悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/交互反馈" unique_id=1590688762]
-transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.34641434e-07, 0, -2.555827e-07, 2.10497531, 0, -0.016586902903, 2.907973578e-09)
-visible = false
-mesh = SubResource("BoxMesh_6f8o3")
-
-[node name="门控名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮"]
-position = Vector3(0, 0.0220721203, 0.16)
+[node name="门控名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮" unique_id=680232603]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02207212, 0.16)
 mesh = ExtResource("64_nameplate_open")
 
 [node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮/门控名称铭牌" unique_id=1263783487]
-visible = false
-modulate = Color(0.035, 0.045, 0.04, 1)
-outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
+visible = false
 pixel_size = 0.0013
+modulate = Color(0.035, 0.045, 0.04, 1)
 text = "OPEN"
 font_size = 28
+outline_size = 0
 
 [node name="关门热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=116356286]
-transform = Transform3D(0.62513196, 0, 0, 0, 0.287851969, -0.389150448, 0, 0.411095322, 0.272486038, 0.5420569, 1.01, -1.35)
+transform = Transform3D(0.62513196, 0, 0, 0, 0.28785196, -0.38915044, 0, 0.41109532, 0.27248603, 0.5420569, 1.01, -1.35)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -727,8 +554,13 @@ action_id = &"close_door"
 prompt_text = "关门"
 hover_visual_path = NodePath("交互反馈/关门悬停高亮")
 
-[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点"]
+[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点" unique_id=2104057242]
 transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, -0.0044502616, 0, 0)
+
+[node name="关门悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/交互反馈" unique_id=1144826803]
+transform = Transform3D(1.5996623, 0, 0, 0, 1.9926087, 1.9737459e-07, 0, -2.555827e-07, 2.1049752, 0.0044502616, -0.016586903, 3.03344e-09)
+visible = false
+mesh = SubResource("BoxMesh_efn7a")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点" unique_id=2099203521]
 shape = SubResource("BoxShape3D_microphone")
@@ -736,83 +568,71 @@ shape = SubResource("BoxShape3D_microphone")
 [node name="关门视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点" unique_id=54416564]
 transform = Transform3D(1, 0, 0, 0, 1, -2.9802322e-08, 0, 0, 1, -0.0044502616, 0, 0)
 
-[node name="大型按钮" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉" instance=ExtResource("63_large")]
-transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.97374586e-07, 0, -2.555827e-07, 2.10497531, 0.0044502616, -0.06156430619, -1.421723017e-09)
+[node name="大型按钮" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉" unique_id=1027620104 instance=ExtResource("63_large")]
+transform = Transform3D(1.5996623, 0, 0, 0, 1.9926087, 1.9737459e-07, 0, -2.555827e-07, 2.1049752, 0.0044502616, -0.061564308, -1.421723e-09)
 
-[node name="大型按钮帽模型" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮/按钮按压轴/按钮帽模型/大型按钮帽" index="0"]
-material_override = ExtResource("64_door_close")
-
-[node name="关门悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/交互反馈" unique_id=1144826803]
-transform = Transform3D(1.59966225, 0, 0, 0, 1.9926087, 1.97374586e-07, 0, -2.555827e-07, 2.10497531, 0.0044502616, -0.016586902903, 3.0334398824e-09)
-visible = false
-mesh = SubResource("BoxMesh_efn7a")
-
-[node name="门控名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮"]
-position = Vector3(0, 0.0220721203, 0.16)
+[node name="门控名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮" unique_id=279402476]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02207212, 0.16)
 mesh = ExtResource("64_nameplate_close")
 
 [node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮/门控名称铭牌" unique_id=109319742]
-visible = false
-modulate = Color(0.035, 0.045, 0.04, 1)
-outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
+visible = false
 pixel_size = 0.0013
+modulate = Color(0.035, 0.045, 0.04, 1)
 text = "CLOSE"
 font_size = 28
+outline_size = 0
 
 [node name="斜台面新增控件根" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=371646672]
-transform = Transform3D(1, 0, 0, 0, 0.573576417, -0.819152086, 0, 0.819152086, 0.573576417, 0, 1.02, -1.35)
+transform = Transform3D(1, 0, 0, 0, 0.5735764, -0.81915206, 0, 0.81915206, 0.5735764, 0, 1.02, -1.35)
 
-[node name="COMM分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(-0.875, -0.014560139676, -0.12)
+[node name="COMM分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=653399003]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.875, -0.01456014, -0.12)
 mesh = ExtResource("64_nameplate_comm")
 
-[node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM分组铭牌"]
+[node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM分组铭牌" unique_id=1068353582]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, -0.065, 0.0025, 0)
 visible = false
-position = Vector3(-0.065, 0.0025, 0)
-rotation = Vector3(-1.5707963, 0, 0)
 pixel_size = 0.0013
 modulate = Color(0.035, 0.045, 0.04, 1)
 text = "COMM"
 font_size = 22
 outline_size = 0
 
-[node name="CAMERA分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(-0.1975, -0.0145601251, -0.130)
+[node name="CAMERA分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=1236212099]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1975, -0.014560125, -0.13)
 mesh = ExtResource("64_nameplate_camera_group")
 
-[node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAMERA分组铭牌"]
+[node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAMERA分组铭牌" unique_id=1967328992]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
 visible = false
-position = Vector3(0, 0.0025, 0)
-rotation = Vector3(-1.5707963, 0, 0)
 pixel_size = 0.0013
 modulate = Color(0.035, 0.045, 0.04, 1)
 text = "CAMERA SELECT"
 font_size = 22
 outline_size = 0
 
-[node name="DOOR分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(0.3885, -0.01456013057, -0.15819152086)
+[node name="DOOR分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=1424154594]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3885, -0.01456013, -0.15819152)
 mesh = ExtResource("64_nameplate_door_group")
 
-[node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR分组铭牌"]
+[node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR分组铭牌" unique_id=195143315]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
 visible = false
-position = Vector3(0, 0.0025, 0)
-rotation = Vector3(-1.5707963, 0, 0)
 pixel_size = 0.0013
 modulate = Color(0.035, 0.045, 0.04, 1)
 text = "DOOR CONTROL"
 font_size = 22
 outline_size = 0
 
-[node name="STATUS分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(0.975, -0.01456013057, -0.13819152086)
+[node name="STATUS分组铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=151868395]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.975, -0.01456013, -0.13819152)
 mesh = ExtResource("64_nameplate_status")
 
-[node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/STATUS分组铭牌"]
+[node name="铭牌文字" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/STATUS分组铭牌" unique_id=1382626945]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
 visible = false
-position = Vector3(0, 0.0025, 0)
-rotation = Vector3(-1.5707963, 0, 0)
 pixel_size = 0.0013
 modulate = Color(0.035, 0.045, 0.04, 1)
 text = "STATUS"
@@ -828,17 +648,9 @@ action_id = &"select_camera_01"
 prompt_text = "CAM 01"
 hover_visual_path = NodePath("交互反馈/悬停高亮")
 
-[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点"]
+[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点" unique_id=1285073954]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点" unique_id=867613664]
-shape = SubResource("52_cam01_shape")
-
-[node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点" unique_id=1264001608]
-
-[node name="方形按钮" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉" instance=ExtResource("63_square")]
-position = Vector3(0.0675, -0.032110, 0)
-
-[node name="选中背光" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/交互反馈"]
+[node name="选中背光" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/交互反馈" unique_id=1411559769]
 visible = false
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/交互反馈" unique_id=1017574438]
@@ -846,18 +658,26 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0675, -0.014, 0)
 visible = false
 mesh = SubResource("52_cam01_hover")
 
-[node name="CAM名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮"]
-position = Vector3(0, 0.017555, 0.121)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点" unique_id=867613664]
+shape = SubResource("52_cam01_shape")
+
+[node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点" unique_id=1264001608]
+
+[node name="方形按钮" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉" unique_id=1375502026 instance=ExtResource("63_square")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0675, -0.03211, 0)
+
+[node name="CAM名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮" unique_id=1500598722]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.017555, 0.121)
 mesh = ExtResource("64_nameplate_cam_01")
 
 [node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮/CAM名称铭牌" unique_id=276286809]
-visible = false
-modulate = Color(0.035, 0.045, 0.04, 1)
-outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
+visible = false
 pixel_size = 0.0013
+modulate = Color(0.035, 0.045, 0.04, 1)
 text = "CAM 01"
 font_size = 25
+outline_size = 0
 
 [node name="CAM02热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=1623914680]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.08, 0, -0.00688355)
@@ -868,17 +688,9 @@ action_id = &"select_camera_02"
 prompt_text = "CAM 02"
 hover_visual_path = NodePath("交互反馈/悬停高亮")
 
-[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点"]
+[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点" unique_id=1363049917]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点" unique_id=109370934]
-shape = SubResource("52_cam02_shape")
-
-[node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点" unique_id=546314487]
-
-[node name="方形按钮" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉" instance=ExtResource("63_square")]
-position = Vector3(-0.0125, -0.032110, 0)
-
-[node name="选中背光" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/交互反馈"]
+[node name="选中背光" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/交互反馈" unique_id=1117463678]
 visible = false
 
 [node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/交互反馈" unique_id=1142936713]
@@ -886,24 +698,32 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0125, -0.014, 0)
 visible = false
 mesh = SubResource("52_cam02_hover")
 
-[node name="CAM名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮"]
-position = Vector3(0, 0.017555, 0.121)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点" unique_id=109370934]
+shape = SubResource("52_cam02_shape")
+
+[node name="视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点" unique_id=546314487]
+
+[node name="方形按钮" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉" unique_id=832268312 instance=ExtResource("63_square")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0125, -0.03211, 0)
+
+[node name="CAM名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮" unique_id=876116872]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.017555, 0.121)
 mesh = ExtResource("64_nameplate_cam_02")
 
 [node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮/CAM名称铭牌" unique_id=866050923]
-visible = false
-modulate = Color(0.035, 0.045, 0.04, 1)
-outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
+visible = false
 pixel_size = 0.0013
+modulate = Color(0.035, 0.045, 0.04, 1)
 text = "CAM 02"
 font_size = 25
+outline_size = 0
 
 [node name="COMM指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=100710776]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.91, -0.016060139676, -0.052801642408)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.91, -0.01606014, -0.052801643)
 
-[node name="灯座" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯" instance=ExtResource("63_lamp")]
-scale = Vector3(0.7, 0.7, 0.7)
+[node name="灯座" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯" unique_id=2131181663 instance=ExtResource("63_lamp")]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0, 0)
 
 [node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯" unique_id=1227417893]
 transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0.0119, 0)
@@ -911,54 +731,73 @@ visible = false
 material_override = SubResource("52_comm")
 mesh = SubResource("52_comm_lens")
 
-[node name="实体灯芯" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯"]
-position = Vector3(0, 0.011, 0)
-scale = Vector3(0.7, 0.7, 0.7)
+[node name="近距溢光" type="OmniLight3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯/灯面" unique_id=1694588086]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.028, 0)
+light_color = Color(0.28, 1, 0.62, 1)
+light_energy = 0.001
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+omni_range = 0.14
+omni_attenuation = 2.0
+
+[node name="实体灯芯" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯" unique_id=2035027092]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0.011, 0)
 material_override = SubResource("comm_lens_inactive")
 mesh = SubResource("52_comm_lens")
 
-[node name="灯名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯"]
-position = Vector3(0, 0.0015, 0.063)
+[node name="灯名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯" unique_id=103199328]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0015, 0.063)
 mesh = ExtResource("64_nameplate_tx")
 
 [node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯/灯名称铭牌" unique_id=1826541840]
-visible = false
-modulate = Color(0.035, 0.045, 0.04, 1)
-outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
+visible = false
 pixel_size = 0.00125
+modulate = Color(0.035, 0.045, 0.04, 1)
 text = "TX"
 font_size = 22
+outline_size = 0
 
 [node name="DOOR指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=1439120145]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.86, -0.01606013057, -0.03319152086)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.86, -0.01606013, -0.03319152)
 
-[node name="灯座" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯" instance=ExtResource("63_lamp")]
-scale = Vector3(0.7, 0.7, 0.7)
+[node name="灯座" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯" unique_id=656025659 instance=ExtResource("63_lamp")]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0, 0)
 
 [node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯" unique_id=999195658]
 transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0.0119, 0)
 material_override = SubResource("52_closed")
 mesh = SubResource("52_door_lens")
 
-[node name="灯名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯"]
-position = Vector3(0, 0.0015, 0.063)
+[node name="近距溢光" type="OmniLight3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯/灯面" unique_id=79658130]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.028, 0)
+light_color = Color(0.25, 0.48, 0.38, 1)
+light_energy = 0.001
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+omni_range = 0.14
+omni_attenuation = 2.0
+
+[node name="灯名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯" unique_id=1260187428]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0015, 0.063)
 mesh = ExtResource("64_nameplate_door")
 
 [node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯/灯名称铭牌" unique_id=753427199]
-visible = false
-modulate = Color(0.035, 0.045, 0.04, 1)
-outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
+visible = false
 pixel_size = 0.00125
+modulate = Color(0.035, 0.045, 0.04, 1)
 text = "DOOR"
 font_size = 22
+outline_size = 0
 
 [node name="FAULT指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=1859006211]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.09, -0.01606013057, -0.03319152086)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.09, -0.01606013, -0.03319152)
 
-[node name="灯座" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯" instance=ExtResource("63_lamp")]
-scale = Vector3(0.7, 0.7, 0.7)
+[node name="灯座" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯" unique_id=144585691 instance=ExtResource("63_lamp")]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0, 0)
 
 [node name="灯面" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯" unique_id=503477047]
 transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0.0119, 0)
@@ -966,24 +805,33 @@ visible = false
 material_override = SubResource("52_fault")
 mesh = SubResource("52_fault_lens")
 
-[node name="实体灯芯" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯"]
-position = Vector3(0, 0.011, 0)
-scale = Vector3(0.7, 0.7, 0.7)
+[node name="近距溢光" type="OmniLight3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯/灯面" unique_id=1700428706]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.028, 0)
+light_color = Color(1, 0.14, 0.06, 1)
+light_energy = 0.001
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+omni_range = 0.14
+omni_attenuation = 2.0
+
+[node name="实体灯芯" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯" unique_id=1950285013]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0.011, 0)
 material_override = SubResource("fault_lens_inactive")
 mesh = SubResource("52_fault_lens")
 
-[node name="灯名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯"]
-position = Vector3(0, 0.0015, 0.063)
+[node name="灯名称铭牌" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯" unique_id=1054952842]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0015, 0.063)
 mesh = ExtResource("64_nameplate_fault")
 
 [node name="标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯/灯名称铭牌" unique_id=40269106]
-visible = false
-modulate = Color(0.035, 0.045, 0.04, 1)
-outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.0025, 0)
+visible = false
 pixel_size = 0.00125
+modulate = Color(0.035, 0.045, 0.04, 1)
 text = "FAULT"
 font_size = 22
+outline_size = 0
 
 [node name="主监视器" type="MeshInstance3D" parent="操作台占位/主操作台定位" unique_id=933225609]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69087, -1.529)
@@ -994,21 +842,21 @@ mesh = SubResource("52_screen_quad")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.23, -1.51)
 
 [node name="背景" type="MeshInstance3D" parent="操作台占位/主操作台定位/设备状态条" unique_id=1438256047]
-position = Vector3(0, 0, 0.007)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.007)
 material_override = SubResource("52_dark")
 mesh = SubResource("52_status_box")
 
-[node name="状态屏面" type="MeshInstance3D" parent="操作台占位/主操作台定位/设备状态条"]
-position = Vector3(0, 0, 0.019)
+[node name="状态屏面" type="MeshInstance3D" parent="操作台占位/主操作台定位/设备状态条" unique_id=1062264726]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.019)
 material_override = SubResource("65_status_screen")
 mesh = SubResource("65_status_quad")
 
-[node name="状态视口" type="SubViewport" parent="操作台占位/主操作台定位/设备状态条"]
+[node name="状态视口" type="SubViewport" parent="操作台占位/主操作台定位/设备状态条" unique_id=1001332027]
 disable_3d = true
 size = Vector2i(512, 64)
 render_target_update_mode = 4
 
-[node name="底色" type="ColorRect" parent="操作台占位/主操作台定位/设备状态条/状态视口"]
+[node name="底色" type="ColorRect" parent="操作台占位/主操作台定位/设备状态条/状态视口" unique_id=765214104]
 offset_right = 512.0
 offset_bottom = 64.0
 mouse_filter = 2
@@ -1019,23 +867,58 @@ offset_left = 8.0
 offset_top = 8.0
 offset_right = 504.0
 offset_bottom = 56.0
-mouse_filter = 2
 theme_override_colors/font_color = Color(0.741176, 0.811765, 0.658824, 1)
 theme_override_font_sizes/font_size = 24
 text = "CASE — · 值班待命"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="屏幕左框溢光" type="OmniLight3D" parent="操作台占位/主操作台定位" unique_id=367862790]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.73, 1.86, -1.35)
+light_color = Color(0.72, 0.82, 0.88, 1)
+light_energy = 0.0006
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+omni_range = 0.22
+omni_attenuation = 2.0
+
+[node name="屏幕右框溢光" type="OmniLight3D" parent="操作台占位/主操作台定位" unique_id=468001923]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.73, 1.86, -1.35)
+light_color = Color(0.72, 0.82, 0.88, 1)
+light_energy = 0.0006
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+omni_range = 0.22
+omni_attenuation = 2.0
+
+[node name="状态条溢光" type="OmniLight3D" parent="操作台占位/主操作台定位" unique_id=499981364]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.23, -1.41)
+light_color = Color(0.74, 0.81, 0.66, 1)
+light_energy = 0.0006
+light_cull_mask = 1
+shadow_enabled = true
+shadow_caster_mask = 1
+omni_range = 0.22
+omni_attenuation = 2.0
+
 [node name="左操作台定位" type="Node3D" parent="操作台占位" unique_id=1852062320]
-position = Vector3(-0.246, 0.1, 0)
-scale = Vector3(0.85, 0.85, 0.85)
+transform = Transform3D(0.85, 0, 0, 0, 0.85, 0, 0, 0, 0.85, -0.246, 0.1, 0)
 script = ExtResource("10_left_screen")
 player_camera_path = NodePath("../../玩家视角/摄像机旋转轴/玩家摄像机")
 view_controller_path = NodePath("../..")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位"]
+[node name="栏目切换音效" type="AudioStreamPlayer" parent="操作台占位/左操作台定位" unique_id=974586873]
+stream = ExtResource("left_switch")
 
-[node name="档案终端外壳" parent="操作台占位/左操作台定位/视觉资产" instance=ExtResource("69_left_shell")]
+[node name="滚轮卡点音效" type="AudioStreamPlayer" parent="操作台占位/左操作台定位" unique_id=1421633154]
+stream = SubResource("AudioStreamRandomizer_left_scroll")
+max_polyphony = 8
+
+[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位" unique_id=2104126419]
+
+[node name="档案终端外壳" parent="操作台占位/左操作台定位/视觉资产" unique_id=1883979818 instance=ExtResource("69_left_shell")]
 
 [node name="左台屏幕" type="MeshInstance3D" parent="操作台占位/左操作台定位" unique_id=1873020594]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.542941, 1.65, 0)
@@ -1048,10 +931,10 @@ render_target_update_mode = 4
 
 [node name="BuildingTerminalInterface" parent="操作台占位/左操作台定位/左台界面视口" unique_id=217403649 instance=ExtResource("3_tyhlv")]
 
-[node name="栏目控制区" type="Node3D" parent="操作台占位/左操作台定位"]
+[node name="栏目控制区" type="Node3D" parent="操作台占位/左操作台定位" unique_id=1003016163]
 
-[node name="系统日志" type="Area3D" parent="操作台占位/左操作台定位/栏目控制区"]
-position = Vector3(-1.513529, 0.81, -0.32)
+[node name="系统日志" type="Area3D" parent="操作台占位/左操作台定位/栏目控制区" unique_id=283681331]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.513529, 0.81, -0.32)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1060,38 +943,37 @@ prompt_text = "查看系统日志"
 station_id = &"left_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志" unique_id=1749339275]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志"]
+[node name="按钮帽" parent="操作台占位/左操作台定位/栏目控制区/系统日志/视觉资产" unique_id=707269023 instance=ExtResource("69_left_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志" unique_id=860651843]
 shape = SubResource("55_key_shape")
 
-[node name="按钮帽" parent="操作台占位/左操作台定位/栏目控制区/系统日志/视觉资产" instance=ExtResource("69_left_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志"]
-position = Vector3(0.001, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志" unique_id=987263296]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.001, 0, 0)
 visible = false
 mesh = SubResource("55_key_hover_mesh")
 
-[node name="选中指示" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志"]
-position = Vector3(0.009, -0.05, 0)
+[node name="选中指示" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志" unique_id=1589968558]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.009, -0.05, 0)
 mesh = SubResource("55_key_selected_mesh")
 
-[node name="状态灯" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志"]
-position = Vector3(0.0076, 0.085, 0)
+[node name="状态灯" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志" unique_id=1977125134]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0076, 0.085, 0)
 visible = false
 mesh = SubResource("55_lamp_on_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志"]
+[node name="标识" type="Label3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志" unique_id=1764376960]
+transform = Transform3D(7.54979e-08, 0, 1, 0, 1, 0, -1, 0, 7.54979e-08, 0.008, -0.135, 0)
 visible = false
-position = Vector3(0.008, -0.135, 0)
-rotation = Vector3(0, 1.5707963, 0)
 pixel_size = 0.001
 text = "系统日志"
 font_size = 22
 outline_size = 1
 
-[node name="乘客档案" type="Area3D" parent="操作台占位/左操作台定位/栏目控制区"]
-position = Vector3(-1.513529, 0.81, 0.72)
+[node name="乘客档案" type="Area3D" parent="操作台占位/左操作台定位/栏目控制区" unique_id=1850520152]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.513529, 0.81, 0.72)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1100,39 +982,38 @@ prompt_text = "查看乘客档案"
 station_id = &"left_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案" unique_id=1461971486]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案"]
+[node name="按钮帽" parent="操作台占位/左操作台定位/栏目控制区/乘客档案/视觉资产" unique_id=3275193 instance=ExtResource("69_left_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案" unique_id=694976760]
 shape = SubResource("55_key_shape")
 
-[node name="按钮帽" parent="操作台占位/左操作台定位/栏目控制区/乘客档案/视觉资产" instance=ExtResource("69_left_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案"]
-position = Vector3(0.001, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案" unique_id=915709984]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.001, 0, 0)
 visible = false
 mesh = SubResource("55_key_hover_mesh")
 
-[node name="选中指示" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案"]
-position = Vector3(0.009, -0.05, 0)
+[node name="选中指示" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案" unique_id=653521116]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.009, -0.05, 0)
 visible = false
 mesh = SubResource("55_key_selected_mesh")
 
-[node name="状态灯" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案"]
-position = Vector3(0.0076, 0.085, 0)
+[node name="状态灯" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案" unique_id=510556143]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0076, 0.085, 0)
 visible = false
 mesh = SubResource("55_lamp_on_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案"]
+[node name="标识" type="Label3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案" unique_id=612465671]
+transform = Transform3D(7.54979e-08, 0, 1, 0, 1, 0, -1, 0, 7.54979e-08, 0.008, -0.135, 0)
 visible = false
-position = Vector3(0.008, -0.135, 0)
-rotation = Vector3(0, 1.5707963, 0)
 pixel_size = 0.001
 text = "乘客档案"
 font_size = 22
 outline_size = 1
 
-[node name="对话记录" type="Area3D" parent="操作台占位/左操作台定位/栏目控制区"]
-position = Vector3(-1.513529, 0.81, 0.2)
+[node name="对话记录" type="Area3D" parent="操作台占位/左操作台定位/栏目控制区" unique_id=925465813]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.513529, 0.81, 0.2)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1141,39 +1022,38 @@ prompt_text = "查看对话记录"
 station_id = &"left_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录" unique_id=917303764]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录"]
+[node name="按钮帽" parent="操作台占位/左操作台定位/栏目控制区/对话记录/视觉资产" unique_id=758255850 instance=ExtResource("69_left_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录" unique_id=291592251]
 shape = SubResource("55_key_shape")
 
-[node name="按钮帽" parent="操作台占位/左操作台定位/栏目控制区/对话记录/视觉资产" instance=ExtResource("69_left_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录"]
-position = Vector3(0.001, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录" unique_id=953558381]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.001, 0, 0)
 visible = false
 mesh = SubResource("55_key_hover_mesh")
 
-[node name="选中指示" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录"]
-position = Vector3(0.009, -0.05, 0)
+[node name="选中指示" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录" unique_id=767600269]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.009, -0.05, 0)
 visible = false
 mesh = SubResource("55_key_selected_mesh")
 
-[node name="状态灯" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录"]
-position = Vector3(0.0076, 0.085, 0)
+[node name="状态灯" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录" unique_id=721224042]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0076, 0.085, 0)
 visible = false
 mesh = SubResource("55_lamp_on_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录"]
+[node name="标识" type="Label3D" parent="操作台占位/左操作台定位/栏目控制区/对话记录" unique_id=624362012]
+transform = Transform3D(7.54979e-08, 0, 1, 0, 1, 0, -1, 0, 7.54979e-08, 0.008, -0.135, 0)
 visible = false
-position = Vector3(0.008, -0.135, 0)
-rotation = Vector3(0, 1.5707963, 0)
 pixel_size = 0.001
 text = "对话记录"
 font_size = 22
 outline_size = 1
 
-[node name="滚轮根" type="Area3D" parent="操作台占位/左操作台定位"]
-position = Vector3(-1.513529, 0.8, -0.78)
+[node name="滚轮根" type="Area3D" parent="操作台占位/左操作台定位" unique_id=1918726158]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.513529, 0.8, -0.78)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1182,28 +1062,25 @@ prompt_text = "滚轮：上下阅读"
 station_id = &"left_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="滚轮转轴" type="Node3D" parent="操作台占位/左操作台定位/滚轮根"]
-position = Vector3(0.04, 0, 0)
-rotation = Vector3(1.5707963, 0, 0)
+[node name="滚轮转轴" type="Node3D" parent="操作台占位/左操作台定位/滚轮根" unique_id=928301059]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, -1, 0, 1, 7.54979e-08, 0.04, 0, 0)
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位/滚轮根/滚轮转轴"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/左操作台定位/滚轮根/滚轮转轴" unique_id=672657762]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/左操作台定位/滚轮根"]
-rotation = Vector3(1.5707963, 0, 0)
+[node name="滚轮视觉" parent="操作台占位/左操作台定位/滚轮根/滚轮转轴/视觉资产" unique_id=340468360 instance=ExtResource("69_left_scroll")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/左操作台定位/滚轮根" unique_id=1836191424]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, -1, 0, 1, 7.54979e-08, 0, 0, 0)
 shape = SubResource("55_scroll_shape")
 
-[node name="滚轮视觉" parent="操作台占位/左操作台定位/滚轮根/滚轮转轴/视觉资产" instance=ExtResource("69_left_scroll")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/左操作台定位/滚轮根"]
-position = Vector3(0.04, 0, 0)
-rotation = Vector3(1.5707963, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/左操作台定位/滚轮根" unique_id=1908470558]
+transform = Transform3D(1, 0, 0, 0, 7.54979e-08, -1, 0, 1, 7.54979e-08, 0.04, 0, 0)
 visible = false
 mesh = SubResource("55_scroll_hover_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/左操作台定位/滚轮根"]
+[node name="标识" type="Label3D" parent="操作台占位/左操作台定位/滚轮根" unique_id=647907799]
+transform = Transform3D(7.54979e-08, 0, 1, 0, 1, 0, -1, 0, 7.54979e-08, 0.008, -0.13, 0)
 visible = false
-position = Vector3(0.008, -0.13, 0)
-rotation = Vector3(0, 1.5707963, 0)
 pixel_size = 0.001
 text = "滚动"
 font_size = 22
@@ -1214,54 +1091,53 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 2.85)
 size = Vector3(2.2, 2.7, 0.15)
 
 [node name="右操作台定位" type="Node3D" parent="操作台占位" unique_id=1554468139]
-position = Vector3(0.776, 0.76, 0)
-scale = Vector3(0.6, 0.6, 0.6)
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0.776, 0.76, 0)
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位" unique_id=1129200367]
 
+[node name="右台外壳" parent="操作台占位/右操作台定位/视觉资产" unique_id=1160519816 instance=ExtResource("71_shell")]
 
-[node name="右台外壳" parent="操作台占位/右操作台定位/视觉资产" instance=ExtResource("71_shell")]
+[node name="验证信息屏" type="Node3D" parent="操作台占位/右操作台定位" unique_id=208119045]
 
-[node name="验证信息屏" type="Node3D" parent="操作台占位/右操作台定位"]
-
-
-[node name="屏面" type="CSGBox3D" parent="操作台占位/右操作台定位/验证信息屏"]
-position = Vector3(1.44, 2.086667, 0)
+[node name="屏面" type="CSGBox3D" parent="操作台占位/右操作台定位/验证信息屏" unique_id=1629878233]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.44, 2.086667, 0)
 material_override = SubResource("53_screen")
 size = Vector3(0.025, 0.63, 1.874405)
 
-[node name="信息文字" type="Label3D" parent="操作台占位/右操作台定位/验证信息屏"]
-position = Vector3(1.425, 2.086667, -0.897321)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="信息文字" type="Label3D" parent="操作台占位/右操作台定位/验证信息屏" unique_id=543401517]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, 1.425, 2.086667, -0.897321)
 pixel_size = 0.0025
 modulate = Color(0.741176, 0.811765, 0.658824, 1)
-text = "当前楼层：---\n系统推荐：—\n目标楼层：---\n地址状态：未验证\n派单关联度：—\n稳定度影响：—"
+text = "当前楼层：---
+系统推荐：—
+目标楼层：---
+地址状态：未验证
+派单关联度：—
+稳定度影响：—"
 font = SubResource("71_terminal_font")
 font_size = 30
 outline_size = 1
 horizontal_alignment = 0
 width = 600.0
 
-[node name="数字显示组" type="Node3D" parent="操作台占位/右操作台定位"]
-position = Vector3(0.148333333, -0.016666668, 0.000000000)
-rotation = Vector3(0, 0, 0)
+[node name="数字显示组" type="Node3D" parent="操作台占位/右操作台定位" unique_id=1841267422]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14833333, -0.016666668, 0)
 
-[node name="LCD屏面" type="CSGBox3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.337666667, 1.491667000, -0.216667000)
+[node name="LCD屏面" type="CSGBox3D" parent="操作台占位/右操作台定位/数字显示组" unique_id=1331569856]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3376666, 1.491667, -0.216667)
 material_override = SubResource("53_lcd")
 size = Vector3(0.025, 0.19, 1.133333)
 
-[node name="输入数字" type="Label3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.322666667, 1.491667000, 0.308333000)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="输入数字" type="Label3D" parent="操作台占位/右操作台定位/数字显示组" unique_id=720066921]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, 1.3226666, 1.491667, 0.308333)
 pixel_size = 0.0022
 font = SubResource("71_terminal_font")
 font_size = 42
 outline_size = 2
 horizontal_alignment = 2
 
-[node name="验证楼层热点" type="Area3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.35, 1.491667, 0.583333)
+[node name="验证楼层热点" type="Area3D" parent="操作台占位/右操作台定位/数字显示组" unique_id=242798645]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.35, 1.491667, 0.583333)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1270,36 +1146,34 @@ prompt_text = "验证楼层"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点" unique_id=1148876114]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点/视觉资产" unique_id=503976989 instance=ExtResource("71_verify")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点" unique_id=161057095]
 shape = SubResource("53_verify_shape")
 
-[node name="按钮帽" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点/视觉资产" instance=ExtResource("71_verify")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
-position = Vector3(-0.05, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点" unique_id=1792433260]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.05, 0, 0)
 visible = false
 mesh = SubResource("53_verify_hover_mesh")
 
-[node name="拒绝提示高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
-position = Vector3(-0.05, 0, 0)
+[node name="拒绝提示高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点" unique_id=1054233779]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.05, 0, 0)
 visible = false
 mesh = SubResource("53_verify_hover_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点"]
-position = Vector3(-0.074, 0, 0)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点" unique_id=770786098]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.074, 0, 0)
 pixel_size = 0.0022
+modulate = Color(0.08, 0.09, 0.09, 1)
 text = "验证楼层"
 font = SubResource("71_terminal_font")
 font_size = 26
 outline_size = 0
-modulate = Color(0.08, 0.09, 0.09, 1)
 
-[node name="反馈文字" type="Label3D" parent="操作台占位/右操作台定位/数字显示组"]
-position = Vector3(1.43, 1.36, -0.82)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="反馈文字" type="Label3D" parent="操作台占位/右操作台定位/数字显示组" unique_id=1025337700]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, 1.43, 1.36, -0.82)
 visible = false
 pixel_size = 0.0015
 text = "请输入目标楼层"
@@ -1309,12 +1183,11 @@ outline_size = 4
 horizontal_alignment = 0
 width = 800.0
 
-[node name="数字键盘" type="Node3D" parent="操作台占位/右操作台定位"]
-position = Vector3(-0.346344592, 0.332407064, 0.100367659)
-rotation = Vector3(0, 0, -0.20943951)
+[node name="数字键盘" type="Node3D" parent="操作台占位/右操作台定位" unique_id=1155692852]
+transform = Transform3D(0.9781476, 0.2079117, 0, -0.2079117, 0.9781476, 0, 0, 0, 1, -0.3463446, 0.33240706, 0.10036766)
 
-[node name="数字1" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.323333, 1.183333, -0.745000)
+[node name="数字1" type="Area3D" parent="操作台占位/右操作台定位/数字键盘" unique_id=1021330077]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.323333, 1.183333, -0.745)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1323,30 +1196,29 @@ prompt_text = "输入 1"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字1" unique_id=914752967]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字1/视觉资产" unique_id=453137032 instance=ExtResource("71_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字1" unique_id=701979060]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字1/视觉资产" instance=ExtResource("71_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
-position = Vector3(-0.037, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字1" unique_id=694703642]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字1"]
-outline_size = 0
-modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.0435, 0, 0)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字1" unique_id=2018964550]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.0435, 0, 0)
 pixel_size = 0.0018
+modulate = Color(0.08, 0.09, 0.09, 1)
 text = "1"
 font = SubResource("71_terminal_font")
 font_size = 30
+outline_size = 0
 
-[node name="数字2" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.323333, 1.183333, -0.483333)
+[node name="数字2" type="Area3D" parent="操作台占位/右操作台定位/数字键盘" unique_id=495051368]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.323333, 1.183333, -0.483333)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1355,30 +1227,29 @@ prompt_text = "输入 2"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字2" unique_id=969694387]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字2/视觉资产" unique_id=366519056 instance=ExtResource("71_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字2" unique_id=2137632133]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字2/视觉资产" instance=ExtResource("71_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
-position = Vector3(-0.037, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字2" unique_id=1677519929]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字2"]
-outline_size = 0
-modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.0435, 0, 0)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字2" unique_id=1354705811]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.0435, 0, 0)
 pixel_size = 0.0018
+modulate = Color(0.08, 0.09, 0.09, 1)
 text = "2"
 font = SubResource("71_terminal_font")
 font_size = 30
+outline_size = 0
 
-[node name="数字3" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.323333, 1.183333, -0.221667)
+[node name="数字3" type="Area3D" parent="操作台占位/右操作台定位/数字键盘" unique_id=1446752219]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.323333, 1.183333, -0.221667)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1387,30 +1258,29 @@ prompt_text = "输入 3"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字3" unique_id=88474010]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字3/视觉资产" unique_id=1462589740 instance=ExtResource("71_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字3" unique_id=1483839912]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字3/视觉资产" instance=ExtResource("71_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
-position = Vector3(-0.037, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字3" unique_id=1412934976]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字3"]
-outline_size = 0
-modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.0435, 0, 0)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字3" unique_id=1024997265]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.0435, 0, 0)
 pixel_size = 0.0018
+modulate = Color(0.08, 0.09, 0.09, 1)
 text = "3"
 font = SubResource("71_terminal_font")
 font_size = 30
+outline_size = 0
 
-[node name="数字4" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.323333, 0.996667, -0.745000)
+[node name="数字4" type="Area3D" parent="操作台占位/右操作台定位/数字键盘" unique_id=155508007]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.323333, 0.996667, -0.745)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1419,30 +1289,29 @@ prompt_text = "输入 4"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字4" unique_id=939349475]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字4/视觉资产" unique_id=2023196250 instance=ExtResource("71_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字4" unique_id=368997523]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字4/视觉资产" instance=ExtResource("71_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
-position = Vector3(-0.037, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字4" unique_id=1516752064]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字4"]
-outline_size = 0
-modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.0435, 0, 0)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字4" unique_id=1534837050]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.0435, 0, 0)
 pixel_size = 0.0018
+modulate = Color(0.08, 0.09, 0.09, 1)
 text = "4"
 font = SubResource("71_terminal_font")
 font_size = 30
+outline_size = 0
 
-[node name="数字5" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.323333, 0.996667, -0.483333)
+[node name="数字5" type="Area3D" parent="操作台占位/右操作台定位/数字键盘" unique_id=372157505]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.323333, 0.996667, -0.483333)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1451,30 +1320,29 @@ prompt_text = "输入 5"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字5" unique_id=197268488]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字5/视觉资产" unique_id=640899608 instance=ExtResource("71_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字5" unique_id=484056355]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字5/视觉资产" instance=ExtResource("71_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
-position = Vector3(-0.037, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字5" unique_id=129730798]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字5"]
-outline_size = 0
-modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.0435, 0, 0)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字5" unique_id=140555302]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.0435, 0, 0)
 pixel_size = 0.0018
+modulate = Color(0.08, 0.09, 0.09, 1)
 text = "5"
 font = SubResource("71_terminal_font")
 font_size = 30
+outline_size = 0
 
-[node name="数字6" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.323333, 0.996667, -0.221667)
+[node name="数字6" type="Area3D" parent="操作台占位/右操作台定位/数字键盘" unique_id=1020488863]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.323333, 0.996667, -0.221667)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1483,30 +1351,29 @@ prompt_text = "输入 6"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字6" unique_id=1398983993]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字6/视觉资产" unique_id=450876268 instance=ExtResource("71_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字6" unique_id=679702368]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字6/视觉资产" instance=ExtResource("71_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
-position = Vector3(-0.037, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字6" unique_id=602821830]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字6"]
-outline_size = 0
-modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.0435, 0, 0)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字6" unique_id=1585694005]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.0435, 0, 0)
 pixel_size = 0.0018
+modulate = Color(0.08, 0.09, 0.09, 1)
 text = "6"
 font = SubResource("71_terminal_font")
 font_size = 30
+outline_size = 0
 
-[node name="数字7" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.323333, 0.810000, -0.745000)
+[node name="数字7" type="Area3D" parent="操作台占位/右操作台定位/数字键盘" unique_id=617614659]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.323333, 0.81, -0.745)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1515,30 +1382,29 @@ prompt_text = "输入 7"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字7" unique_id=1064441215]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字7/视觉资产" unique_id=794985472 instance=ExtResource("71_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字7" unique_id=2111538733]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字7/视觉资产" instance=ExtResource("71_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
-position = Vector3(-0.037, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字7" unique_id=629283843]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字7"]
-outline_size = 0
-modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.0435, 0, 0)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字7" unique_id=78278922]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.0435, 0, 0)
 pixel_size = 0.0018
+modulate = Color(0.08, 0.09, 0.09, 1)
 text = "7"
 font = SubResource("71_terminal_font")
 font_size = 30
+outline_size = 0
 
-[node name="数字8" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.323333, 0.810000, -0.483333)
+[node name="数字8" type="Area3D" parent="操作台占位/右操作台定位/数字键盘" unique_id=275370912]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.323333, 0.81, -0.483333)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1547,30 +1413,29 @@ prompt_text = "输入 8"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字8" unique_id=1688493700]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字8/视觉资产" unique_id=1968693012 instance=ExtResource("71_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字8" unique_id=34595784]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字8/视觉资产" instance=ExtResource("71_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
-position = Vector3(-0.037, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字8" unique_id=49193071]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字8"]
-outline_size = 0
-modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.0435, 0, 0)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字8" unique_id=1989569783]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.0435, 0, 0)
 pixel_size = 0.0018
+modulate = Color(0.08, 0.09, 0.09, 1)
 text = "8"
 font = SubResource("71_terminal_font")
 font_size = 30
+outline_size = 0
 
-[node name="数字9" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.323333, 0.810000, -0.221667)
+[node name="数字9" type="Area3D" parent="操作台占位/右操作台定位/数字键盘" unique_id=809897995]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.323333, 0.81, -0.221667)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1579,30 +1444,29 @@ prompt_text = "输入 9"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字9" unique_id=456028544]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字9/视觉资产" unique_id=1398392063 instance=ExtResource("71_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字9" unique_id=799334801]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字9/视觉资产" instance=ExtResource("71_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
-position = Vector3(-0.037, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字9" unique_id=2048801323]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字9"]
-outline_size = 0
-modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.0435, 0, 0)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字9" unique_id=454471069]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.0435, 0, 0)
 pixel_size = 0.0018
+modulate = Color(0.08, 0.09, 0.09, 1)
 text = "9"
 font = SubResource("71_terminal_font")
 font_size = 30
+outline_size = 0
 
-[node name="清空" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.323333, 0.623333, -0.745000)
+[node name="清空" type="Area3D" parent="操作台占位/右操作台定位/数字键盘" unique_id=2092613973]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.323333, 0.623333, -0.745)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1611,30 +1475,29 @@ prompt_text = "清空输入"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/清空" unique_id=1762314967]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/清空/视觉资产" unique_id=1883144262 instance=ExtResource("71_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/清空" unique_id=969338912]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/清空/视觉资产" instance=ExtResource("71_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
-position = Vector3(-0.037, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/清空" unique_id=428727510]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/清空"]
-outline_size = 0
-modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.0435, 0, 0)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/清空" unique_id=1793282830]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.0435, 0, 0)
 pixel_size = 0.0013
+modulate = Color(0.08, 0.09, 0.09, 1)
 text = "CLR"
 font = SubResource("71_terminal_font")
 font_size = 30
+outline_size = 0
 
-[node name="数字0" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.323333, 0.623333, -0.483333)
+[node name="数字0" type="Area3D" parent="操作台占位/右操作台定位/数字键盘" unique_id=1782850469]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.323333, 0.623333, -0.483333)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1643,30 +1506,29 @@ prompt_text = "输入 0"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/数字0" unique_id=1994189011]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字0/视觉资产" unique_id=2097427696 instance=ExtResource("71_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/数字0" unique_id=262383290]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/数字0/视觉资产" instance=ExtResource("71_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
-position = Vector3(-0.037, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/数字0" unique_id=1893111018]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字0"]
-outline_size = 0
-modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.0435, 0, 0)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/数字0" unique_id=1610822671]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.0435, 0, 0)
 pixel_size = 0.0018
+modulate = Color(0.08, 0.09, 0.09, 1)
 text = "0"
 font = SubResource("71_terminal_font")
 font_size = 30
+outline_size = 0
 
-[node name="退格" type="Area3D" parent="操作台占位/右操作台定位/数字键盘"]
-position = Vector3(1.323333, 0.623333, -0.221667)
+[node name="退格" type="Area3D" parent="操作台占位/右操作台定位/数字键盘" unique_id=180926061]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.323333, 0.623333, -0.221667)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1675,102 +1537,99 @@ prompt_text = "删除末位"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/数字键盘/退格" unique_id=916990156]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
+[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/退格/视觉资产" unique_id=183471256 instance=ExtResource("71_key")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/数字键盘/退格" unique_id=2126733592]
 shape = SubResource("53_key_shape")
 
-[node name="按钮帽" parent="操作台占位/右操作台定位/数字键盘/退格/视觉资产" instance=ExtResource("71_key")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
-position = Vector3(-0.037, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字键盘/退格" unique_id=835182099]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.037, 0, 0)
 visible = false
 mesh = SubResource("53_hover_mesh")
 
-[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/退格"]
-outline_size = 0
-modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.0435, 0, 0)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字键盘/退格" unique_id=1797372191]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.0435, 0, 0)
 pixel_size = 0.0018
+modulate = Color(0.08, 0.09, 0.09, 1)
 text = "←"
 font = SubResource("71_terminal_font")
 font_size = 30
+outline_size = 0
 
-[node name="下部斜面根" type="Node3D" parent="操作台占位/右操作台定位"]
-position = Vector3(1.67244494, 0.1912314, 0)
-rotation = Vector3(0, 0, -0.20943951)
+[node name="下部斜面根" type="Node3D" parent="操作台占位/右操作台定位" unique_id=1010858642]
+transform = Transform3D(0.9781476, 0.2079117, 0, -0.2079117, 0.9781476, 0, 0, 0, 1, 1.6724449, 0.1912314, 0)
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根" unique_id=161293220]
 
-
-[node name="楼层导引书" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根"]
-position = Vector3(-0.13, 0.01, -0.48)
+[node name="楼层导引书" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根" unique_id=347147836]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13, 0.01, -0.48)
 script = ExtResource("57_book")
+book_open_sound = ExtResource("right_book_open")
+book_close_sound = ExtResource("right_book_close")
+book_turn_sound = ExtResource("right_book_turn")
 
-[node name="RestPose" type="Marker3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
-position = Vector3(-0.377316594, -0.084123135, 0)
+[node name="书本音效" type="AudioStreamPlayer" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书" unique_id=1800758414]
+stream = ExtResource("right_book_open")
 
-[node name="InspectPose" type="Marker3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
-position = Vector3(-1.816490173, 0.660054445, 0.899999857)
-rotation = Vector3(0, 0, 0.06981351)
-scale = Vector3(1.25, 1.25, 1.25)
+[node name="RestPose" type="Marker3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书" unique_id=772449292]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3773166, -0.084123135, 0)
 
-[node name="BookRoot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
-position = Vector3(-0.377316594, -0.084123135, 0)
+[node name="InspectPose" type="Marker3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书" unique_id=54953061]
+transform = Transform3D(1.246955, -0.087196015, 0, 0.087196015, 1.246955, 0, 0, 0, 1.25, -1.8164902, 0.66005445, 0.89999986)
 
-[node name="CoverPivot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
-position = Vector3(0, 0, -0.325)
+[node name="BookRoot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书" unique_id=107506778]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3773166, -0.084123135, 0)
 
-[node name="封面" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CoverPivot"]
-position = Vector3(-0.08, 0, 0.325)
+[node name="CoverPivot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=166836138]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.325)
+
+[node name="封面" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CoverPivot" unique_id=1859705566]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.08, 0, 0.325)
 mesh = SubResource("53_book_cover_mesh")
 
-[node name="封面标题" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CoverPivot"]
-position = Vector3(-0.15, 0, 0.325)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="封面标题" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CoverPivot" unique_id=288881985]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.15, 0, 0.325)
 pixel_size = 0.0022
 text = "楼层导引 / FLOOR DIRECTORY"
 font = SubResource("71_terminal_font")
 font_size = 22
 outline_size = 3
 
-[node name="Spine" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
-position = Vector3(-0.012, 0, -0.325)
+[node name="Spine" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=1537983762]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.012, 0, -0.325)
 mesh = SubResource("57_book_spine_mesh")
 
-[node name="PageStack" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
-position = Vector3(-0.012, 0, 0)
+[node name="PageStack" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=205177389]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.012, 0, 0)
 mesh = SubResource("53_book_pages_mesh")
 
-[node name="LeftPageBase" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
-position = Vector3(-0.012, 0, -0.65)
+[node name="LeftPageBase" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=79313042]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.012, 0, -0.65)
 visible = false
 mesh = SubResource("57_left_page_base_mesh")
 
-[node name="LeftPageMesh" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
-position = Vector3(-0.065, 0, -0.65)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="LeftPageMesh" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=2090467621]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.065, 0, -0.65)
 visible = false
 mesh = SubResource("57_page_mesh")
 
-[node name="RightPageMesh" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
-position = Vector3(-0.065, 0, 0)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="RightPageMesh" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=1817598701]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.065, 0, 0)
 visible = false
 mesh = SubResource("57_page_mesh")
 
-[node name="TurnPagePivot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
-position = Vector3(-0.09, 0, -0.325)
+[node name="TurnPagePivot" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=876631643]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, 0, -0.325)
 
-[node name="TurnPage" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/TurnPagePivot"]
-position = Vector3(0, 0, 0.325)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="TurnPage" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/TurnPagePivot" unique_id=1173876556]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, 0, 0, 0.325)
 visible = false
 mesh = SubResource("57_turn_page_mesh")
 
-[node name="BookHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
-position = Vector3(-0.14, 0, 0)
+[node name="BookHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=282330147]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, 0, 0)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1779,16 +1638,16 @@ prompt_text = "拿起楼层导引书"
 station_id = &"right_console"
 hover_visual_path = NodePath("Hover")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/BookHotspot"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/BookHotspot" unique_id=390612271]
 shape = SubResource("57_closed_book_shape")
 
-[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/BookHotspot"]
-position = Vector3(0.095, 0, 0)
+[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/BookHotspot" unique_id=438741148]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.095, 0, 0)
 visible = false
 mesh = SubResource("57_book_hover_mesh")
 
-[node name="PrevPageHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
-position = Vector3(-0.14, 0, -0.91)
+[node name="PrevPageHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=1735830577]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, 0, -0.91)
 collision_layer = 0
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1798,16 +1657,16 @@ station_id = &"right_console"
 interaction_enabled = false
 hover_visual_path = NodePath("Hover")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/PrevPageHotspot"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/PrevPageHotspot" unique_id=1884994094]
 shape = SubResource("57_page_hotspot_shape")
 
-[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/PrevPageHotspot"]
-position = Vector3(-0.052, 0, 0)
+[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/PrevPageHotspot" unique_id=1250371057]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.052, 0, 0)
 visible = false
 mesh = SubResource("57_page_hover_mesh")
 
-[node name="NextPageHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
-position = Vector3(-0.14, 0, 0.27)
+[node name="NextPageHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=1208915294]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, 0, 0.27)
 collision_layer = 0
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1817,16 +1676,16 @@ station_id = &"right_console"
 interaction_enabled = false
 hover_visual_path = NodePath("Hover")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/NextPageHotspot"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/NextPageHotspot" unique_id=1428059663]
 shape = SubResource("57_page_hotspot_shape")
 
-[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/NextPageHotspot"]
-position = Vector3(-0.052, 0, 0)
+[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/NextPageHotspot" unique_id=1931101320]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.052, 0, 0)
 visible = false
 mesh = SubResource("57_page_hover_mesh")
 
-[node name="CloseBookHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot"]
-position = Vector3(-0.14, 0, -0.325)
+[node name="CloseBookHotspot" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot" unique_id=1553125134]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, 0, -0.325)
 collision_layer = 0
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1836,33 +1695,34 @@ station_id = &"right_console"
 interaction_enabled = false
 hover_visual_path = NodePath("Hover")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CloseBookHotspot"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CloseBookHotspot" unique_id=1006434285]
 shape = SubResource("57_page_hotspot_shape")
 
-[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CloseBookHotspot"]
-position = Vector3(-0.052, 0, 0)
+[node name="Hover" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/BookRoot/CloseBookHotspot" unique_id=154334960]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.052, 0, 0)
 visible = false
 mesh = SubResource("57_page_hover_mesh")
 
-[node name="LeftPageViewport" type="SubViewport" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
+[node name="LeftPageViewport" type="SubViewport" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书" unique_id=712209627]
 disable_3d = true
 size = Vector2i(1024, 768)
 render_target_update_mode = 0
 
-[node name="Page" type="Control" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport"]
+[node name="Page" type="Control" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport" unique_id=381786215]
 layout_mode = 3
+anchors_preset = 0
 offset_right = 1024.0
 offset_bottom = 768.0
 mouse_filter = 2
 
-[node name="Paper" type="ColorRect" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page"]
+[node name="Paper" type="ColorRect" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page" unique_id=204024929]
 layout_mode = 0
 offset_right = 1024.0
 offset_bottom = 768.0
 mouse_filter = 2
 color = Color(0.93, 0.9, 0.81, 1)
 
-[node name="Number" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page"]
+[node name="Number" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page" unique_id=529943932]
 layout_mode = 0
 offset_left = 65.0
 offset_top = 35.0
@@ -1872,7 +1732,7 @@ theme_override_colors/font_color = Color(0.15, 0.19, 0.19, 1)
 theme_override_font_sizes/font_size = 80
 text = "900"
 
-[node name="Name" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page"]
+[node name="Name" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page" unique_id=996395140]
 layout_mode = 0
 offset_left = 65.0
 offset_top = 150.0
@@ -1882,7 +1742,7 @@ theme_override_colors/font_color = Color(0.15, 0.19, 0.19, 1)
 theme_override_font_sizes/font_size = 50
 text = "楼层名称"
 
-[node name="Description" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page"]
+[node name="Description" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/LeftPageViewport/Page" unique_id=146788508]
 layout_mode = 0
 offset_left = 65.0
 offset_top = 275.0
@@ -1893,25 +1753,26 @@ theme_override_font_sizes/font_size = 42
 text = "楼层介绍"
 autowrap_mode = 3
 
-[node name="RightPageViewport" type="SubViewport" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书"]
+[node name="RightPageViewport" type="SubViewport" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书" unique_id=1455483811]
 disable_3d = true
 size = Vector2i(1024, 768)
 render_target_update_mode = 0
 
-[node name="Page" type="Control" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport"]
+[node name="Page" type="Control" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport" unique_id=1428814330]
 layout_mode = 3
+anchors_preset = 0
 offset_right = 1024.0
 offset_bottom = 768.0
 mouse_filter = 2
 
-[node name="Paper" type="ColorRect" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+[node name="Paper" type="ColorRect" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=1281627078]
 layout_mode = 0
 offset_right = 1024.0
 offset_bottom = 768.0
 mouse_filter = 2
 color = Color(0.93, 0.9, 0.81, 1)
 
-[node name="FunctionHeading" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+[node name="FunctionHeading" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=1397456236]
 layout_mode = 0
 offset_left = 60.0
 offset_top = 32.0
@@ -1921,7 +1782,7 @@ theme_override_colors/font_color = Color(0.2, 0.34, 0.33, 1)
 theme_override_font_sizes/font_size = 36
 text = "主要功能"
 
-[node name="FunctionText" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+[node name="FunctionText" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=1838238425]
 layout_mode = 0
 offset_left = 60.0
 offset_top = 90.0
@@ -1932,7 +1793,7 @@ theme_override_font_sizes/font_size = 38
 text = "主要功能正文"
 autowrap_mode = 3
 
-[node name="HistoryHeading" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+[node name="HistoryHeading" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=1315979156]
 layout_mode = 0
 offset_left = 60.0
 offset_top = 238.0
@@ -1942,7 +1803,7 @@ theme_override_colors/font_color = Color(0.2, 0.34, 0.33, 1)
 theme_override_font_sizes/font_size = 36
 text = "维修历史"
 
-[node name="HistoryText" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+[node name="HistoryText" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=1950001516]
 layout_mode = 0
 offset_left = 60.0
 offset_top = 296.0
@@ -1953,7 +1814,7 @@ theme_override_font_sizes/font_size = 38
 text = "维修历史正文"
 autowrap_mode = 3
 
-[node name="NoteHeading" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+[node name="NoteHeading" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=428464515]
 layout_mode = 0
 offset_left = 60.0
 offset_top = 456.0
@@ -1963,7 +1824,7 @@ theme_override_colors/font_color = Color(0.2, 0.34, 0.33, 1)
 theme_override_font_sizes/font_size = 36
 text = "备注"
 
-[node name="NoteText" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+[node name="NoteText" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=1498888652]
 layout_mode = 0
 offset_left = 60.0
 offset_top = 514.0
@@ -1974,7 +1835,7 @@ theme_override_font_sizes/font_size = 38
 text = "备注正文"
 autowrap_mode = 3
 
-[node name="PageCount" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page"]
+[node name="PageCount" type="Label" parent="操作台占位/右操作台定位/下部斜面根/楼层导引书/RightPageViewport/Page" unique_id=1192063820]
 layout_mode = 0
 offset_left = 60.0
 offset_top = 690.0
@@ -1985,8 +1846,8 @@ theme_override_font_sizes/font_size = 38
 text = "01 / 07"
 horizontal_alignment = 2
 
-[node name="执行拨杆热点" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根"]
-position = Vector3(-0.362109482, 0.236756758, 0.574999988)
+[node name="执行拨杆热点" type="Area3D" parent="操作台占位/右操作台定位/下部斜面根" unique_id=2076703392]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.36210948, 0.23675676, 0.575)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1995,35 +1856,31 @@ prompt_text = "拨动：前往楼层"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点" unique_id=949818169]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
-position = Vector3(-0.246666667, 0, 0)
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点" unique_id=2006392369]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.24666667, 0, 0)
 shape = SubResource("53_lever_shape")
 
+[node name="拨杆转轴" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点" unique_id=74635397]
 
-[node name="拨杆转轴" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
+[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴" unique_id=1307462259]
 
-[node name="视觉资产" type="Node3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴"]
+[node name="握柄" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴/视觉资产" unique_id=45568009 instance=ExtResource("71_handle")]
 
-
-[node name="握柄" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴/视觉资产" instance=ExtResource("71_handle")]
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
-position = Vector3(-0.488333333, 0, 0)
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点" unique_id=344948826]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.48833334, 0, 0)
 visible = false
 mesh = SubResource("71_lever_hover")
 
-[node name="执行标识" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点"]
-modulate = Color(0.08, 0.09, 0.09, 1)
-position = Vector3(-0.116792738, -0.501827839, 0.00000006)
-rotation = Vector3(0, -1.5707963, 0)
+[node name="执行标识" type="Label3D" parent="操作台占位/右操作台定位/下部斜面根/执行拨杆热点" unique_id=1588633831]
+transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.11679274, -0.50182784, 6e-08)
 pixel_size = 0.0018
+modulate = Color(0.08, 0.09, 0.09, 1)
 text = "前往楼层"
 font = SubResource("71_terminal_font")
 font_size = 28
 outline_size = 0
-
 
 [node name="灯光" type="Node3D" parent="." unique_id=635936352]
 
@@ -2033,16 +1890,12 @@ environment = ExtResource("68_environment")
 [node name="顶灯" type="OmniLight3D" parent="灯光" unique_id=1615220384]
 visible = false
 
-[node name="正常值班照明" type="Node3D" parent="灯光"]
+[node name="正常值班照明" type="Node3D" parent="灯光" unique_id=124224333]
 
-[node name="前部工作主光" type="SpotLight3D" parent="灯光/正常值班照明"]
-position = Vector3(-0.25, 2.15, -0.55)
-rotation = Vector3(-0.97130924, -0.27159956, 0)
-layers = 1
+[node name="前部工作主光" type="SpotLight3D" parent="灯光/正常值班照明" unique_id=429228049]
+transform = Transform3D(0.963343, 0.22149268, -0.15136456, 0, 0.56421906, 0.8256251, 0.2682727, -0.7953602, 0.5435365, -0.25, 2.15, -0.55)
 light_color = Color(1, 0.79, 0.62, 1)
 light_energy = 2.7
-light_size = 0.0
-light_specular = 0.5
 light_cull_mask = 1
 shadow_enabled = true
 shadow_bias = 0.05
@@ -2051,17 +1904,13 @@ shadow_reverse_cull_face = true
 shadow_blur = 1.5
 shadow_caster_mask = 1
 spot_range = 2.7
-spot_attenuation = 1.0
 spot_angle = 34.0
 spot_angle_attenuation = 1.5
 
-[node name="后部辅光" type="SpotLight3D" parent="灯光/正常值班照明"]
+[node name="后部辅光" type="SpotLight3D" parent="灯光/正常值班照明" unique_id=1615278483]
 transform = Transform3D(1, 0, 0, 0, -0.5, 0.8660253, 0, -0.8660253, -0.5, 0, 2.32, 0.5)
-layers = 1
 light_color = Color(0.73, 0.81, 0.93, 1)
 light_energy = 0.65
-light_size = 0.0
-light_specular = 0.5
 light_cull_mask = 1
 shadow_enabled = true
 shadow_bias = 0.05
@@ -2070,14 +1919,11 @@ shadow_reverse_cull_face = true
 shadow_blur = 1.5
 shadow_caster_mask = 1
 spot_range = 3.0
-spot_attenuation = 1.0
 spot_angle = 40.0
 spot_angle_attenuation = 2.0
 
-[node name="左台工作补光" type="SpotLight3D" parent="灯光/正常值班照明"]
-position = Vector3(-1.05, 2.25, 0.15)
-rotation = Vector3(-1.2390777, 1.2679114, 0)
-layers = 1
+[node name="左台工作补光" type="SpotLight3D" parent="灯光/正常值班照明" unique_id=568810070]
+transform = Transform3D(0.29827502, -0.9024456, 0.31084403, 0, 0.32566845, 0.94548404, -0.95448, -0.28201428, 0.09713876, -1.05, 2.25, 0.15)
 light_color = Color(1, 0.86, 0.7, 1)
 light_energy = 1.6
 light_specular = 0.18
@@ -2087,10 +1933,8 @@ spot_range = 2.8
 spot_angle = 34.0
 spot_angle_attenuation = 1.8
 
-[node name="右台工作补光" type="SpotLight3D" parent="灯光/正常值班照明"]
-position = Vector3(1.05, 2.25, 0.15)
-rotation = Vector3(-0.98001254, -1.3045443, 0)
-layers = 1
+[node name="右台工作补光" type="SpotLight3D" parent="灯光/正常值班照明" unique_id=2073729354]
+transform = Transform3D(0.26311734, 0.80124056, -0.53738517, 0, 0.55701214, 0.83050436, 0.9647638, -0.2185201, 0.14655955, 1.05, 2.25, 0.15)
 light_color = Color(1, 0.86, 0.7, 1)
 light_energy = 0.7
 light_specular = 0.18
@@ -2102,10 +1946,8 @@ spot_range = 2.8
 spot_angle = 40.0
 spot_angle_attenuation = 1.8
 
-[node name="COMM次级工作光" type="SpotLight3D" parent="灯光/正常值班照明"]
-position = Vector3(-0.95, 1.75, -0.45)
-rotation = Vector3(-0.72441393, -0.07849009, 0)
-layers = 1
+[node name="COMM次级工作光" type="SpotLight3D" parent="灯光/正常值班照明" unique_id=1375881342]
+transform = Transform3D(0.99692124, 0.051961727, -0.058719948, 0, 0.74888796, 0.66269666, 0.07840952, -0.6606564, 0.7465823, -0.95, 1.75, -0.45)
 light_color = Color(1, 0.79, 0.62, 1)
 light_energy = 0.48
 light_specular = 0.35
@@ -2116,14 +1958,12 @@ spot_range = 1.65
 spot_angle = 27.0
 spot_angle_attenuation = 1.4
 
-[node name="左前结构掠光" type="SpotLight3D" parent="灯光/正常值班照明"]
-position = Vector3(-1.35, 1.85, -0.75)
-rotation = Vector3(-0.05128641, 0.33473673, 0)
-layers = 1
-light_color = Color(0.72, 0.80, 0.90, 1)
+[node name="左前结构掠光" type="SpotLight3D" parent="灯光/正常值班照明" unique_id=1357979104]
+transform = Transform3D(0.9444968, -0.016841255, 0.32808858, 0, 0.9986851, 0.051263932, -0.32852054, -0.04841862, 0.9432549, -1.35, 1.85, -0.75)
+light_color = Color(0.72, 0.8, 0.9, 1)
 light_energy = 0.38
-light_specular = 0.8
 light_projector = SubResource("72_structure_slit")
+light_specular = 0.8
 light_cull_mask = 1
 shadow_enabled = true
 shadow_caster_mask = 1
@@ -2131,14 +1971,12 @@ spot_range = 1.8
 spot_angle = 10.0
 spot_angle_attenuation = 2.0
 
-[node name="右墙接缝掠光" type="SpotLight3D" parent="灯光/正常值班照明"]
-position = Vector3(0.9, 2.36, 0.75)
-rotation = Vector3(0, -1.57079637, 0)
-layers = 1
-light_color = Color(0.72, 0.80, 0.90, 1)
+[node name="右墙接缝掠光" type="SpotLight3D" parent="灯光/正常值班照明" unique_id=460070513]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.9, 2.36, 0.75)
+light_color = Color(0.72, 0.8, 0.9, 1)
 light_energy = 0.32
-light_specular = 0.8
 light_projector = SubResource("72_structure_slit")
+light_specular = 0.8
 light_cull_mask = 1
 shadow_enabled = true
 shadow_caster_mask = 1
@@ -2148,6 +1986,18 @@ spot_angle_attenuation = 2.0
 
 [node name="玩家视角" type="Node3D" parent="." unique_id=309831261]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+
+[node name="椅子转向音效" type="AudioStreamPlayer" parent="玩家视角" unique_id=1624811869]
+stream = ExtResource("chair_turn_1")
+
+[node name="舱内环境音" type="AudioStreamPlayer" parent="玩家视角" unique_id=721005831]
+stream = ExtResource("cabin_ambience")
+autoplay = true
+
+[node name="电梯运行音效" type="AudioStreamPlayer" parent="玩家视角"]
+volume_db = -60.0
+stream = ExtResource("elevator_running")
+script = ExtResource("elevator_movement_audio")
 
 [node name="摄像机旋转轴" type="Node3D" parent="玩家视角" unique_id=1544840613]
 
@@ -2286,10 +2136,6 @@ far = 30.0
 
 [node name="主台展示绑定" type="Node" parent="." unique_id=820328079]
 script = ExtResource("52_presentation")
-door_close_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮")
-door_open_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮")
-cam_02_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮")
-cam_01_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮")
 console_interface_path = NodePath("../操作台界面层/操作台界面根/全局通讯容器/ConsoleInterface")
 stage_controller_path = NodePath("../监控摄影棚定位/监控测试摄影棚")
 monitor_subviewport_path = NodePath("../监控渲染系统/监控视口")
@@ -2302,11 +2148,25 @@ fault_light_path = NodePath("../操作台占位/主操作台定位/主台交互�
 status_label_path = NodePath("../操作台占位/主操作台定位/设备状态条/状态视口/状态文字")
 status_subviewport_path = NodePath("../操作台占位/主操作台定位/设备状态条/状态视口")
 status_mesh_path = NodePath("../操作台占位/主操作台定位/设备状态条/状态屏面")
+cam_01_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮")
+cam_02_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮")
+door_open_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮")
+door_close_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮")
+button_audio_player_path = NodePath("按钮音效")
+microphone_audio_player_path = NodePath("麦克风音效")
+microphone_on_sound = ExtResource("mic_on")
+microphone_off_sound = ExtResource("mic_off")
 door_closed_material = SubResource("52_closed")
 door_moving_material = SubResource("52_moving")
 door_open_material = SubResource("52_open")
 
-[node name="右台展示绑定" type="Node" parent="."]
+[node name="按钮音效" type="AudioStreamPlayer" parent="主台展示绑定" unique_id=1057185484]
+stream = SubResource("AudioStreamRandomizer_main_click")
+
+[node name="麦克风音效" type="AudioStreamPlayer" parent="主台展示绑定" unique_id=254980359]
+stream = ExtResource("mic_on")
+
+[node name="右台展示绑定" type="Node" parent="." unique_id=1687868255]
 script = ExtResource("53_right_presentation")
 destination_interface_path = NodePath("../操作台界面层/操作台界面根/右操作台界面容器/DestinationControlInterface")
 information_label_path = NodePath("../操作台占位/右操作台定位/验证信息屏/信息文字")
@@ -2315,76 +2175,17 @@ feedback_label_path = NodePath("../操作台占位/右操作台定位/数字显�
 verify_attention_visual_path = NodePath("../操作台占位/右操作台定位/数字显示组/验证楼层热点/拒绝提示高亮")
 lever_pivot_path = NodePath("../操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴")
 
-[node name="屏幕左框溢光" type="OmniLight3D" parent="操作台占位/主操作台定位"]
-position = Vector3(-0.73, 1.86, -1.35)
-layers = 1
-light_color = Color(0.72, 0.82, 0.88, 1)
-light_energy = 0.0006
-light_cull_mask = 1
-shadow_enabled = true
-shadow_caster_mask = 1
-omni_range = 0.22
-omni_attenuation = 2.0
+[node name="键盘音效" type="AudioStreamPlayer" parent="右台展示绑定" unique_id=439088608]
+stream = SubResource("AudioStreamRandomizer_right_keypad")
 
-[node name="屏幕右框溢光" type="OmniLight3D" parent="操作台占位/主操作台定位"]
-position = Vector3(0.73, 1.86, -1.35)
-layers = 1
-light_color = Color(0.72, 0.82, 0.88, 1)
-light_energy = 0.0006
-light_cull_mask = 1
-shadow_enabled = true
-shadow_caster_mask = 1
-omni_range = 0.22
-omni_attenuation = 2.0
+[node name="验证音效" type="AudioStreamPlayer" parent="右台展示绑定" unique_id=855761622]
+stream = ExtResource("right_verify")
+volume_db = 5.423
 
-[node name="状态条溢光" type="OmniLight3D" parent="操作台占位/主操作台定位"]
-position = Vector3(0, 1.23, -1.41)
-layers = 1
-light_color = Color(0.74, 0.81, 0.66, 1)
-light_energy = 0.0006
-light_cull_mask = 1
-shadow_enabled = true
-shadow_caster_mask = 1
-omni_range = 0.22
-omni_attenuation = 2.0
-
-[node name="近距溢光" type="OmniLight3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯/灯面"]
-position = Vector3(0, 0.028, 0)
-layers = 1
-light_color = Color(0.28, 1, 0.62, 1)
-light_energy = 0.001
-light_cull_mask = 1
-shadow_enabled = true
-shadow_caster_mask = 1
-omni_range = 0.14
-omni_attenuation = 2.0
-
-[node name="近距溢光" type="OmniLight3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/DOOR指示灯/灯面"]
-position = Vector3(0, 0.028, 0)
-layers = 1
-light_color = Color(0.25, 0.48, 0.38, 1)
-light_energy = 0.001
-light_cull_mask = 1
-shadow_enabled = true
-shadow_caster_mask = 1
-omni_range = 0.14
-omni_attenuation = 2.0
-
-[node name="近距溢光" type="OmniLight3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/FAULT指示灯/灯面"]
-position = Vector3(0, 0.028, 0)
-layers = 1
-light_color = Color(1, 0.14, 0.06, 1)
-light_energy = 0.001
-light_cull_mask = 1
-shadow_enabled = true
-shadow_caster_mask = 1
-omni_range = 0.14
-omni_attenuation = 2.0
+[node name="拨杆音效" type="AudioStreamPlayer" parent="右台展示绑定" unique_id=1174751446]
+stream = ExtResource("right_lever")
 
 [editable path="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮"]
-
 [editable path="操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮"]
-
 [editable path="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮"]
-
 [editable path="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮"]

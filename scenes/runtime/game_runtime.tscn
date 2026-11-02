@@ -9,4 +9,5 @@ script = ExtResource("1_runtime")
 
 [node name="演示流程管理器" type="Node" parent="."]
 script = ExtResource("2_flow")
+movement_duration_seconds = 3.0
 initial_shift = ExtResource("3_shift")

@@ -16,6 +16,9 @@ extends Node3D
 @export var scroll_wheel_visual_path: NodePath = ^"滚轮根/滚轮转轴"
 @export_range(4.0, 45.0, 1.0) var scroll_tick_degrees: float = 16.0
 
+@onready var _section_audio_player := get_node_or_null(^"栏目切换音效") as AudioStreamPlayer
+@onready var _scroll_audio_player := get_node_or_null(^"滚轮卡点音效") as AudioStreamPlayer
+
 var _screen_mesh: MeshInstance3D
 var _sub_viewport: SubViewport
 var _terminal: BuildingTerminalInterface
@@ -73,6 +76,14 @@ func rotate_scroll_wheel(direction: int) -> void:
 		Vector3.UP,
 		deg_to_rad(scroll_tick_degrees * direction)
 	)
+	# 每个机械滚动步响一次；随机资源选取四种卡点声，内容到边界时仍有机械反馈。
+	if is_instance_valid(_scroll_audio_player):
+		_scroll_audio_player.play()
+
+
+func play_section_switch_sound() -> void:
+	if is_instance_valid(_section_audio_player):
+		_section_audio_player.play()
 
 
 func _configure_screen_material() -> void:

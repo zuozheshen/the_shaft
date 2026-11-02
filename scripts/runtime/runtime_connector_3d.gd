@@ -57,6 +57,13 @@ func _connect_runtime() -> void:
 	_left_interface.set_demo_flow_manager(_demo_flow_manager)
 	_right_interface.set_demo_flow_manager(_demo_flow_manager)
 
+	# 舱内运行声复用同一个流程实例，只表现已接收的行驶与实际到站。
+	var movement_audio := elevator_cabin.get_node_or_null(
+		"玩家视角/电梯运行音效"
+	) as ElevatorMovementAudio
+	if movement_audio != null:
+		movement_audio.setup(_demo_flow_manager)
+
 	# 摄影棚门表现是可选依赖，缺失时主台仍保留原有纯业务门控。
 	_monitor_stage_controller = elevator_cabin.find_child(
 		"监控测试摄影棚",

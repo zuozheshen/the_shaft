@@ -51,6 +51,7 @@ var _current_direction: int = FacingDirection.MAIN_CONSOLE
 var _is_turning: bool = false
 var _camera_pivot: Node3D
 var _player_camera: Camera3D
+var _chair_turn_audio_player: AudioStreamPlayer
 var _current_direction_label: Label
 var _operation_hint_label: Label
 var _station_turn_lock_provider: Node
@@ -61,6 +62,7 @@ func _ready() -> void:
 	# 集中检查节点路径，让场景结构被误改时能在 Output 中直接定位问题。
 	_camera_pivot = _get_required_node(^"玩家视角/摄像机旋转轴", "Node3D") as Node3D
 	_player_camera = _get_required_node(^"玩家视角/摄像机旋转轴/玩家摄像机", "Camera3D") as Camera3D
+	_chair_turn_audio_player = _get_required_node(^"玩家视角/椅子转向音效", "AudioStreamPlayer") as AudioStreamPlayer
 	_current_direction_label = _get_required_node(^"调试界面/当前方向文本", "Label") as Label
 	_operation_hint_label = _get_required_node(^"调试界面/操作提示文本", "Label") as Label
 	_station_turn_lock_provider = get_node_or_null(^"交互控制器")
@@ -132,6 +134,9 @@ func _start_turn(turn_step: int) -> void:
 		return
 
 	_is_turning = true
+	# 只在有效转向开始时播放一次椅子音效，被锁定或重复按键不会触发。
+	if _chair_turn_audio_player != null:
+		_chair_turn_audio_player.play()
 	turn_started.emit(target_direction, DIRECTION_NAMES[target_direction])
 
 	var start_angle := _camera_pivot.rotation.y

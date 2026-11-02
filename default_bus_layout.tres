@@ -1,0 +1,14 @@
+[gd_resource type="AudioBusLayout" format=3 uid="uid://cdcp66vjh5afp"]
+
+[sub_resource type="AudioEffectPitchShift" id="AudioEffectPitchShift_door"]
+resource_name = "DoorPitchCompensation"
+
+[resource]
+bus/1/name = &"ElevatorDoor"
+bus/1/solo = false
+bus/1/mute = false
+bus/1/bypass_fx = false
+bus/1/volume_db = 0.0
+bus/1/send = &"Master"
+bus/1/effect/0/effect = SubResource("AudioEffectPitchShift_door")
+bus/1/effect/0/enabled = true

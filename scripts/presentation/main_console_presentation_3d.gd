@@ -28,6 +28,11 @@ const FlowCommandResultScript := preload(
 @export var cam_02_button_visual_path: NodePath
 @export var door_open_button_visual_path: NodePath
 @export var door_close_button_visual_path: NodePath
+# 四个主台按键共用节点内配置的随机点击音效，旧场景可不配置。
+@export var button_audio_player_path: NodePath
+@export var microphone_audio_player_path: NodePath
+@export var microphone_on_sound: AudioStream
+@export var microphone_off_sound: AudioStream
 @export var door_closed_material: StandardMaterial3D
 @export var door_moving_material: StandardMaterial3D
 @export var door_open_material: StandardMaterial3D
@@ -44,6 +49,9 @@ var _cam_01_button: ConsoleButtonVisualScript
 var _cam_02_button: ConsoleButtonVisualScript
 var _door_open_button: ConsoleButtonVisualScript
 var _door_close_button: ConsoleButtonVisualScript
+var _button_audio_player: AudioStreamPlayer
+var _microphone_audio_player: AudioStreamPlayer
+var _last_mic_enabled: bool = false
 
 
 func _ready() -> void:
@@ -67,6 +75,10 @@ func _bind_presentation() -> void:
 	_cam_02_button = _get_button_visual(cam_02_button_visual_path)
 	_door_open_button = _get_button_visual(door_open_button_visual_path)
 	_door_close_button = _get_button_visual(door_close_button_visual_path)
+	if not button_audio_player_path.is_empty():
+		_button_audio_player = get_node_or_null(button_audio_player_path) as AudioStreamPlayer
+	if not microphone_audio_player_path.is_empty():
+		_microphone_audio_player = get_node_or_null(microphone_audio_player_path) as AudioStreamPlayer
 	if _console == null or _stage == null or viewport == null or screen == null \
 			or _cam_01 == null or _cam_02 == null or _comm == null \
 			or _door == null or _fault == null or _status == null \
@@ -93,6 +105,8 @@ func _bind_presentation() -> void:
 	# 发光也采样同一视口，只增强状态文字，保留深底。
 	status_material.emission_texture = status_viewport.get_texture()
 	status_screen.material_override = status_material
+	# 先记住初始化状态，之后只在真正切换时播放麦克风开关声。
+	_last_mic_enabled = _console.mic_enabled
 	_console.camera_selected.connect(_on_camera_selected)
 	# 单独监听实际选择信号，初始化灯态不会播放按压。
 	_console.camera_selected.connect(_on_camera_button_selected)
@@ -132,6 +146,7 @@ func _on_camera_button_selected(index: int) -> void:
 		_cam_01_button.play_press()
 	elif index == 1 and is_instance_valid(_cam_02_button):
 		_cam_02_button.play_press()
+	_play_button_sound()
 
 
 func _on_presentation_effects_requested(effects: Array[StringName]) -> void:
@@ -139,10 +154,27 @@ func _on_presentation_effects_requested(effects: Array[StringName]) -> void:
 		_door_open_button.play_press()
 	if effects.has(FlowCommandResultScript.DOOR_CLOSED) and is_instance_valid(_door_close_button):
 		_door_close_button.play_press()
+	# 复用成功门控的表现效果；拒绝操作和普通状态刷新不会触发点击声。
+	if effects.has(FlowCommandResultScript.DOOR_OPENED) \
+			or effects.has(FlowCommandResultScript.DOOR_CLOSED):
+		_play_button_sound()
+
+
+func _play_button_sound() -> void:
+	if is_instance_valid(_button_audio_player):
+		_button_audio_player.play()
 
 
 func _on_microphone_changed(enabled: bool) -> void:
 	_comm.visible = enabled
+	if enabled == _last_mic_enabled:
+		return
+	_last_mic_enabled = enabled
+	if is_instance_valid(_microphone_audio_player):
+		_microphone_audio_player.stop()
+		_microphone_audio_player.stream = microphone_on_sound if enabled else microphone_off_sound
+		if _microphone_audio_player.stream != null:
+			_microphone_audio_player.play()
 
 
 func _on_case_text_changed(text: String) -> void:

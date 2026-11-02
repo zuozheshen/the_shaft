@@ -1,8 +1,7 @@
-[gd_resource type="StandardMaterial3D" load_steps=5 format=3]
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bkgn0llms42rj"]
 
-[ext_resource type="Texture2D" path="res://assets/art/textures/main_console_v2/control_roughness_512.png" id="1_roughness"]
-
-[ext_resource type="Texture2D" path="res://assets/art/textures/main_console_v2/control_normal_512.png" id="2_normal"]
+[ext_resource type="Texture2D" uid="uid://votfk1c72fvd" path="res://assets/art/textures/main_console_v2/control_roughness_512.png" id="1_roughness"]
+[ext_resource type="Texture2D" uid="uid://bq1ckdjvh77hh" path="res://assets/art/textures/main_console_v2/control_normal_512.png" id="2_normal"]
 
 [sub_resource type="Gradient" id="face_gradient"]
 offsets = PackedFloat32Array(0, 0.45, 1)
@@ -18,15 +17,14 @@ fill_to = Vector2(0.388, 0.741)
 
 [resource]
 resource_name = "door_open"
-albedo_color = Color(0.20, 0.32, 0.22, 1)
-roughness = 0.8052631579
+albedo_color = Color(0.2, 0.32, 0.22, 1)
+roughness = 0.80526316
 roughness_texture = ExtResource("1_roughness")
 emission_enabled = true
-emission = Color(0.20, 0.32, 0.22, 1)
-emission_energy_multiplier = 0.10
+emission = Color(0.2, 0.32, 0.22, 1)
+emission_energy_multiplier = 0.1
 emission_operator = 1
 emission_texture = SubResource("face_emission_mask")
-
 normal_enabled = true
 normal_scale = 0.75
 normal_texture = ExtResource("2_normal")

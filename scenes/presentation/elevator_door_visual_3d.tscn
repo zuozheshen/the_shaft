@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://d24sotn8npq7j"]
 
 [ext_resource type="Script" uid="uid://d1fwxlb7fey8r" path="res://scripts/presentation/elevator_door_visual_3d.gd" id="1_door"]
+[ext_resource type="AudioStream" uid="uid://bh8kdffy8i1hx" path="res://assets/audio/sfx/cabin/door_open.wav" id="door_open_sound"]
+[ext_resource type="AudioStream" uid="uid://upnagy6dcadb" path="res://assets/audio/sfx/cabin/door_close.wav" id="door_close_sound"]
 
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/door_left.tres" id="66_door_left"]
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/door_right.tres" id="66_door_right"]
@@ -132,6 +134,8 @@ material = ExtResource("66_rework_right_fold_mat")
 script = ExtResource("1_door")
 animation_player_path = NodePath("门动画播放器")
 audio_player_path = NodePath("门音效播放器")
+door_open_sound = ExtResource("door_open_sound")
+door_close_sound = ExtResource("door_close_sound")
 
 [node name="门扇根" type="Node3D" parent="." unique_id=843987570]
 
@@ -158,6 +162,11 @@ unique_name_in_owner = true
 libraries/ = SubResource("AnimationLibrary_i2igv")
 
 [node name="门音效播放器" type="AudioStreamPlayer3D" parent="." unique_id=408775721]
+stream = ExtResource("door_open_sound")
+bus = &"ElevatorDoor"
+attenuation_model = 3
+panning_strength = 0.0
+
 [node name="V3中央" type="MeshInstance3D" parent="门扇根/左门扇动画根"]
 position = Vector3(0.511, 0, 0.0419)
 layers = 2

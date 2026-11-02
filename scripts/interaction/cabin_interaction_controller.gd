@@ -603,6 +603,17 @@ func _execute_action(action_id: StringName, from_mouse: bool = false) -> void:
 	if action_id in [FLOOR_BOOK_PREVIOUS_ACTION, FLOOR_BOOK_NEXT_ACTION,
 			FLOOR_BOOK_CLOSE_ACTION]:
 		return
+	# 栏目键的机械声只跟随操作，避免派单更新或初始化刷新时误响。
+	if action_id in [LEFT_SYSTEM_LOG_ACTION, LEFT_PASSENGER_RECORD_ACTION, LEFT_TRANSCRIPT_ACTION] \
+			and _left_console_presentation != null and _building_terminal_interface != null:
+		_left_console_presentation.play_section_switch_sound()
+	# 键盘声跟随实体按键，空输入时按 CLR / 删除也有反馈；读书锁仍优先拦截。
+	if _right_console_presentation != null and _destination_interface != null:
+		if action_id in [DESTINATION_CLEAR_ACTION, DESTINATION_BACKSPACE_ACTION] \
+				or String(action_id).begins_with(DESTINATION_DIGIT_PREFIX):
+			_right_console_presentation.play_keypad_sound()
+		elif action_id == DESTINATION_VERIFY_ACTION:
+			_right_console_presentation.play_verify_sound()
 	match action_id:
 		OPEN_MICROPHONE_ACTION:
 			if _console_interface != null:

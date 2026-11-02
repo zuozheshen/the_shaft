@@ -13,6 +13,11 @@ extends Node
 @export_range(0.03, 0.5, 0.01) var lever_forward_duration: float = 0.12
 @export_range(0.03, 0.8, 0.01) var lever_return_duration: float = 0.22
 
+# 本地音效节点在场景中配置；音效只跟随实际操作，不随显示刷新播放。
+@onready var _keypad_audio_player := get_node_or_null(^"键盘音效") as AudioStreamPlayer
+@onready var _verify_audio_player := get_node_or_null(^"验证音效") as AudioStreamPlayer
+@onready var _lever_audio_player := get_node_or_null(^"拨杆音效") as AudioStreamPlayer
+
 var _destination: DestinationControlInterface
 var _information_label: Label3D
 var _input_label: Label3D
@@ -71,6 +76,7 @@ func request_submit() -> void:
 	# 业务提交只发生在按下这一刻；Tween 前进和回位都不触发第二次提交。
 	_destination.request_submit_destination()
 	_lever_animating = true
+	_play_audio(_lever_audio_player)
 	# 前进与回位全过程隐藏握柄高亮，仍由原动画锁防止重复提交。
 	if _lever_hotspot != null:
 		_lever_hotspot.set_hover_visual_enabled(false)
@@ -98,6 +104,19 @@ func request_submit() -> void:
 
 func is_lever_animating() -> bool:
 	return _lever_animating
+
+
+func play_keypad_sound() -> void:
+	_play_audio(_keypad_audio_player)
+
+
+func play_verify_sound() -> void:
+	_play_audio(_verify_audio_player)
+
+
+func _play_audio(player: AudioStreamPlayer) -> void:
+	if is_instance_valid(player):
+		player.play()
 
 
 func is_verify_attention_active() -> bool:

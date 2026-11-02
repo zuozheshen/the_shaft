@@ -21,10 +21,14 @@ const ANIMATION_OPEN: StringName = &"door_open"
 const ANIMATION_CLOSE: StringName = &"door_close"
 
 @export var animation_player_path: NodePath
+# 门位于偏移的监控摄影棚；正式场景关闭虚拟距离衰减，保证操作舱内可闻。
 @export var audio_player_path: NodePath
+@export var door_open_sound: AudioStream
+@export var door_close_sound: AudioStream
 
 var _animation_player: AnimationPlayer
 var _audio_player: AudioStreamPlayer3D
+var _pitch_shift_effect: AudioEffectPitchShift
 var _door_state: DoorPresentationState = DoorPresentationState.CLOSED
 var _is_visual_ready: bool = false
 
@@ -146,6 +150,10 @@ func _initialize_audio_player() -> void:
 		)
 		return
 	_audio_player = candidate as AudioStreamPlayer3D
+	# 专属门声总线的首个效果补偿变速产生的音高变化。
+	var bus_index := AudioServer.get_bus_index(_audio_player.bus)
+	if bus_index >= 0 and AudioServer.get_bus_effect_count(bus_index) > 0:
+		_pitch_shift_effect = AudioServer.get_bus_effect(bus_index, 0) as AudioEffectPitchShift
 
 
 func _play_animation(animation_name: StringName) -> bool:
@@ -154,7 +162,29 @@ func _play_animation(animation_name: StringName) -> bool:
 		push_error("双开门视觉无法播放动画：%s" % animation_name)
 		return false
 	_animation_player.play(animation_name)
+	_play_door_sound(animation_name)
 	return true
+
+
+func _play_door_sound(animation_name: StringName) -> void:
+	if _audio_player == null:
+		return
+	_audio_player.stop()
+	var sound: AudioStream = door_open_sound if animation_name == ANIMATION_OPEN else door_close_sound
+	if sound == null:
+		return
+	var animation := _animation_player.get_animation(animation_name)
+	var animation_speed := absf(_animation_player.get_playing_speed())
+	if animation.length <= 0.0 or animation_speed <= 0.0 or sound.get_length() <= 0.0:
+		return
+	_audio_player.stream = sound
+	# 速率对齐门动画时长，再用相反比例的音调补偿恢复原音高。
+	var playback_rate := sound.get_length() * animation_speed / animation.length
+	_audio_player.pitch_scale = 1.0
+	if _pitch_shift_effect != null:
+		_pitch_shift_effect.pitch_scale = 1.0 / playback_rate
+		_audio_player.pitch_scale = playback_rate
+	_audio_player.play()
 
 
 func _apply_animation_end_pose(animation_name: StringName) -> bool:
@@ -164,6 +194,9 @@ func _apply_animation_end_pose(animation_name: StringName) -> bool:
 	var animation := _animation_player.get_animation(animation_name)
 	if animation == null:
 		return false
+	# 初始化或直接复位只摆正门姿态，不能留下仍在播放的机构声。
+	if _audio_player != null:
+		_audio_player.stop()
 
 	# seek(update=true) 立即应用关键帧，stop(keep_state=true) 保留该姿态。
 	_animation_player.play(animation_name)
@@ -177,6 +210,8 @@ func _change_state(next_state: DoorPresentationState) -> void:
 		return
 	var was_busy := is_busy()
 	_door_state = next_state
+	if not is_busy() and _audio_player != null:
+		_audio_player.stop()
 	door_state_changed.emit(_door_state)
 	var busy_now := is_busy()
 	if was_busy != busy_now:

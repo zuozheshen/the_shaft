@@ -8,7 +8,11 @@ enum State { CLOSED, OPENING, OPEN, TURNING, CLOSING }
 @export_range(0.1, 1.0, 0.01) var open_duration: float = 0.56
 @export_range(0.1, 1.0, 0.01) var close_duration: float = 0.56
 @export_range(0.1, 1.0, 0.01) var page_turn_duration: float = 0.28
+@export var book_open_sound: AudioStream
+@export var book_close_sound: AudioStream
+@export var book_turn_sound: AudioStream
 
+@onready var _audio_player := get_node_or_null(^"书本音效") as AudioStreamPlayer
 @onready var _rest_pose: Marker3D = $RestPose
 @onready var _inspect_pose: Marker3D = $InspectPose
 @onready var _book_root: Node3D = $BookRoot
@@ -107,6 +111,7 @@ func open_book() -> bool:
 
 
 func _begin_open_cover() -> void:
+	_play_book_sound(book_open_sound)
 	_book_root.transform = _inspect_pose.transform
 	_left_page.visible = true
 	_right_page.visible = true
@@ -127,6 +132,7 @@ func close_book() -> bool:
 	if _state != State.OPEN:
 		return false
 	_state = State.CLOSING
+	_play_book_sound(book_close_sound)
 	_cover_pivot.visible = true
 	_set_reading_hotspots(false)
 	_animation = create_tween()
@@ -171,6 +177,7 @@ func turn_page(direction: int) -> bool:
 	if target < 0 or target >= _destination.get_floor_book_page_count():
 		return false
 	_state = State.TURNING
+	_play_book_sound(book_turn_sound)
 	_set_reading_hotspots(false)
 	_turn_page.visible = true
 	# 负向转过书脊，让薄页朝读者一侧掠过，而不是藏到书的背后。
@@ -192,6 +199,15 @@ func turn_page(direction: int) -> bool:
 	_animation.set_parallel(false)
 	_animation.tween_callback(_finish_turn)
 	return true
+
+
+func _play_book_sound(sound: AudioStream) -> void:
+	if not is_instance_valid(_audio_player) or sound == null:
+		return
+	# 共用播放器，连续翻页或合书时由当前动作接替上一段纸页声。
+	_audio_player.stop()
+	_audio_player.stream = sound
+	_audio_player.play()
 
 
 func _turn_midpoint(target: int) -> void:
