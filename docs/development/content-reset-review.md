@@ -43,5 +43,6 @@ Godot 4.7.2 / Godot AI 4.1.0，唯一会话project_path已核对为本worktree�
 ## 人工验收与后续范围
 
 画面、字号、音效、焦点与操作节奏仍待用户在本worktree验收。
-第二阶段独立废弃美术资源清理尚未执行；Blender/Aseprite源、来源和许可记录保留。
+第一阶段交付时尚未执行独立废弃美术资源清理；后续第二阶段结果见 [第二阶段交接](content-reset-stage2-review.md)。
+Blender/Aseprite源、来源和许可记录继续保留。
 main未改动；不push、不merge、不写入GitHub，不删除本worktree或分支。

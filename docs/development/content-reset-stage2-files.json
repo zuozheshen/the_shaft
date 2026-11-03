@@ -1,0 +1,433 @@
+{
+  "baseline": "1539b78ebbff972682c10d97baf4ae8583f737b7",
+  "deleted_file_count": 71,
+  "deleted_bytes": 177697401,
+  "files": [
+    {
+      "path": "assets/art/ExportedLayers.png",
+      "bytes": 28444,
+      "sha256": "69aada74bb03fab65f22fe20279f680df8f5c2acc7aeb58316e5486917d1b1e6",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/ExportedLayers.png.import",
+      "bytes": 1046,
+      "sha256": "4eb204e566feb93d0b997835a3349d6335760bccb464fec986d5454bded7576e",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/Metal063_1K-JPG_Roughness.jpg",
+      "bytes": 731180,
+      "sha256": "e83993283739d0a5d350ecd15cf82969aa59ec6e2293bcc6a14aea8a92ba283d",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/Metal063_1K-JPG_Roughness.jpg.import",
+      "bytes": 1079,
+      "sha256": "cad4d540d39eb35ae6b3ab047033945893ce946c08e9b7bb3d495911f6fc4494",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/metal_3868 (3).jpg",
+      "bytes": 11766157,
+      "sha256": "b50614f36ca13ef6aaf31f1f49bd795b3c843b7ad02dfa21c6d39d0e0baf6ca0",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/metal_3868 (3).jpg.import",
+      "bytes": 1046,
+      "sha256": "34e630ea95da97118e48f70a595bd509b48cf9049c901a203dc5cd60bf8a3cc0",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_floor/metal_plate_arm_4k.jpg",
+      "bytes": 15540661,
+      "sha256": "38bdc6fd59c34534e691d74f6e14677ec3d1c54ecf1bb3a3b040cb2759b48391",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_floor/metal_plate_arm_4k.jpg.import",
+      "bytes": 1094,
+      "sha256": "9eb8b3ca9caea0d0569d39b7ccc40b87182f33ce57ae4925c09ce06d529dd729",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_floor/metal_plate_diff_4k.jpg",
+      "bytes": 9734135,
+      "sha256": "400ca39b8a01084ad23b2a0754e7efe84cad24bf415f25f318f450298e54bd4b",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_floor/metal_plate_diff_4k.jpg.import",
+      "bytes": 1097,
+      "sha256": "889fd8edaa4a5bf273b5685795122066e82fbfea747d0fcdf7f36cf7d95b2712",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_floor/metal_plate_disp_4k.jpg",
+      "bytes": 3292732,
+      "sha256": "90b05730a0c50d1d008b4480706483cdddddbf629ae4d2e6c74b853ff7f71a5b",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_floor/metal_plate_disp_4k.jpg.import",
+      "bytes": 1173,
+      "sha256": "75bf25050224746269c7304920acf70ef4f6cfa1397a10aa7565ad28170d5a07",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_floor/metal_plate_nor_gl_4k.jpg",
+      "bytes": 7515712,
+      "sha256": "d36d2ec0f3b1980286758adea50ca7205f712209bbb1baa8c25bada35398b502",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_floor/metal_plate_nor_gl_4k.jpg.import",
+      "bytes": 1180,
+      "sha256": "b6dbea60df3c2a6708f5799df4c3ffbf0385f2f0b7f9ce8e06c14b4538355751",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_frac/blue_metal_plate_arm_4k.jpg",
+      "bytes": 6396167,
+      "sha256": "558570872361d2ac1605e46a4c1e604153a25fbb11d4b72d8a0ddce27f0b8502",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_frac/blue_metal_plate_arm_4k.jpg.import",
+      "bytes": 1108,
+      "sha256": "ed2166b9edb2adda9b512961b8afea7b1a996e02c164007096c03ffcbee61fe1",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_frac/blue_metal_plate_diff_4k.jpg",
+      "bytes": 5753951,
+      "sha256": "297bf7902e3b808bfa75629066cd7010a54e0c5c8f8389e1c2cf3b61444d8e76",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_frac/blue_metal_plate_diff_4k.jpg.import",
+      "bytes": 1111,
+      "sha256": "3fcb6f89a30f12dd6b4ed8626fc0ac8ea20b4421174625bfa972a3c18f4dc2cc",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_frac/blue_metal_plate_disp_4k.jpg",
+      "bytes": 372534,
+      "sha256": "c224bc8b376738a060f3f6d4f97393db11eb2aaf36783e6ebfd6ef27bc03c40a",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_frac/blue_metal_plate_disp_4k.jpg.import",
+      "bytes": 1111,
+      "sha256": "bf86127f1cc5c02a1a04b40d7324d5e6ff63ee52ef2e37cdc557adb34d3be9a8",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_frac/blue_metal_plate_nor_gl_4k.jpg",
+      "bytes": 4223201,
+      "sha256": "8fc214ed6506e46ed797bd1bd9ec4a3640697a0f0aa91de25185085f2b899777",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_frac/blue_metal_plate_nor_gl_4k.jpg.import",
+      "bytes": 1199,
+      "sha256": "de96b2df2763644db00446c541df0783f03c18a881164088462b2a3777d155eb",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_shutter/painted_metal_shutter_arm_4k.jpg",
+      "bytes": 10095668,
+      "sha256": "188022ea9ccabbac2ff47597f4546cc0bcb14969a60e7a2732c6d8cee7bec767",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_shutter/painted_metal_shutter_arm_4k.jpg.import",
+      "bytes": 1126,
+      "sha256": "374c942f69183f4715cc20442b98b516c4d12d557775fd642c01c048130cabab",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_shutter/painted_metal_shutter_diff_4k.jpg",
+      "bytes": 9072625,
+      "sha256": "76ef4c5dc63b0e13fd91c35601cfedbbb78af992704098559c296160f4a8a785",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_shutter/painted_metal_shutter_diff_4k.jpg.import",
+      "bytes": 1129,
+      "sha256": "8e15d265ea6c55144d29f95b3cdad084657e05b848d784411ef20aaa0efe4061",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_shutter/painted_metal_shutter_disp_4k.jpg",
+      "bytes": 3393994,
+      "sha256": "203983792a0f6742a87c5b3c425a7664c62eb2f630e0f5e0434ac6efb908c72d",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_shutter/painted_metal_shutter_disp_4k.jpg.import",
+      "bytes": 1129,
+      "sha256": "ad9a2f22ce4df50f1ad2520363c6eb05de55e3f4bf1d6d775060ee926e54aebf",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_shutter/painted_metal_shutter_nor_gl_4k.jpg",
+      "bytes": 12037178,
+      "sha256": "9dc8aa8263fa1ee37d94459baed40cb75691b780979f2d4c251f11cd6b6bc39c",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_shutter/painted_metal_shutter_nor_gl_4k.jpg.import",
+      "bytes": 1224,
+      "sha256": "43013cfa3aa2d451fc8668223104cf83949cf875c2c27e57ce6b9706e0137d25",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_ao_4k.jpg",
+      "bytes": 2559741,
+      "sha256": "d8a96200791d9fcfaa6e84ccc645cf69b754b26f98c2096438be9a8b53356a92",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_ao_4k.jpg.import",
+      "bytes": 1050,
+      "sha256": "f7fffb0d7289b27f4cc13010c7476e9e13cfc75bcaa87026d0611073c390ad7b",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_arm_4k.jpg",
+      "bytes": 18204849,
+      "sha256": "9d731995e12982029a3cb5f65c9b3d94feaf4ea0920d5f1ab1261dc58ffe5eb9",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_arm_4k.jpg.import",
+      "bytes": 1102,
+      "sha256": "8946587cab91ee3dc62e73bc6b848af03ee390d7c26c4a633df5b1d7cc9fded6",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_diff_4k.jpg",
+      "bytes": 10488395,
+      "sha256": "8f87ae49fa2e8245db08f18d4847fbdd75f2ef03c6405c7f90679b137541bb53",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_diff_4k.jpg.import",
+      "bytes": 1105,
+      "sha256": "82ae137566eeb060779e3361201a6ea2e4f7da0d8cab93dfda456f787b1b47a5",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_disp_4k.jpg",
+      "bytes": 2069246,
+      "sha256": "7faabe139df20f497f9a0201544b02413890144ec4d7947f0924e2ae3ecf8296",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_disp_4k.jpg.import",
+      "bytes": 1105,
+      "sha256": "94771350dc790f3e5757042a4dd9228d55f8032a6e2229ebcf1ea0305ce3a912",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_metal_4k.jpg",
+      "bytes": 7541784,
+      "sha256": "ad2aa9ff2c409bbce7384a4baa0a42e2f198b38afccc341ef96a1c0b9055b830",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_metal_4k.jpg.import",
+      "bytes": 1059,
+      "sha256": "4c415fb1465caff8291585227bfd0733a80223953dc982e9c3f9de22cd545453",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_nor_dx_4k.jpg",
+      "bytes": 1733857,
+      "sha256": "0051b58ddf2223128d23c48775bcc85aa7201eef3b6c2b1b30d93bc73eefc603",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_nor_dx_4k.jpg.import",
+      "bytes": 1062,
+      "sha256": "259ce39c1c6261ac911ec6ad5fd42b1cd0bcae2b6c270c6927d1dc57e08f9d3e",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_nor_gl_4k.jpg",
+      "bytes": 1723616,
+      "sha256": "7b5ddff95f81da6575e5f20694b0a4330a158ef479ed5c489492db805987e8e1",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_nor_gl_4k.jpg.import",
+      "bytes": 1183,
+      "sha256": "ddc7118fcb6cbf1eab7c5e6db1f8119f71f79ced2c19e6226fb9cfbf665b2904",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_rough_4k.jpg",
+      "bytes": 15459837,
+      "sha256": "fc6aa00f0e506de20735a4ff7d97c27ee90181139c13225a804a6d231ef050b3",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/metal_plate_wall/metal_plate_02_rough_4k.jpg.import",
+      "bytes": 1059,
+      "sha256": "0b25c0a0b76e05ec83f8b9ef90add6082bc3c80b72fbf46938e7d3dbc7999c48",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/yellow_rusty_metal/rusty_metal_arm_4k.jpg",
+      "bytes": 2632776,
+      "sha256": "18f855548d73b9b85798abbb5a96031119727f9a5cbffb0e1461f4205f96b517",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/yellow_rusty_metal/rusty_metal_arm_4k.jpg.import",
+      "bytes": 1095,
+      "sha256": "e1d554d5655045466394aa9927584f1cf11c862c007395b9d930871796fa55ff",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/yellow_rusty_metal/rusty_metal_diff_4k.jpg",
+      "bytes": 7875131,
+      "sha256": "50e74ccee181e9686ffad3bc3c4534c2bc8041d86610295c366e513b998a151d",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/yellow_rusty_metal/rusty_metal_diff_4k.jpg.import",
+      "bytes": 1098,
+      "sha256": "94a9043c8e8e636bb61abdec435742958577fdd7add6ba14d1ee899fe7353582",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/yellow_rusty_metal/rusty_metal_disp_4k.jpg",
+      "bytes": 1476256,
+      "sha256": "41164b998ed20cf9a1717ac7ca6387ae11cd94f184016700024ac544ec874023",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/yellow_rusty_metal/rusty_metal_disp_4k.jpg.import",
+      "bytes": 1098,
+      "sha256": "298901cbd37308e0e23f920c30d00150da4b17f8746f5cd219f53c2bd9483344",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/yellow_rusty_metal/rusty_metal_nor_gl_4k.jpg",
+      "bytes": 5746422,
+      "sha256": "f658f3a1be52f24c4ebaa09c372731a6d5330147950f75b81ca73dbba7db6196",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/metal_plate_02_4k/yellow_rusty_metal/rusty_metal_nor_gl_4k.jpg.import",
+      "bytes": 1182,
+      "sha256": "2d5b1a497d50ba88ab273dac8ebfbfee434bd2644787c6bfeb281c911826eed7",
+      "reason": "未使用旧4K纹理组"
+    },
+    {
+      "path": "assets/art/mountain.png",
+      "bytes": 6624,
+      "sha256": "b967b706327574b0128cfde318bd643e23d9d598d0267bc57daf742903b3b2c6",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/mountain.png.import",
+      "bytes": 1028,
+      "sha256": "361e42895021959cebf33922b9ba6d4eaf64af29fa28c6d891fe389c59ec9d35",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/testpic.png",
+      "bytes": 157,
+      "sha256": "d46b3281c48b726d555b46aabba18d8b1ca9e0b995f3d101633a20d3510ee47e",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/testpic.png.import",
+      "bytes": 1023,
+      "sha256": "085bfb83a78d0ec7f3f618cd97cd898aaba4516dbbaf54d1663a5ab0d218d8de",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/thumb-Cloth-8145.jpg",
+      "bytes": 31804,
+      "sha256": "98e25348ffb23e03f300031824c1978181cccf7dd21c20078086a6b54a6626b2",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/thumb-Cloth-8145.jpg.import",
+      "bytes": 1052,
+      "sha256": "2557a6cde6a43dba8f1c5e4282d944229a955f4d12a6f1bf07737051ced0712d",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/thumb-Rust-8122.jpg",
+      "bytes": 31144,
+      "sha256": "fc23e8275011bb5f5ba9fb1b4d901cbe08ff5cad56dd92d4cbc5aba538fd95fe",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/thumb-Rust-8122.jpg.import",
+      "bytes": 1049,
+      "sha256": "4044a3f3f018ca507f4fa784e50b93cb830e4d4fe18891a9d4175a33618dca9c",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/thumb-grate_6024.jpg",
+      "bytes": 21811,
+      "sha256": "fc416d20443c914b4dc95a912c20c063ed89831598536a7dd9d84499be6c8835",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/thumb-grate_6024.jpg.import",
+      "bytes": 1052,
+      "sha256": "7369500733398ea783920569ea32ca8b860518b3bdb535ef5d6e54a08ca6a153",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/金属划痕.png",
+      "bytes": 404,
+      "sha256": "36eb5298f9402e7ed20958d26eaec3bc2b54dfc71fbf4d794fd19626178bfd3c",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/art/金属划痕.png.import",
+      "bytes": 1040,
+      "sha256": "02afe3f6722f9c49087fa7e7c8503275e7483c9cc8d2bc8ac3f625b96e3ebe20",
+      "reason": "未使用独立测试图或材质参考图"
+    },
+    {
+      "path": "assets/audio/sfx/cabin/elevator_running_placeholder.wav",
+      "bytes": 96044,
+      "sha256": "1f58a1605403583bce348aaf08fcd426ea2295f1e86637f7b622dc50820847a4",
+      "reason": "已替换的占位运行音效"
+    },
+    {
+      "path": "assets/audio/sfx/cabin/elevator_running_placeholder.wav.import",
+      "bytes": 591,
+      "sha256": "8733c21c7b50ac2437b3a22dd1f2410d09a1110ae4a3fc18322ac063298b53b7",
+      "reason": "已替换的占位运行音效"
+    },
+    {
+      "path": "scenes/elevator/screen.gdshader",
+      "bytes": 4662,
+      "sha256": "2335103bb82dcf94aed59995308191671d03bb8086534ddf41f4eabacfda5cd3",
+      "reason": "未引用屏幕shader"
+    },
+    {
+      "path": "scenes/elevator/screen.gdshader.uid",
+      "bytes": 21,
+      "sha256": "2db32b7aa6f815acad6192cb28fb653b7bff8c2a9d3dd22b9f7c6b4d40c0859d",
+      "reason": "未引用屏幕shader"
+    },
+    {
+      "path": "scenes/visuals/cabin_wall_assembly_visual.tscn",
+      "bytes": 1596,
+      "sha256": "cd513975cd94d21eca836208a3e22412312239fde756a21e900207423a3eb1b1",
+      "reason": "未实例化旧墙体小样"
+    }
+  ]
+}
