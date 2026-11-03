@@ -129,7 +129,7 @@ try {
     if ($projectFiles.Count -ne 1 -or $projectFiles[0] -ne $expectedProject) {
         throw "PROJECT ROOT | expected only $expectedProject | found: $($projectFiles -join ', ')"
     }
-    foreach ($required in @('tests/flow_test_runner.tscn', 'tests/project_check_runner.tscn')) {
+    foreach ($required in @('tests/flow_test_runner.tscn', 'tests/project_check_runner.tscn', 'tests/run_main_smoke.gd')) {
         if (-not (Test-Path -LiteralPath (Join-Path $projectRoot $required) -PathType Leaf)) {
             throw "Missing required file: $required"
         }
@@ -152,9 +152,9 @@ try {
         $flowOutput = Invoke-GodotCheck 'existing-tests' ($commonArguments + @('--scene', 'res://tests/flow_test_runner.tscn')) '=== 测试汇总：通过 \d+，失败 0 ==='
         Write-Host ([regex]::Match($flowOutput, '=== 测试汇总：[^\r\n]+').Value)
     }
-    # 不指定场景：验证 project.godot 的真实入口；有限帧执行 ready 和延迟注入。
+    # 宿主读取配置的真实入口；先验证MP3正在播放，再走正式窗口关闭与异步音频清理。
     if ($Check -in @('All', 'Smoke')) {
-        $null = Invoke-GodotCheck 'main-smoke' ($commonArguments + @('--quit-after', '120')) 'Godot Engine v4\.7'
+        $null = Invoke-GodotCheck 'main-smoke' ($commonArguments + @('--script', 'res://tests/run_main_smoke.gd')) 'MAIN SMOKE READY[\s\S]*AUDIO SHUTDOWN COMPLETE'
     }
     if ($Check -eq 'All') { Write-Host 'ALL CHECKS PASS' }
     else { Write-Host "PARTIAL CHECKS PASS | $Check | not a full validation" }

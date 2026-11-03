@@ -56,3 +56,5 @@ shaft-stage2-existing.log、shaft-stage2-existing-verbose.log。
 不push、不merge、不修改GitHub；主工作区main保持不变。
 本阶段没有编辑正式场景、模型、材质、摄像头或界面布局，不重新声称Godot AI视觉/人工验收。
 第一阶段记录的画面、音效与手感仍待用户最终体验验收。
+
+后续音频退出修复与最终检查结论另见 [音频退出修复交接](audio-shutdown-review.md)；上述失败记录保留为当时事实。

@@ -46,3 +46,5 @@ Godot 4.7.2 / Godot AI 4.1.0，唯一会话project_path已核对为本worktree�
 第一阶段交付时尚未执行独立废弃美术资源清理；后续第二阶段结果见 [第二阶段交接](content-reset-stage2-review.md)。
 Blender/Aseprite源、来源和许可记录继续保留。
 main未改动；不push、不merge、不写入GitHub，不删除本worktree或分支。
+
+后续音频退出修复与最终检查结论另见 [音频退出修复交接](audio-shutdown-review.md)；上述失败记录保留为当时事实。

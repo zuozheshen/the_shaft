@@ -22,7 +22,7 @@ powershell.exe -NoProfile -File .\tests\run_all_tests.ps1 -GodotPath "D:\Your Go
 ```
 
 默认依次执行版本/唯一项目根检查、headless editor 导入、脚本和场景契约检查、
-既有流程/内容/表现层测试、project.godot 配置的真实入口 smoke。
+既有流程/内容/表现层测试、project.godot 配置入口的初始化与正常关闭 smoke。
 全部通过输出 `ALL CHECKS PASS` / exit 0；任何失败、ERROR、缺完成标记或超时返回 exit 1。
 不能只看 Godot 子进程退出码：引擎有时输出 ERROR 后仍返回 0。
 依赖阶段失败后剩余阶段标为未执行。每阶段默认 180 秒，可用 `-TimeoutSeconds` 调整。
@@ -36,6 +36,39 @@ Godot 4.7 在编辑器首次扫描 UID 缓存前可能对 project.godot 当前�
 排查时可在已导入项目中使用 `-Check Contracts`、`-Check Existing` 或 `-Check Smoke`
 单独运行一项；输出明确标为 `PARTIAL CHECKS PASS`，不能当成全量通过。
 这仍是同一 shell 入口，不自动修复失败的业务或配置。
+
+## 音频退出回归
+
+`run_main_smoke.gd`在Autoload注册后读取project.godot当前配置入口并实例化，
+将它设为current_scene，运行120帧以完成ready/延迟注入，确认环境MP3确实播放、
+根窗口接线到RuntimeConnector3D.request_quit，再连续发送两次close_requested。
+成功标记必须同时包含MAIN SMOKE READY和AUDIO SHUTDOWN COMPLETE；
+仅进程退出码0、或仅初始化完成均不能通过。
+
+正常关闭暂停业务以阻止新播放，停止2D/3D音频，使用WeakRef等待播放实例实际释放，
+以真实时间限制最多1000ms；超时报ERROR并退出1，不忽略音频错误、不静音或删除资源。
+AudioShutdown仅是无Autoload的释放辅助脚本，不拥有业务状态。
+
+原`--quit-after`直接终止引擎，绕过正常关闭，仍可能触发Godot的音频退出问题；
+不把此修复说成引擎本身已修复。当前smoke验收的是正式入口的正常退出路径。
+Editor Stop/强制结束进程也不保证经过应用的关闭回调。
+
+`runtime/audio_shutdown_tests.gd`覆盖MP3、2D/3D WAV、真实销毁、强引用超时和已移除节点。
+flow runner在node_removed只记录弱引用，避免在退出树过程中重入stop；
+原生PREDELETE负责停止已移除播放器，退出测试进程前统一等待这些实例释放。
+专项诊断命令（不是全量检查）：
+
+```powershell
+godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --audio-shutdown-only
+```
+
+真实退出失败反例（应输出音频清理超时并返回exit 1，不能记作通过）：
+
+```powershell
+godot.cmd --headless --path . --script res://tests/run_main_smoke.gd -- --retain-audio-playback
+```
+
+该开关仅在测试宿主持有播放实例，不进入正式游戏。统一检查的ERROR过滤未放宽。
 
 ## Scene Contract Validator v1
 

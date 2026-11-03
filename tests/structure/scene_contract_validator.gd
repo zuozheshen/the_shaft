@@ -81,7 +81,7 @@ const METHODS := {
 	"MainConsolePresentation3D": ["set_fault_active"],
 	"RightConsolePresentation3D": ["request_submit", "is_lever_animating"],
 	"GameRuntime": ["get_demo_flow_manager"],
-	"RuntimeConnector3D": ["get_demo_flow_manager"],
+	"RuntimeConnector3D": ["get_demo_flow_manager", "request_quit"],
 	"CabinViewController3D": ["get_current_direction", "is_turning"],
 	"CabinInterfaceRouter3D": ["get_main_interface", "get_left_interface", "get_right_interface", "is_main_console_visible"],
 	"ConsoleInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "get_current_camera_index", "request_open_door", "request_close_door", "request_toggle_microphone", "request_select_camera", "get_case_phase_display_text"],

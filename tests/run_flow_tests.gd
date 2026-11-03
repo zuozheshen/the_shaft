@@ -1,5 +1,8 @@
 extends Node
 
+const AudioShutdown := preload("res://scripts/runtime/audio_shutdown.gd")
+const AudioShutdownTests := preload("res://tests/runtime/audio_shutdown_tests.gd")
+
 const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
 const ContentResetTests := preload("res://tests/content/content_reset_tests.gd")
 
@@ -47,6 +50,8 @@ var failed_count: int = 0
 
 
 func _ready() -> void:
+	# 移除节点后音频线程可能仍持有播放；在PREDELETE之前记录弱引用，避免在退出树中重入stop。
+	get_tree().node_removed.connect(AudioShutdown.track_removed_player)
 	# 延后一帧运行，确保项目 Autoload 已完成资源注册。
 	call_deferred("_run")
 
@@ -54,6 +59,11 @@ func _ready() -> void:
 func _run() -> void:
 	await get_tree().process_frame
 	print("=== The Shaft 自动测试 ===")
+
+	await AudioShutdownTests.new().run(self, get_tree())
+	if "--audio-shutdown-only" in OS.get_cmdline_user_args():
+		await _finish()
+		return
 
 	var content_validation_report_tests := ContentValidationReportTests.new()
 	content_validation_report_tests.run(self)
@@ -106,6 +116,14 @@ func _run() -> void:
 	await GamepadSupportTests.new().run(self, get_tree())
 
 	TestContent.restore(ContentRegistry)
+
+	await _finish()
+
+
+func _finish() -> void:
+	# 最后一个夹具刚释放时也要完成音频收尾，不能因进程结束时机不同随机泄漏。
+	assert_true("音频退出 / 测试宿主最终清理", await AudioShutdown.stop_and_wait(self, get_tree()))
+	get_tree().node_removed.disconnect(AudioShutdown.track_removed_player)
 
 	print("=== 测试汇总：通过 %d，失败 %d ===" % [passed_count, failed_count])
 	get_tree().quit(0 if failed_count == 0 else 1)

@@ -1,9 +1,15 @@
 class_name RuntimeConnector3D
 extends Node
 
+const AudioShutdown := preload("res://scripts/runtime/audio_shutdown.gd")
+
 
 @export var game_runtime_path: NodePath = ^"../游戏运行层"
 @export var elevator_cabin_path: NodePath = ^"../三维操作舱"
+
+var _owns_close_request: bool = false
+var _previous_auto_accept_quit: bool = true
+var _quit_requested: bool = false
 
 var _game_runtime: GameRuntime
 var _demo_flow_manager: DemoFlowManager
@@ -20,7 +26,38 @@ func _ready() -> void:
 	_connect_runtime.call_deferred()
 
 
+func _exit_tree() -> void:
+	if _owns_close_request:
+		var tree := get_tree()
+		if tree.root.close_requested.is_connected(request_quit):
+			tree.root.close_requested.disconnect(request_quit)
+		tree.auto_accept_quit = _previous_auto_accept_quit
+
+
+func request_quit(exit_code: int = 0) -> bool:
+	# 关闭按钮、程序退出共用同一条收尾路径；重复请求不会启动第二次清理。
+	if _quit_requested:
+		return false
+	_quit_requested = true
+	var tree := get_tree()
+	tree.paused = true
+	var released := await AudioShutdown.stop_and_wait(get_parent(), tree)
+	if released:
+		print("AUDIO SHUTDOWN COMPLETE")
+	else:
+		push_error("音频退出清理超时：仍有播放实例未释放。")
+	tree.quit(exit_code if released else 1)
+	return released
+
+
 func _connect_runtime() -> void:
+	# 只接管真正主场景的根窗口；测试中临时实例化的操作舱不改变全局关闭策略。
+	var tree := get_tree()
+	if get_parent() == tree.current_scene and not _owns_close_request:
+		_previous_auto_accept_quit = tree.auto_accept_quit
+		tree.auto_accept_quit = false
+		tree.root.close_requested.connect(request_quit)
+		_owns_close_request = true
 	_game_runtime = get_node_or_null(game_runtime_path) as GameRuntime
 	if _game_runtime == null:
 		push_error("运行层连接器找不到节点：%s" % game_runtime_path)
