@@ -134,7 +134,7 @@ func _set_container_enabled(container: Control, is_enabled: bool) -> void:
 
 func _set_main_console_enabled(is_enabled: bool) -> void:
 	var effective_visibility: bool = is_enabled
-	# 旧主台面板不再显示；此信号只给监控渲染报告主台朝向。
+	# 报告是否停在主台朝向；实体监控屏幕的持续刷新不依赖这个状态。
 	if _is_main_console_visible == effective_visibility:
 		return
 	_is_main_console_visible = effective_visibility

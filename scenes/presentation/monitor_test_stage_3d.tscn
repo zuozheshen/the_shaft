@@ -68,15 +68,15 @@ material = SubResource("StandardMaterial3D_bhunq")
 
 [node name="左门框" type="CSGBox3D" parent="固定门区" unique_id=1470046501]
 material_override = ExtResource("66_frame")
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.15, 1.25, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.25, 1.25, 0)
 layers = 2
-size = Vector3(0.25, 2.5, 0.2)
+size = Vector3(0.45, 2.5, 0.2)
 
 [node name="右门框" type="CSGBox3D" parent="固定门区" unique_id=1423737869]
 material_override = ExtResource("66_frame")
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.15, 1.25, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.25, 1.25, 0)
 layers = 2
-size = Vector3(0.25, 2.5, 0.2)
+size = Vector3(0.45, 2.5, 0.2)
 
 [node name="门槛" type="CSGBox3D" parent="固定门区" unique_id=315909104]
 material_override = ExtResource("66_frame")

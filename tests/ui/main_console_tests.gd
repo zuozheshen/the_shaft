@@ -445,7 +445,8 @@ func _test_global_comm(t: Variant, tree: SceneTree, cabin: CabinViewController3D
 	for direction in [1, 2, 3, 0]:
 		cabin._start_turn(1)
 		t.assert_true("COMM / 转身中保持全局可见", comm.is_visible_in_tree())
-		t.assert_equal("COMM / 转身关闭监控渲染", SubViewport.UPDATE_DISABLED, monitor.render_target_update_mode)
+		t.assert_equal("COMM / 转身中监控持续刷新，避免冻结旧帧", SubViewport.UPDATE_ALWAYS,
+				monitor.render_target_update_mode)
 		for frame in 90:
 			if not cabin.is_turning():
 				break
@@ -453,8 +454,8 @@ func _test_global_comm(t: Variant, tree: SceneTree, cabin: CabinViewController3D
 		t.assert_equal("COMM / 完成转向", direction, cabin.get_current_direction())
 		t.assert_true("COMM / 四朝向保持可见", comm.is_visible_in_tree())
 		t.assert_equal("COMM / 转向不重置位置", position_before, comm.global_position)
-		t.assert_equal("COMM / 监控仅跟主台朝向", SubViewport.UPDATE_ALWAYS if direction == 0
-				else SubViewport.UPDATE_DISABLED, monitor.render_target_update_mode)
+		t.assert_equal("COMM / 四朝向监控持续刷新", SubViewport.UPDATE_ALWAYS,
+				monitor.render_target_update_mode)
 		var render_mode := monitor.render_target_update_mode
 		comm.set_minimized(true)
 		comm.set_minimized(false)

@@ -12,7 +12,6 @@ var _monitor_camera: Camera3D
 var _cabin_camera_anchor: Marker3D
 var _door_camera_anchor: Marker3D
 var _main_interface: ConsoleInterface
-var _interface_router: CabinInterfaceRouter3D
 var _current_camera_index: int = 0
 var _is_setup_complete: bool = false
 var _is_render_chain_ready: bool = false
@@ -43,38 +42,28 @@ func setup(
 		main_interface: ConsoleInterface,
 		interface_router: CabinInterfaceRouter3D
 ) -> void:
-	# RuntimeConnector3D 只注入一次，防止按钮和可见性信号重复连接。
+	# RuntimeConnector3D 只注入一次，防止摄像机选择信号重复连接。
 	if _is_setup_complete:
 		return
 	_main_interface = main_interface
-	_interface_router = interface_router
 
 	if _main_interface == null:
 		push_error("监控摄像机控制器未取得主操作台，实时画面无法连接。")
 		return
-	if _interface_router == null:
-		push_error("监控摄像机控制器未取得界面路由器，视口将保持停用。")
+	if interface_router == null:
+		push_error("监控摄像机控制器未取得界面路由器，无法完成初始化。")
 		return
 
 	# 只有必要依赖通过验证后才锁定 setup，失败调用仍可在之后重试。
 	_is_setup_complete = true
 	if not _main_interface.camera_selected.is_connected(select_camera):
 		_main_interface.camera_selected.connect(select_camera)
-	if not _interface_router.main_console_visibility_changed.is_connected(
-			_on_main_console_visibility_changed
-	):
-		_interface_router.main_console_visibility_changed.connect(
-			_on_main_console_visibility_changed
-		)
 
 	if not _is_render_chain_ready:
 		return
 
-	# 主台展示绑定在 ready 后直接取得 ViewportTexture，控制器只负责机位和渲染启停。
+	# 主台展示在 ready 后直接绑定 ViewportTexture，此处只同步现有机位。
 	select_camera(_main_interface.get_current_camera_index())
-	_on_main_console_visibility_changed(
-		_interface_router.is_main_console_visible()
-	)
 
 
 func select_camera(camera_index: int) -> void:
@@ -109,6 +98,7 @@ func _prepare_render_chain() -> void:
 
 	# 监控视口复用主场景的 3D 世界，不创建第二套场景或 World3D。
 	_monitor_subviewport.world_3d = shared_world
+	# 实体屏幕在转向途中仍可见；持续刷新，避免回头先看到冻结旧帧再跳到最新门姿态。
 	_monitor_subviewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	_monitor_camera.current = true
 	_is_render_chain_ready = true
@@ -120,13 +110,6 @@ func _apply_anchor(anchor: Marker3D) -> bool:
 		return false
 	_monitor_camera.global_transform = anchor.global_transform
 	return true
-
-
-func _on_main_console_visibility_changed(is_visible: bool) -> void:
-	if _monitor_subviewport == null:
-		return
-	_monitor_subviewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS \
-			if is_visible else SubViewport.UPDATE_DISABLED
 
 
 func _get_typed_node(node_path: NodePath, expected_type: String) -> Node:
