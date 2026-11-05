@@ -39,12 +39,21 @@ func close() -> void:
 func matches_session(expected: int) -> bool:
 	return expected > 0 and expected == session_id
 
+## 已提交事件是唯一依据；不因收件数量、系统资料或查询记录推定初始提交已完成。
+func has_initial_submission(expected: int) -> bool:
+	if not matches_session(expected):
+		return false
+	for event: Dictionary in _events:
+		if event.route == "passenger":
+			return true
+	return false
+
 ## 仅应用层调用；W 端口不暴露通用取得方法。候选快照先完整校验，再一次提交。
 func receive(expected: int, event_id: StringName, documents: Array, route: String,
 		acquired_at: float = -1.0) -> Dictionary:
 	if not matches_session(expected):
 		return outcome(false, "STALE_SESSION")
-	if event_id == &"" or not ROUTES.has(route) or documents.is_empty():
+	if event_id == &"" or not ROUTES.has(route) or (documents.is_empty() and route != "passenger"):
 		return outcome(false, "INVALID_EVENT")
 	var report := ContentValidationReport.new()
 	ContentValidator.validate_documents(documents, report)
@@ -82,7 +91,9 @@ func receive(expected: int, event_id: StringName, documents: Array, route: Strin
 		pending.append(item)
 	# 从此处到返回不调用外部代码、不发信号；调用方只在整个提交完成后通知。
 	_event_payloads[event_key] = payload.duplicate(true)
-	if pending.is_empty():
+	# 首个空上传仍提交一个完成事件；后续无新资料的重试保持幂等。
+	var completes_initial: bool = route == "passenger" and not has_initial_submission(expected)
+	if pending.is_empty() and not completes_initial:
 		return outcome(true, "UNCHANGED")
 	var timestamp: float = Time.get_unix_time_from_system() if acquired_at < 0 else acquired_at
 	var refs: Array[Dictionary] = []
@@ -97,7 +108,7 @@ func receive(expected: int, event_id: StringName, documents: Array, route: Strin
 		refs.append({"document_id": item.document_id, "version": item.version})
 	_events.append({"session_id": session_id, "event_id": String(event_id),
 		"route": route, "document_refs": refs, "committed_at": timestamp})
-	return outcome(true, "DOCUMENTS_ACQUIRED", true)
+	return outcome(true, "INITIAL_SUBMISSION_COMPLETED" if pending.is_empty() else "DOCUMENTS_ACQUIRED", true)
 
 func get_documents(expected: int, received_only: bool = false) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
@@ -124,6 +135,11 @@ func get_field(expected: int, ref: Dictionary) -> Dictionary:
 	if not field.is_empty():
 		field["ref"] = {"document_id": String(ref.document_id), "version": ref.version, "field_id": String(ref.field_id)}
 		field["acquired_at"] = receipt.acquired_at
+		# source 只说明原始出处；取得身份始终属于包住该字段的文档，不能由覆盖提升。
+		field["acquisition"] = {
+			"document_ref": {"document_id": receipt.document.document_id, "version": receipt.document.version},
+			"route": receipt.route, "document_source": receipt.document.source.duplicate(true),
+		}
 	return field
 
 func get_events(expected: int) -> Array[Dictionary]:
@@ -148,6 +164,8 @@ func get_clause(expected: int, ref: Dictionary) -> Dictionary:
 func record_material_request(expected: int, request_id: StringName, ref: Dictionary, target: Dictionary) -> Dictionary:
 	if not matches_session(expected):
 		return outcome(false, "STALE_SESSION")
+	if not has_initial_submission(expected):
+		return outcome(false, "INITIAL_SUBMISSION_REQUIRED")
 	var clause: Dictionary = get_clause(expected, ref)
 	if request_id == &"" or clause.is_empty() or target.get("type") != "passenger" or String(target.get("id", "")).is_empty():
 		return outcome(false, "INVALID_CLAUSE")
@@ -173,6 +191,8 @@ func record_material_request(expected: int, request_id: StringName, ref: Diction
 func record_challenge(expected: int, challenge_id: StringName, a_ref: Dictionary, b_ref: Dictionary) -> Dictionary:
 	if not matches_session(expected):
 		return outcome(false, "STALE_SESSION")
+	if not has_initial_submission(expected):
+		return outcome(false, "INITIAL_SUBMISSION_REQUIRED")
 	var a: Dictionary = get_field(expected, a_ref)
 	var b: Dictionary = get_field(expected, b_ref)
 	if challenge_id == &"" or a.is_empty() or b.is_empty() or not a.has_value or not b.has_value:

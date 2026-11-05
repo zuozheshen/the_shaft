@@ -42,12 +42,18 @@ UIHistoryState 的转录/日志只保存最近 20 行，不是可比字段库或
 `value_type` 为 string/floor_id/bool/int/float。Godot Resource 为存储不同标量使用单元素 Array：
 例如 `comparable_value = [false]`；运行时快照解包为 bool 标量。缺值必须 `has_value = false` 且 Array 为空；
 有值的 false、0、空字符串有效。floor_id 的值必须是字符串，001 不转整数。
-字段默认继承 Document.source，可显式覆盖以保留原始出处。
+字段默认继承 Document.source，可显式覆盖以保留原始出处；覆盖后的出处与文档出处不同时，
+必须填写 source_note，说明引用或转述关系。相同出处的显式覆盖无需重复说明。
+覆盖只改变字段出处展示，不改变包含它的 Document 身份、取得渠道、权限或核实程度；
+例如乘客文件引用 duty_record，仍是乘客上传的引述，不是独立取得的系统当班记录。
 
 `DocumentRef = {document_id, version}`；`FieldRef = {document_id, version, field_id}`。
 所有查询/写入另带当前 session_id，不使用显示文本或列表位置作键。
 文档/字段快照只含值；Resource、getter 返回值或适用性回调参数的后续修改不会改写已取得快照。
-get_acquired_field 还返回完整 ref、有效来源和 acquired_at；版本在 ref 中。
+get_acquired_field 还返回完整 ref、有效出处 source、source_note 和 acquired_at；版本在 ref 中。
+另有 acquisition = {document_ref, route, document_source}，明确该字段属于哪份已取得文档、
+从哪个渠道取得及该文档的来源。渠道/资料类别判断使用 acquisition，不能把字段 source.kind 当成取得身份。
+引用当班记录不会生成/解锁当班原件；原件仍须由左台另行查询取得。
 
 取得记录是 `{document, session_id, acquired_at, sequence, route, event_id, change_kind}`。
 首次取得 change_kind=received；已有版本之后的新版本为 updated，首次收到 v2 也仍是 received。
@@ -85,11 +91,23 @@ DemoFlowManager 提供 receive_passenger_batch、open_system_reference、accept_
 这些命令均校验 session、完整引用、Registry 对象、来源路由和内容契约。
 
 整批先在局部构造候选快照，检查全部版本/来源/冲突后再提交；内部无 await 或逐文件信号。
-成功后一次更新所有快照和最新索引，再发 documents_changed(session)。通知订阅者此时可以正式审查整批。
+成功后一次更新所有快照和最新索引，再发 documents_changed(session)。
+正式索证和质疑还有初始提交门：在本单至少一次乘客提交成功之前返回 INITIAL_SUBMISSION_REQUIRED，
+不调用适用性依赖、不记录正式审查行为；系统资料取得/查询结果不满足该前置条件。
+允许首个上传批次为空：仍原子记录 passenger 完成事件（document_refs=[]），再通知订阅者；
+此时可正式审查，但不表示材料齐全。后续相同空批重试或无新文件的空提交保持幂等，不重发完成通知。
+完成依据直接取自本单提交事件，不引入接收中状态、上传步骤或第二份完成标记。
+非空提交失败不完成此门；换单/同 ID 重开/clear/结单/结束值班清除事件，门随之重置。
 任一项错误则无部分收件/事件/通知；不设置“接收中”、进度条、结束确认或“材料齐全”状态。
 
 事件 ID 在每个取得渠道内幂等：同 ID 同载荷（忽略批内顺序）重放无变化，同 ID 异载荷 EVENT_CONFLICT。
 新事件重复同文档/版本也不增加业务事件；同版本异内容 VERSION_CONFLICT，倒退提交 STALE_VERSION。
+左右台 query_id 是**一次主动查询的唯一完成事件 ID**，不是查询关键词、人物名、楼层号或固定文档 ID。
+同关键词重新查询、主动刷新、新版本取得均分配新 query_id；同一次完成回调的重试才复用原 ID 与原版本载荷。
+例如应用层对每次新查询增加 session 内序号，使用 left:<session>:<sequence> / right:<session>:<sequence>，
+并把该 ID 随查询结果保存到回调中。新 ID + 同版本为成功无变化；新 ID + v2 为合法更新；
+旧 ID 携带新版本仍为 EVENT_CONFLICT，避免把新的刷新冒充旧回调。延迟的原 v1 回调重试保持幂等，不回退 v2。
+query_id 的生成属于查询调用方约定；本轮不新增 UI、查询服务或 ID 分配系统。
 批内同文档重复声明拒绝；文档 ID 对应的所属对象、材料类型和来源身份不能借升级更换。
 保留旧版本；新版本只更新最新索引。读取旧版本与重交旧版本不同：旧版本仍可引用，不能回退当前资料。
 get_received_materials 只列最新的乘客实收文件；get_acquired_documents 列最新已取得资料；
@@ -101,7 +119,7 @@ get_acquired_document/get_acquired_field 按精确版本读，get_document_event
 
 ### 单条规程索证
 
-`request_material(session_id, request_id, clause_ref)` 只接受已取得的完整规程条款。
+`request_material(session_id, request_id, clause_ref)` 要求初始提交已完成，且只接受已取得的完整规程条款。
 判断器通过应用层 set_document_applicability_resolver(Callable) 注入，不在 W 端口中。
 输入为条款快照副本和 `{session_id, dispatch_id, passenger_id, floor_id}`；
 同步返回 APPLICABLE / NOT_APPLICABLE / UNRESOLVED。
@@ -119,7 +137,7 @@ get_material_requests 只返回副本。没有自动补交、自动展示缺件�
 
 ### 双槽内容质疑
 
-`record_contradiction_challenge(session_id, challenge_id, a_ref, b_ref)` 要求两端均为已取得、有值字段，
+`record_contradiction_challenge(session_id, challenge_id, a_ref, b_ref)` 要求初始提交已完成，两端均为已取得、有值字段，
 且不在同一份相同版本资料中；可以跨文档/来源/版本。不存在或未取得的资料、缺值、虚拟缺件字段均拒绝。
 仅记录 `{challenge_id, a_ref, b_ref, created_at}`，不运行比较器、不确认矛盾成立、不生成 Fact/Claim/正确答案。
 同 ID 同引用幂等，异引用 EVENT_CONFLICT；get_contradiction_challenges 返回深副本。
@@ -141,6 +159,8 @@ Manager 写命令在同步适用性回调期间拒绝资料命令重入，回调
 
 定向测试见 tests/README.md：原子成功/整批失败、无虚拟缺件、来源渠道、通用规程接入口、
 已有/不适用/未知条件、索证幂等与补件、跨来源质疑、版本/副本/前导零、迟到事件和生命周期。
+独立审查回归另覆盖：初始提交前审查拒绝、首个空批提交/通知/重试、失败上传不完成、
+跨出处引用说明和取得上下文分离、原当班记录未解锁，以及左右台唯一 query_id 下重复查询/v2刷新/延迟重试。
 统一入口继续覆盖正式空舱、门控/乘客、三台、手柄和正常关闭 smoke。
 测试适用性注入不是正式规则引擎；查询完成回调测试不代表已经制作真实查询 UI。
 Headless 通过不代替 Godot AI 视觉或用户人工验收。正式玩法接线仍需后续 Issue。

@@ -6,6 +6,9 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var definition: DispatchDefinition = ContentRegistry.get_dispatch("TEST_CASE_001")
 	var saved: Array[DocumentDefinition] = definition.documents
 	definition.documents = Fixture.definitions()
+	await _test_initial_submission(t, tree)
+	await _test_source_override(t, tree, definition)
+	await _test_lookup_refresh(t, tree, definition)
 	var manager := DemoFlowManager.new()
 	tree.root.add_child(manager)
 	manager.start_dispatch(&"TEST_CASE_001")
@@ -36,6 +39,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_true("规则 / 样板可查", manager.open_system_reference(session, Fixture.ref("sample")).succeeded)
 	t.assert_equal("规则 / 系统资料不是乘客收件", 0, manager.get_received_materials(session).size())
 	var clause: Dictionary = Fixture.ref("rules", 1, "applicable")
+	manager.receive_passenger_batch(session, &"initial-empty", [])
 	t.assert_equal("规则 / 无正式判断器不默认适用", &"RULE_UNRESOLVED", manager.request_material(session, &"no_resolver", clause).code)
 	manager.set_document_applicability_resolver(Fixture.applicability)
 	t.assert_equal("规则 / 不适用条款不索证", &"RULE_NOT_APPLICABLE", manager.request_material(session, &"not_applicable", Fixture.ref("rules", 1, "not_applicable")).code)
@@ -129,3 +133,126 @@ func run(t: Variant, tree: SceneTree) -> void:
 	await tree.process_frame
 	definition.documents = saved
 	print("DOCUMENT FLOW TESTS COMPLETE")
+
+
+func _test_initial_submission(t: Variant, tree: SceneTree) -> void:
+	var manager := DemoFlowManager.new()
+	tree.root.add_child(manager)
+	manager.start_dispatch(&"TEST_CASE_001")
+	var session: int = manager.get_document_session_id()
+	var clause: Dictionary = Fixture.ref("rules", 1, "applicable")
+	var fields: Array[Dictionary] = [Fixture.ref("work", 1, "destination"), Fixture.ref("floor", 1, "destination")]
+	manager.open_system_reference(session, Fixture.ref("rules"))
+	manager.accept_left_lookup_result(session, &"left:initial:1", [Fixture.ref("work")])
+	manager.accept_right_lookup_result(session, &"right:initial:1", [Fixture.ref("floor")])
+	var resolver_calls: Array[int] = []
+	manager.set_document_applicability_resolver(func(_clause: Dictionary, _context: Dictionary) -> StringName:
+		resolver_calls.append(1)
+		return &"APPLICABLE")
+	t.assert_equal("初始提交 / 尚未提交不能因空收件箱索证", &"INITIAL_SUBMISSION_REQUIRED", manager.request_material(session, &"premature", clause).code)
+	t.assert_equal("初始提交 / 已有两份系统资料仍不能提前正式质疑", &"INITIAL_SUBMISSION_REQUIRED", manager.record_contradiction_challenge(session, &"premature", fields[0], fields[1]).code)
+	t.assert_equal("初始提交 / 前置条件失败不调用规则依赖", 0, resolver_calls.size())
+	t.assert_equal("初始提交 / 前置条件失败无正式记录", 0, manager.get_material_requests(session).size() + manager.get_contradiction_challenges(session).size())
+	t.assert_false("初始提交 / 空的左台结果不能伪装提交完成", manager.accept_left_lookup_result(session, &"left:empty", []).succeeded)
+	t.assert_false("初始提交 / 失败上传不满足前置条件", manager.receive_passenger_batch(session, &"bad", [Fixture.ref("missing")]).succeeded)
+	t.assert_equal("初始提交 / 失败上传后仍禁止索证", &"INITIAL_SUBMISSION_REQUIRED", manager.request_material(session, &"still_pending", clause).code)
+	var events_before: int = manager.get_document_events(session).size()
+	var notice_counts: Array[int] = []
+	var review_in_notice: Array[StringName] = []
+	manager.documents_changed.connect(func(current: int) -> void:
+		notice_counts.append(manager.get_received_materials(current).size())
+		review_in_notice.append(manager.request_material(current, &"after_empty_commit", clause).code))
+	t.assert_true("初始提交 / 空文件批次原子完成", manager.receive_passenger_batch(session, &"initial-empty", []).succeeded)
+	t.assert_equal("初始提交 / 空批完成后才允许通知内正式索证", [&"MATERIAL_REQUESTED"], review_in_notice)
+	t.assert_equal("初始提交 / 空批无虚拟文件", [0], notice_counts)
+	t.assert_equal("初始提交 / 空批保留完成事件", events_before + 1, manager.get_document_events(session).size())
+	t.assert_equal("初始提交 / 完成事件引用为空", [], manager.get_document_events(session).back().document_refs)
+	manager.receive_passenger_batch(session, &"initial-empty", [])
+	manager.receive_passenger_batch(session, &"another-empty", [])
+	t.assert_equal("初始提交 / 空批重试与重复完成不重发通知", [0], notice_counts)
+	t.assert_equal("初始提交 / 空批完成记录不重复", events_before + 1, manager.get_document_events(session).size())
+	t.assert_equal("初始提交 / 完成后合法两份资料可质疑", &"CHALLENGE_RECORDED", manager.record_contradiction_challenge(session, &"after_empty", fields[0], fields[1]).code)
+	t.assert_false("初始提交 / 完成后仍拒绝未取得字段", manager.record_contradiction_challenge(session, &"missing", Fixture.ref("identity", 1, "destination"), fields[1]).succeeded)
+	t.assert_equal("初始提交 / 空批 ID 不能复用于补件载荷", &"EVENT_CONFLICT", manager.receive_passenger_batch(session, &"initial-empty", [Fixture.ref("permit")]).code)
+	t.assert_true("初始提交 / 新事件可合法补件", manager.receive_passenger_batch(session, &"supplement-after-empty", [Fixture.ref("permit")]).succeeded)
+	t.assert_equal("初始提交 / 补件后已提供", &"ALREADY_PROVIDED", manager.request_material(session, &"after_supplement", clause).code)
+	manager.start_dispatch(&"TEST_CASE_001")
+	var reopened: int = manager.get_document_session_id()
+	manager.open_system_reference(reopened, Fixture.ref("rules"))
+	t.assert_equal("初始提交 / 同 ID 重开不会继承提交完成", &"INITIAL_SUBMISSION_REQUIRED", manager.request_material(reopened, &"reopened", clause).code)
+	t.assert_equal("初始提交 / 旧空批回调拒绝", &"STALE_SESSION", manager.receive_passenger_batch(session, &"late-empty", []).code)
+	manager.queue_free()
+	await tree.process_frame
+
+
+func _test_source_override(t: Variant, tree: SceneTree, definition: DispatchDefinition) -> void:
+	var document: DocumentDefinition = Fixture.document("quoted_work")
+	var work: DocumentDefinition = ContentRegistry.get_document_definition("TEST_CASE_001", Fixture.ref("work"))
+	document.fields[0].source = work.source
+	var report := ContentValidationReport.new()
+	ContentValidator.validate_documents([document], report)
+	t.assert_true("字段出处 / 跨出处覆盖须有引用说明", report.has_errors())
+	document.fields[0].source_note = "TEST：乘客文件引用当班记录，尚未从左台取得原件。"
+	report = ContentValidationReport.new()
+	ContentValidator.validate_documents([document], report)
+	t.assert_false("字段出处 / 合理引用转述允许保留原始出处", report.has_errors())
+	definition.documents.append(document)
+	var manager := DemoFlowManager.new()
+	tree.root.add_child(manager)
+	manager.start_dispatch(&"TEST_CASE_001")
+	var session: int = manager.get_document_session_id()
+	t.assert_true("字段出处 / 引用当班记录的乘客文件可上传", manager.receive_passenger_batch(session, &"quoted-upload", [Fixture.ref("quoted_work")]).succeeded)
+	var field: Dictionary = manager.get_acquired_field(session, Fixture.ref("quoted_work", 1, "destination"))
+	t.assert_equal("字段出处 / 原始出处保留 duty_record", "duty_record", field.source.kind)
+	t.assert_equal("字段出处 / 引用说明保留", document.fields[0].source_note, field.source_note)
+	t.assert_true("字段出处 / 读取包含独立取得上下文", field.has("acquisition"))
+	if field.has("acquisition"):
+		t.assert_equal("字段出处 / 取得渠道仍为乘客上传", "passenger", field.acquisition.route)
+		t.assert_equal("字段出处 / 所属文档来源未提升", "passenger_upload", field.acquisition.document_source.kind)
+		t.assert_equal("字段出处 / 引用仍绑定乘客文档", Fixture.ref("quoted_work"), field.acquisition.document_ref)
+	t.assert_true("字段出处 / 被引当班原件仍未取得", manager.get_acquired_document(session, Fixture.ref("work")).is_empty())
+	t.assert_equal("字段出处 / 没有额外系统资料或事件", 1, manager.get_acquired_documents(session).size())
+	t.assert_false("字段出处 / 不能把上传字段当系统条款索证", manager.request_material(session, &"quoted-clause", Fixture.ref("quoted_work", 1, "destination")).succeeded)
+	manager.accept_left_lookup_result(session, &"left:work:1", [Fixture.ref("work")])
+	var original: Dictionary = manager.get_acquired_field(session, Fixture.ref("work", 1, "destination"))
+	if original.has("acquisition"):
+		t.assert_equal("字段出处 / 原件独立取得后为 left", "left", original.acquisition.route)
+		t.assert_equal("字段出处 / 原件独立身份为 duty_record", "duty_record", original.acquisition.document_source.kind)
+	manager.queue_free()
+	await tree.process_frame
+	definition.documents.erase(document)
+
+
+func _test_lookup_refresh(t: Variant, tree: SceneTree, definition: DispatchDefinition) -> void:
+	var work_v2: DocumentDefinition = Fixture.document("work", &"duty_record", 2)
+	var floor_v2: DocumentDefinition = Fixture.document("floor", &"floor_archive", 2)
+	definition.documents.append(work_v2)
+	definition.documents.append(floor_v2)
+	var manager := DemoFlowManager.new()
+	tree.root.add_child(manager)
+	manager.start_dispatch(&"TEST_CASE_001")
+	var session: int = manager.get_document_session_id()
+	for route: String in ["left", "right"]:
+		var accept: Callable = manager.accept_left_lookup_result if route == "left" else manager.accept_right_lookup_result
+		var id: String = "work" if route == "left" else "floor"
+		# 每次查询分配新的事件 ID，关键词/文档 ID 相同也不复用；同一回调重试保留原 ID。
+		var first_id := StringName("%s:%d:1" % [route, session])
+		var repeat_id := StringName("%s:%d:2" % [route, session])
+		var refresh_id := StringName("%s:%d:3" % [route, session])
+		t.assert_true("查询 ID / 首次 " + route, accept.call(session, first_id, [Fixture.ref(id)]).succeeded)
+		var count: int = manager.get_document_events(session).size()
+		t.assert_equal("查询 ID / 同一完成事件重试幂等 " + route, &"UNCHANGED", accept.call(session, first_id, [Fixture.ref(id)]).code)
+		t.assert_equal("查询 ID / 相同查询的新事件允许 " + route, &"UNCHANGED", accept.call(session, repeat_id, [Fixture.ref(id)]).code)
+		t.assert_equal("查询 ID / 同版本反复查询不重复取得 " + route, count, manager.get_document_events(session).size())
+		t.assert_equal("查询 ID / 不误用旧事件发布新载荷 " + route, &"EVENT_CONFLICT", accept.call(session, first_id, [Fixture.ref(id, 2)]).code)
+		t.assert_equal("查询 ID / 新事件合法刷新到 v2 " + route, &"DOCUMENTS_ACQUIRED", accept.call(session, refresh_id, [Fixture.ref(id, 2)]).code)
+		t.assert_equal("查询 ID / 更新只多一条事件 " + route, count + 1, manager.get_document_events(session).size())
+		t.assert_equal("查询 ID / v1 引用不漂移 " + route, "001", manager.get_acquired_field(session, Fixture.ref(id, 1, "destination")).comparable_value)
+		t.assert_equal("查询 ID / v2 新值可读 " + route, "002", manager.get_acquired_field(session, Fixture.ref(id, 2, "destination")).comparable_value)
+		t.assert_equal("查询 ID / v2 回调重试幂等 " + route, &"UNCHANGED", accept.call(session, refresh_id, [Fixture.ref(id, 2)]).code)
+		t.assert_equal("查询 ID / 延迟 v1 原回调仍幂等 " + route, &"UNCHANGED", accept.call(session, first_id, [Fixture.ref(id)]).code)
+		t.assert_equal("查询 ID / 延迟重试不回退当前版本 " + route, 2, manager.get_acquired_documents(session).back().document.version)
+	manager.queue_free()
+	await tree.process_frame
+	definition.documents.erase(work_v2)
+	definition.documents.erase(floor_v2)

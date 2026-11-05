@@ -903,10 +903,12 @@ func open_system_reference(session: int, ref: Dictionary) -> FlowCommandResultSc
 
 
 ## 仅交给左台主动查询的完成回调；W 端口不包含此入口。
+## query_id 是本次查询的唯一事件 ID，不是关键词；新查询/刷新分配新 ID，同一回调重试复用。
 func accept_left_lookup_result(session: int, query_id: StringName, refs: Array) -> FlowCommandResultScript:
 	return _acquire_document_refs(session, query_id, refs, "left")
 
 
+## 右台遵守同一事件约定：相同关键词的新查询也使用新的 query_id。
 func accept_right_lookup_result(session: int, query_id: StringName, refs: Array) -> FlowCommandResultScript:
 	return _acquire_document_refs(session, query_id, refs, "right")
 
@@ -989,6 +991,9 @@ func request_material(session: int, request_id: StringName, clause_ref: Dictiona
 	var state: DispatchDocumentState = _current_document_state(session)
 	if state == null:
 		return _document_command_result(DispatchDocumentState.outcome(false, "STALE_SESSION"))
+	# 尚未上传不能等同于已上传但缺件；先过提交门，再调用适用性依赖。
+	if not state.has_initial_submission(session):
+		return _document_command_result(DispatchDocumentState.outcome(false, "INITIAL_SUBMISSION_REQUIRED"))
 	var clause: Dictionary = state.get_clause(session, clause_ref)
 	if clause.is_empty():
 		return _document_command_result(DispatchDocumentState.outcome(false, "INVALID_CLAUSE"))

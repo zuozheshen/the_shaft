@@ -194,3 +194,9 @@ godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --doc
 跨来源质疑、旧版本固定引用、深副本、001前导零、旧会话拒绝及换单/结单/结束清理。
 无剧情test_documents只在测试注入，不注册正式Catalog；适用性fixture不代表正式规则引擎。
 call_excerpt只验证类型/内部取得契约，未接主台按钮或对白；没有W/查询UI或视觉修改。
+
+
+独立审查回归还覆盖：尚未初始提交时禁止索证/质疑，允许首个空文件批次原子记录完成事件；
+失败提交和系统查询不能满足此门。跨出处覆盖须保留source_note，字段source与acquisition分离，
+引用系统记录不等于取得原件。左右台query_id按一次查询事件分配，新查询/刷新使用新ID，回调重试复用原ID/版本；
+重复查询、新版本刷新和延迟回调均验证幂等且不回退资料。

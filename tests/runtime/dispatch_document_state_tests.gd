@@ -2,6 +2,7 @@ extends RefCounted
 const Fixture := preload("res://tests/fixtures/runtime/test_documents.gd")
 
 func run(t: Variant) -> void:
+	_test_initial_submission(t)
 	var state := DispatchDocumentState.new()
 	var session: int = state.session_id
 	var documents: Array[DocumentDefinition] = Fixture.definitions()
@@ -79,3 +80,26 @@ func run(t: Variant) -> void:
 	t.assert_false("资料 / 旧会话不能重新提交", state.receive(session, &"late", [second], "passenger").succeeded)
 	t.assert_not_equal("资料 / 新实例会话不复用", session, DispatchDocumentState.new().session_id)
 	print("DOCUMENT STATE TESTS COMPLETE")
+
+
+func _test_initial_submission(t: Variant) -> void:
+	var state := DispatchDocumentState.new()
+	var session: int = state.session_id
+	var clause: Dictionary = Fixture.ref("rules", 1, "applicable")
+	state.receive(session, &"system", [Fixture.regulation()], "system")
+	state.receive(session, &"left", [Fixture.document("work", &"duty_record")], "left")
+	state.receive(session, &"right", [Fixture.document("floor", &"floor_archive")], "right")
+	t.assert_false("资料状态 / 系统取得不代表初始提交完成", state.has_initial_submission(session))
+	t.assert_equal("资料状态 / 不能绕过 Manager 提前索证", "INITIAL_SUBMISSION_REQUIRED", state.record_material_request(session, &"early", clause, {"type": "passenger", "id": "TEST_PERSON_001"}).code)
+	t.assert_equal("资料状态 / 不能绕过 Manager 提前质疑", "INITIAL_SUBMISSION_REQUIRED", state.record_challenge(session, &"early", Fixture.ref("work", 1, "destination"), Fixture.ref("floor", 1, "destination")).code)
+	var bad := Fixture.document("invalid")
+	bad.version = 0
+	state.receive(session, &"bad", [bad], "passenger")
+	t.assert_false("资料状态 / 失败原子提交不越过初始门", state.has_initial_submission(session))
+	t.assert_equal("资料状态 / 首个空批记录完成", "INITIAL_SUBMISSION_COMPLETED", state.receive(session, &"empty", [], "passenger", 123.0).code)
+	t.assert_true("资料状态 / 空批事件是完成依据", state.has_initial_submission(session))
+	t.assert_equal("资料状态 / 空批不是虚拟资料", 0, state.get_documents(session, true).size())
+	t.assert_equal("资料状态 / 初始完成事件取得时间", 123.0, state.get_events(session).back().committed_at)
+	t.assert_true("资料状态 / 完成后缺件可索证", state.record_material_request(session, &"ready", clause, {"type": "passenger", "id": "TEST_PERSON_001"}).succeeded)
+	state.close()
+	t.assert_false("资料状态 / close 清除完成依据", state.has_initial_submission(session))

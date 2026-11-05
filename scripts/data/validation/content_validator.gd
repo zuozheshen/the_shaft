@@ -734,6 +734,10 @@ static func validate_documents(documents: Array, report: ContentValidationReport
 			var effective: DocumentSourceDefinition = field.source if field.source != null else document.source
 			if field.source != null:
 				_validate_document_source(field.source, report, field_label)
+				if (document.source != null and field.source.snapshot() != document.source.snapshot()
+						and field.source_note.strip_edges().is_empty()):
+					report.add_error(&"DOCUMENT_FIELD_SOURCE_NOTE_REQUIRED", field_label,
+						"跨出处字段须注明引用或转述关系；覆盖不能改变所属文档的取得身份。")
 			if not _document_value_valid(field):
 				report.add_error(&"DOCUMENT_VALUE_INVALID", field_label, "字段类型、缺值标志或可比值不一致。")
 			var has_requirement: bool = field.requirement_key != &"" or field.required_material_type != &"" or field.applicability_key != &""
