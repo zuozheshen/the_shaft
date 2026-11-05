@@ -32,7 +32,9 @@ enum DialogueContext {
 }
 
 
-# 业务状态不再依赖旧 2D 控件；通讯窗保留玩家实际使用的 UI。
+# 正式空舱暂时停用对白；保留可复用场景和测试夹具的恢复入口。
+@export var dialogue_enabled: bool = true
+
 @onready var comm_view: FloatingCommUI = $FloatingCommUI
 @onready var passenger_speech_label: Label = comm_view.speech_label
 @onready var rejection_toast: Label = $RejectionToast
@@ -56,8 +58,15 @@ var _choice_in_progress: bool = false
 var _system_hint: String = ""
 
 func _ready() -> void:
-	_create_dialogue_manager_adapter()
-	comm_view.choice_selected.connect(_select_dialogue_manager_choice)
+	if dialogue_enabled:
+		_create_dialogue_manager_adapter()
+		comm_view.choice_selected.connect(_select_dialogue_manager_choice)
+	else:
+		# 从运行树移除通讯窗，避免残留窗口、鼠标遮挡或手柄焦点。
+		# 父节点 ready 时子节点已完成 ready；立即释放，同时取消其延迟布局回调。
+		comm_view.free()
+		comm_view = null
+		passenger_speech_label = null
 	toast_timer.timeout.connect(rejection_toast.hide)
 	_initialize_front_interaction()
 
@@ -189,6 +198,9 @@ func get_current_camera_index() -> int:
 
 func request_toggle_microphone() -> void:
 	# 麦克风目前只是交互状态占位，不接入真实录音。
+	if not dialogue_enabled:
+		_show_system_hint("对话功能暂时停用。", true)
+		return
 	if demo_flow_manager == null or not demo_flow_manager.has_active_dispatch():
 		_show_system_hint("当前没有可通话的乘客派单。", true)
 		return
@@ -206,6 +218,8 @@ func request_toggle_microphone() -> void:
 
 
 func _start_dialogue_manager_passenger() -> bool:
+	if not dialogue_enabled:
+		return false
 	# DM 对话按旧 phase 分入口：接乘前只做门外确认，关门后才进入舱内询问。
 	var start_title: String = _get_dialogue_manager_start_title()
 	if start_title.is_empty():
@@ -237,8 +251,9 @@ func _get_dialogue_manager_start_title() -> String:
 
 func _update_microphone_display() -> void:
 	var should_show_passenger_line: bool = mic_enabled or dm_dialogue_started
-	passenger_speech_label.text = current_passenger_line \
-		if should_show_passenger_line else "乘客舱音频链路待机。"
+	if passenger_speech_label != null:
+		passenger_speech_label.text = current_passenger_line \
+			if should_show_passenger_line else "乘客舱音频链路待机。"
 	mic_enabled_changed.emit(mic_enabled)
 	_update_dialogue_visibility()
 
@@ -252,6 +267,8 @@ func _update_dialogue_buttons() -> void:
 
 
 func _refresh_comm_view() -> void:
+	if comm_view == null:
+		return
 	var can_choose := mic_enabled and dm_dialogue_started and not dm_dialogue_finished
 	comm_view.present(mic_enabled, current_passenger_line, dm_choices,
 			can_choose and not _choice_in_progress, dm_dialogue_started)
@@ -476,7 +493,7 @@ func request_open_door() -> void:
 		_show_system_hint(result.message)
 		_update_dialogue_buttons()
 		_update_microphone_display()
-		if not dialogue_reply_applied:
+		if not dialogue_reply_applied and passenger_speech_label != null:
 			passenger_speech_label.text = current_passenger_line
 	elif result.has_effect(
 			FlowCommandResultScript.DROPOFF_FEEDBACK_REQUESTED
@@ -525,7 +542,7 @@ func request_close_door() -> void:
 			_start_dialogue_manager_passenger()
 		_update_dialogue_buttons()
 		_update_microphone_display()
-		if not dialogue_reply_applied:
+		if not dialogue_reply_applied and passenger_speech_label != null:
 			passenger_speech_label.text = current_passenger_line
 	else:
 		if not result.message.is_empty():

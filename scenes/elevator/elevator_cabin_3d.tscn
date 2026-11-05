@@ -1737,6 +1737,7 @@ mouse_filter = 2
 [node name="ConsoleInterface" parent="操作台界面层/操作台界面根/全局通讯容器" unique_id=1656012971 instance=ExtResource("2_laov4")]
 layout_mode = 1
 mouse_filter = 2
+dialogue_enabled = false
 
 [node name="门区提示" type="Label" parent="操作台界面层" unique_id=308266697]
 visible = false

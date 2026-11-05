@@ -90,6 +90,9 @@ static func restore(registry: Node) -> void:
 	_saved.clear()
 
 static func prepare_scene(main: Node) -> void:
+	# 旧对白框架只在无剧情夹具中启用，不恢复正式空舱的对话/UI。
+	var console := main.find_child("ConsoleInterface", true, false) as ConsoleInterface
+	console.dialogue_enabled = true
 	var manager := main.get_node("游戏运行层/演示流程管理器") as DemoFlowManager
 	manager.initial_floor = "900"
 	manager.initial_shift = shift()
