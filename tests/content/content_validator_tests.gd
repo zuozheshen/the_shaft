@@ -11,6 +11,7 @@ const INVALID_UNLOCK_DIALOGUE := (
 
 
 func run(test_runner: Variant) -> void:
+	_test_document_contracts(test_runner)
 	_test_null_entries(test_runner)
 	_test_empty_and_duplicate_ids(test_runner)
 	_test_invalid_references(test_runner)
@@ -394,3 +395,31 @@ func _has_codes(report: ContentValidationReport, codes: Array) -> bool:
 		if not _has_code(report, String(code)):
 			return false
 	return true
+
+
+func _test_document_contracts(t: Variant) -> void:
+	var fixture = preload("res://tests/fixtures/runtime/test_documents.gd")
+	var report := ContentValidationReport.new()
+	ContentValidator.validate_documents(fixture.definitions(), report)
+	t.assert_false("DocumentValidator / 无剧情资料契约合法", report.has_errors())
+	var document: DocumentDefinition = fixture.document("bad")
+	document.version = 0
+	document.source.origin_ref = ""
+	document.owner_id = &"UNKNOWN"
+	document.fields[0].comparable_value = [1]
+	document.fields.append(document.fields[0])
+	document.fields[0].required_material_type = &"TEST"
+	report = ContentValidationReport.new()
+	ContentValidator.validate_documents([document], report, "test", {"passenger": {}})
+	t.assert_true("DocumentValidator / 拒绝类型、来源、ID、对象和不完整规程", _has_codes(report,
+		["DOCUMENT_ID_VERSION_INVALID", "DOCUMENT_SOURCE_INVALID", "DOCUMENT_OBJECT_MISSING",
+		"DOCUMENT_VALUE_INVALID", "DOCUMENT_FIELD_ID_INVALID", "DOCUMENT_REQUIREMENT_INVALID"]))
+	report = ContentValidationReport.new()
+	ContentValidator.validate_documents([fixture.document("same"), fixture.document("same")], report)
+	t.assert_true("DocumentValidator / 版本重复拒绝", _has_code(report, "DOCUMENT_DUPLICATE"))
+	var bundle: Dictionary = _make_valid_bundle()
+	document = fixture.document("registry/floor/100")
+	document.owner_id = &"PASSENGER"
+	document.fields[0].subject_id = &"PASSENGER"
+	bundle.dispatches[0].documents.append(document)
+	t.assert_true("DocumentValidator / 静态资料不能覆盖身份视图", _has_code(_validate_bundle(bundle), "DOCUMENT_ID_RESERVED"))

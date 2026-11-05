@@ -11,6 +11,10 @@ signal shift_completed
 # 左台只订阅“既有内容已变化”的窄通知；业务内容仍由 UIHistoryState / Resource 唯一持有。
 signal left_terminal_section_updated(section_id: StringName)
 signal left_terminal_session_reset(has_active_dispatch: bool)
+signal document_session_changed(session_id: int)
+signal documents_changed(session_id: int)
+signal material_requested(session_id: int)
+signal contradiction_challenge_recorded(session_id: int)
 
 
 const LEFT_SECTION_SYSTEM_LOG: StringName = &"system_log"
@@ -38,6 +42,8 @@ var elevator_runtime_state: ElevatorRuntimeStateScript
 var dispatch_lifecycle: DispatchLifecycleScript
 var shift_runner: ShiftRunnerScript
 var ui_history_state: UIHistoryStateScript
+var _document_applicability_resolver: Callable
+var _document_command_busy: bool = false
 
 
 func _ready() -> void:
@@ -96,6 +102,7 @@ func _start_dispatch_internal(
 		initial_hint = "新派单已建立。\n%s 层检测到等待乘客。\n请前往接乘楼层。" \
 				% String(dispatch.pickup_floor_id)
 	ui_history_state.reset_for_new_dispatch(initial_hint)
+	document_session_changed.emit(get_document_session_id())
 	left_terminal_session_reset.emit(true)
 	if should_emit_case_updated:
 		case_updated.emit()
@@ -160,6 +167,7 @@ func _complete_active_dispatch_internal(
 	)
 	shift_runner.record_completed_result(result)
 	dispatch_lifecycle.clear()
+	document_session_changed.emit(0)
 	elevator_runtime_state.clear_target_floor()
 	dispatch_completed.emit(result)
 	completion["dispatch_completed"] = true
@@ -182,6 +190,7 @@ func _finish_shift_internal(should_emit_case_updated: bool) -> bool:
 	if not shift_runner.finish_shift():
 		return false
 	dispatch_lifecycle.clear()
+	document_session_changed.emit(0)
 	elevator_runtime_state.clear_target_floor()
 	ui_history_state.finish_shift()
 	left_terminal_session_reset.emit(false)
@@ -194,6 +203,7 @@ func _finish_shift_internal(should_emit_case_updated: bool) -> bool:
 
 func clear_active_dispatch() -> void:
 	dispatch_lifecycle.clear()
+	document_session_changed.emit(0)
 	ui_history_state.clear_active_dispatch()
 	left_terminal_session_reset.emit(false)
 	case_updated.emit()
@@ -857,3 +867,168 @@ func add_recommended_destination(destination: String) -> void:
 		return
 	if dispatch_lifecycle.add_recommended_floor(StringName(floor_number)):
 		case_updated.emit()
+
+
+## W 只获得这些 Callable，不注入 Registry、完整 Manager 或左右台回写入口。
+func get_document_workspace_port() -> Dictionary:
+	return {"get_session_id": get_document_session_id,
+		"get_received_materials": get_received_materials, "get_acquired_documents": get_acquired_documents,
+		"get_acquired_document": get_acquired_document, "get_acquired_field": get_acquired_field,
+		"get_document_events": get_document_events, "get_material_requests": get_material_requests,
+		"get_contradiction_challenges": get_contradiction_challenges,
+		"get_system_references": get_system_references, "open_system_reference": open_system_reference,
+		"request_material": request_material, "record_contradiction_challenge": record_contradiction_challenge}
+
+
+func get_document_session_id() -> int:
+	var state: DispatchDocumentState = _document_state()
+	return state.session_id if state != null else 0
+
+
+func _document_state() -> DispatchDocumentState:
+	return dispatch_lifecycle.get_active_state().document_state if has_active_dispatch() else null
+
+
+func _current_document_state(session: int) -> DispatchDocumentState:
+	var state: DispatchDocumentState = _document_state()
+	return state if state != null and state.matches_session(session) else null
+
+
+func receive_passenger_batch(session: int, submission_id: StringName, refs: Array) -> FlowCommandResultScript:
+	return _acquire_document_refs(session, submission_id, refs, "passenger")
+
+
+func open_system_reference(session: int, ref: Dictionary) -> FlowCommandResultScript:
+	return _acquire_document_refs(session, StringName("open:%s@%s" % [ref.get("document_id", ""), ref.get("version", 0)]), [ref], "system")
+
+
+## 仅交给左台主动查询的完成回调；W 端口不包含此入口。
+func accept_left_lookup_result(session: int, query_id: StringName, refs: Array) -> FlowCommandResultScript:
+	return _acquire_document_refs(session, query_id, refs, "left")
+
+
+func accept_right_lookup_result(session: int, query_id: StringName, refs: Array) -> FlowCommandResultScript:
+	return _acquire_document_refs(session, query_id, refs, "right")
+
+
+func _acquire_document_refs(session: int, event_id: StringName, refs: Array, route: String) -> FlowCommandResultScript:
+	if _document_command_busy:
+		return _document_command_result(DispatchDocumentState.outcome(false, "COMMAND_BUSY"))
+	var state: DispatchDocumentState = _current_document_state(session)
+	if state == null:
+		return _document_command_result(DispatchDocumentState.outcome(false, "STALE_SESSION"))
+	_document_command_busy = true
+	var documents: Array[DocumentDefinition] = []
+	for ref: Variant in refs:
+		if not ref is Dictionary:
+			_document_command_busy = false
+			return _document_command_result(DispatchDocumentState.outcome(false, "INVALID_DOCUMENT_REF"))
+		var document: DocumentDefinition = ContentRegistry.get_document_definition(String(dispatch_lifecycle.get_dispatch_id()), ref)
+		if document == null:
+			_document_command_busy = false
+			return _document_command_result(DispatchDocumentState.outcome(false, "INVALID_DOCUMENT_REF"))
+		documents.append(document)
+	var report: ContentValidationReport = ContentRegistry.validate_document_definitions(documents)
+	var result: Dictionary = DispatchDocumentState.outcome(false, "INVALID_DOCUMENT")
+	if not report.has_errors():
+		result = state.receive(session, event_id, documents, route)
+	_document_command_busy = false
+	if result.changed:
+		documents_changed.emit(session)
+	return _document_command_result(result)
+
+
+func get_received_materials(session: int) -> Array[Dictionary]:
+	var state: DispatchDocumentState = _current_document_state(session)
+	return state.get_documents(session, true) if state != null else []
+
+
+func get_acquired_documents(session: int) -> Array[Dictionary]:
+	var state: DispatchDocumentState = _current_document_state(session)
+	return state.get_documents(session) if state != null else []
+
+
+func get_acquired_document(session: int, ref: Dictionary) -> Dictionary:
+	var state: DispatchDocumentState = _current_document_state(session)
+	return state.get_document(session, ref) if state != null else {}
+
+
+func get_acquired_field(session: int, ref: Dictionary) -> Dictionary:
+	var state: DispatchDocumentState = _current_document_state(session)
+	return state.get_field(session, ref) if state != null else {}
+
+
+func get_system_references(session: int) -> Array[Dictionary]:
+	return ContentRegistry.get_system_reference_documents(String(dispatch_lifecycle.get_dispatch_id())) if _current_document_state(session) != null else []
+
+
+func get_document_events(session: int) -> Array[Dictionary]:
+	var state: DispatchDocumentState = _current_document_state(session)
+	return state.get_events(session) if state != null else []
+
+
+func get_material_requests(session: int) -> Array[Dictionary]:
+	var state: DispatchDocumentState = _current_document_state(session)
+	return state.get_requests(session) if state != null else []
+
+
+func get_contradiction_challenges(session: int) -> Array[Dictionary]:
+	var state: DispatchDocumentState = _current_document_state(session)
+	return state.get_challenges(session) if state != null else []
+
+
+## 应用层配置接入口；不向 W 暴露，也不提供默认正式判断器。
+func set_document_applicability_resolver(resolver: Callable) -> void:
+	if not _document_command_busy:
+		_document_applicability_resolver = resolver
+
+
+func request_material(session: int, request_id: StringName, clause_ref: Dictionary) -> FlowCommandResultScript:
+	if _document_command_busy:
+		return _document_command_result(DispatchDocumentState.outcome(false, "COMMAND_BUSY"))
+	var state: DispatchDocumentState = _current_document_state(session)
+	if state == null:
+		return _document_command_result(DispatchDocumentState.outcome(false, "STALE_SESSION"))
+	var clause: Dictionary = state.get_clause(session, clause_ref)
+	if clause.is_empty():
+		return _document_command_result(DispatchDocumentState.outcome(false, "INVALID_CLAUSE"))
+	if not _document_applicability_resolver.is_valid():
+		return _document_command_result(DispatchDocumentState.outcome(false, "RULE_UNRESOLVED"))
+	# 通用条款的陈述对象可为 system；索取对象绑定当前乘客，不写死在共享规程里。
+	var target: Dictionary = {"type": "passenger", "id": String(get_active_dispatch().passenger_id)}
+	var context: Dictionary = {"session_id": session, "dispatch_id": String(dispatch_lifecycle.get_dispatch_id()),
+		"passenger_id": target.id, "floor_id": get_current_floor()}
+	_document_command_busy = true
+	var raw_decision: Variant = _document_applicability_resolver.call(clause.duplicate(true), context)
+	var applicability: StringName = StringName(raw_decision) if raw_decision is String or raw_decision is StringName else &"UNRESOLVED"
+	var result: Dictionary = DispatchDocumentState.outcome(false, "RULE_UNRESOLVED")
+	if _current_document_state(session) != state:
+		result = DispatchDocumentState.outcome(false, "STALE_SESSION")
+	elif applicability == &"APPLICABLE":
+		result = state.record_material_request(session, request_id, clause_ref, target)
+	elif applicability == &"NOT_APPLICABLE":
+		result = DispatchDocumentState.outcome(false, "RULE_NOT_APPLICABLE")
+	_document_command_busy = false
+	if result.changed:
+		material_requested.emit(session)
+	return _document_command_result(result)
+
+
+func record_contradiction_challenge(session: int, challenge_id: StringName,
+		a_ref: Dictionary, b_ref: Dictionary) -> FlowCommandResultScript:
+	if _document_command_busy:
+		return _document_command_result(DispatchDocumentState.outcome(false, "COMMAND_BUSY"))
+	var state: DispatchDocumentState = _current_document_state(session)
+	if state == null:
+		return _document_command_result(DispatchDocumentState.outcome(false, "STALE_SESSION"))
+	var result: Dictionary = state.record_challenge(session, challenge_id, a_ref, b_ref)
+	if result.changed:
+		contradiction_challenge_recorded.emit(session)
+	return _document_command_result(result)
+
+
+func _document_command_result(result: Dictionary) -> FlowCommandResultScript:
+	var code: StringName = StringName(result.code)
+	if result.succeeded:
+		return FlowCommandResultScript.success(code, "相关材料已提供。" if code == &"ALREADY_PROVIDED" else "")
+	return FlowCommandResultScript.failure(code, "该条款当前不适用。" if code == &"RULE_NOT_APPLICABLE" else "当前无法执行资料请求。")

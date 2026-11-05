@@ -210,3 +210,88 @@ func get_dispatch_floor_relation(
 	if dispatch == null:
 		return null
 	return dispatch.get_floor_relation(floor_id)
+
+
+## 内容层只解析定义，不授予玩家取得权限。registry/ 前缀保留给现有身份资料视图。
+func get_document_definition(dispatch_id: String, ref: Dictionary) -> DocumentDefinition:
+	if not DispatchDocumentState.valid_ref(ref):
+		return null
+	var dispatch: DispatchDefinition = get_dispatch(dispatch_id)
+	if dispatch == null:
+		return null
+	var found: DocumentDefinition
+	for document: DocumentDefinition in dispatch.documents:
+		if document != null and not String(document.document_id).begins_with("registry/") and String(document.document_id) == String(ref.document_id) and document.version == ref.version:
+			if found != null:
+				return null
+			found = document
+	if found != null:
+		return found
+	if ref.version != 1:
+		return null
+	var id: String = String(ref.document_id)
+	if id.begins_with("registry/passenger/"):
+		var passenger: PassengerDefinition = get_passenger(id.trim_prefix("registry/passenger/"))
+		if passenger == null:
+			return null
+		var document: DocumentDefinition = _identity_document(id, &"passenger", passenger.passenger_id, &"personnel_record")
+		document.title = passenger.display_name
+		document.original_text = passenger.archive_text
+		document.fields = [_identity_field(&"system_name", &"passenger", passenger.passenger_id, passenger.system_name),
+			_identity_field(&"display_name", &"passenger", passenger.passenger_id, passenger.display_name)]
+		return document
+	if id.begins_with("registry/floor/"):
+		var floor: FloorDefinition = get_floor(id.trim_prefix("registry/floor/"))
+		if floor == null:
+			return null
+		var document: DocumentDefinition = _identity_document(id, &"floor", floor.floor_id, &"floor_archive")
+		document.title = floor.display_name
+		var field: DocumentFieldDefinition = _identity_field(&"floor_id", &"floor", floor.floor_id, String(floor.floor_id))
+		field.value_type = "floor_id"
+		document.fields = [field, _identity_field(&"display_name", &"floor", floor.floor_id, floor.display_name)]
+		return document
+	return null
+
+
+func get_system_reference_documents(dispatch_id: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var dispatch: DispatchDefinition = get_dispatch(dispatch_id)
+	if dispatch == null:
+		return result
+	for document: DocumentDefinition in dispatch.documents:
+		if document != null and document.source != null and document.source.kind == &"system_reference":
+			result.append({"document_id": String(document.document_id), "version": document.version, "title": document.title})
+	return result
+
+
+func validate_document_definitions(documents: Array) -> ContentValidationReport:
+	var report := ContentValidationReport.new()
+	ContentValidator.validate_documents(documents, report, "registry", {
+		"floor": _floors_by_id, "passenger": _passengers_by_id, "dispatch": _dispatches_by_id})
+	return report
+
+
+func _identity_document(id: String, kind: StringName, owner: StringName, source_kind: StringName) -> DocumentDefinition:
+	var document := DocumentDefinition.new()
+	document.document_id = StringName(id)
+	document.owner_type = kind
+	document.owner_id = owner
+	document.material_type = source_kind
+	document.source = DocumentSourceDefinition.new()
+	document.source.source_id = StringName(id)
+	document.source.kind = source_kind
+	var resource: Resource = get_passenger(String(owner)) if kind == &"passenger" else get_floor(String(owner))
+	document.source.origin_ref = resource.resource_path if not resource.resource_path.is_empty() else "ContentRegistry:" + id
+	document.source.source_version = "legacy-unversioned"
+	return document
+
+
+func _identity_field(id: StringName, kind: StringName, owner: StringName, value: String) -> DocumentFieldDefinition:
+	var field := DocumentFieldDefinition.new()
+	field.field_id = id
+	field.subject_type = kind
+	field.subject_id = owner
+	field.comparison_key = id
+	field.display_value = value
+	field.comparable_value = [value]
+	return field

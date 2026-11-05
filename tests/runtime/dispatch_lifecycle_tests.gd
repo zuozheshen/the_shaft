@@ -30,6 +30,8 @@ func run(test_runner: Variant) -> void:
 		lifecycle.start_dispatch(CASE_002)
 	)
 	var second_state: ActiveDispatchState = lifecycle.get_active_state()
+	test_runner.assert_equal("DispatchLifecycle / 换单撤销旧资料会话", 0, first_state.document_state.session_id)
+	test_runner.assert_not_equal("DispatchLifecycle / 资料状态唯一且隔离", first_state.document_state, second_state.document_state)
 	test_runner.assert_not_equal(
 		"DispatchLifecycle / 新派单使用隔离状态对象",
 		first_state,
@@ -75,6 +77,7 @@ func run(test_runner: Variant) -> void:
 	)
 
 	lifecycle.clear()
+	test_runner.assert_equal("DispatchLifecycle / clear 撤销资料会话", 0, second_state.document_state.session_id)
 	test_runner.assert_false(
 		"DispatchLifecycle / 清除后无活动派单",
 		lifecycle.has_active_dispatch()

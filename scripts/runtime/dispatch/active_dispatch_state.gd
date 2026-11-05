@@ -15,6 +15,9 @@ var door_greeting_done: bool = false
 var cabin_door_closed_after_boarding: bool = false
 var dropoff_feedback_finished: bool = false
 
+## 唯一派单资料状态；不持有 W 窗口布局或第二份内容数据库。
+var document_state: DispatchDocumentState = DispatchDocumentState.new()
+
 var _recommended_floor_ids: Array[StringName] = []
 
 

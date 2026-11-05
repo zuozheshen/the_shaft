@@ -5,6 +5,8 @@ const AudioShutdownTests := preload("res://tests/runtime/audio_shutdown_tests.gd
 
 const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
 const ContentResetTests := preload("res://tests/content/content_reset_tests.gd")
+const DispatchDocumentStateTests := preload("res://tests/runtime/dispatch_document_state_tests.gd")
+const DocumentFlowTests := preload("res://tests/flow/document_flow_tests.gd")
 
 const MainConsoleTests := preload("res://tests/ui/main_console_tests.gd")
 const LeftConsoleTests := preload("res://tests/ui/left_console_tests.gd")
@@ -60,6 +62,16 @@ func _run() -> void:
 	await get_tree().process_frame
 	print("=== The Shaft 自动测试 ===")
 
+	if "--documents-only" in OS.get_cmdline_user_args():
+		ContentValidatorTests.new().run(self)
+		DispatchDocumentStateTests.new().run(self)
+		DispatchLifecycleTests.new().run(self)
+		TestContent.install(ContentRegistry)
+		await DocumentFlowTests.new().run(self, get_tree())
+		TestContent.restore(ContentRegistry)
+		await _finish()
+		return
+
 	await AudioShutdownTests.new().run(self, get_tree())
 	if "--audio-shutdown-only" in OS.get_cmdline_user_args():
 		await _finish()
@@ -70,10 +82,12 @@ func _run() -> void:
 
 	var content_validator_tests := ContentValidatorTests.new()
 	content_validator_tests.run(self)
+	DispatchDocumentStateTests.new().run(self)
 
 
 	await ContentResetTests.new().run(self, get_tree())
 	TestContent.install(ContentRegistry)
+	await DocumentFlowTests.new().run(self, get_tree())
 
 	var dispatch_phase_tests := DispatchPhaseTests.new()
 	dispatch_phase_tests.run(self)

@@ -16,6 +16,9 @@ extends Resource
 ## 派单内嵌楼层关系；它们不需要单独注册到 ContentRegistry。
 @export var floor_relations: Array[DispatchFloorRelation] = []
 
+## 这里只声明可供接入的资料；存在定义不等于玩家已取得，不预设缺件名单。
+@export var documents: Array[DocumentDefinition] = []
+
 
 func get_floor_relation(raw_floor_id: String) -> DispatchFloorRelation:
 	var floor_id: StringName = StringName(raw_floor_id.strip_edges())

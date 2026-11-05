@@ -188,6 +188,13 @@ static func _validate_dispatches(
 		_validate_pickup_data(dispatch, context, report)
 		_validate_front_phase_texts(dispatch, context, report)
 		_validate_dialogue(dispatch, context, floor_ids, relations, report)
+		for document: DocumentDefinition in dispatch.documents:
+			if document != null and String(document.document_id).begins_with("registry/"):
+				report.add_error(&"DOCUMENT_ID_RESERVED", context, "registry/ 是身份资料适配视图的保留前缀。")
+		validate_documents(dispatch.documents, report, context, {
+			"floor": floor_ids, "passenger": passenger_ids,
+			"dispatch": {String(dispatch.dispatch_id): dispatch},
+		})
 
 
 static func _validate_dispatch_references(
@@ -690,3 +697,86 @@ static func _get_active_phases() -> Array[String]:
 static func _normalized_id(value: Variant) -> String:
 	# ID 只清理首尾空格，保留 001 等前导零。
 	return String(value).strip_edges()
+
+
+## 资料校验只检查内容契约，不判断规程是否适用或乘客陈述是否属实。
+static func validate_documents(documents: Array, report: ContentValidationReport,
+		context: String = "documents", objects: Dictionary = {}) -> void:
+	var seen: Dictionary = {}
+	for item: Variant in documents:
+		if not item is DocumentDefinition:
+			report.add_error(&"DOCUMENT_INVALID", context, "资料为空或类型不正确。")
+			continue
+		var document := item as DocumentDefinition
+		var label: String = "%s/document:%s@%d" % [context, document.document_id, document.version]
+		var identity: String = "%s@%d" % [document.document_id, document.version]
+		if seen.has(identity):
+			report.add_error(&"DOCUMENT_DUPLICATE", label, "同一资料版本重复声明。")
+		seen[identity] = true
+		if not _document_id_valid(document.document_id) or document.version <= 0:
+			report.add_error(&"DOCUMENT_ID_VERSION_INVALID", label, "资料 ID 或版本无效。")
+		if not _document_id_valid(document.material_type) or document.title.strip_edges().is_empty():
+			report.add_error(&"DOCUMENT_METADATA_INVALID", label, "材料类型和标题不能为空。")
+		_validate_document_object(document.owner_type, document.owner_id, objects, report, label)
+		_validate_document_source(document.source, report, label)
+		var field_ids: Dictionary = {}
+		for field: DocumentFieldDefinition in document.fields:
+			if field == null:
+				report.add_error(&"DOCUMENT_FIELD_INVALID", label, "字段不能为空。")
+				continue
+			var field_label: String = label + "/field:" + String(field.field_id)
+			if not _document_id_valid(field.field_id) or field_ids.has(field.field_id):
+				report.add_error(&"DOCUMENT_FIELD_ID_INVALID", field_label, "字段 ID 为空或重复。")
+			field_ids[field.field_id] = true
+			_validate_document_object(field.subject_type, field.subject_id, objects, report, field_label)
+			if not _document_id_valid(field.comparison_key):
+				report.add_error(&"DOCUMENT_COMPARISON_KEY_INVALID", field_label, "可比字段键不能为空。")
+			var effective: DocumentSourceDefinition = field.source if field.source != null else document.source
+			if field.source != null:
+				_validate_document_source(field.source, report, field_label)
+			if not _document_value_valid(field):
+				report.add_error(&"DOCUMENT_VALUE_INVALID", field_label, "字段类型、缺值标志或可比值不一致。")
+			var has_requirement: bool = field.requirement_key != &"" or field.required_material_type != &"" or field.applicability_key != &""
+			if has_requirement and (document.source == null or document.source.kind != &"system_reference"
+					or effective == null or effective.kind != &"system_reference" or not field.has_value
+					or not _document_id_valid(field.requirement_key)
+					or not _document_id_valid(field.required_material_type)
+					or not _document_id_valid(field.applicability_key)):
+				report.add_error(&"DOCUMENT_REQUIREMENT_INVALID", field_label, "只有完整的系统规程条款可声明索证要求。")
+
+
+static func _document_id_valid(value: StringName) -> bool:
+	return value != &"" and String(value) == String(value).strip_edges()
+
+
+static func _validate_document_object(kind: StringName, id: StringName, objects: Dictionary,
+		report: ContentValidationReport, context: String) -> void:
+	if kind not in [&"passenger", &"floor", &"dispatch", &"system"] or not _document_id_valid(id):
+		report.add_error(&"DOCUMENT_OBJECT_INVALID", context, "所属/陈述对象无效。")
+	elif kind != &"system" and not objects.is_empty() and not objects.get(String(kind), {}).has(id):
+		report.add_error(&"DOCUMENT_OBJECT_MISSING", context, "引用对象未登记：%s/%s。" % [kind, id])
+
+
+static func _validate_document_source(source: DocumentSourceDefinition,
+		report: ContentValidationReport, context: String) -> void:
+	if source == null or not _document_id_valid(source.source_id) or source.kind not in DocumentSourceDefinition.KINDS:
+		report.add_error(&"DOCUMENT_SOURCE_INVALID", context, "资料来源 ID 或类别无效。")
+	elif source.origin_ref.strip_edges().is_empty() or source.source_version.strip_edges().is_empty():
+		report.add_error(&"DOCUMENT_SOURCE_INVALID", context, "资料须记录原始出处和来源版本。")
+
+
+static func _document_value_valid(field: DocumentFieldDefinition) -> bool:
+	if field.value_type not in ["string", "floor_id", "bool", "int", "float"]:
+		return false
+	if not field.has_value:
+		return field.comparable_value.is_empty()
+	if field.comparable_value.size() != 1:
+		return false
+	var value: Variant = field.comparable_value[0]
+	match field.value_type:
+		"string": return value is String
+		"floor_id": return value is String and not value.is_empty() and value == value.strip_edges()
+		"bool": return value is bool
+		"int": return value is int
+		"float": return value is float and is_finite(value)
+	return false

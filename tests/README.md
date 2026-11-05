@@ -174,3 +174,23 @@ Profile 检查实际七图导入尺寸/像素与 receipt、材质 Scissor 0.5、
 CLI 不替代上方统一入口；截图与用户体验也不由 headless 代验。
 318 正式源与测试 fixture 的色板不同；正式输入使用显式 Source/PaletteFile，禁止以诊断输入误覆盖正式美术。
 完整命令和失败恢复见 [管线文档](../docs/development/aseprite-floor-pipeline.md)。
+
+
+## 共享资料契约定向检查
+
+在已完成导入的 Issue worktree 中执行：
+
+```powershell
+godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --documents-only
+```
+
+沿用同一测试宿主，只运行内容校验、资料状态、派单生命周期和资料流程集成。
+确认 DOCUMENT STATE TESTS COMPLETE、DOCUMENT FLOW TESTS COMPLETE、测试汇总失败0、进程exit0，
+并检查没有 SCRIPT ERROR / ERROR / FAIL；Godot可能在脚本异常后仍返回0，不能单看退出码或断言汇总。
+该定向检查不等于统一入口 ALL CHECKS PASS。
+
+覆盖多文件原子上传/整批回滚、无缺件虚拟字段、左右台取得边界和W端口、来源/版本/取得时间、
+适用性Callable接入口（无正式判断器时不放行）、已提供/不适用/未知规程、索证幂等与补件、
+跨来源质疑、旧版本固定引用、深副本、001前导零、旧会话拒绝及换单/结单/结束清理。
+无剧情test_documents只在测试注入，不注册正式Catalog；适用性fixture不代表正式规则引擎。
+call_excerpt只验证类型/内部取得契约，未接主台按钮或对白；没有W/查询UI或视觉修改。

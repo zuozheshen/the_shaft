@@ -13,6 +13,7 @@ func start_dispatch(
 		return false
 
 	# 每条派单都创建新状态，上一轮的验证、目标和反馈标记不会被复用。
+	clear()
 	_active_dispatch = ActiveDispatchState.create_from_definition(dispatch)
 	_active_dispatch.current_phase = initial_phase \
 			if DispatchPhase.is_valid(initial_phase) \
@@ -21,6 +22,8 @@ func start_dispatch(
 
 
 func clear() -> void:
+	if _active_dispatch != null:
+		_active_dispatch.document_state.close()
 	_active_dispatch = null
 
 
