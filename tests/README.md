@@ -200,3 +200,22 @@ call_excerpt只验证类型/内部取得契约，未接主台按钮或对白；�
 失败提交和系统查询不能满足此门。跨出处覆盖须保留source_note，字段source与acquisition分离，
 引用系统记录不等于取得原件。左右台query_id按一次查询事件分配，新查询/刷新使用新ID，回调重试复用原ID/版本；
 重复查询、新版本刷新和延迟回调均验证幂等且不回退资料。
+
+## W 呼出终端定向检查
+
+在已导入的 worktree 中执行：
+
+```powershell
+godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --verification-terminal-only
+```
+
+沿用现有宿主，运行 VerificationTerminalTests 和既有 GamepadSupportTests。
+核对 VERIFICATION TERMINAL TESTS COMPLETE、汇总失败0、无 SCRIPT ERROR/ERROR/FAIL 与进程exit0；
+这不是统一入口 ALL CHECKS PASS。覆盖真实 Viewport 的 W/View/A/B 输入、W/ui_up冲突、echo/快速反转、
+转向中打开、事件与轮询阻断、A/B持有到收起后、有效/失效焦点恢复、COMM刷新、左台阅读状态、
+同单UI保留与session清理、行驶持续推进、四种分辨率及动画中resize。
+滚动保存以布局稳定后实际可达的位置为准，不把超出ScrollContainer上限的请求值当作保留基准。
+
+正式空舱可使用W或手柄View打开终端，B或收起按钮关闭；参数在核验终端Inspector中调整。
+灰盒按视口宽度约75%–80%校准，实际机身厚度、支座、遮挡、字体与动效仍需Godot AI和用户实机验收。
+本Issue只有单一占位面板；资料收件箱、多窗口和正式审查操作未接入。

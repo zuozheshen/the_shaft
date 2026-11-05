@@ -47,6 +47,12 @@ enum InputMode {
 @export_range(0.03, 0.5, 0.01) var gamepad_repeat_interval: float = 0.12
 @export_range(0.1, 1.0, 0.05) var context_scroll_threshold: float = 0.55
 
+var _workspace_input_blocked: bool = false
+var _workspace_rearm: bool = false
+var _workspace_release_frame: int = -1
+var _saved_workspace_hotspot: WeakRef
+var _saved_workspace_control: WeakRef
+
 var _player_camera: Camera3D
 var _view_controller: CabinViewController3D
 var _console_interface: ConsoleInterface
@@ -115,6 +121,14 @@ func _exit_tree() -> void:
 
 
 func _process(delta: float) -> void:
+	if _workspace_input_blocked:
+		return
+	if _workspace_rearm:
+		if _workspace_controls_held():
+			return
+		_workspace_rearm = false
+		_reset_gamepad_repeat_state()
+		_restore_workspace_focus()
 	if _input_mode == InputMode.MOUSE:
 		_update_hovered_hotspot()
 	else:
@@ -124,6 +138,12 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if _workspace_input_blocked:
+		return # 交由 W 消费，不抢它的开关或 GUI 输入。
+	if (event is InputEventJoypadButton or event is InputEventJoypadMotion) \
+			and (_workspace_rearm or Engine.get_process_frames() == _workspace_release_frame):
+		get_viewport().set_input_as_handled()
+		return
 	# 在 GUI 之前仲裁手柄动作，防止 Control 的 ui_accept 消费 A 后绕过实体/COMM 优先级。
 	if event is InputEventMouseMotion or event is InputEventMouseButton:
 		_switch_to_mouse_mode()
@@ -224,7 +244,8 @@ func _raycast_hotspot(mouse_position: Vector2) -> InteractionHotspot3D:
 
 
 func _can_use_hotspots() -> bool:
-	return _player_camera != null \
+	return not _workspace_input_blocked and not _workspace_rearm \
+			and _player_camera != null \
 			and _player_camera.is_current() \
 			and _view_controller != null \
 			and not _view_controller.is_turning()
@@ -255,6 +276,8 @@ func _switch_to_gamepad_mode() -> void:
 
 
 func _update_gamepad_navigation(delta: float) -> void:
+	if _workspace_input_blocked or _workspace_rearm:
+		return
 	var input_vector := Vector2(
 		Input.get_action_strength(FOCUS_RIGHT_ACTION)
 				- Input.get_action_strength(FOCUS_LEFT_ACTION),
@@ -320,6 +343,8 @@ func _handle_gamepad_confirm() -> bool:
 
 
 func _validate_gamepad_focus() -> void:
+	if _workspace_input_blocked:
+		return
 	var comm := _get_comm_view()
 	if comm != null and comm.has_controller_choice_context():
 		_clear_hovered_hotspot()
@@ -438,6 +463,8 @@ func _is_path_before(
 
 
 func _update_context_scroll(delta: float) -> void:
+	if _workspace_input_blocked or _workspace_rearm:
+		return
 	var strength := Input.get_action_strength(CONTEXT_SCROLL_DOWN_ACTION) \
 			- Input.get_action_strength(CONTEXT_SCROLL_UP_ACTION)
 	var direction := 0
@@ -526,6 +553,8 @@ func _restore_default_hint() -> void:
 
 
 func _execute_action(action_id: StringName, from_mouse: bool = false) -> void:
+	if _workspace_input_blocked or _workspace_rearm:
+		return
 	# 栏目键的机械声只跟随操作，避免派单更新或初始化刷新时误响。
 	if action_id in [LEFT_SYSTEM_LOG_ACTION, LEFT_PASSENGER_RECORD_ACTION, LEFT_TRANSCRIPT_ACTION] \
 			and _left_console_presentation != null and _building_terminal_interface != null:
@@ -587,6 +616,8 @@ func _execute_action(action_id: StringName, from_mouse: bool = false) -> void:
 
 
 func _execute_left_scroll(direction: int) -> void:
+	if _workspace_input_blocked or _workspace_rearm:
+		return
 	if _building_terminal_interface != null:
 		_building_terminal_interface.scroll_current_content(direction)
 	if _left_console_presentation != null:
@@ -603,6 +634,49 @@ func _on_facing_changed(_direction: int, _direction_name: String) -> void:
 	if _input_mode == InputMode.GAMEPAD:
 		_establish_default_gamepad_focus()
 
+
+
+# 只有此控制器保存原 3D/Control 焦点，不引入全局输入管理器。
+func set_workspace_input_blocked(blocked: bool) -> void:
+	if _workspace_input_blocked == blocked:
+		return
+	_workspace_input_blocked = blocked
+	_reset_gamepad_repeat_state()
+	if blocked:
+		_saved_workspace_hotspot = weakref(_hovered_hotspot) if is_instance_valid(_hovered_hotspot) else null
+		var focused := get_viewport().gui_get_focus_owner()
+		_saved_workspace_control = weakref(focused) if focused != null else null
+		if focused != null:
+			focused.release_focus()
+		_clear_hovered_hotspot()
+	else:
+		_workspace_release_frame = Engine.get_process_frames()
+		_workspace_rearm = _workspace_controls_held()
+		_restore_workspace_focus.call_deferred()
+
+func _workspace_controls_held() -> bool:
+	for action: StringName in [FOCUS_LEFT_ACTION, FOCUS_RIGHT_ACTION, FOCUS_UP_ACTION,
+			FOCUS_DOWN_ACTION, INTERACT_CONFIRM_ACTION, INTERACT_CANCEL_ACTION,
+			COMM_TOGGLE_ACTION, CONTEXT_SCROLL_UP_ACTION, CONTEXT_SCROLL_DOWN_ACTION]:
+		if Input.get_action_strength(action) >= 0.2:
+			return true
+	return false
+
+func _restore_workspace_focus() -> void:
+	if _workspace_input_blocked:
+		return
+	var control := _saved_workspace_control.get_ref() as Control if _saved_workspace_control != null else null
+	if is_instance_valid(control) and control.is_visible_in_tree() \
+			and control.focus_mode != Control.FOCUS_NONE \
+			and not (control is BaseButton and control.disabled):
+		control.grab_focus()
+		return
+	var hotspot := _saved_workspace_hotspot.get_ref() as InteractionHotspot3D if _saved_workspace_hotspot != null else null
+	if _input_mode == InputMode.GAMEPAD and is_instance_valid(hotspot) \
+			and _is_gamepad_focus_valid(hotspot):
+		_set_hovered_hotspot(hotspot)
+	else:
+		_establish_default_gamepad_focus()
 
 func _get_required_node(node_path: NodePath, expected_class: String) -> Node:
 	if node_path.is_empty():

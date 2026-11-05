@@ -3,6 +3,7 @@ extends RefCounted
 
 const MAIN_SCENE := "res://scenes/main/main_3d.tscn"
 const SCRIPTS := {
+	"VerificationTerminal3D": "res://scripts/ui/verification_terminal_3d.gd",
 	"FloatingCommUI": "res://scripts/ui/floating_comm_ui.gd",
 	"MainConsolePresentation3D": "res://scripts/presentation/main_console_presentation_3d.gd",
 	"RightConsolePresentation3D": "res://scripts/presentation/right_console_presentation_3d.gd",
@@ -61,6 +62,7 @@ const EXPORTED_PATHS := {
 		"information_label_path": "Label3D", "input_label_path": "Label3D",
 		"feedback_label_path": "Label3D", "lever_pivot_path": "Node3D",
 	},
+	"VerificationTerminal3D": {"view_controller_path": "CabinViewController3D", "interaction_controller_path": "CabinInteractionController3D", "console_interface_path": "ConsoleInterface", "left_screen_path": "LeftTerminalScreen3D"},
 	"RuntimeConnector3D": {"game_runtime_path": "GameRuntime", "elevator_cabin_path": "CabinViewController3D"},
 	"CabinInteractionController3D": {"player_camera_path": "Camera3D", "view_controller_path": "CabinViewController3D", "console_interface_path": "ConsoleInterface", "building_terminal_interface_path": "BuildingTerminalInterface", "left_console_presentation_path": "LeftTerminalScreen3D", "destination_interface_path": "DestinationControlInterface", "right_console_presentation_path": "RightConsolePresentation3D", "interaction_hint_label_path": "Label"},
 	"LeftTerminalScreen3D": {"screen_mesh_path": "MeshInstance3D", "sub_viewport_path": "SubViewport", "terminal_interface_path": "BuildingTerminalInterface", "player_camera_path": "Camera3D", "view_controller_path": "CabinViewController3D", "system_key_selected_path": "Node3D", "record_key_selected_path": "Node3D", "transcript_key_selected_path": "Node3D", "system_unread_light_path": "Node3D", "record_unread_light_path": "Node3D", "transcript_unread_light_path": "Node3D", "scroll_wheel_visual_path": "Node3D"},
@@ -77,16 +79,18 @@ const EXPORTED_PATHS := {
 	"LayeredFloorSlice25D": {"far_layer_path": "MeshInstance3D", "main_layer_path": "MeshInstance3D", "mid_left_layer_path": "MeshInstance3D", "mid_right_layer_path": "MeshInstance3D", "ground_layer_path": "MeshInstance3D", "front_left_layer_path": "MeshInstance3D", "front_right_layer_path": "MeshInstance3D"},
 }
 const METHODS := {
+	"CabinInteractionController3D": ["set_workspace_input_blocked"],
+	"VerificationTerminal3D": ["set_workspace_port", "reset_document_session", "set_open", "is_input_captured"],
 	"FloatingCommUI": ["present", "set_minimized", "is_minimized", "blocks_pointer", "toggle_from_controller", "cancel_controller_context", "has_controller_choice_context", "focus_controller_choice", "confirm_controller_choice"],
 	"MainConsolePresentation3D": ["set_fault_active"],
 	"RightConsolePresentation3D": ["request_submit", "is_lever_animating"],
 	"GameRuntime": ["get_demo_flow_manager"],
 	"RuntimeConnector3D": ["get_demo_flow_manager", "request_quit"],
-	"CabinViewController3D": ["get_current_direction", "is_turning"],
+	"CabinViewController3D": ["get_current_direction", "is_turning", "set_workspace_input_blocked"],
 	"CabinInterfaceRouter3D": ["get_main_interface", "get_left_interface", "get_right_interface", "is_main_console_visible"],
 	"ConsoleInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "get_current_camera_index", "request_open_door", "request_close_door", "request_toggle_microphone", "request_select_camera", "get_case_phase_display_text"],
 	"BuildingTerminalInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "set_actively_viewed", "show_system_log", "show_passenger_record", "show_transcript", "scroll_current_content", "get_current_section", "get_unread_snapshot"],
-	"LeftTerminalScreen3D": ["rotate_scroll_wheel"],
+	"LeftTerminalScreen3D": ["rotate_scroll_wheel", "set_workspace_input_blocked"],
 	"DestinationControlInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "append_destination_digit", "backspace_destination_input", "clear_destination_input", "request_verify_destination", "request_submit_destination", "get_destination_presentation"],
 	"MonitorCameraController3D": ["setup", "select_camera"],
 	"MonitorPresentationCoordinator3D": ["setup", "is_presentation_busy"],
@@ -95,6 +99,7 @@ const METHODS := {
 	"ElevatorDoorVisual3D": ["request_open", "request_close", "is_busy", "snap_open", "snap_closed"],
 }
 const SIGNALS := {
+	"VerificationTerminal3D": ["input_capture_changed"],
 	"FloatingCommUI": ["choice_selected"],
 	"DemoFlowManager": ["case_updated", "dispatch_started", "dispatch_completed", "shift_completed", "elevator_movement_completed", "left_terminal_section_updated", "left_terminal_session_reset"],
 	"CabinViewController3D": ["turn_started", "facing_changed"],
@@ -176,7 +181,7 @@ func validate_configuration(config: ConfigFile) -> void:
 	for action: String in [
 		"turn_left", "turn_right", "focus_left", "focus_right", "focus_up",
 		"focus_down", "interact_confirm", "interact_cancel", "comm_toggle",
-		"context_scroll_up", "context_scroll_down",
+		"context_scroll_up", "context_scroll_down", "verification_terminal_toggle",
 	]:
 		if not config.has_section_key("input", action):
 			_problem("res://project.godot", "input/" + action, "script-referenced action", "missing")
@@ -228,6 +233,13 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 	match type_name:
 		"GameRuntime":
 			_expect(node, "演示流程管理器", "DemoFlowManager")
+		"VerificationTerminal3D":
+			_expect(node, "..", "Camera3D")
+			_expect(node, "Shell", "Node3D")
+			_expect(node, "WorkspaceLayer", "CanvasLayer")
+			_expect(node, "WorkspaceLayer/InputShield", "Control")
+			_expect(node, "%ContentScroll", "ScrollContainer")
+			_expect(node, "%CloseButton", "Button")
 		"CabinViewController3D":
 			_expect(node, "玩家视角/摄像机旋转轴", "Node3D")
 			_expect(node, "玩家视角/摄像机旋转轴/玩家摄像机", "Camera3D")
@@ -242,6 +254,8 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 			_expect_named(node, "监控表现协调器", "MonitorPresentationCoordinator3D")
 			_expect_named(node, "监控渲染系统", "MonitorCameraController3D")
 			_expect_named(node, "交互控制器", "CabinInteractionController3D")
+			_expect_named(node, "核验终端", "VerificationTerminal3D")
+			_check_unique_script("VerificationTerminal3D")
 			_check_unique_script("LeftTerminalScreen3D")
 			_check_unique_script("ConsoleInterface")
 			_check_unique_script("FloatingCommUI")

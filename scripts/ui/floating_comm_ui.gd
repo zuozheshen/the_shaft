@@ -14,6 +14,7 @@ signal choice_selected(index: int)
 @onready var minimize_button: Button = %MinimizeButton
 
 # 这里只记窗口表现；MIC、台词和可推进的对话状态仍由 ConsoleInterface 持有。
+var _workspace_input_blocked: bool = false
 var _minimized: bool = true
 var _manually_minimized: bool = false
 var _dragging: bool = false
@@ -57,6 +58,8 @@ func present(mic_on: bool, line: String, choices: Array[Dictionary],
 
 
 func _on_choice_pressed(index: int) -> void:
+	if _workspace_input_blocked:
+		return
 	choice_selected.emit(index)
 
 
@@ -80,7 +83,7 @@ func cancel_controller_context() -> bool:
 
 
 func has_controller_choice_context() -> bool:
-	return is_visible_in_tree() and not _minimized and choice_container.visible \
+	return not _workspace_input_blocked and is_visible_in_tree() and not _minimized and choice_container.visible \
 			and _find_enabled_choice(0, 1) >= 0
 
 
@@ -149,6 +152,8 @@ func blocks_pointer(viewport_position: Vector2) -> bool:
 
 
 func _on_title_input(event: InputEvent) -> void:
+	if _workspace_input_blocked:
+		return
 	var mouse := event as InputEventMouseButton
 	if mouse == null or mouse.button_index != MOUSE_BUTTON_LEFT or not mouse.pressed:
 		return
@@ -158,6 +163,8 @@ func _on_title_input(event: InputEvent) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if _workspace_input_blocked:
+		return
 	if not _dragging:
 		return
 	if event is InputEventMouseMotion:
@@ -198,6 +205,12 @@ func _clamp_current_position() -> void:
 	# 不能把排队时的坐标带入回调，否则会覆盖玩家这期间完成的拖动。
 	move_window_to(global_position)
 
+
+func set_workspace_input_blocked(blocked: bool) -> void:
+	_workspace_input_blocked = blocked
+	if blocked:
+		_dragging = false
+		_release_controller_focus()
 
 func _sync_controller_focus() -> void:
 	if not has_controller_choice_context():

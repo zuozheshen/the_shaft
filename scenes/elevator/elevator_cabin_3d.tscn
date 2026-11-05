@@ -70,6 +70,8 @@
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_001_visual.tres" id="reset_001"]
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_002_visual.tres" id="reset_002"]
 
+[ext_resource type="PackedScene" path="res://scenes/ui/verification_terminal_3d.tscn" id="verification_terminal"]
+
 [sub_resource type="BoxMesh" id="66_floor_trim"]
 material = ExtResource("66_trim")
 size = Vector3(3.396, 0.035, 0.002)
@@ -1657,6 +1659,12 @@ transform = Transform3D(0.9988905, 0, 0, 0, 0.9988905, 0, 0, 0, 0.9988905, 0, 0,
 visible = false
 extra_cull_margin = 16384.0
 mesh = SubResource("QuadMesh_bhunq")
+
+[node name="核验终端" parent="玩家视角/摄像机旋转轴/玩家摄像机" instance=ExtResource("verification_terminal")]
+view_controller_path = NodePath("../../../..")
+interaction_controller_path = NodePath("../../../../交互控制器")
+console_interface_path = NodePath("../../../../操作台界面层/操作台界面根/全局通讯容器/ConsoleInterface")
+left_screen_path = NodePath("../../../../操作台占位/左操作台定位")
 
 [node name="交互控制器" type="Node" parent="." unique_id=981601509]
 script = ExtResource("9_interaction")

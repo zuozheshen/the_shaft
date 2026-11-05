@@ -23,7 +23,7 @@ const REQUIRED_GAMEPAD_ACTIONS: Array[StringName] = [
 	&"context_scroll_up", &"context_scroll_down",
 ]
 const OPERATION_HINT_TEXT: String = (
-	"Q/E 或 LB/RB 转向　十字键/左摇杆选择　A 确认　Y 通讯　右摇杆滚动"
+	"Q/E 或 LB/RB 转向　十字键/左摇杆选择　A 确认　Y 通讯　右摇杆滚动　W/View 核验终端"
 )
 const DIRECTION_NAMES: Array[String] = [
 	"主操作台",
@@ -46,6 +46,9 @@ const DIRECTION_ANCHOR_PATHS: Array[NodePath] = [
 
 
 @export_range(0.05, 2.0, 0.05) var turn_duration: float = 0.4
+
+var _workspace_input_blocked: bool = false
+var _workspace_turn_rearm: bool = false
 
 var _current_direction: int = FacingDirection.MAIN_CONSOLE
 var _is_turning: bool = false
@@ -78,6 +81,8 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if _workspace_input_blocked or _workspace_turn_rearm:
+		return
 	# 使用 _input 抢在 GUI 之前处理固定转向，按钮或 LineEdit 聚焦时 Q / E 仍然有效。
 	var turn_step: int = 0
 	if InputMap.has_action(TURN_LEFT_ACTION) and event.is_action_pressed(TURN_LEFT_ACTION):
@@ -92,6 +97,18 @@ func _input(event: InputEvent) -> void:
 		return
 	_start_turn(turn_step)
 
+
+# W 只阻止新转向；正在进行的 Tween 保持原有收尾和方向真值。
+func set_workspace_input_blocked(blocked: bool) -> void:
+	_workspace_input_blocked = blocked
+	if not blocked:
+		_workspace_turn_rearm = Input.is_action_pressed(TURN_LEFT_ACTION) \
+				or Input.is_action_pressed(TURN_RIGHT_ACTION)
+
+func _process(_delta: float) -> void:
+	if _workspace_turn_rearm and not Input.is_action_pressed(TURN_LEFT_ACTION) \
+			and not Input.is_action_pressed(TURN_RIGHT_ACTION):
+		_workspace_turn_rearm = false
 
 # 返回方向枚举的当前值，供后续操作台路由脚本查询。
 func get_current_direction() -> int:

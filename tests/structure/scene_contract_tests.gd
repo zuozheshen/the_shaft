@@ -70,6 +70,19 @@ func run() -> Array[String]:
 	_expect("passenger must remain below its movement mount", _scene_errors(instance).contains("different parent"))
 	instance.free()
 
+	instance = packed.instantiate()
+	var terminal := instance.find_child("核验终端", true, false)
+	terminal.get_parent().remove_child(terminal)
+	terminal.free()
+	_expect("missing verification terminal", _scene_errors(instance).contains("核验终端"))
+	instance.free()
+
+	instance = packed.instantiate()
+	terminal = instance.find_child("核验终端", true, false)
+	terminal.set("interaction_controller_path", NodePath("缺失交互"))
+	_expect("broken verification input link", _scene_errors(instance).contains("interaction_controller_path"))
+	instance.free()
+
 	# 正常调整机位路径、布局容器或装饰，不应被验证器误判为结构损坏。
 	for invalid_path in [NodePath(""), NodePath("缺失灯光"), NodePath("门外楼层区域")]:
 		instance = packed.instantiate()
@@ -114,6 +127,8 @@ func run() -> Array[String]:
 	interaction.set("console_interface_path", interaction.get_path_to(ui))
 	var binding := instance.find_child("主台展示绑定", true, false)
 	binding.set("console_interface_path", binding.get_path_to(ui))
+	terminal = instance.find_child("核验终端", true, false)
+	terminal.set("console_interface_path", terminal.get_path_to(ui))
 	_expect("router permits layout wrapper with updated references", _scene_errors(instance).is_empty())
 	instance.free()
 

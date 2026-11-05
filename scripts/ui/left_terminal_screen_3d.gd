@@ -19,6 +19,7 @@ extends Node3D
 @onready var _section_audio_player := get_node_or_null(^"栏目切换音效") as AudioStreamPlayer
 @onready var _scroll_audio_player := get_node_or_null(^"滚轮卡点音效") as AudioStreamPlayer
 
+var _workspace_input_blocked: bool = false
 var _screen_mesh: MeshInstance3D
 var _sub_viewport: SubViewport
 var _terminal: BuildingTerminalInterface
@@ -101,10 +102,14 @@ func _configure_screen_material() -> void:
 	_screen_mesh.material_override = screen_material
 
 
+func set_workspace_input_blocked(blocked: bool) -> void:
+	_workspace_input_blocked = blocked
+	_sync_active_view_state()
+
 func _sync_active_view_state() -> void:
 	if _terminal == null:
 		return
-	var is_viewed := _player_camera != null \
+	var is_viewed := not _workspace_input_blocked and _player_camera != null \
 			and _player_camera.is_current() \
 			and _view_controller != null \
 			and not _view_controller.is_turning() \

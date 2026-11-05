@@ -11,6 +11,7 @@ const DocumentFlowTests := preload("res://tests/flow/document_flow_tests.gd")
 const MainConsoleTests := preload("res://tests/ui/main_console_tests.gd")
 const LeftConsoleTests := preload("res://tests/ui/left_console_tests.gd")
 const RightConsoleTests := preload("res://tests/ui/right_console_tests.gd")
+const VerificationTerminalTests := preload("res://tests/ui/verification_terminal_tests.gd")
 const GamepadSupportTests := preload("res://tests/ui/gamepad_support_tests.gd")
 
 
@@ -61,6 +62,14 @@ func _ready() -> void:
 func _run() -> void:
 	await get_tree().process_frame
 	print("=== The Shaft 自动测试 ===")
+
+	if "--verification-terminal-only" in OS.get_cmdline_user_args():
+		TestContent.install(ContentRegistry)
+		await VerificationTerminalTests.new().run(self, get_tree())
+		await GamepadSupportTests.new().run(self, get_tree())
+		TestContent.restore(ContentRegistry)
+		await _finish()
+		return
 
 	if "--documents-only" in OS.get_cmdline_user_args():
 		ContentValidatorTests.new().run(self)
@@ -128,6 +137,7 @@ func _run() -> void:
 	await LeftConsoleTests.new().run(self, get_tree())
 	await RightConsoleTests.new().run(self, get_tree())
 	await GamepadSupportTests.new().run(self, get_tree())
+	await VerificationTerminalTests.new().run(self, get_tree())
 
 	TestContent.restore(ContentRegistry)
 

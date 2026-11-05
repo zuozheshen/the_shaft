@@ -94,6 +94,12 @@ func _connect_runtime() -> void:
 	_left_interface.set_demo_flow_manager(_demo_flow_manager)
 	_right_interface.set_demo_flow_manager(_demo_flow_manager)
 
+	# W 只取得 #91 的受限 Callable 端口；生命周期通知由应用层转发。
+	var verification_terminal := elevator_cabin.find_child("核验终端", true, false) as VerificationTerminal3D
+	if verification_terminal != null:
+		verification_terminal.set_workspace_port(_demo_flow_manager.get_document_workspace_port())
+		_demo_flow_manager.document_session_changed.connect(verification_terminal.reset_document_session)
+
 	# 舱内运行声复用同一个流程实例，只表现已接收的行驶与实际到站。
 	var movement_audio := elevator_cabin.get_node_or_null(
 		"玩家视角/电梯运行音效"
