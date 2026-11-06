@@ -83,6 +83,13 @@ func run() -> Array[String]:
 	_expect("broken verification input link", _scene_errors(instance).contains("interaction_controller_path"))
 	instance.free()
 
+	instance = packed.instantiate()
+	terminal = instance.find_child("核验终端", true, false)
+	var workspace := terminal.get_node("%VerificationWorkspace")
+	workspace.unique_name_in_owner = false
+	_expect("missing workspace binding", _scene_errors(instance).contains("VerificationWorkspace"))
+	instance.free()
+
 	# 正常调整机位路径、布局容器或装饰，不应被验证器误判为结构损坏。
 	for invalid_path in [NodePath(""), NodePath("缺失灯光"), NodePath("门外楼层区域")]:
 		instance = packed.instantiate()

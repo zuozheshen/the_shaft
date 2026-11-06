@@ -11,6 +11,7 @@ const DocumentFlowTests := preload("res://tests/flow/document_flow_tests.gd")
 const MainConsoleTests := preload("res://tests/ui/main_console_tests.gd")
 const LeftConsoleTests := preload("res://tests/ui/left_console_tests.gd")
 const RightConsoleTests := preload("res://tests/ui/right_console_tests.gd")
+const VerificationWorkspaceTests := preload("res://tests/ui/verification_workspace_tests.gd")
 const VerificationTerminalTests := preload("res://tests/ui/verification_terminal_tests.gd")
 const GamepadSupportTests := preload("res://tests/ui/gamepad_support_tests.gd")
 
@@ -66,6 +67,7 @@ func _run() -> void:
 	if "--verification-terminal-only" in OS.get_cmdline_user_args():
 		TestContent.install(ContentRegistry)
 		await VerificationTerminalTests.new().run(self, get_tree())
+		await VerificationWorkspaceTests.new().run(self, get_tree())
 		await GamepadSupportTests.new().run(self, get_tree())
 		TestContent.restore(ContentRegistry)
 		await _finish()
@@ -138,6 +140,7 @@ func _run() -> void:
 	await RightConsoleTests.new().run(self, get_tree())
 	await GamepadSupportTests.new().run(self, get_tree())
 	await VerificationTerminalTests.new().run(self, get_tree())
+	await VerificationWorkspaceTests.new().run(self, get_tree())
 
 	TestContent.restore(ContentRegistry)
 

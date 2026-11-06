@@ -1,6 +1,7 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/verification_terminal_3d.gd" id="1_terminal"]
+[ext_resource type="PackedScene" path="res://scenes/ui/verification_workspace.tscn" id="2_workspace"]
 [sub_resource type="StandardMaterial3D" id="ShellMaterial"]
 shading_mode = 0
 albedo_color = Color(0.23, 0.25, 0.24, 1)
@@ -30,10 +31,10 @@ material = SubResource("DarkMaterial")
 size = Vector3(0.035, 0.035, 0.018)
 [sub_resource type="StyleBoxFlat" id="ScreenStyle"]
 bg_color = Color(0.025, 0.065, 0.062, 1)
-content_margin_left = 24.0
-content_margin_top = 18.0
-content_margin_right = 24.0
-content_margin_bottom = 18.0
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
 
 [node name="核验终端" type="Node3D"]
 script = ExtResource("1_terminal")
@@ -99,14 +100,14 @@ layout_mode = 0
 theme_override_styles/panel = SubResource("ScreenStyle")
 [node name="Layout" type="VBoxContainer" parent="WorkspaceLayer/InputShield/Screen"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 4
 [node name="Header" type="HBoxContainer" parent="WorkspaceLayer/InputShield/Screen/Layout"]
 layout_mode = 2
 [node name="Title" type="Label" parent="WorkspaceLayer/InputShield/Screen/Layout/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.76, 0.85, 0.78, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 20
 text = "VERIFICATION / 核验终端"
 [node name="CloseButton" type="Button" parent="WorkspaceLayer/InputShield/Screen/Layout/Header"]
 unique_name_in_owner = true
@@ -118,20 +119,10 @@ layout_mode = 2
 text = "值班待命 / 暂无当前派单"
 metadata/idle_text = "值班待命 / 暂无当前派单"
 metadata/active_text = "当前派单 / 工作区占位"
-[node name="ContentScroll" type="ScrollContainer" parent="WorkspaceLayer/InputShield/Screen/Layout"]
+[node name="VerificationWorkspace" parent="WorkspaceLayer/InputShield/Screen/Layout" instance=ExtResource("2_workspace")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-focus_mode = 2
-horizontal_scroll_mode = 0
-[node name="Placeholder" type="Label" parent="WorkspaceLayer/InputShield/Screen/Layout/ContentScroll"]
-layout_mode = 2
-size_flags_horizontal = 3
-custom_minimum_size = Vector2(0, 1100)
-theme_override_colors/font_color = Color(0.64, 0.76, 0.70, 1)
-theme_override_font_sizes/font_size = 24
-text = "工作区占位\n\n此处仅验证终端开合、焦点与滚动。\n\n资料窗口尚未接入。\n\n\n\n\n\n\n\n\n\n\n\n\n占位面板末端"
-autowrap_mode = 3
 [node name="Hint" type="Label" parent="WorkspaceLayer/InputShield/Screen/Layout"]
 layout_mode = 2
-text = "W / View 呼出或收起 · 方向键选择 · A 确认 · 右摇杆滚动"
+text = "Tab / 方向键选择 · Enter / A 确认 · 右摇杆滚动 · W / View / B 收起"

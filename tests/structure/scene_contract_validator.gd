@@ -238,7 +238,7 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 			_expect(node, "Shell", "Node3D")
 			_expect(node, "WorkspaceLayer", "CanvasLayer")
 			_expect(node, "WorkspaceLayer/InputShield", "Control")
-			_expect(node, "%ContentScroll", "ScrollContainer")
+			_expect(node, "%VerificationWorkspace", "VBoxContainer")
 			_expect(node, "%CloseButton", "Button")
 		"CabinViewController3D":
 			_expect(node, "玩家视角/摄像机旋转轴", "Node3D")

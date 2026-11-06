@@ -209,8 +209,8 @@ call_excerpt只验证类型/内部取得契约，未接主台按钮或对白；�
 godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --verification-terminal-only
 ```
 
-沿用现有宿主，运行 VerificationTerminalTests 和既有 GamepadSupportTests。
-核对 VERIFICATION TERMINAL TESTS COMPLETE、汇总失败0、无 SCRIPT ERROR/ERROR/FAIL 与进程exit0；
+沿用现有宿主，运行 VerificationTerminalTests、VerificationWorkspaceTests 和既有 GamepadSupportTests。
+核对 VERIFICATION TERMINAL TESTS COMPLETE、VERIFICATION WORKSPACE TESTS COMPLETE、汇总失败0、无 SCRIPT ERROR/ERROR/FAIL 与进程exit0；
 这不是统一入口 ALL CHECKS PASS。覆盖真实 Viewport 的 W/View/A/B 输入、W/ui_up冲突、echo/快速反转、
 转向中打开、事件与轮询阻断、A/B持有到收起后、有效/失效焦点恢复、COMM刷新、左台阅读状态、
 同单UI保留与session清理、行驶持续推进、四种分辨率及动画中resize。
@@ -218,4 +218,24 @@ godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --ver
 
 正式空舱可使用W或手柄View打开终端，B或收起按钮关闭；参数在核验终端Inspector中调整。
 灰盒按视口宽度约75%–80%校准，实际机身厚度、支座、遮挡、字体与动效仍需Godot AI和用户实机验收。
-本Issue只有单一占位面板；资料收件箱、多窗口和正式审查操作未接入。
+W内有收件箱、规程/样板、已调阅资料和当前打开窗口入口；可独立阅读、滚动、拖动、单角柄缩放、
+关闭恢复及自动并排。键盘Tab/Shift+Tab与方向导航，Enter/Space确认；正文Up/Down、PageUp/PageDown、
+Home/End滚动。手柄A确认，右摇杆滚动当前资料，B收起；开合和刷新不执行索证/质疑。
+
+工作区测试使用明确的1920×1080窗口和实际溢出的阅读窗，避免headless默认窗口/缩放令正文无需滚动。
+覆盖资料通知、原子收件、来源渠道、无关刷新焦点、关闭旧版后从历史重开、固定FieldRef、
+鼠标标题拖动/角柄、参考资料同屏与会话撤销。
+
+### 手动资料预览
+
+```powershell
+godot.cmd --path . --scene res://tests/preview/verification_workspace_preview.tscn
+```
+
+预览安装仅进程内的无剧情夹具，直接复用正式main_3d与唯一运行层/W组件。
+在612接乘层执行真实登舱命令后，身份证明和维修任务表从乘客原子上传进入收件箱；
+楼层档案由预览驱动模拟右台查询完成取得。另有系统规程和样板，未伪装系统乘客档案。
+默认打开三窗；F6提交维修任务表v2，再按旧窗“查看新版”或从“已调阅资料”的版本历史打开v1/v2。
+“自动并排”收折目录留出阅读区；“目录”可重新打开。正式默认入口和Catalog仍是空舱。
+F6仅为预览脚本输入，不新增正式InputMap、自动剧情或真实查询UI；正式审查UI仍未接入。
+小屏局部补偿字号，四窗可见行数较少，须独立滚动；最终阅读密度与手柄体验待用户验收。

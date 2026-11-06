@@ -23,7 +23,7 @@ const PAD_ACTIONS: Array[StringName] = [
 @onready var shell: Node3D = $Shell
 @onready var input_shield: Control = $WorkspaceLayer/InputShield
 @onready var screen: PanelContainer = $WorkspaceLayer/InputShield/Screen
-@onready var content_scroll: ScrollContainer = %ContentScroll
+@onready var workspace: VerificationWorkspace = %VerificationWorkspace
 @onready var close_button: Button = %CloseButton
 @onready var session_label: Label = %SessionLabel
 
@@ -44,6 +44,7 @@ var _nav_direction: int = 0
 var _nav_remaining: float = 0.0
 var _scroll_direction: int = 0
 var _scroll_remaining: float = 0.0
+var _held_keys: Dictionary = {}
 
 func _ready() -> void:
 	_camera = get_parent() as Camera3D
@@ -66,13 +67,14 @@ func _connect_cabin() -> void:
 
 func set_workspace_port(port: Dictionary) -> void:
 	_port = port.duplicate()
+	workspace.bind_port(_port, close_button)
 	reset_document_session(int(_port["get_session_id"].call()))
 
 func reset_document_session(session: int) -> void:
 	if session == _session_id:
 		return
 	_session_id = session
-	content_scroll.scroll_vertical = 0
+	workspace.reset_session(session)
 	_ui_focus = null
 	_refresh_session_label()
 	if _captured:
@@ -81,7 +83,7 @@ func reset_document_session(session: int) -> void:
 func _refresh_session_label() -> void:
 	# 只切换场景里已写好的中性空态，不枚举未取得资料或创建假业务内容。
 	session_label.text = session_label.get_meta("idle_text") if _session_id == 0 \
-			else session_label.get_meta("active_text")
+			else "当前派单 / 核验工作区"
 
 func is_input_captured() -> bool:
 	return _captured
@@ -90,6 +92,9 @@ func set_open(value: bool) -> void:
 	if target_open == value:
 		return
 	target_open = value
+	workspace.set_reading_enabled(value)
+	if value:
+		workspace.refresh()
 	if value and not _captured:
 		_set_capture(true)
 	if is_instance_valid(_slide):
@@ -139,23 +144,44 @@ func _input(event: InputEvent) -> void:
 			set_open(not target_open)
 		get_viewport().set_input_as_handled()
 		return
+	if event is InputEventKey:
+		var code: int = event.physical_keycode if event.physical_keycode != 0 else event.keycode
+		if _captured:
+			if event.pressed:
+				_held_keys[code] = true
+			else:
+				_held_keys.erase(code)
+		elif _held_keys.has(code):
+			if not event.pressed:
+				_held_keys.erase(code)
+			get_viewport().set_input_as_handled()
+			return
 	if not _captured:
+		return
+	if not target_open:
+		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventJoypadButton or event is InputEventJoypadMotion:
 		if target_open and not _pad_needs_neutral:
 			if event.is_action_pressed(&"interact_cancel"):
 				set_open(false)
-			elif event.is_action_pressed(&"interact_confirm") and close_button.has_focus():
-				set_open(false)
+			elif event.is_action_pressed(&"interact_confirm"):
+				workspace.confirm_focus()
 		get_viewport().set_input_as_handled()
-	elif event is InputEventKey:
-		if target_open and event.is_pressed() and not event.is_echo():
-			if event.is_action(&"ui_up") or event.is_action(&"ui_left"):
-				_move_focus(-1)
-			elif event.is_action(&"ui_down") or event.is_action(&"ui_right"):
-				_move_focus(1)
+
+	# 键盘与鼠标先交给聚焦的工作区 GUI；后台事件和轮询已有显式守卫。
+	if event is InputEventKey:
+		var focused := get_viewport().gui_get_focus_owner()
+		if focused == null or not screen.is_ancestor_of(focused):
+			close_button.grab_focus()
+
+func _shortcut_input(event: InputEvent) -> void:
+	# GUI 之后再拦截剩余按键；不能在 _input 吞掉 Tab/Enter/Space。
+	if _captured and event is InputEventKey:
 		get_viewport().set_input_as_handled()
-	# 鼠标交给终端 GUI；全屏 InputShield 拦住屏口外的可见背景。
+
+func refresh_documents(session: int) -> void:
+	workspace.refresh(session)
 
 func _process(delta: float) -> void:
 	if not _captured or not target_open:
@@ -188,12 +214,12 @@ func _process(delta: float) -> void:
 	elif scroll_step != _scroll_direction:
 		_scroll_direction = scroll_step
 		_scroll_remaining = 0.35
-		content_scroll.scroll_vertical += scroll_step * 96
+		workspace.scroll_active(scroll_step * 96)
 	else:
 		_scroll_remaining -= delta
 		if _scroll_remaining <= 0.0:
 			_scroll_remaining = 0.12
-			content_scroll.scroll_vertical += scroll_step * 96
+			workspace.scroll_active(scroll_step * 96)
 
 func _pad_controls_neutral() -> bool:
 	for action in PAD_ACTIONS:
@@ -202,10 +228,7 @@ func _pad_controls_neutral() -> bool:
 	return true
 
 func _move_focus(direction: int) -> void:
-	if direction < 0:
-		content_scroll.grab_focus()
-	else:
-		close_button.grab_focus()
+	workspace.move_focus(direction)
 
 func get_screen_rect() -> Rect2:
 	if _camera == null:

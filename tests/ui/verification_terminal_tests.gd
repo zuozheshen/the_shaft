@@ -1,5 +1,6 @@
 extends RefCounted
 ## 用正式场景和真实 Viewport 分发验证 W；无剧情夹具不进入正式 Catalog。
+const WorkspaceDocs := preload("res://tests/fixtures/runtime/test_workspace_documents.gd")
 const MAIN := preload("res://scenes/main/main_3d.tscn")
 const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
 
@@ -141,23 +142,31 @@ func run(t: Variant, tree: SceneTree) -> void:
 	await _settle(tree)
 	t.assert_true("W / View语义动作重新打开", terminal.target_open)
 
-	# 单一面板的滚动同单保留；换单/同ID重开撤销旧会话。
-	terminal.content_scroll.scroll_vertical = 180
-	terminal.content_scroll.grab_focus()
+	# 使用真实资料窗验证同单阅读保留；换单撤销旧会话。
+	var definition: DispatchDefinition = ContentRegistry.get_dispatch("TEST_CASE_001")
+	var saved_documents: Array[DocumentDefinition] = definition.documents
+	definition.documents = WorkspaceDocs.definitions()
+	WorkspaceDocs.submit_initial(manager)
+	terminal.workspace.open_document(WorkspaceDocs.ref("task"))
+	await _frames(tree, 3)
+	var reading_scroll: ScrollContainer = terminal.workspace.windows["preview/task@1"].scroll
+	reading_scroll.scroll_vertical = 180
+	reading_scroll.grab_focus()
 	await _frames(tree, 2) # 布局可能夹紧请求值，保存实际可达滚动位置。
-	var saved_scroll := terminal.content_scroll.scroll_vertical
+	var saved_scroll := reading_scroll.scroll_vertical
 	var current_session := terminal._session_id
 	_key(viewport, KEY_W)
 	await _settle(tree)
 	_key(viewport, KEY_W)
 	await _settle(tree)
 	t.assert_true("W / 保存的是实际非零滚动位置", saved_scroll > 0)
-	t.assert_equal("W / 同单重开保留滚动", saved_scroll, terminal.content_scroll.scroll_vertical)
-	t.assert_true("W / 同单重开保留焦点", terminal.content_scroll.has_focus())
+	t.assert_equal("W / 同单重开保留滚动", saved_scroll, reading_scroll.scroll_vertical)
+	t.assert_true("W / 同单重开保留焦点", reading_scroll.has_focus())
 	manager.start_dispatch(&"TEST_CASE_001")
 	await _frames(tree, 2)
 	t.assert_true("W / 同派单ID重开更换session", terminal._session_id != current_session)
-	t.assert_equal("W / 换单清理UI滚动", 0, terminal.content_scroll.scroll_vertical)
+	t.assert_equal("W / 换单清理资料窗口", 0, terminal.workspace.windows.size())
+	definition.documents = saved_documents
 	t.assert_true("W / 换单不强制收起", terminal.target_open)
 	var door_before := manager.is_cabin_door_open()
 	var result := manager.request_travel_to_floor(manager.get_pickup_floor())

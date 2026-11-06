@@ -164,3 +164,17 @@ Manager 写命令在同步适用性回调期间拒绝资料命令重入，回调
 统一入口继续覆盖正式空舱、门控/乘客、三台、手柄和正常关闭 smoke。
 测试适用性注入不是正式规则引擎；查询完成回调测试不代表已经制作真实查询 UI。
 Headless 通过不代替 Godot AI 视觉或用户人工验收。正式玩法接线仍需后续 Issue。
+
+
+## W 工作区接线
+
+VerificationTerminal3D 通过RuntimeConnector接收受限端口、document_session_changed和documents_changed；
+VerificationWorkspace仅保存本session的窗口引用/布局/阅读状态，DocumentWindow固定到精确文档版本。
+实收集合来自get_received_materials；其他已取得资料按receipt.route分类，不用字段原始出处提升权限。
+系统参考经open_system_reference取得正文，重复阅读已取得版本只用getter。
+
+“已调阅资料”的版本历史由get_document_events中的document_refs去重重建，并用get_acquired_document
+检查精确版本仍有效。新版本不移动旧窗或FieldRef；关闭后的旧窗也可从历史重新打开。
+历史阅读不调用取得/索证命令，session变化清理所有UI引用，无新增版本数据库或跨派单存档。
+未提交材料仍不产生虚拟Document/Field，乘客批次仍为原子完成；正文旧接收阶段设想不参与运行。
+预览资料与登舱/补交驱动仅存在tests夹具，正式Catalog为空，真实查询、转录及正式审查UI仍待后续接线。

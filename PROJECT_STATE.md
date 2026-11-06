@@ -43,7 +43,7 @@
 
 - 已有内容契约校验、统一流程命令、派单阶段与状态隔离；通用流程通过 tests/fixtures/runtime/ 的无剧情夹具验证，夹具不注册进正式 Catalog。
 - 共享资料使用 Document/Field/Source 与文档版本；唯一 DispatchDocumentState 由 ActiveDispatchState 持有，生命周期撤销旧 session。DemoFlowManager 窄接口负责原子乘客收件、系统参考打开、左/右台查询完成取得、正式索证/质疑记录；W 只注入受限 Callable 端口。Registry 定义不等于玩家已取得；适用性只有默认不放行的 Callable 接入口，正式规则、查询/W/转录 UI 和对白接线尚未制作。契约与旧 #84–#90 审计见 [共享资料契约](docs/design/case-001-document-contract.md)。
-- VerificationTerminal3D 挂在既有玩家 Camera 下，以3D灰盒机壳和独立CanvasLayer占位面板表现W/View呼出终端；宽度/高度/距离/时长可在Inspector调整。只持有受限资料端口和本单UI会话，RuntimeConnector转发session清理。输入接管同时阻断三台事件和手柄轮询；COMM继续更新但不抢焦点，收起后恢复有效原焦点或当前台位默认焦点，持有输入释放/回中后再使用。没有多窗口、收件箱或正式审查UI。
+- VerificationTerminal3D 挂在既有玩家 Camera 下，以3D灰盒机壳和独立CanvasLayer表现W/View呼出终端；宽度/高度/距离/时长可在Inspector调整。VerificationWorkspace/DocumentWindow只持受限资料端口、固定版本引用和本单窗口/滚动/阅读状态，提供收件箱、系统规程/样板、已取得资料版本历史、多窗自动并排和关闭恢复；RuntimeConnector转发session及资料变化。旧版关闭后可从取得事件重建历史并精确重开，无第二版本库。W开关键优先消费，其余键盘交给聚焦GUI，GUI后拦截剩余键；输入接管同时阻断三台事件和手柄轮询，COMM继续更新但不抢焦点，收起后恢复有效原焦点或当前台位默认焦点，持有输入释放/回中后再使用。局部字号随画布实际缩放补偿，正式空舱仍无自动资料/剧情；手动夹具预览见tests/README.md，尚无正式索证/质疑UI。
 - 已有三台 UI、实时监控、分层 2.5D 切片、纸片乘客、门动画和登/离舱表现。
 - 正式业务状态归运行层；表现层不另存派单数据库或决定业务结果。摄像头提供证据，乘客内容来自资源而非 UI 硬编码。
 - 不重复创建 GameRuntime、DemoFlowManager、ContentRegistry、DialogueManager、第二套业务状态机或第二 Godot 项目。
