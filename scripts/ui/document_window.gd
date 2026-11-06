@@ -6,6 +6,8 @@ signal closing
 signal raised
 signal newer_requested
 signal geometry_changed
+signal history_requested(ref: Dictionary)
+signal focus_layout_changed
 
 var document_ref: Dictionary = {}
 var receipt: Dictionary = {}
@@ -22,6 +24,11 @@ var _drag_mode: int = 0
 var _drag_start: Vector2
 var _start_rect: Rect2
 var _details: bool = false
+var history_button: Button
+var history_list: VBoxContainer
+var _history_refs: Array[Dictionary] = []
+var _document_rendered: bool = false
+var _history_reading_position: int = 0
 
 func _ready() -> void:
 	clip_contents = true
@@ -60,6 +67,10 @@ func _ready() -> void:
 	detail_button = _button(actions, "详情")
 	detail_button.toggle_mode = true
 	detail_button.toggled.connect(_show_details)
+	history_button = _button(actions, "历史版本")
+	history_button.toggle_mode = true
+	history_button.visible = false
+	history_button.toggled.connect(_show_history)
 	update_button = _button(actions, "查看新版")
 	update_button.pressed.connect(func() -> void: newer_requested.emit())
 	scroll = ScrollContainer.new()
@@ -72,6 +83,9 @@ func _ready() -> void:
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.add_theme_constant_override("separation", 8)
 	scroll.add_child(body)
+	history_list = VBoxContainer.new()
+	history_list.visible = false
+	body.add_child(history_list)
 	metadata_label = _text("")
 	metadata_label.visible = false
 	# 角柄只负责局部缩放，不使用原生 OS 窗口。
@@ -117,8 +131,9 @@ func show_document(value: Dictionary, latest: int) -> void:
 		source.updated_at if not String(source.updated_at).is_empty() else "未知",
 		Time.get_datetime_string_from_unix_time(int(receipt.acquired_at))]
 	# 刷新版本提示不重建正文，避免无关资料更新打断阅读。
-	if body.get_child_count() > 1:
+	if _document_rendered:
 		return
+	_document_rendered = true
 	_text(doc.original_text)
 	for field_id: String in doc.fields:
 		var field: Dictionary = doc.fields[field_id]
@@ -138,6 +153,12 @@ func focus_controls() -> Array[Control]:
 	var result: Array[Control] = [top_button, close_button, detail_button]
 	if update_button.visible:
 		result.append(update_button)
+	if history_button.visible:
+		result.append(history_button)
+	if history_list.visible:
+		for button in history_list.get_children():
+			if button is Button and not button.disabled:
+				result.append(button)
 	result.append(scroll)
 	return result
 
@@ -204,3 +225,48 @@ func constrain() -> void:
 		return
 	size = size.min(area)
 	position = position.clamp(Vector2.ZERO, (area - size).max(Vector2.ZERO))
+
+func set_history(refs: Array[Dictionary]) -> void:
+	if refs == _history_refs:
+		return
+	var focused := get_viewport().gui_get_focus_owner()
+	var lost_focus := focused != null and (history_list.is_ancestor_of(focused) or focused == history_button)
+	_history_refs = refs.duplicate(true)
+	for child in history_list.get_children():
+		history_list.remove_child(child)
+		child.queue_free()
+	history_button.visible = not refs.is_empty()
+	history_button.text = "历史版本 (%d)" % refs.size()
+	if refs.is_empty():
+		history_button.set_pressed_no_signal(false)
+		history_list.visible = false
+	for ref: Dictionary in refs:
+		var current: bool = ref == document_ref
+		var button := _button(history_list, "v%d%s" % [ref.version, " / 当前阅读" if current else ""])
+		button.disabled = current
+		button.set_meta("document_ref", ref.duplicate())
+		button.pressed.connect(func() -> void: history_requested.emit(ref.duplicate()))
+	if lost_focus:
+		if history_button.visible:
+			history_button.grab_focus()
+		else:
+			detail_button.grab_focus()
+	focus_layout_changed.emit()
+
+func _show_history(value: bool) -> void:
+	# 历史展开时滚到入口，收折后回到之前的正文位置，不丢阅读进度。
+	var focused := get_viewport().gui_get_focus_owner()
+	if not value and focused != null and history_list.is_ancestor_of(focused):
+		history_button.grab_focus()
+	if value and not history_list.visible:
+		_history_reading_position = scroll.scroll_vertical
+	history_list.visible = value and history_button.visible
+	scroll.set_deferred("scroll_vertical", 0 if history_list.visible else _history_reading_position)
+	focus_layout_changed.emit()
+
+func get_reading_position() -> int:
+	return _history_reading_position if history_list.visible else scroll.scroll_vertical
+
+func restore_reading_position(value: int) -> void:
+	_history_reading_position = value
+	scroll.set_deferred("scroll_vertical", 0 if history_list.visible else value)

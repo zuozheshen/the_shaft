@@ -170,11 +170,14 @@ Headless 通过不代替 Godot AI 视觉或用户人工验收。正式玩法接�
 
 VerificationTerminal3D 通过RuntimeConnector接收受限端口、document_session_changed和documents_changed；
 VerificationWorkspace仅保存本session的窗口引用/布局/阅读状态，DocumentWindow固定到精确文档版本。
-实收集合来自get_received_materials；其他已取得资料按receipt.route分类，不用字段原始出处提升权限。
+收件箱仅列passenger路由实收；已调阅资料仅列left/right取得结果，系统参考单列规程/样板，不用字段原始出处提升权限。
 系统参考经open_system_reference取得正文，重复阅读已取得版本只用getter。
 
-“已调阅资料”的版本历史由get_document_events中的document_refs去重重建，并用get_acquired_document
-检查精确版本仍有效。新版本不移动旧窗或FieldRef；关闭后的旧窗也可从历史重新打开。
+三个资料栏目只列文件，不平铺版本；窗口切换条只定位已打开的固定版本阅读窗，不隐藏其他文档。
+文档内部的默认折叠历史由get_document_events中的document_refs去重重建，并用get_acquired_document
+检查精确版本仍有效；只有已取得的旧版存在时才显示入口，不凭版本号猜测缺失版本。
+关闭旧窗后可从所属栏目打开最新，再展开文件内历史重开旧版。新版本不移动旧窗或FieldRef，
+不自动展开历史或抢焦点；手动展开/收折历史保留正文阅读位置。
 历史阅读不调用取得/索证命令，session变化清理所有UI引用，无新增版本数据库或跨派单存档。
 未提交材料仍不产生虚拟Document/Field，乘客批次仍为原子完成；正文旧接收阶段设想不参与运行。
 预览资料与登舱/补交驱动仅存在tests夹具，正式Catalog为空，真实查询、转录及正式审查UI仍待后续接线。

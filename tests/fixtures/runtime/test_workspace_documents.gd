@@ -4,7 +4,7 @@ const Base := preload("res://tests/fixtures/runtime/test_documents.gd")
 
 static func definitions() -> Array[DocumentDefinition]:
 	var result: Array[DocumentDefinition] = []
-	for version in [1, 2]:
+	for version in [1, 2, 3]:
 		var task: DocumentDefinition = Base.document("preview/task", &"passenger_upload", version, &"TEST_REPAIR_ORDER")
 		task.title = "维修任务表"
 		task.original_text = "乘客提交 / 维修任务表\n工单 R-001\n作业楼层：001\n修订：%d\n\n" % version + (
@@ -23,6 +23,17 @@ static func definitions() -> Array[DocumentDefinition]:
 	floor_doc.fields[0].subject_id = &"001"
 	floor_doc.original_text = "右台调阅 / 楼层档案\n楼层：001\n名称：测试设备层\n\n调阅记录仅描述档案来源。\n".repeat(16)
 	result.append(floor_doc)
+	var floor_v2: DocumentDefinition = floor_doc.duplicate(true)
+	floor_v2.version = 2
+	floor_v2.source.source_version = "2"
+	result.append(floor_v2)
+	var personnel: DocumentDefinition = Base.document("preview/personnel", &"personnel_record")
+	personnel.title = "左台人员档案"
+	personnel.original_text = "左台查询完成后取得的测试档案，不是乘客上传。"
+	result.append(personnel)
+	var first_v2: DocumentDefinition = Base.document("preview/first_v2", &"passenger_upload", 2)
+	first_v2.title = "首次取得v2的测试资料"
+	result.append(first_v2)
 	var rules: DocumentDefinition = Base.regulation()
 	rules.document_id = &"preview/rules"
 	rules.title = "当班核验规程"
@@ -30,6 +41,10 @@ static func definitions() -> Array[DocumentDefinition]:
 	for field in rules.fields:
 		field.display_value = "规程条款示例 / 请结合适用条件审阅"
 	result.append(rules)
+	var rules_v2: DocumentDefinition = rules.duplicate(true)
+	rules_v2.version = 2
+	rules_v2.source.source_version = "2"
+	result.append(rules_v2)
 	var sample: DocumentDefinition = Base.document("preview/sample", &"system_reference", 1, &"TEST_SAMPLE")
 	sample.owner_type = &"system"
 	sample.owner_id = &"TEST_SAMPLE"

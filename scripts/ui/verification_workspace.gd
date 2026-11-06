@@ -3,7 +3,7 @@ extends VBoxContainer
 ## 只缓存引用和阅读布局；资料真值来自受限端口和已有提交事件。
 
 const WINDOW := preload("res://scenes/ui/document_window.tscn")
-const CATEGORIES: Array[String] = ["收件箱", "规程 / 样板", "已调阅资料", "当前打开窗口"]
+const CATEGORIES: Array[String] = ["收件箱", "规程 / 样板", "已调阅资料"]
 
 var port: Dictionary = {}
 var session_id: int = 0
@@ -17,6 +17,9 @@ var status_label: Label
 var arrange_button: Button
 var directory_button: Button
 var category_buttons: Array[Button] = []
+var switch_scroll: ScrollContainer
+var switch_strip: HBoxContainer
+var switch_buttons: Dictionary = {}
 var _outer_focus: Control
 var _latest: Dictionary = {}
 var _history: Dictionary = {}
@@ -34,6 +37,8 @@ func _ready() -> void:
 	for index in CATEGORIES.size():
 		var button := Button.new()
 		button.text = CATEGORIES[index]
+		button.toggle_mode = true
+		button.button_pressed = index == category
 		button.pressed.connect(_select_category.bind(index))
 		toolbar.add_child(button)
 		category_buttons.append(button)
@@ -50,9 +55,20 @@ func _ready() -> void:
 	arrange_button.text = "自动并排"
 	arrange_button.pressed.connect(arrange_windows)
 	toolbar.add_child(arrange_button)
+	# 提交状态与窗口条共用一行，避免增加导航高度挤占正文。
+	var status_row := HBoxContainer.new()
+	add_child(status_row)
 	status_label = Label.new()
 	status_label.add_theme_font_size_override("font_size", 14)
-	add_child(status_label)
+	status_row.add_child(status_label)
+	status_row.add_child(VSeparator.new())
+	switch_scroll = ScrollContainer.new()
+	switch_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	switch_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	switch_scroll.follow_focus = true
+	status_row.add_child(switch_scroll)
+	switch_strip = HBoxContainer.new()
+	switch_scroll.add_child(switch_strip)
 	var row := HBoxContainer.new()
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(row)
@@ -90,6 +106,7 @@ func reset_session(value: int) -> void:
 	_latest.clear()
 	_history.clear()
 	_active_key = ""
+	_render_switch_strip()
 	session_id = value
 	refresh()
 
@@ -124,22 +141,26 @@ func refresh(changed_session: int = -1) -> void:
 		var id: String = window.document_ref.document_id
 		if _latest.has(id):
 			window.show_document(window.receipt, int(_latest[id].document.version))
+			window.set_history(_older_refs(id))
 	_render_catalog()
 	_queue_focus()
 
 func _select_category(index: int) -> void:
 	category = index
+	for n in category_buttons.size():
+		category_buttons[n].set_pressed_no_signal(n == index)
 	catalog_scroll.visible = true
 	directory_button.set_pressed_no_signal(true)
 	_render_catalog()
 	_queue_focus()
 
-func _catalog_button(text: String, action: Callable) -> Button:
+func _catalog_button(text: String, action: Callable, ref: Dictionary = {}) -> Button:
 	var button := Button.new()
 	button.text = text
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	button.tooltip_text = text
+	button.set_meta("document_ref", ref.duplicate())
 	button.pressed.connect(action)
 	catalog.add_child(button)
 	return button
@@ -157,27 +178,22 @@ func _render_catalog() -> void:
 			for item: Dictionary in _latest.values():
 				if item.route == "passenger":
 					var ref := {"document_id": item.document.document_id, "version": item.document.version}
-					_catalog_button(item.document.title, open_document.bind(ref))
+					_catalog_button(item.document.title, open_document.bind(ref), ref)
 		1:
 			if session_id > 0 and not port.is_empty():
+				var references: Dictionary = {}
 				for ref: Dictionary in port.get_system_references.call(session_id):
-					_catalog_button(ref.title, open_reference.bind(ref))
+					if not references.has(ref.document_id) or int(ref.version) > int(references[ref.document_id].version):
+						references[ref.document_id] = ref
+				for ref: Dictionary in references.values():
+					_catalog_button(ref.title, open_reference.bind(ref), {"document_id":ref.document_id, "version":ref.version})
 		2:
 			for item: Dictionary in _latest.values():
-				var id: String = item.document.document_id
-				_catalog_button(item.document.title, open_document.bind({"document_id": id, "version": item.document.version}))
-				var refs: Array = []
-				for ref: Dictionary in _history.values():
-					if ref.document_id == id:
-						refs.append(ref)
-				refs.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.version > b.version)
-				for ref: Dictionary in refs:
-					_catalog_button("  历史 v%d%s" % [ref.version,
-						" / 旧版" if ref.version < item.document.version else " / 最新"], open_document.bind(ref)).set_meta("document_ref", ref.duplicate())
-		3:
-			for window in windows.values():
-				_catalog_button("%s · v%d" % [window.receipt.document.title, window.document_ref.version],
-					raise_window.bind(_key(window.document_ref)))
+				# 只按实际取得渠道分类，字段的引述出处不能提升权限。
+				if item.route not in ["left", "right"]:
+					continue
+				var ref := {"document_id":item.document.document_id, "version":item.document.version}
+				_catalog_button(item.document.title, open_document.bind(ref), ref)
 	if catalog.get_child_count() == 0:
 		var empty := Label.new()
 		empty.text = "暂无资料"
@@ -214,20 +230,26 @@ func open_document(ref: Dictionary) -> void:
 	window.closing.connect(close_window.bind(key))
 	window.raised.connect(raise_window.bind(key, false))
 	window.newer_requested.connect(_open_latest.bind(String(ref.document_id)))
+	window.history_requested.connect(open_document)
+	window.focus_layout_changed.connect(_queue_focus)
 	window.geometry_changed.connect(func() -> void: _arranged = false)
 	window.show_document(snapshot, int(_latest.get(ref.document_id, snapshot).document.version))
+	window.set_history(_older_refs(String(ref.document_id)))
 	_update_font()
 	if saved_views.has(key):
 		var saved: Dictionary = saved_views[key]
 		window.position = saved.position
 		window.size = saved.size
 		window.detail_button.button_pressed = saved.details
-		window.scroll.set_deferred("scroll_vertical", saved.scroll)
+		if window.history_button.visible:
+			window.history_button.button_pressed = saved.get("history_open", false)
+		window.restore_reading_position(saved.scroll)
 	else:
 		window.size = (desk.size * Vector2(0.65, 0.9)).max(Vector2(200, 120)).min(desk.size)
 		window.position = Vector2(18, 14) * ((windows.size() - 1) % 4)
 	window.constrain()
 	_arranged = false
+	_render_switch_strip()
 	raise_window(key)
 	_render_catalog()
 	_queue_focus()
@@ -242,6 +264,7 @@ func raise_window(key: String, focus_body: bool = true) -> void:
 	_active_key = key
 	var window: DocumentWindow = windows[key]
 	desk.move_child(window, desk.get_child_count() - 1)
+	_update_switch_active()
 	if focus_body:
 		window.scroll.grab_focus()
 
@@ -250,19 +273,78 @@ func close_window(key: String) -> void:
 		return
 	var window: DocumentWindow = windows[key]
 	saved_views[key] = {"position": window.position, "size": window.size,
-		"scroll": window.scroll.scroll_vertical, "details": window.detail_button.button_pressed}
+		"scroll": window.get_reading_position(), "details": window.detail_button.button_pressed,
+		"history_open": window.history_button.button_pressed}
 	var focused := get_viewport().gui_get_focus_owner()
-	var lost_focus := focused != null and window.is_ancestor_of(focused)
+	var lost_focus: bool = focused != null and (window.is_ancestor_of(focused) or focused == switch_buttons.get(key))
+	var open_keys: Array = windows.keys()
+	var closed_index: int = open_keys.find(key)
 	windows.erase(key)
 	window.hide()
 	desk.remove_child(window)
 	window.queue_free()
 	if _active_key == key:
-		_active_key = ""
+		var remaining: Array = windows.keys()
+		_active_key = String(remaining[mini(closed_index, remaining.size() - 1)]) if not remaining.is_empty() else ""
+	_render_switch_strip()
 	if lost_focus:
-		arrange_button.grab_focus()
+		if switch_buttons.has(_active_key):
+			raise_window(_active_key, false)
+			switch_buttons[_active_key].grab_focus()
+		else:
+			arrange_button.grab_focus()
 	_render_catalog()
 	_queue_focus()
+
+func _older_refs(id: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if not _latest.has(id):
+		return result
+	var latest: int = _latest[id].document.version
+	for ref: Dictionary in _history.values():
+		if ref.document_id == id and int(ref.version) < latest:
+			result.append(ref.duplicate())
+	result.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.version > b.version)
+	return result
+
+func _render_switch_strip() -> void:
+	if switch_strip == null:
+		return
+	var focused := get_viewport().gui_get_focus_owner()
+	var focused_key: String = ""
+	for key: String in switch_buttons:
+		if switch_buttons[key] == focused:
+			focused_key = key
+	for child in switch_strip.get_children():
+		switch_strip.remove_child(child)
+		child.queue_free()
+	switch_buttons.clear()
+	# Dictionary保留开窗顺序；置顶只移动阅读窗，不让切换目标跳动。
+	for key: String in windows:
+		var window: DocumentWindow = windows[key]
+		var button := Button.new()
+		button.text = "%s · v%d" % [window.receipt.document.title, window.document_ref.version]
+		button.toggle_mode = true
+		var selected := StyleBoxFlat.new()
+		selected.bg_color = Color("#36594f")
+		selected.border_color = Color("#a8c7b2")
+		selected.set_border_width_all(1)
+		selected.set_content_margin_all(4)
+		button.add_theme_stylebox_override("pressed", selected)
+		button.set_meta("document_ref", window.document_ref.duplicate())
+		button.pressed.connect(raise_window.bind(key))
+		button.focus_entered.connect(switch_scroll.ensure_control_visible.bind(button))
+		switch_strip.add_child(button)
+		switch_buttons[key] = button
+	switch_scroll.visible = not switch_buttons.is_empty()
+	_update_switch_active()
+	if switch_buttons.has(focused_key):
+		switch_buttons[focused_key].grab_focus()
+	_queue_focus()
+
+func _update_switch_active() -> void:
+	for key: String in switch_buttons:
+		switch_buttons[key].set_pressed_no_signal(key == _active_key)
 
 func arrange_windows() -> void:
 	# 收折目录后再排版，给正文留出屏口空间。
@@ -318,8 +400,16 @@ func rebuild_focus() -> void:
 		for child in catalog.get_children():
 			if child is Button:
 				controls.append(child)
-	for window in desk.get_children():
-		controls.append_array(window.focus_controls())
+	for button in switch_buttons.values():
+		controls.append(button)
+	for key: String in windows:
+		var window: DocumentWindow = windows[key]
+		var window_controls: Array[Control] = window.focus_controls()
+		for control in window_controls:
+			var on_focus := raise_window.bind(key, false)
+			if not control.focus_entered.is_connected(on_focus):
+				control.focus_entered.connect(on_focus)
+		controls.append_array(window_controls)
 	for index in controls.size():
 		var control: Control = controls[index]
 		var previous: Control = controls[posmod(index - 1, controls.size())]
