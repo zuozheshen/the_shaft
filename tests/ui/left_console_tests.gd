@@ -11,7 +11,7 @@ const MAIN := preload("res://scenes/main/main_3d.tscn")
 func run(t: Variant, tree: SceneTree) -> void:
 	var definition := ContentRegistry.get_dispatch("TEST_CASE_001")
 	var original_documents := definition.documents
-	definition.documents = Archive.definitions(definition.passenger_id)
+	definition.documents = Archive.definitions(definition.passenger_id, true)
 	var main := MAIN.instantiate()
 	TestContent.prepare_scene(main)
 	var cabin := main.get_node("三维操作舱") as CabinViewController3D

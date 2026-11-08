@@ -145,7 +145,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	# 使用真实资料窗验证同单阅读保留；换单撤销旧会话。
 	var definition: DispatchDefinition = ContentRegistry.get_dispatch("TEST_CASE_001")
 	var saved_documents: Array[DocumentDefinition] = definition.documents
-	definition.documents = WorkspaceDocs.definitions()
+	definition.documents = WorkspaceDocs.definitions(true)
 	WorkspaceDocs.submit_initial(manager)
 	terminal.workspace.open_document(WorkspaceDocs.ref("task"))
 	await _frames(tree, 3)

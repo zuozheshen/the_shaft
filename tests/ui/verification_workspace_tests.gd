@@ -8,7 +8,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	tree.root.size = Vector2i(1920, 1080)
 	var definition: DispatchDefinition = ContentRegistry.get_dispatch("TEST_CASE_001")
 	var saved: Array[DocumentDefinition] = definition.documents
-	definition.documents = Docs.definitions()
+	definition.documents = Docs.definitions(true)
 	var main := MAIN.instantiate()
 	Content.prepare_scene(main)
 	var manager := main.get_node("游戏运行层/演示流程管理器") as DemoFlowManager
