@@ -19,7 +19,6 @@ signal contradiction_challenge_recorded(session_id: int)
 
 const LEFT_SECTION_SYSTEM_LOG: StringName = &"system_log"
 const LEFT_SECTION_PASSENGER_RECORD: StringName = &"passenger_record"
-const LEFT_SECTION_TRANSCRIPT: StringName = &"transcript"
 
 
 const ElevatorRuntimeStateScript := preload(
@@ -214,13 +213,11 @@ func has_active_dispatch() -> bool:
 
 
 func add_front_transcript_operator(operator_text: String) -> void:
-	if ui_history_state.add_operator_transcript(operator_text):
-		left_terminal_section_updated.emit(LEFT_SECTION_TRANSCRIPT)
+	ui_history_state.add_operator_transcript(operator_text)
 
 
 func add_front_transcript_passenger(passenger_text: String) -> void:
-	if ui_history_state.add_passenger_transcript(passenger_text):
-		left_terminal_section_updated.emit(LEFT_SECTION_TRANSCRIPT)
+	ui_history_state.add_passenger_transcript(passenger_text)
 
 
 func get_front_dialogue_history() -> Array[String]:
@@ -900,6 +897,32 @@ func receive_passenger_batch(session: int, submission_id: StringName, refs: Arra
 
 func open_system_reference(session: int, ref: Dictionary) -> FlowCommandResultScript:
 	return _acquire_document_refs(session, StringName("open:%s@%s" % [ref.get("document_id", ""), ref.get("version", 0)]), [ref], "system")
+
+
+## 左台查询只返回定义快照；按键调阅之前，W 不会取得这些记录。
+func query_current_passenger_archive(session: int) -> Array[Dictionary]:
+	var records: Array[Dictionary] = []
+	if _current_document_state(session) == null:
+		return records
+	var dispatch := get_active_dispatch()
+	var definitions := ContentRegistry.get_current_passenger_archive_documents(dispatch)
+	if ContentRegistry.validate_document_definitions(definitions).has_errors():
+		return records
+	for document: DocumentDefinition in definitions:
+		records.append(document.snapshot())
+	return records
+
+
+func retrieve_passenger_archive_document(session: int, query_id: StringName,
+		displayed_document: Dictionary) -> FlowCommandResultScript:
+	if _current_document_state(session) == null:
+		return _document_command_result(DispatchDocumentState.outcome(false, "STALE_SESSION"))
+	# 对照本单当前定义，避免把玩家尚未读过的新版本送到 W。
+	for current: Dictionary in query_current_passenger_archive(session):
+		if current == displayed_document:
+			return accept_left_lookup_result(session, query_id, [{
+				"document_id": current.document_id, "version": current.version}])
+	return _document_command_result(DispatchDocumentState.outcome(false, "LEFT_RECORD_CHANGED"))
 
 
 ## 仅交给左台主动查询的完成回调；W 端口不包含此入口。

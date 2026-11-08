@@ -42,6 +42,11 @@ text = "ARCHIVE TERMINAL"
 layout_mode = 2
 text = "SHAFT FACILITIES // OPERATOR ACCESS // LINK ACTIVE"
 
+[node name="DocumentHeading" type="Label" parent="TerminalLayout"]
+visible = false
+layout_mode = 2
+autowrap_mode = 3
+
 [node name="ContentScrollContainer" type="ScrollContainer" parent="TerminalLayout"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -66,4 +71,5 @@ autowrap_mode = 2
 
 [node name="TerminalHintLabel" type="Label" parent="TerminalLayout" unique_id=783481114]
 layout_mode = 2
-text = "选择一个终端页签查看建筑记录。"
+autowrap_mode = 3
+text = "选择栏目查看建筑记录。"

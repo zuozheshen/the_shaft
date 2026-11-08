@@ -136,9 +136,9 @@ func _test_left_console(
 	for hotspot in interaction._get_gamepad_candidates():
 		actions.append(hotspot.get_action_id())
 	t.assert_false("手柄 / left_scroll 不进入焦点候选", &"left_scroll" in actions)
-	t.assert_equal("手柄 / 左台只有三枚实体栏目键可聚焦", 3, actions.size())
+	t.assert_equal("手柄 / 左台只有三枚实体键可聚焦", 3, actions.size())
 	_assert_station_reachable(t, interaction, &"left_console", [
-		&"left_passenger_record", &"left_transcript", &"left_system_log",
+		&"left_passenger_record", &"left_retrieve_document", &"left_system_log",
 	])
 
 	var terminal := router.get_left_interface()

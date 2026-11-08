@@ -9,10 +9,9 @@ extends Node3D
 @export var view_controller_path: NodePath
 @export var system_key_selected_path: NodePath = ^"栏目控制区/系统日志/选中指示"
 @export var record_key_selected_path: NodePath = ^"栏目控制区/乘客档案/选中指示"
-@export var transcript_key_selected_path: NodePath = ^"栏目控制区/对话记录/选中指示"
 @export var system_unread_light_path: NodePath = ^"栏目控制区/系统日志/状态灯"
 @export var record_unread_light_path: NodePath = ^"栏目控制区/乘客档案/状态灯"
-@export var transcript_unread_light_path: NodePath = ^"栏目控制区/对话记录/状态灯"
+@export var retrieval_available_light_path: NodePath = ^"栏目控制区/调阅/状态灯"
 @export var scroll_wheel_visual_path: NodePath = ^"滚轮根/滚轮转轴"
 @export_range(4.0, 45.0, 1.0) var scroll_tick_degrees: float = 16.0
 
@@ -27,6 +26,7 @@ var _player_camera: Camera3D
 var _view_controller: CabinViewController3D
 var _selected_visuals: Array[Node3D] = []
 var _unread_lights: Array[Node3D] = []
+var _retrieval_light: Node3D
 var _scroll_wheel_visual: Node3D
 
 
@@ -40,13 +40,12 @@ func _ready() -> void:
 	_selected_visuals = [
 		_get_required_node(system_key_selected_path, "Node3D") as Node3D,
 		_get_required_node(record_key_selected_path, "Node3D") as Node3D,
-		_get_required_node(transcript_key_selected_path, "Node3D") as Node3D,
 	]
 	_unread_lights = [
 		_get_required_node(system_unread_light_path, "Node3D") as Node3D,
 		_get_required_node(record_unread_light_path, "Node3D") as Node3D,
-		_get_required_node(transcript_unread_light_path, "Node3D") as Node3D,
 	]
+	_retrieval_light = _get_required_node(retrieval_available_light_path, "Node3D") as Node3D
 	_scroll_wheel_visual = _get_required_node(scroll_wheel_visual_path, "Node3D") as Node3D
 	if _screen_mesh == null or not _screen_mesh.mesh is QuadMesh:
 		push_error("左台屏幕必须使用 QuadMesh 承载唯一 BuildingTerminalInterface。")
@@ -64,6 +63,8 @@ func _ready() -> void:
 			_terminal.section_changed.connect(_on_section_changed)
 		if not _terminal.unread_state_changed.is_connected(_on_unread_state_changed):
 			_terminal.unread_state_changed.connect(_on_unread_state_changed)
+		_terminal.retrieval_available_changed.connect(_on_retrieval_available_changed)
+		_on_retrieval_available_changed(_terminal.can_retrieve_current_document())
 		_on_section_changed(_terminal.get_current_section())
 		_on_unread_state_changed(_terminal.get_unread_snapshot())
 	_sync_active_view_state()
@@ -138,12 +139,17 @@ func _on_unread_state_changed(snapshot: Dictionary) -> void:
 	var ids: Array[StringName] = [
 		BuildingTerminalInterface.SECTION_SYSTEM_LOG,
 		BuildingTerminalInterface.SECTION_PASSENGER_RECORD,
-		BuildingTerminalInterface.SECTION_TRANSCRIPT,
 	]
 	for index in _unread_lights.size():
 		var light := _unread_lights[index]
 		if light != null:
 			light.visible = bool(snapshot.get(ids[index], false))
+
+
+# 第三枚键的灯表示当前文件可调阅，和两枚栏目的未读状态分开。
+func _on_retrieval_available_changed(available: bool) -> void:
+	if _retrieval_light != null:
+		_retrieval_light.visible = available
 
 
 func _get_required_node(node_path: NodePath, expected_class: String) -> Node:

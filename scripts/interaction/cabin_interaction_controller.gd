@@ -9,7 +9,7 @@ const CAM_02_ACTION: StringName = &"select_camera_02"
 const CLOSE_DOOR_ACTION: StringName = &"close_door"
 const LEFT_SYSTEM_LOG_ACTION: StringName = &"left_system_log"
 const LEFT_PASSENGER_RECORD_ACTION: StringName = &"left_passenger_record"
-const LEFT_TRANSCRIPT_ACTION: StringName = &"left_transcript"
+const LEFT_RETRIEVE_ACTION: StringName = &"left_retrieve_document"
 const LEFT_SCROLL_ACTION: StringName = &"left_scroll"
 const DESTINATION_DIGIT_PREFIX: String = "destination_digit_"
 const DESTINATION_CLEAR_ACTION: StringName = &"destination_clear"
@@ -556,7 +556,7 @@ func _execute_action(action_id: StringName, from_mouse: bool = false) -> void:
 	if _workspace_input_blocked or _workspace_rearm:
 		return
 	# 栏目键的机械声只跟随操作，避免派单更新或初始化刷新时误响。
-	if action_id in [LEFT_SYSTEM_LOG_ACTION, LEFT_PASSENGER_RECORD_ACTION, LEFT_TRANSCRIPT_ACTION] \
+	if action_id in [LEFT_SYSTEM_LOG_ACTION, LEFT_PASSENGER_RECORD_ACTION, LEFT_RETRIEVE_ACTION] \
 			and _left_console_presentation != null and _building_terminal_interface != null:
 		_left_console_presentation.play_section_switch_sound()
 	# 键盘声跟随实体按键，空输入时按 CLR / 删除也有反馈。
@@ -585,9 +585,9 @@ func _execute_action(action_id: StringName, from_mouse: bool = false) -> void:
 		LEFT_PASSENGER_RECORD_ACTION:
 			if _building_terminal_interface != null:
 				_building_terminal_interface.show_passenger_record()
-		LEFT_TRANSCRIPT_ACTION:
+		LEFT_RETRIEVE_ACTION:
 			if _building_terminal_interface != null:
-				_building_terminal_interface.show_transcript()
+				_building_terminal_interface.retrieve_current_document()
 		LEFT_SCROLL_ACTION:
 			# 滚轮热点只响应鼠标滚轮，不把左键误当成滚动。
 			pass

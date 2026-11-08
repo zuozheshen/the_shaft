@@ -243,3 +243,23 @@ godot.cmd --path . --scene res://tests/preview/verification_workspace_preview.ts
 “自动并排”收折目录留出阅读区；“目录”可重新打开。正式默认入口和Catalog仍是空舱。
 F6仅为预览脚本输入，不新增正式InputMap、自动剧情或真实查询UI；正式审查UI仍未接入。
 小屏局部补偿字号，四窗可见行数较少，须独立滚动；最终阅读密度与手柄体验待用户验收。
+
+## 左台当前乘客档案定向检查
+
+```powershell
+godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --left-lookup-only
+```
+
+使用正式场景和进程内无剧情夹具，覆盖真实鼠标档案键、手柄调阅键、三份循环切换与独立滚动、
+每份未读、单份取得、旧版/新版本和 session 撤销。核对 `LEFT LOOKUP TESTS COMPLETE`、
+汇总失败 0、退出码 0 且无 `SCRIPT ERROR` / `ERROR` / `FAIL`。
+
+```powershell
+godot.cmd --path . --scene res://tests/preview/left_lookup_preview.tscn
+```
+
+预览中按 Q 转到左台，按「乘客档案」查询 P-017，连续按键切换三份文档。滚轮只滚动当前正文。
+按「调阅」直接打开 W 中这一份。收起 W、切换到另一份再调阅，可保留两窗并自动并排。
+W 的规程/样板和已调阅资料中另有夹具参考及右台来源档案，左台文档须由玩家调阅。
+F6 更新维修任务表，从系统日志重新进入档案可查看新版。F7 切换到无工作记录乘客。
+正式默认入口仍为空舱。实机可读性、铭牌和手柄体验单独验收。

@@ -73,6 +73,14 @@ func _run() -> void:
 		await _finish()
 		return
 
+	if "--left-lookup-only" in OS.get_cmdline_user_args():
+		TestContent.install(ContentRegistry)
+		await LeftConsoleTests.new().run(self, get_tree())
+		await GamepadSupportTests.new().run(self, get_tree())
+		TestContent.restore(ContentRegistry)
+		await _finish()
+		return
+
 	if "--documents-only" in OS.get_cmdline_user_args():
 		ContentValidatorTests.new().run(self)
 		DispatchDocumentStateTests.new().run(self)

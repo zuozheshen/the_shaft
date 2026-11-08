@@ -253,6 +253,33 @@ func get_document_definition(dispatch_id: String, ref: Dictionary) -> DocumentDe
 	return null
 
 
+## 左台只查派单绑定的人员，保留定义顺序，并为每份文件取最新版本。
+func get_current_passenger_archive_documents(dispatch: DispatchDefinition) -> Array[DocumentDefinition]:
+	var records: Array[DocumentDefinition] = []
+	if dispatch == null or get_passenger(String(dispatch.passenger_id)) == null:
+		return records
+	var latest: Dictionary = {}
+	for document: DocumentDefinition in dispatch.documents:
+		if document == null or document.source == null or document.owner_type != &"passenger" \
+				or document.owner_id != dispatch.passenger_id \
+				or document.source.kind not in [&"personnel_record", &"duty_record"] \
+				or String(document.document_id).begins_with("registry/"):
+			continue
+		if not latest.has(document.document_id) or document.version > latest[document.document_id].version:
+			latest[document.document_id] = document
+
+	for kind: StringName in [&"personnel_record", &"duty_record"]:
+		if kind == &"duty_record" and records.is_empty():
+			var identity := get_document_definition(String(dispatch.dispatch_id), {
+				"document_id": "registry/passenger/%s" % dispatch.passenger_id, "version": 1})
+			if identity != null:
+				records.append(identity)
+		for document: DocumentDefinition in latest.values():
+			if document.source.kind == kind:
+				records.append(document)
+	return records
+
+
 func get_system_reference_documents(dispatch_id: String) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	var dispatch: DispatchDefinition = get_dispatch(dispatch_id)

@@ -4,30 +4,21 @@ class_name BuildingTerminalInterface
 
 signal section_changed(section: int)
 signal unread_state_changed(snapshot: Dictionary)
+signal retrieval_available_changed(available: bool)
+signal archive_document_retrieved(session: int, ref: Dictionary)
 
 
-enum Section {
-	SYSTEM_LOG,
-	PASSENGER_RECORD,
-	TRANSCRIPT,
-}
-
+enum Section { SYSTEM_LOG, PASSENGER_RECORD }
 
 const SECTION_SYSTEM_LOG: StringName = &"system_log"
 const SECTION_PASSENGER_RECORD: StringName = &"passenger_record"
-const SECTION_TRANSCRIPT: StringName = &"transcript"
-const EMPTY_TRANSCRIPT_CONTENT: String = """对话记录
-
-暂无通话转写。
-请先在 FRONT 主仲裁台开启麦克风并选择对话。"""
 const EMPTY_SYSTEM_LOG_CONTENT: String = "暂无系统通信记录。"
-
 
 @export_range(24, 240, 8) var scroll_step: int = 96
 
-# 场景结构已固定，直接引用节点，避免运行时按名称遍历整棵节点树。
 @onready var title_label: Label = $TerminalLayout/TitleLabel
 @onready var access_status_label: Label = $TerminalLayout/AccessStatusLabel
+@onready var document_heading: Label = $TerminalLayout/DocumentHeading
 @onready var content_scroll_container: ScrollContainer = $TerminalLayout/ContentScrollContainer
 @onready var terminal_content_label: Label = $TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/TerminalContentLabel
 @onready var terminal_hint_label: Label = $TerminalLayout/TerminalHintLabel
@@ -37,56 +28,38 @@ var embedded_3d_mode: bool = false
 var _current_section: int = Section.SYSTEM_LOG
 var _is_actively_viewed: bool = false
 var _system_log_unread: bool = false
-var _passenger_record_unread: bool = false
-var _transcript_unread: bool = false
+var _archive_available_hint: bool = false
+var _session: int = 0
+
+# 左台只保留本单显示快照及阅读位置。玩家取得的资料由运行层持有。
+var _documents: Array[Dictionary] = []
+var _document_index: int = 0
+var _read_documents: Dictionary = {}
+var _stale_documents: Dictionary = {}
+var _event_ids: Dictionary = {}
+var _next_event: int = 0
+var _reading_positions: Dictionary = {}
+var _scroll_revision: int = 0
+var _scroll_pending: bool = false
 
 
 func _ready() -> void:
 	_apply_terminal_theme()
 	_initialize_terminal_text()
-	# RuntimeConnector3D 会在场景 ready 后注入唯一 Manager；注入前只显示静态空态，避免虚假缺失告警。
-	_set_content(EMPTY_SYSTEM_LOG_CONTENT, "等待系统通信。")
+	_render_system_log()
 
 
 func set_demo_flow_manager(flow_manager: DemoFlowManager) -> void:
 	if demo_flow_manager == flow_manager:
 		return
-	_disconnect_demo_flow_manager()
+	if is_instance_valid(demo_flow_manager):
+		demo_flow_manager.left_terminal_section_updated.disconnect(_on_left_terminal_section_updated)
+		demo_flow_manager.document_session_changed.disconnect(_reset_session)
 	demo_flow_manager = flow_manager
-	if demo_flow_manager == null:
-		push_warning("BuildingTerminalInterface: DemoFlowManager is not connected.")
-		return
-	if not demo_flow_manager.left_terminal_section_updated.is_connected(
-		_on_left_terminal_section_updated
-	):
-		demo_flow_manager.left_terminal_section_updated.connect(
-			_on_left_terminal_section_updated
-		)
-	if not demo_flow_manager.left_terminal_session_reset.is_connected(
-		_on_left_terminal_session_reset
-	):
-		demo_flow_manager.left_terminal_session_reset.connect(
-			_on_left_terminal_session_reset
-		)
-	# 注入通常发生在首单启动之后；按真实当前派单补齐一次 presentation 状态。
-	_on_left_terminal_session_reset(demo_flow_manager.has_active_dispatch())
-
-
-func _disconnect_demo_flow_manager() -> void:
-	if demo_flow_manager == null:
-		return
-	if demo_flow_manager.left_terminal_section_updated.is_connected(
-		_on_left_terminal_section_updated
-	):
-		demo_flow_manager.left_terminal_section_updated.disconnect(
-			_on_left_terminal_section_updated
-		)
-	if demo_flow_manager.left_terminal_session_reset.is_connected(
-		_on_left_terminal_session_reset
-	):
-		demo_flow_manager.left_terminal_session_reset.disconnect(
-			_on_left_terminal_session_reset
-		)
+	if is_instance_valid(demo_flow_manager):
+		demo_flow_manager.left_terminal_section_updated.connect(_on_left_terminal_section_updated)
+		demo_flow_manager.document_session_changed.connect(_reset_session)
+	_reset_session(demo_flow_manager.get_document_session_id() if demo_flow_manager != null else 0)
 
 
 func set_embedded_3d_mode(is_enabled: bool) -> void:
@@ -100,10 +73,9 @@ func set_actively_viewed(is_viewed: bool) -> void:
 	if _is_actively_viewed == is_viewed:
 		return
 	_is_actively_viewed = is_viewed
-	if not _is_actively_viewed:
-		return
-	_render_current_section()
-	_set_section_unread(_current_section, false)
+	if is_viewed and _current_section == Section.SYSTEM_LOG:
+		_render_system_log()
+	_mark_current_read()
 
 
 func is_actively_viewed() -> bool:
@@ -111,15 +83,75 @@ func is_actively_viewed() -> bool:
 
 
 func show_system_log() -> void:
-	_select_section(Section.SYSTEM_LOG)
+	if _current_section == Section.SYSTEM_LOG:
+		return
+	_save_reading_position()
+	_current_section = Section.SYSTEM_LOG
+	_render_system_log()
+	_restore_scroll_after_layout()
+	section_changed.emit(_current_section)
+	_mark_current_read()
 
 
 func show_passenger_record() -> void:
-	_select_section(Section.PASSENGER_RECORD)
+	_save_reading_position()
+	if _current_section != Section.PASSENGER_RECORD:
+		_refresh_archive()
+		_current_section = Section.PASSENGER_RECORD
+		section_changed.emit(_current_section)
+	elif _documents.size() > 1:
+		_document_index = (_document_index + 1) % _documents.size()
+	else:
+		return
+	_render_record()
+	_restore_scroll_after_layout()
+	_mark_current_read()
 
 
-func show_transcript() -> void:
-	_select_section(Section.TRANSCRIPT)
+func _refresh_archive() -> void:
+	var previous := _current_document()
+	_documents = demo_flow_manager.query_current_passenger_archive(_session) if demo_flow_manager != null else []
+	_archive_available_hint = false
+	_document_index = 0
+	_stale_documents.clear()
+	_event_ids.clear()
+	for index: int in _documents.size():
+		if _documents[index].document_id == previous.get("document_id", ""):
+			_document_index = index
+			break
+
+
+func retrieve_current_document() -> void:
+	if not _is_actively_viewed:
+		return
+	if not can_retrieve_current_document():
+		if _current_section == Section.SYSTEM_LOG:
+			terminal_hint_label.text = "请先查看乘客档案。"
+		return
+	var document := _current_document()
+	var key := _document_key(document)
+	if not _event_ids.has(key):
+		# 同轮查询可逐份调阅，每份文档的事件 ID 和载荷一一对应。
+		_next_event += 1
+		_event_ids[key] = StringName("left:%d:%d" % [_session, _next_event])
+	var session := _session
+	var result := demo_flow_manager.retrieve_passenger_archive_document(session, _event_ids[key], document)
+	if session != _session:
+		return
+	if result.succeeded:
+		archive_document_retrieved.emit(session, {"document_id": document.document_id, "version": document.version})
+	elif result.code == &"LEFT_RECORD_CHANGED" or result.code == &"VERSION_CONFLICT" or result.code == &"STALE_VERSION":
+		_stale_documents[key] = true
+		terminal_hint_label.text = "资料已更新，请返回系统日志后重新打开乘客档案。"
+		_publish_read_state()
+	else:
+		terminal_hint_label.text = "当前无法调阅此文档。"
+
+
+func can_retrieve_current_document() -> bool:
+	return _is_actively_viewed and _current_section == Section.PASSENGER_RECORD \
+			and _session > 0 and not _documents.is_empty() \
+			and not _stale_documents.has(_document_key(_current_document()))
 
 
 func get_current_section() -> int:
@@ -127,99 +159,103 @@ func get_current_section() -> int:
 
 
 func get_section_unread(section: int) -> bool:
-	match section:
-		Section.SYSTEM_LOG:
-			return _system_log_unread
-		Section.PASSENGER_RECORD:
-			return _passenger_record_unread
-		Section.TRANSCRIPT:
-			return _transcript_unread
-		_:
-			return false
+	if section == Section.SYSTEM_LOG:
+		return _system_log_unread
+	if section == Section.PASSENGER_RECORD:
+		if _archive_available_hint:
+			return true
+		for document: Dictionary in _documents:
+			if not _read_documents.has(_document_key(document)):
+				return true
+	return false
 
 
 func get_unread_snapshot() -> Dictionary:
 	return {
 		SECTION_SYSTEM_LOG: _system_log_unread,
-		SECTION_PASSENGER_RECORD: _passenger_record_unread,
-		SECTION_TRANSCRIPT: _transcript_unread,
+		SECTION_PASSENGER_RECORD: get_section_unread(Section.PASSENGER_RECORD),
 	}
 
 
 func scroll_current_content(direction: int) -> void:
-	if content_scroll_container == null or direction == 0:
+	if content_scroll_container == null or direction == 0 or _scroll_pending:
 		return
 	var scroll_bar := content_scroll_container.get_v_scroll_bar()
 	var maximum := maxf(0.0, scroll_bar.max_value - scroll_bar.page)
 	content_scroll_container.scroll_vertical = int(clampf(
-		float(content_scroll_container.scroll_vertical + direction * scroll_step),
-		0.0,
-		maximum
-	))
+		float(content_scroll_container.scroll_vertical + direction * scroll_step), 0.0, maximum))
 
 
-func _select_section(section: int) -> void:
-	if section < Section.SYSTEM_LOG or section > Section.TRANSCRIPT:
-		return
-	_current_section = section
-	_render_current_section()
-	_set_section_unread(_current_section, false)
-	call_deferred("_reset_scroll_to_top")
-	section_changed.emit(_current_section)
-
-
-func _on_left_terminal_session_reset(has_active_dispatch: bool) -> void:
+func _reset_session(session: int) -> void:
+	_session = session
 	_current_section = Section.SYSTEM_LOG
-	_system_log_unread = has_active_dispatch and not _is_actively_viewed
-	# FILE 在 V1 中只表示“新派单的当前乘客档案可查看”。
-	_passenger_record_unread = has_active_dispatch
-	_transcript_unread = false
-	_render_current_section()
-	call_deferred("_reset_scroll_to_top")
+	_system_log_unread = session > 0 and not _is_actively_viewed
+	_archive_available_hint = session > 0 and demo_flow_manager.get_active_passenger() != null
+	_documents.clear()
+	_document_index = 0
+	_read_documents.clear()
+	_stale_documents.clear()
+	_event_ids.clear()
+	_next_event = 0
+	_reading_positions.clear()
+	_render_system_log()
+	_restore_scroll_after_layout()
 	section_changed.emit(_current_section)
-	_emit_unread_state()
+	_publish_read_state()
 
 
 func _on_left_terminal_section_updated(section_id: StringName) -> void:
-	var section := _section_from_id(section_id)
-	if section < 0:
+	if section_id != SECTION_SYSTEM_LOG:
 		return
-	_set_section_unread(section, true)
-	if _is_actively_viewed and section == _current_section:
-		_render_current_section()
-		_set_section_unread(section, false)
+	_system_log_unread = true
+	if _is_actively_viewed and _current_section == Section.SYSTEM_LOG:
+		_render_system_log()
+	_mark_current_read()
 
 
-func _section_from_id(section_id: StringName) -> int:
-	match section_id:
-		SECTION_SYSTEM_LOG:
-			return Section.SYSTEM_LOG
-		SECTION_PASSENGER_RECORD:
-			return Section.PASSENGER_RECORD
-		SECTION_TRANSCRIPT:
-			return Section.TRANSCRIPT
-		_:
-			return -1
+func _mark_current_read() -> void:
+	if _is_actively_viewed:
+		if _current_section == Section.SYSTEM_LOG:
+			_system_log_unread = false
+		elif not _documents.is_empty():
+			_read_documents[_document_key(_current_document())] = true
+	_publish_read_state()
 
 
-func _set_section_unread(section: int, is_unread: bool) -> void:
-	var changed := false
-	match section:
-		Section.SYSTEM_LOG:
-			changed = _system_log_unread != is_unread
-			_system_log_unread = is_unread
-		Section.PASSENGER_RECORD:
-			changed = _passenger_record_unread != is_unread
-			_passenger_record_unread = is_unread
-		Section.TRANSCRIPT:
-			changed = _transcript_unread != is_unread
-			_transcript_unread = is_unread
-	if changed:
-		_emit_unread_state()
-
-
-func _emit_unread_state() -> void:
+func _publish_read_state() -> void:
 	unread_state_changed.emit(get_unread_snapshot())
+	retrieval_available_changed.emit(can_retrieve_current_document())
+
+
+func _current_document() -> Dictionary:
+	return {} if _documents.is_empty() else _documents[_document_index]
+
+
+func _document_key(document: Dictionary) -> String:
+	return "%s@%d" % [document.document_id, document.version]
+
+
+func _reading_key() -> String:
+	return _document_key(_current_document()) if _current_section == Section.PASSENGER_RECORD \
+			and not _documents.is_empty() else String(SECTION_SYSTEM_LOG)
+
+
+func _save_reading_position() -> void:
+	if not _scroll_pending:
+		_reading_positions[_reading_key()] = content_scroll_container.scroll_vertical
+
+
+func _restore_scroll_after_layout() -> void:
+	_scroll_revision += 1
+	var revision := _scroll_revision
+	var saved: int = _reading_positions.get(_reading_key(), 0)
+	_scroll_pending = true
+	# 等换行后的正文和滚动范围就绪，快速翻页时只恢复最后一页。
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if revision == _scroll_revision:
+		content_scroll_container.scroll_vertical = saved
+		_scroll_pending = false
 
 
 func _initialize_terminal_text() -> void:
@@ -272,81 +308,46 @@ func _create_terminal_style(
 	return style
 
 
-func _render_current_section() -> void:
-	match _current_section:
-		Section.PASSENGER_RECORD:
-			_render_record()
-		Section.TRANSCRIPT:
-			_render_transcript()
-		_:
-			_render_system_log()
-
-
 func _render_record() -> void:
-	_set_content(_build_record_content(), "乘客记录来自当前派单。")
-
-
-func _build_record_content() -> String:
-	if demo_flow_manager == null:
-		return "乘客档案\n\n数据源未连接：无法读取当前乘客记录。"
-	if not demo_flow_manager.has_active_dispatch():
-		return "乘客档案\n\n暂无当前乘客。"
-	var archive_text: String = demo_flow_manager.get_passenger_archive_text()
-	if archive_text.is_empty():
-		return "乘客档案\n\n当前案例未提供乘客记录。"
-	return "乘客档案\n\n%s" % archive_text.replace(
-		"{dispatch}", demo_flow_manager.get_dispatch_text()
-	)
-
-
-func _render_transcript() -> void:
-	var dialogue_history: Array[String] = _get_front_dialogue_history()
-	if dialogue_history.is_empty():
-		_set_content(EMPTY_TRANSCRIPT_CONTENT, "暂无可复核的通话转写。")
+	document_heading.show()
+	if _documents.is_empty():
+		document_heading.text = "乘客档案"
+		terminal_content_label.text = "暂无当前乘客。" if _session <= 0 else "暂无可用乘客档案。"
+		terminal_hint_label.text = "当前没有可调阅的文档。"
 		return
-	var transcript_lines := PackedStringArray(["对话记录", ""])
-	for dialogue_line in dialogue_history:
-		transcript_lines.append(dialogue_line)
-	_set_content("\n".join(transcript_lines), "已读取 FRONT 临时对话缓存。")
+	var document := _current_document()
+	document_heading.text = "%s   %d / %d" % [document.title, _document_index + 1, _documents.size()]
+	var source: Dictionary = document.source
+	var updated: String = source.updated_at if not String(source.updated_at).is_empty() else "未知"
+	var original_text: String = document.original_text
+	if String(document.document_id).begins_with("registry/passenger/"):
+		# 旧身份档案的模板只在左台展示时展开，取得记录保留原文。
+		original_text = original_text.replace("{dispatch}", demo_flow_manager.get_dispatch_text())
+	var lines := PackedStringArray([
+		"人员编号：%s" % document.owner_id,
+		"来源：%s · v%d" % [source.source_id, document.version],
+		"记录更新时间：%s" % updated,
+		"", original_text,
+	])
+	for field: Dictionary in document.fields.values():
+		if field.has_value:
+			lines.append(String(field.display_value))
+	terminal_content_label.text = "\n".join(lines)
+	if _stale_documents.has(_document_key(document)):
+		terminal_hint_label.text = "资料已更新，请返回系统日志后重新打开乘客档案。"
+	else:
+		var navigation := "档案键：下一份  ｜  " if _documents.size() > 1 else ""
+		terminal_hint_label.text = navigation + "滚轮：阅读  ｜  调阅：展开至核验终端"
 
 
 func _render_system_log() -> void:
-	var message_history: Array[String] = _get_system_message_history()
-	if message_history.is_empty():
-		_set_content(EMPTY_SYSTEM_LOG_CONTENT, "暂无需要复核的系统通信。")
-		return
-	var log_lines := PackedStringArray(["系统日志", ""])
-	for message_text in message_history:
-		log_lines.append(message_text)
-	_set_content("\n\n".join(log_lines), "已读取本轮系统通信历史。")
-
-
-func _get_front_dialogue_history() -> Array[String]:
-	if demo_flow_manager == null:
-		push_warning("BuildingTerminalInterface: Cannot read dialogue without DemoFlowManager.")
-		var empty_history: Array[String] = []
-		return empty_history
-	return demo_flow_manager.get_front_dialogue_history()
-
-
-func _get_system_message_history() -> Array[String]:
-	if demo_flow_manager == null:
-		push_warning("BuildingTerminalInterface: Cannot read system messages without DemoFlowManager.")
-		var empty_history: Array[String] = []
-		return empty_history
-	return demo_flow_manager.get_system_message_history()
-
-
-func _set_content(content_text: String, hint_text: String) -> void:
-	_set_label_text(terminal_content_label, content_text)
-	_set_label_text(terminal_hint_label, hint_text)
-
-
-func _reset_scroll_to_top() -> void:
-	if content_scroll_container != null:
-		content_scroll_container.scroll_vertical = 0
+	document_heading.hide()
+	var history: Array[String] = []
+	if demo_flow_manager != null:
+		history = demo_flow_manager.get_system_message_history()
+	terminal_content_label.text = EMPTY_SYSTEM_LOG_CONTENT if history.is_empty() else "系统日志\n\n" + "\n\n".join(history)
+	terminal_hint_label.text = "暂无需要复核的系统通信。" if history.is_empty() else "已读取本轮系统通信历史。"
 
 
 func _set_label_text(label: Label, new_text: String) -> void:
-	if label != null:
-		label.text = new_text
+	label.text = new_text

@@ -213,6 +213,11 @@ func open_reference(ref: Dictionary) -> void:
 	refresh()
 	open_document(ref)
 
+func open_retrieved_document(ref: Dictionary) -> void:
+	_select_category(2) # 已调阅资料
+	open_document(ref)
+
+
 func open_document(ref: Dictionary) -> void:
 	if session_id <= 0 or port.is_empty():
 		return

@@ -100,6 +100,7 @@ func _connect_runtime() -> void:
 		verification_terminal.set_workspace_port(_demo_flow_manager.get_document_workspace_port())
 		_demo_flow_manager.document_session_changed.connect(verification_terminal.reset_document_session)
 		_demo_flow_manager.documents_changed.connect(verification_terminal.refresh_documents)
+		_left_interface.archive_document_retrieved.connect(verification_terminal.open_left_archive_document)
 
 	# 舱内运行声复用同一个流程实例，只表现已接收的行驶与实际到站。
 	var movement_audio := elevator_cabin.get_node_or_null(

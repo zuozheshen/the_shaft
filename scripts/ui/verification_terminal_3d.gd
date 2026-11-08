@@ -88,6 +88,17 @@ func _refresh_session_label() -> void:
 func is_input_captured() -> bool:
 	return _captured
 
+## 这条展示接线只消费已经取得的单份左台资料，不给 W 新的取得权限。
+func open_left_archive_document(session: int, ref: Dictionary) -> void:
+	if session <= 0 or session != _session_id or _port.is_empty():
+		return
+	var receipt: Dictionary = _port.get_acquired_document.call(session, ref)
+	if receipt.get("route") != "left":
+		return
+	set_open(true)
+	workspace.open_retrieved_document(ref)
+
+
 func set_open(value: bool) -> void:
 	if target_open == value:
 		return

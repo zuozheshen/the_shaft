@@ -1,20 +1,28 @@
 extends RefCounted
 
 const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
+const Archive := preload("res://tests/fixtures/runtime/test_left_lookup_documents.gd")
+const Docs := preload("res://tests/fixtures/runtime/test_documents.gd")
 ## 使用正式 main_3d 验证左台实体入口复用唯一 BuildingTerminalInterface。
 
 const MAIN := preload("res://scenes/main/main_3d.tscn")
 
 
 func run(t: Variant, tree: SceneTree) -> void:
+	var definition := ContentRegistry.get_dispatch("TEST_CASE_001")
+	var original_documents := definition.documents
+	definition.documents = Archive.definitions(definition.passenger_id)
 	var main := MAIN.instantiate()
 	TestContent.prepare_scene(main)
+	var cabin := main.get_node("三维操作舱") as CabinViewController3D
+	cabin.turn_duration = 0.025
 	t.add_child(main)
 	await _frames(tree)
-	var cabin := main.get_node("三维操作舱") as CabinViewController3D
 	var manager := main.get_node("游戏运行层/演示流程管理器") as DemoFlowManager
 	var router := main.find_child("操作台界面层", true, false) as CabinInterfaceRouter3D
 	var terminal := router.get_left_interface()
+	var workspace_terminal := main.find_child("核验终端", true, false) as VerificationTerminal3D
+	workspace_terminal.slide_duration = 0.02
 	var interaction := cabin.get_node("交互控制器") as CabinInteractionController3D
 	var left := cabin.get_node("操作台占位/左操作台定位") as LeftTerminalScreen3D
 	var control_root := left.get_node("栏目控制区") as Node3D
@@ -24,9 +32,9 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_false("左台 / 旧屏幕页签已移除", terminal.has_node("TerminalLayout/TabButtonPanel"))
 	t.assert_equal("左台 / 旧屏幕按钮已移除", 0, terminal.find_children("*", "Button", true, false).size())
 
-	var names := ["系统日志", "乘客档案", "对话记录"]
+	var names := ["系统日志", "乘客档案", "调阅"]
 	var actions: Array[StringName] = [
-		&"left_system_log", &"left_passenger_record", &"left_transcript",
+		&"left_system_log", &"left_passenger_record", &"left_retrieve_document",
 	]
 	for index in names.size():
 		var key := control_root.get_node(names[index]) as InteractionHotspot3D
@@ -44,14 +52,14 @@ func run(t: Variant, tree: SceneTree) -> void:
 				))
 		t.assert_true("左台 / 栏目模型导入后有可见网格 " + names[index],
 				cap.find_children("*", "MeshInstance3D", true, false).size() > 0)
-	# 左视角中 z 从大到小对应画面从左到右；人工验收冻结为 FILE、TRANSCRIPT、SYSTEM、滚轮。
+	# 左视角中 z 从大到小对应画面从左到右；人工验收冻结为 档案、调阅、日志、滚轮。
 	var passenger_key := control_root.get_node("乘客档案") as Node3D
-	var transcript_key := control_root.get_node("对话记录") as Node3D
+	var retrieve_key := control_root.get_node("调阅") as Node3D
 	var system_key := control_root.get_node("系统日志") as Node3D
 	var scroll_root := left.get_node("滚轮根") as Node3D
 	t.assert_true("左台 / 实体件从左到右顺序固定",
-			passenger_key.position.z > transcript_key.position.z
-			and transcript_key.position.z > system_key.position.z
+			passenger_key.position.z > retrieve_key.position.z
+			and retrieve_key.position.z > system_key.position.z
 			and system_key.position.z > scroll_root.position.z)
 
 	# 首单在主台启动：SYSTEM 与新档案都未被玩家实际查看。
@@ -60,43 +68,25 @@ func run(t: Variant, tree: SceneTree) -> void:
 			terminal.get_section_unread(BuildingTerminalInterface.Section.SYSTEM_LOG))
 	t.assert_true("左台 / 新派单 FILE 未读",
 			terminal.get_section_unread(BuildingTerminalInterface.Section.PASSENGER_RECORD))
-	t.assert_false("左台 / 新派单空 TRANSCRIPT 已读",
-			terminal.get_section_unread(BuildingTerminalInterface.Section.TRANSCRIPT))
-
+	var lamp := left.get_node(left.retrieval_available_light_path) as Node3D
+	t.assert_false("左台 / 未查档案时不点调阅灯", lamp.visible)
 	manager.add_system_log_message("离开左台时的新日志")
 	t.assert_true("左台 / current SYSTEM 但玩家未看仍点灯",
 			terminal.get_section_unread(BuildingTerminalInterface.Section.SYSTEM_LOG))
-	terminal.set_actively_viewed(true)
+	_key(cabin.get_viewport(), KEY_Q)
+	await tree.create_timer(0.08).timeout
+	t.assert_true("左台 / 实际按键转到左台", terminal.is_actively_viewed())
 	t.assert_false("左台 / 实际转到左台清当前 SYSTEM",
 			terminal.get_section_unread(BuildingTerminalInterface.Section.SYSTEM_LOG))
-
 	manager.add_front_transcript_operator("新的对话记录")
-	t.assert_true("左台 / 查看 SYSTEM 时 TRANSCRIPT 更新点灯",
-			terminal.get_section_unread(BuildingTerminalInterface.Section.TRANSCRIPT))
-	interaction._execute_action(&"left_transcript")
-	t.assert_equal("左台 / 实体键切换唯一栏目",
-			BuildingTerminalInterface.Section.TRANSCRIPT, terminal.get_current_section())
-	t.assert_false("左台 / 查看 TRANSCRIPT 后清灯",
-			terminal.get_section_unread(BuildingTerminalInterface.Section.TRANSCRIPT))
 	manager.add_front_transcript_passenger("继续追加")
-	t.assert_false("左台 / 正在阅读的 TRANSCRIPT 更新保持已读",
-			terminal.get_section_unread(BuildingTerminalInterface.Section.TRANSCRIPT))
+	t.assert_equal("左台 / 旧对话历史仍写入原缓存", 2, manager.get_front_dialogue_history().size())
+	t.assert_false("左台 / 对话追加不点调阅灯", lamp.visible)
+	interaction._execute_action(&"left_retrieve_document")
+	t.assert_false("左台 / 日志不能调阅", workspace_terminal.target_open)
 
-	# 新派单重置不跨单保留；FILE 只因新 Passenger resource 可查看而点亮。
-	var dispatch_id: StringName = manager.get_active_dispatch().dispatch_id
-	terminal.set_actively_viewed(false)
-	manager.clear_active_dispatch()
-	t.assert_false("左台 / 清空派单后 FILE 不残留",
-			terminal.get_section_unread(BuildingTerminalInterface.Section.PASSENGER_RECORD))
-	t.assert_true("左台 / 可重新开始同一测试派单", manager.start_dispatch(dispatch_id))
-	t.assert_equal("左台 / 新派单回到 SYSTEM",
-			BuildingTerminalInterface.Section.SYSTEM_LOG, terminal.get_current_section())
-	t.assert_true("左台 / 新派单离开视角时 SYSTEM 未读",
-			terminal.get_section_unread(BuildingTerminalInterface.Section.SYSTEM_LOG))
-	t.assert_true("左台 / 新派单档案可查看时 FILE 未读",
-			terminal.get_section_unread(BuildingTerminalInterface.Section.PASSENGER_RECORD))
-	t.assert_false("左台 / 新派单不虚构对话未读",
-			terminal.get_section_unread(BuildingTerminalInterface.Section.TRANSCRIPT))
+	await _exercise_archive(t, tree, terminal, workspace_terminal, interaction, manager, definition, lamp,
+		passenger_key as InteractionHotspot3D, retrieve_key as InteractionHotspot3D)
 
 	# 滚轮只改变当前 ScrollContainer 与视觉角度，不写业务历史。
 	terminal.set_actively_viewed(true)
@@ -151,8 +141,148 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_equal("左台 / 新结构没有触摸屏碰撞", null,
 			left.get_node_or_null("左台屏幕交互区"))
 
+	definition.documents = original_documents
 	main.queue_free()
 	await _frames(tree, 3)
+	print("LEFT LOOKUP TESTS COMPLETE")
+
+
+func _exercise_archive(t: Variant, tree: SceneTree, terminal: BuildingTerminalInterface,
+		w: VerificationTerminal3D, interaction: CabinInteractionController3D, manager: DemoFlowManager,
+		definition: DispatchDefinition, lamp: Node3D, archive_key: InteractionHotspot3D,
+		retrieval_key: InteractionHotspot3D) -> void:
+	var session := manager.get_document_session_id()
+	t.assert_equal("左台 / 查询前没有初始收件", 0, manager.get_received_materials(session).size())
+	var viewport := w.get_viewport()
+	var camera := w.get_parent() as Camera3D
+	_click(viewport, camera.unproject_position(archive_key.global_position))
+	await _frames(tree, 4)
+	t.assert_equal("左台 / 人员资料先显示且其他人员/上传不混入", "人员档案   1 / 3", terminal.document_heading.text)
+	t.assert_true("左台 / 只读第一份后仍有未读文档", terminal.get_section_unread(BuildingTerminalInterface.Section.PASSENGER_RECORD))
+	t.assert_true("左台 / 已查询当前文档点调阅灯", lamp.visible)
+	t.assert_equal("左台 / 查询本身未让W取得文档", 0, manager.get_document_events(session).size())
+
+	interaction._execute_left_scroll(1)
+	var first_scroll := terminal.content_scroll_container.scroll_vertical
+	_click(viewport, camera.unproject_position(archive_key.global_position))
+	await _frames(tree, 4)
+	t.assert_equal("左台 / 第二份显示名称与序号", "维修任务表   2 / 3", terminal.document_heading.text)
+	t.assert_true("左台 / 原文包含完整范围与原始更新时间",
+		terminal.terminal_content_label.text.contains("001、002") and terminal.terminal_content_label.text.contains("2026-11-08 08:30"))
+	interaction._execute_left_scroll(2)
+	var second_scroll := terminal.content_scroll_container.scroll_vertical
+	t.assert_true("左台 / 真实布局允许滚动且两份位置不同", first_scroll > 0 and second_scroll > first_scroll)
+	interaction._execute_left_scroll(1000)
+	t.assert_equal("左台 / 滚动到边界不翻页", "维修任务表   2 / 3", terminal.document_heading.text)
+	terminal.content_scroll_container.scroll_vertical = second_scroll
+	terminal.set_actively_viewed(false)
+	interaction._execute_action(&"left_passenger_record")
+	await _frames(tree, 4)
+	t.assert_true("左台 / 遮挡时显示第三份不清未读", terminal.get_section_unread(BuildingTerminalInterface.Section.PASSENGER_RECORD))
+	terminal.set_actively_viewed(true)
+	t.assert_equal("左台 / 第三份标题", "交接记录   3 / 3", terminal.document_heading.text)
+	t.assert_false("左台 / 三份都已读后清档案灯", terminal.get_section_unread(BuildingTerminalInterface.Section.PASSENGER_RECORD))
+	interaction._execute_action(&"left_passenger_record")
+	await _frames(tree, 4)
+	t.assert_equal("左台 / 末份回到第一份", "人员档案   1 / 3", terminal.document_heading.text)
+	t.assert_equal("左台 / 第一份位置恢复", first_scroll, terminal.content_scroll_container.scroll_vertical)
+	interaction._execute_action(&"left_passenger_record")
+	await _frames(tree, 4)
+	t.assert_equal("左台 / 第二份位置独立", second_scroll, terminal.content_scroll_container.scroll_vertical)
+	interaction._execute_action(&"left_system_log")
+	interaction._execute_action(&"left_passenger_record")
+	await _frames(tree, 4)
+	t.assert_equal("左台 / 日志往返恢复当前文档及位置", second_scroll, terminal.content_scroll_container.scroll_vertical)
+
+	interaction._switch_to_gamepad_mode()
+	interaction._set_hovered_hotspot(retrieval_key)
+	_joy(viewport, JOY_BUTTON_A, true)
+	await tree.create_timer(0.08).timeout
+	_joy(viewport, JOY_BUTTON_A, false)
+	var work := Docs.ref(Archive.WORK)
+	var personnel := Docs.ref(Archive.PERSONNEL)
+	t.assert_true("左台 / 一键展开W并打开第2份", w.target_open and w.workspace.windows.size() == 1)
+	t.assert_equal("左台 / W定位已调阅资料", 2, w.workspace.category)
+	t.assert_equal("左台 / 只取得当前工作表", 1, manager.get_acquired_documents(session).size())
+	t.assert_false("左台 / W可读取第2份精确版本", manager.get_acquired_document(session, work).is_empty())
+	t.assert_true("左台 / 第1份仍未取得", manager.get_acquired_document(session, personnel).is_empty())
+	t.assert_true("左台 / 第3份仍未取得", manager.get_acquired_document(session, Docs.ref(Archive.HANDOVER)).is_empty())
+	await _close_workspace(tree, w, terminal)
+	t.assert_equal("左台 / 收起W恢复第2份位置", second_scroll, terminal.content_scroll_container.scroll_vertical)
+
+	_click(viewport, camera.unproject_position(retrieval_key.global_position))
+	t.assert_equal("左台 / 重复调阅同版只聚焦原窗", 1, w.workspace.windows.size())
+	t.assert_equal("左台 / 重复调阅无重复事件", 1, manager.get_document_events(session).size())
+	await _close_workspace(tree, w, terminal)
+	interaction._execute_action(&"left_passenger_record")
+	interaction._execute_action(&"left_passenger_record")
+	await _frames(tree, 4)
+	interaction._execute_action(&"left_retrieve_document")
+	t.assert_equal("左台 / 先调阅第2份再调第1份保留两窗", 2, w.workspace.windows.size())
+	t.assert_equal("左台 / 不同文档使用不同完成事件", 2, manager.get_document_events(session).size())
+	await _close_workspace(tree, w, terminal)
+	interaction._execute_action(&"left_passenger_record")
+	await _frames(tree, 4)
+	var revised := Archive.revised_work(definition.documents)
+	definition.documents.append(revised)
+	interaction._execute_action(&"left_retrieve_document")
+	t.assert_false("左台 / 源版本变化不自动替换或展开W", w.target_open)
+	t.assert_false("左台 / 旧结果调阅灯熄灭", lamp.visible)
+	interaction._execute_action(&"left_system_log")
+	interaction._execute_action(&"left_passenger_record")
+	await _frames(tree, 4)
+	t.assert_equal("左台 / 新版从顶部开始", 0, terminal.content_scroll_container.scroll_vertical)
+	t.assert_true("左台 / 刷新后显示新版时间", terminal.terminal_content_label.text.contains("2026-11-08 09:00"))
+	interaction._execute_action(&"left_retrieve_document")
+	t.assert_false("左台 / 旧版与新版都可精确读", manager.get_acquired_document(session, work).is_empty()
+		or manager.get_acquired_document(session, Docs.ref(Archive.WORK, 2)).is_empty())
+	await _close_workspace(tree, w, terminal)
+
+	var old_document: Dictionary = manager.query_current_passenger_archive(session)[0]
+	manager.clear_active_dispatch()
+	t.assert_true("左台 / 清空派单后可开启无工作记录测试单", manager.start_dispatch(&"TEST_CASE_002"))
+	t.assert_false("左台 / 旧会话不能调阅", manager.retrieve_passenger_archive_document(session, &"left:old", old_document).succeeded)
+	w.open_left_archive_document(session, work)
+	t.assert_false("左台 / 旧会话展示请求不展开W", w.target_open)
+	interaction._execute_action(&"left_passenger_record")
+	await _frames(tree, 4)
+	t.assert_true("左台 / 无工作记录只有人员文档", terminal.document_heading.text.ends_with("1 / 1"))
+	t.assert_equal("左台 / 换单不复用阅读位置", 0, terminal.content_scroll_container.scroll_vertical)
+	interaction._execute_action(&"left_passenger_record")
+	t.assert_true("左台 / 只有一份时不切换", terminal.document_heading.text.ends_with("1 / 1"))
+	interaction._execute_action(&"left_system_log")
+
+
+func _close_workspace(tree: SceneTree, w: VerificationTerminal3D, terminal: BuildingTerminalInterface) -> void:
+	w.set_open(false)
+	await tree.create_timer(0.08).timeout
+	# 本套件的状态/结构验证直接驱动热点，真实视角与输入另在定向测试中覆盖。
+	terminal.set_actively_viewed(true)
+
+
+func _key(viewport: Viewport, key: Key) -> void:
+	for pressed: bool in [true, false]:
+		var event := InputEventKey.new()
+		event.physical_keycode = key
+		event.keycode = key
+		event.pressed = pressed
+		viewport.push_input(event, true)
+
+
+func _click(viewport: Viewport, position: Vector2) -> void:
+	for pressed: bool in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.position = position
+		event.pressed = pressed
+		viewport.push_input(event, true)
+
+
+func _joy(viewport: Viewport, button: JoyButton, pressed: bool) -> void:
+	var event := InputEventJoypadButton.new()
+	event.button_index = button
+	event.pressed = pressed
+	viewport.push_input(event, true)
 
 
 func _frames(tree: SceneTree, count: int = 8) -> void:
