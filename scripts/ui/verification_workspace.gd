@@ -176,7 +176,8 @@ func _render_catalog() -> void:
 	match category:
 		0:
 			for item: Dictionary in _latest.values():
-				if item.route == "passenger":
+				# 主台摘录进入收件箱；上传批次仍只计算 passenger 事件。
+				if item.route in ["passenger", "main"]:
 					var ref := {"document_id": item.document.document_id, "version": item.document.version}
 					_catalog_button(item.document.title, open_document.bind(ref), ref)
 		1:

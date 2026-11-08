@@ -1,0 +1,26 @@
+~ pickup_start
+Passenger: 我记得一部分。
+- 请说说你记得的地点。
+	do wait(0.18)
+	do status_hint("EXCERPT_A_LATE")
+	do unlock_floor("004")
+	do mark_door_greeting_done()
+	do reply_when_open_door("EXCERPT_A_OPEN")
+	do reply_when_close_door("EXCERPT_A_CLOSE")
+	Passenger: 那个人可能在 001，我不确定。
+	=> END
+- 请再确认一次。
+	do wait(0.75)
+	do status_hint("EXCERPT_B_CURRENT")
+	do unlock_floor("742")
+	do mark_door_greeting_done()
+	do reply_when_open_door("EXCERPT_B_OPEN")
+	do reply_when_close_door("EXCERPT_B_CLOSE")
+	Passenger: 我只记得可能是 002。
+	- 还有别的记忆吗？
+		Passenger: 没有了。
+		=> END
+
+~ statement
+Passenger: 这是独立陈述。
+=> END

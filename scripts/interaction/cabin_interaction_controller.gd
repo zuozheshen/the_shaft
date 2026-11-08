@@ -3,6 +3,7 @@ extends Node
 
 
 const OPEN_MICROPHONE_ACTION: StringName = &"open_microphone"
+const EXCERPT_ACTION: StringName = &"excerpt_current_call"
 const OPEN_DOOR_ACTION: StringName = &"open_door"
 const CAM_01_ACTION: StringName = &"select_camera_01"
 const CAM_02_ACTION: StringName = &"select_camera_02"
@@ -570,6 +571,9 @@ func _execute_action(action_id: StringName, from_mouse: bool = false) -> void:
 		OPEN_MICROPHONE_ACTION:
 			if _console_interface != null:
 				_console_interface.request_toggle_microphone()
+		EXCERPT_ACTION:
+			if _console_interface != null:
+				_console_interface.request_excerpt_current_call()
 		OPEN_DOOR_ACTION:
 			if _console_interface != null:
 				_console_interface.request_open_door()

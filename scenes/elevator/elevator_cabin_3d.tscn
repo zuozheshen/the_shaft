@@ -104,6 +104,9 @@ size = Vector3(0.176, 0.004, 0.176)
 [sub_resource type="BoxShape3D" id="52_cam01_shape"]
 size = Vector3(0.22, 0.07, 0.22)
 
+[sub_resource type="BoxShape3D" id="95_excerpt_shape"]
+size = Vector3(0.18, 0.07, 0.18)
+
 [sub_resource type="StandardMaterial3D" id="52_cam02_hover_material"]
 resource_local_to_scene = true
 shading_mode = 0
@@ -658,6 +661,36 @@ modulate = Color(0.035, 0.045, 0.04, 1)
 text = "CAM 02"
 font_size = 25
 outline_size = 0
+
+[node name="摘录热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
+position = Vector3(-1.10, 0, 0.025)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"excerpt_current_call"
+prompt_text = "摘录当前通话"
+hover_visual_path = NodePath("悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/摘录热点"]
+shape = SubResource("95_excerpt_shape")
+
+[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/摘录热点"]
+position = Vector3(0, -0.014, 0)
+scale = Vector3(0.8, 1, 0.8)
+visible = false
+mesh = SubResource("52_cam01_hover")
+
+[node name="方形按钮" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/摘录热点" instance=ExtResource("63_square")]
+position = Vector3(0, -0.03211, 0)
+scale = Vector3(0.8, 1, 0.8)
+
+[node name="铭牌" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/摘录热点"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, -0.01, 0.105)
+text = "摘录"
+font_size = 30
+pixel_size = 0.0017
+modulate = Color(0.94, 0.86, 0.68, 1)
+outline_size = 4
 
 [node name="COMM指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=100710776]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.91, -0.01606014, -0.052801643)
@@ -1813,6 +1846,7 @@ status_subviewport_path = NodePath("../操作台占位/主操作台定位/设备
 status_mesh_path = NodePath("../操作台占位/主操作台定位/设备状态条/状态屏面")
 cam_01_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮")
 cam_02_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮")
+excerpt_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/摘录热点/方形按钮")
 door_open_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮")
 door_close_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮")
 button_audio_player_path = NodePath("按钮音效")

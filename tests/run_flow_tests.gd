@@ -7,6 +7,7 @@ const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
 const ContentResetTests := preload("res://tests/content/content_reset_tests.gd")
 const DispatchDocumentStateTests := preload("res://tests/runtime/dispatch_document_state_tests.gd")
 const DocumentFlowTests := preload("res://tests/flow/document_flow_tests.gd")
+const CallExcerptTests := preload("res://tests/flow/call_excerpt_tests.gd")
 
 const MainConsoleTests := preload("res://tests/ui/main_console_tests.gd")
 const LeftConsoleTests := preload("res://tests/ui/left_console_tests.gd")
@@ -63,6 +64,13 @@ func _ready() -> void:
 func _run() -> void:
 	await get_tree().process_frame
 	print("=== The Shaft 自动测试 ===")
+
+	if "--call-excerpt-only" in OS.get_cmdline_user_args():
+		TestContent.install(ContentRegistry)
+		await CallExcerptTests.new().run(self, get_tree())
+		TestContent.restore(ContentRegistry)
+		await _finish()
+		return
 
 	if "--verification-terminal-only" in OS.get_cmdline_user_args():
 		TestContent.install(ContentRegistry)
@@ -143,6 +151,7 @@ func _run() -> void:
 	var monitor_passenger_timeline_tests := MonitorPassengerTimelineTests.new()
 	await monitor_passenger_timeline_tests.run(self, get_tree())
 
+	await CallExcerptTests.new().run(self, get_tree())
 	await MainConsoleTests.new().run(self, get_tree())
 	await LeftConsoleTests.new().run(self, get_tree())
 	await RightConsoleTests.new().run(self, get_tree())

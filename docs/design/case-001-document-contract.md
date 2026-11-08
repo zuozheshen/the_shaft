@@ -71,7 +71,7 @@ DispatchDefinition.documents 默认空，只装配定义，不表示玩家取得
 | system_reference | W 可列出规程/样板的引用和标题，open_system_reference 固定所读版本；不算乘客收件。 |
 | personnel_record / duty_record | 仅 accept_left_lookup_result，代表左台主动查询完成。 |
 | floor_archive | 仅 accept_right_lookup_result，代表右台主动查询/调阅完成。 |
-| call_excerpt | 保留类型和内部 main 路由的契约测试；本轮无 Manager 转录入口、按钮或对白桥接。 |
+| call_excerpt | 主台「摘录」调用 acquire_main_call_excerpt，经 main 取得，显示在 W 收件箱。 |
 
 Manager.get_document_workspace_port 返回仅含 W 读取、系统参考打开和审查命令的 Callable 字典。
 后续 W 只注入此端口，不传完整 Manager/Registry，不把左右台完成入口、上传或判断器配置交给 W。
@@ -170,7 +170,7 @@ Headless 通过不代替 Godot AI 视觉或用户人工验收。正式玩法接�
 
 VerificationTerminal3D 通过RuntimeConnector接收受限端口、document_session_changed和documents_changed；
 VerificationWorkspace仅保存本session的窗口引用/布局/阅读状态，DocumentWindow固定到精确文档版本。
-收件箱仅列passenger路由实收；已调阅资料仅列left/right取得结果，系统参考单列规程/样板，不用字段原始出处提升权限。
+收件箱列 passenger 路由实收与 main 路由的通话摘录。只有 passenger 事件计入乘客上传批次、初始提交门和材料匹配；已调阅资料仍只列 left/right，规程/样板单列。
 系统参考经open_system_reference取得正文，重复阅读已取得版本只用getter。
 
 三个资料栏目只列文件，不平铺版本；窗口切换条只定位已打开的固定版本阅读窗，不隐藏其他文档。
@@ -180,7 +180,17 @@ VerificationWorkspace仅保存本session的窗口引用/布局/阅读状态，Do
 不自动展开历史或抢焦点；手动展开/收折历史保留正文阅读位置。
 历史阅读不调用取得/索证命令，session变化清理所有UI引用，无新增版本数据库或跨派单存档。
 未提交材料仍不产生虚拟Document/Field，乘客批次仍为原子完成；正文旧接收阶段设想不参与运行。
-预览资料与登舱/补交驱动仅存在tests夹具，正式Catalog为空，右台查询、转录及正式审查UI仍待后续接线。
+预览资料与登舱/补交驱动仅存在 tests 夹具，正式 Catalog 为空，右台查询和正式审查 UI 仍待接线。
+
+### 主台摘录
+
+单按「摘录」保存 COMM 已呈现的一轮交流（上一句提示、实际选择、实际答复），或无选择的独立陈述。
+每句原文作为字符串字段，保留说话人、顺序、时间和 Dialogue 行/选项 ID。保留「可能」等不确定措辞；
+来源明确标注乘客陈述未经核实。相同会话与解析事件复按保持一份，换单按 DocumentState 生命周期清空。
+摘录和反馈不推进对白。正式空舱继续关闭 COMM，测试预览启用实际对白链路。
+
+Dialogue Manager 在 await 内也会执行 mutation。每次解析只持有自己的 DialogueCallScope；
+每条 mutation 在调用业务或写门回复缓存前复核 session、代次、目标和资源，旧解析恢复后不再产生业务效果。
 
 ## 左台查询与单份调阅
 

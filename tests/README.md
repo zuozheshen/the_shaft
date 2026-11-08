@@ -263,3 +263,15 @@ godot.cmd --path . --scene res://tests/preview/left_lookup_preview.tscn
 W 的规程/样板和已调阅资料中另有夹具参考及右台来源档案，左台文档须由玩家调阅。
 F6 更新维修任务表，从系统日志重新进入档案可查看新版。F7 切换到无工作记录乘客。
 正式默认入口仍为空舱。实机可读性、铭牌和手柄体验单独验收。
+
+## 主台通话摘录专项与实机预览
+
+```powershell
+godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --call-excerpt-only
+godot.cmd --path . --scene res://tests/preview/call_excerpt_preview.tscn
+```
+
+专项用真实 Dialogue Manager 的 wait 交错换单，验证旧 mutation、COMM、选择忙碌状态、门控/日志与资料状态；
+同时从正式主台投影位置点击实体键，经 W 收件箱打开原文。核对 CALL EXCERPT TESTS COMPLETE、失败 0、exit 0 且无 ERROR。
+预览中点击 MIC，选择一条回复，待答复后按「摘录」，再用 W 查看收件箱；复按给短提示。
+默认正式入口保持空舱，按「摘录」显示无派单。手柄用原方向焦点和 A，无新增全局按键。

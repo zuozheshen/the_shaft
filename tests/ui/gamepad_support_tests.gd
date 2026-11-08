@@ -30,7 +30,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_equal("手柄 / 越过 threshold 量化为单一方向", Vector2i.RIGHT,
 			interaction._quantize_navigation_direction(Vector2(0.56, 0.2)))
 	_assert_station_reachable(t, interaction, &"main_console", [
-		&"open_microphone", &"open_door", &"close_door",
+		&"open_microphone", &"open_door", &"close_door", &"excerpt_current_call",
 		&"select_camera_01", &"select_camera_02",
 	])
 	interaction._set_hovered_hotspot(

@@ -55,6 +55,12 @@ func run() -> Array[String]:
 	instance.free()
 
 	instance = packed.instantiate()
+	var excerpt := instance.find_child("主台展示绑定", true, false)
+	excerpt.set("excerpt_button_visual_path", NodePath("缺失摘录按钮"))
+	_expect("broken excerpt button visual link", _scene_errors(instance).contains("excerpt_button_visual_path"))
+	instance.free()
+
+	instance = packed.instantiate()
 	var ui := instance.find_child("FloatingCommUI", true, false)
 	var button := ui.get_node("%PassengerSpeechLabel")
 	button.unique_name_in_owner = false

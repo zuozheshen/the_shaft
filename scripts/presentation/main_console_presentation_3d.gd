@@ -26,9 +26,10 @@ const FlowCommandResultScript := preload(
 # 按压反馈是可选表现；未配置时保留原有按钮和业务行为。
 @export var cam_01_button_visual_path: NodePath
 @export var cam_02_button_visual_path: NodePath
+@export var excerpt_button_visual_path: NodePath
 @export var door_open_button_visual_path: NodePath
 @export var door_close_button_visual_path: NodePath
-# 四个主台按键共用节点内配置的随机点击音效，旧场景可不配置。
+# 主台按键共用节点内配置的随机点击音效，旧场景可不配置。
 @export var button_audio_player_path: NodePath
 @export var microphone_audio_player_path: NodePath
 @export var microphone_on_sound: AudioStream
@@ -47,6 +48,7 @@ var _fault: Node3D
 var _status: Label
 var _cam_01_button: ConsoleButtonVisualScript
 var _cam_02_button: ConsoleButtonVisualScript
+var _excerpt_button: ConsoleButtonVisualScript
 var _door_open_button: ConsoleButtonVisualScript
 var _door_close_button: ConsoleButtonVisualScript
 var _button_audio_player: AudioStreamPlayer
@@ -73,6 +75,7 @@ func _bind_presentation() -> void:
 	var status_screen := get_node_or_null(status_mesh_path) as MeshInstance3D
 	_cam_01_button = _get_button_visual(cam_01_button_visual_path)
 	_cam_02_button = _get_button_visual(cam_02_button_visual_path)
+	_excerpt_button = _get_button_visual(excerpt_button_visual_path)
 	_door_open_button = _get_button_visual(door_open_button_visual_path)
 	_door_close_button = _get_button_visual(door_close_button_visual_path)
 	if not button_audio_player_path.is_empty():
@@ -111,6 +114,7 @@ func _bind_presentation() -> void:
 	# 单独监听实际选择信号，初始化灯态不会播放按压。
 	_console.camera_selected.connect(_on_camera_button_selected)
 	_console.presentation_effects_requested.connect(_on_presentation_effects_requested)
+	_console.excerpt_button_pressed.connect(_on_excerpt_button_pressed)
 	_console.mic_enabled_changed.connect(_on_microphone_changed)
 	_console.case_phase_display_changed.connect(_on_case_text_changed)
 	_stage.door_presentation_state_changed.connect(_on_door_state_changed)
@@ -158,6 +162,12 @@ func _on_presentation_effects_requested(effects: Array[StringName]) -> void:
 	if effects.has(FlowCommandResultScript.DOOR_OPENED) \
 			or effects.has(FlowCommandResultScript.DOOR_CLOSED):
 		_play_button_sound()
+
+
+func _on_excerpt_button_pressed() -> void:
+	if is_instance_valid(_excerpt_button):
+		_excerpt_button.play_press()
+	_play_button_sound()
 
 
 func _play_button_sound() -> void:

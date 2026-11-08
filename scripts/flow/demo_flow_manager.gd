@@ -891,6 +891,27 @@ func _current_document_state(session: int) -> DispatchDocumentState:
 	return state if state != null and state.matches_session(session) else null
 
 
+## 只供主台接收当前 Dialogue 片段，W 的读取端口不暴露此命令。
+func acquire_main_call_excerpt(session: int, excerpt: Dictionary) -> FlowCommandResultScript:
+	var state := _current_document_state(session)
+	if state == null:
+		return _document_command_result(DispatchDocumentState.outcome(false, "STALE_SESSION"))
+	if _document_command_busy:
+		return _document_command_result(DispatchDocumentState.outcome(false, "COMMAND_BUSY"))
+	var dispatch := get_active_dispatch()
+	var builder := preload("res://scripts/dialogue/call_excerpt_builder.gd")
+	var document := builder.build(excerpt, session, dispatch.passenger_id,
+		dispatch.dispatch_id, get_dispatch_dialogue_path())
+	if document == null or ContentRegistry.validate_document_definitions([document]).has_errors():
+		return _document_command_result(DispatchDocumentState.outcome(false, "INVALID_EXCERPT"))
+	_document_command_busy = true
+	var result := state.receive(session, document.document_id, [document], "main")
+	_document_command_busy = false
+	if result.changed:
+		documents_changed.emit(session)
+	return _document_command_result(result)
+
+
 func receive_passenger_batch(session: int, submission_id: StringName, refs: Array) -> FlowCommandResultScript:
 	return _acquire_document_refs(session, submission_id, refs, "passenger")
 
