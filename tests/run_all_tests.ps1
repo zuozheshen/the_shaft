@@ -2,15 +2,11 @@
 param(
     [string]$GodotPath,
     [ValidateSet('All', 'Contracts', 'Existing', 'Smoke')][string]$Check = 'All',
-    [ValidateRange(1, 1800)][int]$TimeoutSeconds = 180
+    [ValidateRange(1, 1800)][int]$TimeoutSeconds = 180,
+    [string]$Group = 'All'
 )
 
 # 单一入口兼容 Windows PowerShell 5.1 和 PowerShell 7；不安装运行时。
-$ErrorActionPreference = 'Stop'
-$projectRoot = Split-Path -Parent $PSScriptRoot
-$logDirectory = Join-Path ([IO.Path]::GetTempPath()) ('the-shaft-checks-' + [Guid]::NewGuid().ToString('N'))
-$null = New-Item -ItemType Directory -Path $logDirectory
-Write-Host "Logs: $logDirectory"
 
 function Resolve-GodotCommand {
     $candidate = $GodotPath
@@ -44,6 +40,41 @@ function Find-ProjectRoots([string]$Directory) {
 
 function Quote-PowerShellLiteral([string]$Value) {
     return "'" + $Value.Replace("'", "''") + "'"
+}
+
+function Write-FailureExcerpt([string[]]$Lines, [int[]]$ErrorLines) {
+    $indices = New-Object 'System.Collections.Generic.SortedSet[int]'
+    $truncated = $ErrorLines.Count -gt 10
+    if ($ErrorLines.Count -gt 0) {
+        foreach ($index in ($ErrorLines | Select-Object -First 10)) {
+            for ($near = [Math]::Max(0, $index - 2); $near -le [Math]::Min($Lines.Count - 1, $index + 2); $near++) {
+                $null = $indices.Add($near)
+            }
+        }
+    } else {
+        $truncated = $Lines.Count -gt 20
+        for ($index = [Math]::Max(0, $Lines.Count - 20); $index -lt $Lines.Count; $index++) {
+            $null = $indices.Add($index)
+        }
+    }
+    $excerpt = New-Object 'System.Collections.Generic.List[string]'
+    $characters = 0
+    foreach ($index in $indices) {
+        $remaining = 12000 - $characters - [Environment]::NewLine.Length
+        if ($excerpt.Count -ge 80 -or $remaining -le 0) { $truncated = $true; break }
+        $line = $Lines[$index]
+        $limit = [Math]::Min($remaining, 1000)
+        if ($line.Length -gt $limit) {
+            $line = $line.Substring(0, $limit)
+            $truncated = $true
+        }
+        $excerpt.Add($line)
+        $characters += $line.Length + [Environment]::NewLine.Length
+    }
+    Write-Host 'FAILURE EXCERPT BEGIN'
+    Write-Host ($excerpt -join [Environment]::NewLine)
+    Write-Host 'FAILURE EXCERPT END'
+    if ($truncated) { Write-Host 'Failure excerpt truncated; see the full log.' }
 }
 
 function Invoke-GodotCheck(
@@ -84,46 +115,96 @@ try {
     $process = [Diagnostics.Process]::Start($startInfo)
     $stdout = $process.StandardOutput.ReadToEndAsync()
     $stderr = $process.StandardError.ReadToEndAsync()
-    if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
-        # 只终止本次检查启动的进程树，避免遗留 Godot 或批处理子进程。
+    $timedOut = -not $process.WaitForExit($TimeoutSeconds * 1000)
+    if ($timedOut) {
+        # 只终止本次阶段启动的进程树，避免遗留 Godot。
         & "$env:SystemRoot\System32\taskkill.exe" /PID $process.Id /T /F | Out-Null
         $process.WaitForExit()
-        [IO.File]::WriteAllText($logPath, $stdout.Result + $stderr.Result, [Text.Encoding]::UTF8)
-        $process.Dispose()
-        throw "TIMEOUT | $Name | $TimeoutSeconds seconds | $logPath"
     }
     $output = $stdout.Result + $stderr.Result
     $exitCode = $process.ExitCode
     $process.Dispose()
     [IO.File]::WriteAllText($logPath, $output, [Text.Encoding]::UTF8)
-    # 保留原日志，仅在判定时去掉 ANSI 颜色，防止颜色前缀遮住 ERROR。
+
+    # 错误判定使用完整日志；只有展示的摘录受限。
     $diagnosticOutput = [regex]::Replace($output, '\x1B\[[0-?]*[ -/]*[@-~]', '')
-    $engineErrors = @([regex]::Matches($diagnosticOutput, '(?im)^\s*(?:SCRIPT ERROR:|ERROR:|Parse Error:|FAIL\s*\|).*$'))
-    $unexpectedErrors = @($engineErrors | Where-Object {
-        $line = $_.Value.Trim()
+    $lines = [regex]::Split($diagnosticOutput, '\r?\n')
+    $unexpected = New-Object 'System.Collections.Generic.List[int]'
+    $allowedCount = 0
+    for ($index = 0; $index -lt $lines.Count; $index++) {
+        $line = $lines[$index].Trim()
+        if ($line -notmatch '^(?:SCRIPT ERROR:|ERROR:|Parse Error:|FAIL\s*\|)') { continue }
         $isAllowed = $false
         foreach ($pattern in $AllowedErrorPatterns) {
             if ($line -match $pattern) { $isAllowed = $true; break }
         }
-        -not $isAllowed
-    })
-    if ($exitCode -ne 0 -or $unexpectedErrors.Count -gt 0) {
-        Write-Host $output
-        throw "CHECK FAILED | $Name | exit=$exitCode | unexpected_errors=$($unexpectedErrors.Count) | $logPath"
+        if ($isAllowed) { $allowedCount++ }
+        else { $unexpected.Add($index) }
     }
-    if ($SuccessPattern -and $diagnosticOutput -notmatch $SuccessPattern) {
-        Write-Host $output
-        throw "INCOMPLETE | $Name | required completion marker missing | $logPath"
+
+    $failure = $null
+    if ($timedOut) { $failure = "TIMEOUT ($($TimeoutSeconds)s)" }
+    elseif ($exitCode -ne 0 -or $unexpected.Count -gt 0) { $failure = 'CHECK FAILED' }
+    elseif ($SuccessPattern -and $diagnosticOutput -notmatch $SuccessPattern) {
+        $failure = 'INCOMPLETE (required completion marker missing)'
+    }
+    if ($failure) {
+        $ended = @([regex]::Matches($diagnosticOutput, '(?m)^MODULE END \| ([a-z_]+) \|') |
+            ForEach-Object { $_.Groups[1].Value })
+        $lastStarted = [regex]::Matches($diagnosticOutput, '(?m)^MODULE START \| ([a-z_]+)\r?$') | Select-Object -Last 1
+        if ($lastStarted -and $lastStarted.Groups[1].Value -notin $ended) {
+            Write-Host "MODULE INTERRUPTED | $($lastStarted.Groups[1].Value)"
+        }
+        $selection = [regex]::Match($diagnosticOutput, '(?m)^MODULE SELECTED \| ([a-z_, ]+)\r?$')
+        if ($selection.Success) {
+            $pending = @($selection.Groups[1].Value.Split(',') | ForEach-Object { $_.Trim() } |
+                Where-Object { $_ -notin $ended })
+            if ($pending.Count -gt 0) { Write-Host "MODULE NOT COMPLETED | $($pending -join ', ')" }
+        }
+        Write-FailureExcerpt $lines ($unexpected.ToArray())
+        throw "$failure | exit=$exitCode | unexpected_errors=$($unexpected.Count) | group=$Group | $logPath"
     }
     $warningCount = [regex]::Matches($diagnosticOutput, '(?im)^\s*WARNING:').Count
-    Write-Host "PASS | $Name | exit=$exitCode | warnings=$warningCount | allowed_diagnostics=$($engineErrors.Count - $unexpectedErrors.Count) | $logPath"
+    Write-Host "PASS | $Name | elapsed_ms=$($stageTimer.ElapsedMilliseconds) | exit=$exitCode | warnings=$warningCount | allowed_diagnostics=$allowedCount | $logPath"
     return $output
 }
 
+# 自测只加载阶段执行函数，避免递归运行完整入口。
+if ($MyInvocation.InvocationName -eq '.') { return }
+
+$ErrorActionPreference = 'Stop'
+$totalTimer = [Diagnostics.Stopwatch]::StartNew()
+$exitStatus = 0
+$stage = 'setup'
+$stageTimer = $totalTimer
+$planned = @()
 try {
+    $groups = @('All', 'Audio', 'Content', 'Runtime', 'Flow', 'Presentation', 'MainConsole', 'LeftConsole', 'RightConsole', 'Gamepad')
+    if ($Group -notin $groups -or ($Group -ne 'All' -and $Check -ne 'Existing')) {
+        throw "Invalid -Group '$Group' for -Check $Check. Non-All groups require -Check Existing. Groups: $($groups -join ', ')"
+    }
+    $Group = $groups | Where-Object { $_ -eq $Group }
+    $planned = @('version', 'project-root')
+    if ($Check -eq 'All') { $planned += @('runner-self-test', 'editor-import') }
+    if ($Check -in @('All', 'Contracts')) { $planned += 'scene-contracts' }
+    if ($Check -in @('All', 'Existing')) { $planned += 'existing-tests' }
+    if ($Check -in @('All', 'Smoke')) { $planned += 'main-smoke' }
+
+    $projectRoot = Split-Path -Parent $PSScriptRoot
+    $logDirectory = Join-Path ([IO.Path]::GetTempPath()) ('the-shaft-checks-' + [Guid]::NewGuid().ToString('N'))
+    $null = New-Item -ItemType Directory -Path $logDirectory
+    Write-Host "Logs: $logDirectory"
+    Write-Host "Selection: check=$Check | group=$Group"
     $script:engineCommand = Resolve-GodotCommand
     Write-Host "Godot: $script:engineCommand"
-    $version = Invoke-GodotCheck 'version' @('--version') '(?m)^4\.7(?:\.|-)'
+
+    $stage = 'version'
+    $stageTimer = [Diagnostics.Stopwatch]::StartNew()
+    $null = Invoke-GodotCheck $stage @('--version') '(?m)^4\.7(?:\.|-)'
+
+    $stage = 'project-root'
+    $stageTimer = [Diagnostics.Stopwatch]::StartNew()
+    Write-Host "RUN  | $stage"
     $projectFiles = @(Find-ProjectRoots $projectRoot)
     $expectedProject = Join-Path $projectRoot 'project.godot'
     if ($projectFiles.Count -ne 1 -or $projectFiles[0] -ne $expectedProject) {
@@ -134,33 +215,59 @@ try {
             throw "Missing required file: $required"
         }
     }
-    $commonArguments = @('--headless', '--path', $projectRoot)
     if ($Check -eq 'All') {
-        # Godot 4.7 可能在首次扫描 UID 缓存前，先读取 project.godot 并误报入口 UID 未识别。
-        # 只允许当前配置值这一条；后续 Validator 必须解析到正式路径，main smoke 也必须通过。
-        $projectText = [IO.File]::ReadAllText((Join-Path $projectRoot 'project.godot'))
+        # 只放行当前配置的入口 UID 初次扫描诊断；仍需结构验证及正式入口 smoke。
+        $projectText = [IO.File]::ReadAllText($expectedProject)
         $mainUidMatch = [regex]::Match($projectText, 'run/main_scene="(uid://[^"]+)"')
         if (-not $mainUidMatch.Success) { throw 'project.godot must configure run/main_scene with a UID.' }
-        $escapedMainUid = [regex]::Escape($mainUidMatch.Groups[1].Value)
-        $allowedUidDiagnostic = '^ERROR: Unrecognized UID: "' + $escapedMainUid + '"\.$'
-        $null = Invoke-GodotCheck 'editor-import' ($commonArguments + @('--editor', '--import')) 'Godot Engine v4\.7' @($allowedUidDiagnostic)
+        $allowedUidDiagnostic = '^ERROR: Unrecognized UID: "' + [regex]::Escape($mainUidMatch.Groups[1].Value) + '"\.$'
+    }
+    Write-Host "PASS | $stage | elapsed_ms=$($stageTimer.ElapsedMilliseconds)"
+
+    $commonArguments = @('--headless', '--path', $projectRoot)
+    if ($Check -eq 'All') {
+        $stage = 'runner-self-test'
+        $stageTimer = [Diagnostics.Stopwatch]::StartNew()
+        Write-Host "RUN  | $stage"
+        & (Join-Path $PSScriptRoot 'runner_execution_tests.ps1') -OutputDirectory (Join-Path $logDirectory 'runner-self-test')
+        Write-Host "PASS | $stage | elapsed_ms=$($stageTimer.ElapsedMilliseconds)"
+
+        $stage = 'editor-import'
+        $stageTimer = [Diagnostics.Stopwatch]::StartNew()
+        $null = Invoke-GodotCheck $stage ($commonArguments + @('--editor', '--import')) 'Godot Engine v4\.7' @($allowedUidDiagnostic)
     }
     if ($Check -in @('All', 'Contracts')) {
-        $null = Invoke-GodotCheck 'scene-contracts' ($commonArguments + @('--scene', 'res://tests/project_check_runner.tscn')) 'PROJECT CHECKS PASS'
+        $stage = 'scene-contracts'
+        $stageTimer = [Diagnostics.Stopwatch]::StartNew()
+        $contractOutput = Invoke-GodotCheck $stage ($commonArguments + @('--scene', 'res://tests/project_check_runner.tscn')) 'PROJECT CHECKS PASS'
+        [regex]::Matches($contractOutput, '(?m)^(?:SCRIPTS CHECKED|SCENES CHECKED|CONTRACT SELF-TESTS) \| \d+') |
+            ForEach-Object { Write-Host $_.Value }
     }
     if ($Check -in @('All', 'Existing')) {
-        $flowOutput = Invoke-GodotCheck 'existing-tests' ($commonArguments + @('--scene', 'res://tests/flow_test_runner.tscn')) '=== 测试汇总：通过 \d+，失败 0 ==='
-        Write-Host ([regex]::Match($flowOutput, '=== 测试汇总：[^\r\n]+').Value)
+        $stage = 'existing-tests'
+        $stageTimer = [Diagnostics.Stopwatch]::StartNew()
+        $flowArguments = $commonArguments + @('--scene', 'res://tests/flow_test_runner.tscn', '--', "--group=$Group")
+        $marker = '(?m)^MODULE SUMMARY \| group=' + [regex]::Escape($Group) +
+            ' \| selected=([1-9]\d*) \| completed=\1 \| not_selected=\d+\r?$[\s\S]*=== 测试汇总：通过 \d+，失败 0 ==='
+        $flowOutput = Invoke-GodotCheck $stage $flowArguments $marker
+        [regex]::Matches($flowOutput, '(?m)^(?:MODULE SUMMARY \| |SLOW MODULE \| |=== 测试汇总：)[^\r\n]+') |
+            ForEach-Object { Write-Host $_.Value }
     }
-    # 宿主读取配置的真实入口；先验证MP3正在播放，再走正式窗口关闭与异步音频清理。
+    # 宿主读取真实入口，验证播放和正常关闭后的音频清理。
     if ($Check -in @('All', 'Smoke')) {
-        $null = Invoke-GodotCheck 'main-smoke' ($commonArguments + @('--script', 'res://tests/run_main_smoke.gd')) 'MAIN SMOKE READY[\s\S]*AUDIO SHUTDOWN COMPLETE'
+        $stage = 'main-smoke'
+        $stageTimer = [Diagnostics.Stopwatch]::StartNew()
+        $null = Invoke-GodotCheck $stage ($commonArguments + @('--script', 'res://tests/run_main_smoke.gd')) 'MAIN SMOKE READY[\s\S]*AUDIO SHUTDOWN COMPLETE'
     }
     if ($Check -eq 'All') { Write-Host 'ALL CHECKS PASS' }
-    else { Write-Host "PARTIAL CHECKS PASS | $Check | not a full validation" }
-    exit 0
+    else { Write-Host "PARTIAL CHECKS PASS | $Check | group=$Group | not a full validation" }
 } catch {
-    [Console]::Error.WriteLine($_.Exception.Message)
-    [Console]::Error.WriteLine("Remaining dependent checks were not run. Logs: $logDirectory")
-    exit 1
+    $exitStatus = 1
+    [Console]::Error.WriteLine("FAILED | $stage | elapsed_ms=$($stageTimer.ElapsedMilliseconds) | $($_.Exception.Message)")
+    $stageIndex = [Array]::IndexOf($planned, $stage)
+    for ($index = $stageIndex + 1; $index -lt $planned.Count; $index++) {
+        Write-Host "NOT RUN | $($planned[$index])"
+    }
 }
+Write-Host "TOTAL | check=$Check | group=$Group | elapsed_ms=$($totalTimer.ElapsedMilliseconds) | exit=$exitStatus"
+exit $exitStatus
