@@ -37,6 +37,43 @@ Godot 4.7 在编辑器首次扫描 UID 缓存前可能对 project.godot 当前�
 单独运行一项；输出明确标为 `PARTIAL CHECKS PASS`，不能当成全量通过。
 这仍是同一 shell 入口，不自动修复失败的业务或配置。
 
+## 功能分组与诊断
+
+功能测试支持按组运行。先确保当前 worktree 已导入，再选择 `-Check Existing` 和一个组：
+
+```powershell
+powershell.exe -NoProfile -File .\tests\run_all_tests.ps1 -Check Existing -Group RightConsole
+```
+
+| `-Group` | 覆盖范围 |
+| --- | --- |
+| `Audio` | 音频播放实例退出 |
+| `Content` | 内容校验、正式空舱基线 |
+| `Runtime` | 电梯状态、派单生命周期、值班、UI 历史、命令结果、共享资料状态 |
+| `Flow` | 派单阶段、流程 Manager、流程命令、资料流程、通话摘录 |
+| `Presentation` | 监控摄影棚、楼层外观、门、乘客时序、W 终端与工作区 |
+| `MainConsole` / `LeftConsole` / `RightConsole` | 各台位的独立功能回归 |
+| `Gamepad` | 手柄输入与焦点 |
+
+`-Group` 默认为 `All`。非 `All` 的组只允许配合 `-Check Existing`；空值、未知组或冲突参数返回非零。
+`-Check Existing` 不传组时仍执行全部功能模块，并报告局部通过。每个组独立准备所需的测试内容，
+执行后还原内容并等待音频清理。直接调用 flow runner 使用 `-- --group=RightConsole`；原音频、共享资料、W 终端、左台查询及通话摘录专项命令仍可用。专项入口与非兼容的分组参数不能混用。
+
+控制台报告各阶段和整次命令的 `elapsed_ms`。功能测试分别显示选中、完成和未选中的模块数、
+断言通过/失败数、最慢五个模块。完整功能日志保留逐模块开始/结束、耗时、断言计数和夹具记录。
+模块耗时含该模块等待，进程启动、导入、公共夹具和收尾计入所在阶段或总耗时。
+`SCENES CHECKED` 属于独立的结构检查，不能和模块数或断言数相加。
+
+失败显示阶段、退出码、耗时、诊断数、尚未完成的模块（如有）和完整日志路径。
+摘要最多摘录前 10 条诊断及各自前后两行，正文上限 80 行、12,000 字符，长行最多展示 1,000 字符。
+没有匹配诊断时显示日志末尾；截断有提示。错误判定始终使用完整日志，依赖失败后标明后续阶段未执行。
+
+默认全量包含小型执行器自测。单独验证错误判定、摘要和超时时可运行：
+
+```powershell
+powershell.exe -NoProfile -File .\tests\runner_execution_tests.ps1
+```
+
 ## 音频退出回归
 
 `run_main_smoke.gd`在Autoload注册后读取project.godot当前配置入口并实例化，
