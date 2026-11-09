@@ -242,6 +242,7 @@ func _test_ui_manager_injection(test_runner: Variant, tree: SceneTree) -> void:
 
 func _new_manager() -> DemoFlowManager:
 	var manager := DemoFlowManager.new()
+	manager.set_travel_busy_query(func() -> bool: return false)
 	manager.initial_floor = "900"
 	manager.movement_duration_seconds = 0.01
 	manager.initial_shift = DEMO_SHIFT

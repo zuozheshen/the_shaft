@@ -12,6 +12,7 @@ const INVALID_UNLOCK_DIALOGUE := (
 
 func run(test_runner: Variant) -> void:
 	_test_document_contracts(test_runner)
+	_test_floor_archive_contract(test_runner)
 	_test_null_entries(test_runner)
 	_test_empty_and_duplicate_ids(test_runner)
 	_test_invalid_references(test_runner)
@@ -423,3 +424,21 @@ func _test_document_contracts(t: Variant) -> void:
 	document.fields[0].subject_id = &"PASSENGER"
 	bundle.dispatches[0].documents.append(document)
 	t.assert_true("DocumentValidator / 静态资料不能覆盖身份视图", _has_code(_validate_bundle(bundle), "DOCUMENT_ID_RESERVED"))
+
+func _test_floor_archive_contract(t: Variant) -> void:
+	var archives := preload("res://tests/fixtures/runtime/test_right_lookup_documents.gd")
+	var registered_floor := _make_floor("001")
+	var passenger := _make_passenger("PASSENGER", "测试")
+	var dispatch := _make_dispatch("DISPATCH", "PASSENGER", "001", VALID_DIALOGUE)
+	dispatch.documents = [archives.document(&"001"), archives.document(&"001", 2)]
+	var report := ContentValidator.validate_content([registered_floor], [passenger], [dispatch], [])
+	t.assert_false("ContentValidator / 同一楼层档案的多个版本不是歧义", _has_code(report, "FLOOR_ARCHIVE_AMBIGUOUS"))
+	var alternate: DocumentDefinition = archives.document(&"001")
+	alternate.document_id = &"right/alternate"
+	dispatch.documents.append(alternate)
+	report = ContentValidator.validate_content([registered_floor], [passenger], [dispatch], [])
+	t.assert_true("ContentValidator / 同层多份档案歧义", _has_code(report, "FLOOR_ARCHIVE_AMBIGUOUS"))
+	alternate.owner_type = &"passenger"
+	alternate.owner_id = &"PASSENGER"
+	report = ContentValidator.validate_content([registered_floor], [passenger], [dispatch], [])
+	t.assert_true("ContentValidator / 拒绝非楼层归属的楼层档案", _has_code(report, "FLOOR_ARCHIVE_OWNER_INVALID"))

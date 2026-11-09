@@ -188,9 +188,20 @@ static func _validate_dispatches(
 		_validate_pickup_data(dispatch, context, report)
 		_validate_front_phase_texts(dispatch, context, report)
 		_validate_dialogue(dispatch, context, floor_ids, relations, report)
+		var archive_ids: Dictionary = {}
 		for document: DocumentDefinition in dispatch.documents:
-			if document != null and String(document.document_id).begins_with("registry/"):
+			if document == null:
+				continue
+			if String(document.document_id).begins_with("registry/"):
 				report.add_error(&"DOCUMENT_ID_RESERVED", context, "registry/ 是身份资料适配视图的保留前缀。")
+			if document.source == null or document.source.kind != &"floor_archive":
+				continue
+			if document.owner_type != &"floor":
+				report.add_error(&"FLOOR_ARCHIVE_OWNER_INVALID", context, "楼层档案须属于已登记楼层。")
+			elif archive_ids.get(document.owner_id, document.document_id) != document.document_id:
+				report.add_error(&"FLOOR_ARCHIVE_AMBIGUOUS", context, "同一派单内每层只能配置一份楼层档案。")
+			else:
+				archive_ids[document.owner_id] = document.document_id
 		validate_documents(dispatch.documents, report, context, {
 			"floor": floor_ids, "passenger": passenger_ids,
 			"dispatch": {String(dispatch.dispatch_id): dispatch},

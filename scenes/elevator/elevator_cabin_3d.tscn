@@ -1081,14 +1081,10 @@ size = Vector3(0.025, 0.63, 1.874405)
 transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, 1.425, 2.086667, -0.897321)
 pixel_size = 0.0025
 modulate = Color(0.741176, 0.811765, 0.658824, 1)
-text = "当前楼层：---
-系统推荐：—
-目标楼层：---
-地址状态：未验证
-派单关联度：—
-稳定度影响：—"
+text = "当前位置 ---   执行目标 ---
+查询楼层 —"
 font = SubResource("71_terminal_font")
-font_size = 30
+font_size = 22
 outline_size = 1
 horizontal_alignment = 0
 width = 600.0
@@ -1115,7 +1111,7 @@ collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
 action_id = &"destination_verify"
-prompt_text = "验证楼层"
+prompt_text = "调阅档案"
 station_id = &"right_console"
 hover_visual_path = NodePath("悬停高亮")
 
@@ -1131,16 +1127,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.05, 0, 0)
 visible = false
 mesh = SubResource("53_verify_hover_mesh")
 
-[node name="拒绝提示高亮" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点" unique_id=1054233779]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.05, 0, 0)
-visible = false
-mesh = SubResource("53_verify_hover_mesh")
-
 [node name="标识" type="Label3D" parent="操作台占位/右操作台定位/数字显示组/验证楼层热点" unique_id=770786098]
 transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, -0.074, 0, 0)
 pixel_size = 0.0022
 modulate = Color(0.08, 0.09, 0.09, 1)
-text = "验证楼层"
+text = "调阅档案"
 font = SubResource("71_terminal_font")
 font_size = 26
 outline_size = 0
@@ -1869,7 +1860,6 @@ destination_interface_path = NodePath("../操作台界面层/操作台界面根/
 information_label_path = NodePath("../操作台占位/右操作台定位/验证信息屏/信息文字")
 input_label_path = NodePath("../操作台占位/右操作台定位/数字显示组/输入数字")
 feedback_label_path = NodePath("../操作台占位/右操作台定位/数字显示组/反馈文字")
-verify_attention_visual_path = NodePath("../操作台占位/右操作台定位/数字显示组/验证楼层热点/拒绝提示高亮")
 lever_pivot_path = NodePath("../操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴")
 
 [node name="键盘音效" type="AudioStreamPlayer" parent="右台展示绑定" unique_id=439088608]

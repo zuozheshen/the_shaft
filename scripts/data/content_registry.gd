@@ -241,16 +241,51 @@ func get_document_definition(dispatch_id: String, ref: Dictionary) -> DocumentDe
 			_identity_field(&"display_name", &"passenger", passenger.passenger_id, passenger.display_name)]
 		return document
 	if id.begins_with("registry/floor/"):
-		var floor: FloorDefinition = get_floor(id.trim_prefix("registry/floor/"))
-		if floor == null:
-			return null
-		var document: DocumentDefinition = _identity_document(id, &"floor", floor.floor_id, &"floor_archive")
-		document.title = floor.display_name
-		var field: DocumentFieldDefinition = _identity_field(&"floor_id", &"floor", floor.floor_id, String(floor.floor_id))
-		field.value_type = "floor_id"
-		document.fields = [field, _identity_field(&"display_name", &"floor", floor.floor_id, floor.display_name)]
-		return document
+		return _floor_identity_document(get_floor(id.trim_prefix("registry/floor/")))
 	return null
+
+
+func _floor_identity_document(definition: FloorDefinition) -> DocumentDefinition:
+	if definition == null:
+		return null
+	var id := "registry/floor/%s" % definition.floor_id
+	var document := _identity_document(id, &"floor", definition.floor_id, &"floor_archive")
+	document.title = definition.display_name
+	var field := _identity_field(&"floor_id", &"floor", definition.floor_id, String(definition.floor_id))
+	field.value_type = "floor_id"
+	document.fields = [field, _identity_field(&"display_name", &"floor", definition.floor_id, definition.display_name)]
+	return document
+
+
+## 只读查询。归属和来源匹配时取唯一档案的最新版本。
+func query_floor_archive(floor_id: String, dispatch: DispatchDefinition) -> Dictionary:
+	var definition := get_floor(floor_id)
+	if definition == null:
+		for candidate: FloorDefinition in _ordered_floors:
+			if String(candidate.floor_id).begins_with(floor_id):
+				return {"status": "prefix"}
+		return {"status": "unknown"}
+
+	var archive: DocumentDefinition = null
+	if dispatch != null:
+		for document: DocumentDefinition in dispatch.documents:
+			if document == null or document.source == null or document.source.kind != &"floor_archive" \
+					or document.owner_type != &"floor" or document.owner_id != definition.floor_id:
+				continue
+			if archive != null and archive.document_id != document.document_id:
+				return {"status": "ambiguous"}
+			if archive == null or document.version > archive.version:
+				archive = document
+	if archive == null:
+		archive = _floor_identity_document(definition)
+	elif String(archive.document_id).begins_with("registry/") \
+			or get_document_definition(String(dispatch.dispatch_id),
+				{"document_id": String(archive.document_id), "version": archive.version}) != archive \
+			or validate_document_definitions([archive]).has_errors():
+		return {"status": "invalid"}
+	return {"status": "found", "document": archive.snapshot(),
+		"elevator_accessible": definition.elevator_accessible,
+		"elevator_block_reason": definition.elevator_block_reason}
 
 
 ## 左台只查派单绑定的人员，保留定义顺序，并为每份文件取最新版本。

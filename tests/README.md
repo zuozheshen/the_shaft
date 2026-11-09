@@ -58,7 +58,7 @@ powershell.exe -NoProfile -File .\tests\run_all_tests.ps1 -Check Existing -Group
 | `Presentation` | 6 | 488 | 10.68 秒 | 监控摄影棚、楼层外观、门动画、乘客时序、W 终端与工作区 |
 | `MainConsole` | 1 | 465 | 9.91 秒 | 主台按钮反馈、状态显示、COMM 界面 |
 | `LeftConsole` | 1 | 80 | 5.28 秒 | 左台栏目、滚动、乘客档案查询界面 |
-| `RightConsole` | 1 | 126 | 8.49 秒 | 右台数字键、楼层验证、执行拨杆 |
+| `RightConsole` | 1 | 126 | 8.49 秒 | 右台数字查询、档案调阅、执行拨杆 |
 | `Gamepad` | 1 | 94 | 5.72 秒 | 手柄映射、焦点导航、滚动和通讯焦点 |
 
 九组分别运行共计 25 个模块、1,855 次通过断言和约 59.4 秒。每次分组都包含一次公共音频清理断言，
@@ -332,3 +332,13 @@ godot.cmd --path . --scene res://tests/preview/call_excerpt_preview.tscn
 同时从正式主台投影位置点击实体键，经 W 收件箱打开原文。核对 CALL EXCERPT TESTS COMPLETE、失败 0、exit 0 且无 ERROR。
 预览中点击 MIC，选择一条回复，待答复后按「摘录」，再用 W 查看收件箱；复按给短提示。
 默认正式入口保持空舱，按「摘录」显示无派单。手柄用原方向焦点和 A，无新增全局按键。
+
+## 右台楼层档案预览
+
+```powershell
+godot.cmd --path . --scene res://tests/preview/right_lookup_preview.tscn
+```
+
+转向右台，用实体数字键输入 001，再按「调阅档案」打开 W。F6 更新 001 的来源版本，
+收起 W 后再次按调阅键先刷新摘要，再按一次取得新版。005 为不支持静态停靠的测试层。
+右台定向选择 RightConsole，业务行驶联锁选择 Flow 和 Presentation。正式空舱无需预览夹具。

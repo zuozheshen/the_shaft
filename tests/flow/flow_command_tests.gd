@@ -237,30 +237,18 @@ func _test_validation_and_travel_commands(
 	manager.request_open_cabin_door()
 	manager.request_close_cabin_door()
 
-	manager.request_validate_destination("900")
 	test_runner.assert_true(
-		"移动命令 / 已验证目标可通过正式命令写入派单目标",
+		"移动命令 / 乘客在舱无需验证即可行驶",
 		await _travel_and_wait(manager, "900")
 	)
-	var unvalidated_move_result = manager.request_travel_to_floor("742")
-	test_runner.assert_false(
-		"移动命令 / 搭载乘客时必须先验证",
-		unvalidated_move_result.succeeded
-	)
-	test_runner.assert_equal(
-		"移动命令 / 失败移动保留原派单目标",
-		"900",
-		manager.get_selected_target_floor()
-	)
-	test_runner.assert_false(
-		"移动命令 / 验证失败不会开始移动",
-		manager.is_elevator_moving()
-	)
+	var rejected := manager.request_travel_to_floor("999999")
+	test_runner.assert_equal("移动命令 / 未知地址被拒绝", &"UNKNOWN_FLOOR", rejected.code)
+	test_runner.assert_equal("移动命令 / 拒绝保留原派单目标", "900", manager.get_selected_target_floor())
+	test_runner.assert_false("移动命令 / 拒绝不启动移动", manager.is_elevator_moving())
 
-	manager.request_validate_destination("742")
 	var passenger_move_result = manager.request_travel_to_floor("742")
 	test_runner.assert_true(
-		"移动命令 / 验证后搭载乘客可以移动",
+		"移动命令 / 搭载乘客可直接换目标",
 		passenger_move_result.succeeded
 	)
 	test_runner.assert_true(
@@ -548,8 +536,8 @@ func _test_ui_command_boundary(test_runner: Variant) -> void:
 			and "request_close_cabin_door(" in console_source
 	)
 	test_runner.assert_true(
-		"UI 边界 / 右台调用结构化验证与移动命令",
-		"request_validate_destination(" in destination_source \
+		"UI 边界 / 右台调用结构化调阅与移动命令",
+		"accept_right_lookup_result(" in destination_source \
 			and "request_travel_to_floor(" in destination_source
 	)
 
@@ -563,6 +551,7 @@ func _contains_none(source: String, forbidden_fragments: Array[String]) -> bool:
 
 func _create_manager(tree: SceneTree) -> DemoFlowManager:
 	var manager := DemoFlowManager.new()
+	manager.set_travel_busy_query(func() -> bool: return false)
 	manager.initial_floor = "900"
 	manager.movement_duration_seconds = 0.01
 	manager.initial_shift = DEMO_SHIFT

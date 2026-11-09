@@ -101,6 +101,7 @@ func _connect_runtime() -> void:
 		_demo_flow_manager.document_session_changed.connect(verification_terminal.reset_document_session)
 		_demo_flow_manager.documents_changed.connect(verification_terminal.refresh_documents)
 		_left_interface.archive_document_retrieved.connect(verification_terminal.open_left_archive_document)
+		_right_interface.archive_document_retrieved.connect(verification_terminal.open_right_archive_document)
 
 	# 舱内运行声复用同一个流程实例，只表现已接收的行驶与实际到站。
 	var movement_audio := elevator_cabin.get_node_or_null(
@@ -138,6 +139,8 @@ func _connect_runtime() -> void:
 		_main_interface.set_monitor_presentation_coordinator(
 			_monitor_presentation_coordinator
 		)
+		if _monitor_stage_controller != null:
+			_demo_flow_manager.set_travel_busy_query(_query_travel_busy)
 		_right_interface.set_monitor_presentation_coordinator(
 			_monitor_presentation_coordinator
 		)
@@ -156,3 +159,12 @@ func _connect_runtime() -> void:
 
 func get_demo_flow_manager() -> DemoFlowManager:
 	return _demo_flow_manager
+
+
+## 缺失或离树的表现节点无法提供联锁结论。
+func _query_travel_busy() -> Variant:
+	if not is_instance_valid(_monitor_presentation_coordinator) or not is_instance_valid(_monitor_stage_controller):
+		return null
+	if not _monitor_presentation_coordinator.is_inside_tree() or not _monitor_stage_controller.is_inside_tree():
+		return null
+	return _monitor_presentation_coordinator.is_presentation_busy()

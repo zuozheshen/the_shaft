@@ -275,6 +275,7 @@ func _test_coordinator_complete_shift(
 	console.set_monitor_stage_controller(stage)
 	destination.set_demo_flow_manager(manager)
 	coordinator.setup(manager, console, destination, stage)
+	manager.set_travel_busy_query(coordinator.is_presentation_busy)
 	# 每次真实到站都检查业务/视觉一致，覆盖三单接乘与送达。
 	manager.elevator_movement_completed.connect(func(arrived_floor: String) -> void:
 		test_runner.assert_equal("三单流程 / 到站楼层视觉 " + arrived_floor,
@@ -312,7 +313,7 @@ func _test_coordinator_complete_shift(
 	)
 
 	# 第一单先到接乘层；MOVEMENT_STARTED 保持隐藏，到站信号再显示门外乘客。
-	await _travel_with_destination(destination, manager, "612", false)
+	await _travel_with_destination(destination, manager, "612")
 	test_runner.assert_true(
 		"表现协调器 / 到达接乘层显示门外乘客",
 		stage.get_passenger_presentation_state()
@@ -387,13 +388,17 @@ func _test_coordinator_complete_shift(
 				and stage.get_door_visual().get_door_state()
 						== ElevatorDoorVisual3D.DoorPresentationState.CLOSING
 	)
+	var interlock_result := manager.request_travel_to_floor("900")
+	test_runner.assert_true("统一表现锁 / Manager 直调也拒绝关门动画中的发车",
+		interlock_result.code == &"PRESENTATION_BUSY" and not manager.is_elevator_moving()
+		and manager.get_selected_target_floor().is_empty())
 	_advance_door_animation(stage)
 	test_runner.assert_false(
 		"统一表现锁 / 关门完成自动恢复",
 		coordinator.is_presentation_busy()
 	)
 
-	await _travel_with_destination(destination, manager, "900", true)
+	await _travel_with_destination(destination, manager, "900")
 	test_runner.assert_true(
 		"表现协调器 / MOVEMENT_STARTED 保持 CABIN 乘客",
 		stage.get_passenger_presentation_state()
@@ -583,8 +588,7 @@ func _complete_current_dispatch(
 		await _travel_with_destination(
 			destination,
 			manager,
-			pickup_floor,
-			false
+			pickup_floor
 		)
 	test_runner.assert_true(
 		"完整表现流程 / 接乘层显示当前 Profile 乘客",
@@ -607,8 +611,7 @@ func _complete_current_dispatch(
 	await _travel_with_destination(
 		destination,
 		manager,
-		destination_floor,
-		true
+		destination_floor
 	)
 	var dropoff_open_result := manager.request_open_cabin_door()
 	stage.request_door_open_presentation()
@@ -642,14 +645,11 @@ func _complete_current_dispatch(
 func _travel_with_destination(
 		destination: DestinationControlInterface,
 		manager: DemoFlowManager,
-		floor_id: String,
-		should_validate: bool
+		floor_id: String
 ) -> void:
 	destination.clear_destination_input()
 	for digit: String in floor_id:
 		destination.append_destination_digit(digit)
-	if should_validate:
-		destination._verify_destination()
 	destination._submit_destination()
 	if manager.is_elevator_moving():
 		await manager.elevator_movement_completed
@@ -683,6 +683,7 @@ func _create_fast_stage() -> MonitorStageController3D:
 
 func _create_fast_manager() -> DemoFlowManager:
 	var manager := DemoFlowManager.new()
+	manager.set_travel_busy_query(func() -> bool: return false)
 	manager.initial_floor = "900"
 	manager.movement_duration_seconds = 0.01
 	manager.initial_shift = DEMO_SHIFT

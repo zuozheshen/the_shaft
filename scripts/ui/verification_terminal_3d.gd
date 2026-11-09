@@ -90,10 +90,18 @@ func is_input_captured() -> bool:
 
 ## 这条展示接线只消费已经取得的单份左台资料，不给 W 新的取得权限。
 func open_left_archive_document(session: int, ref: Dictionary) -> void:
+	_open_archive_document(session, ref, "left")
+
+
+func open_right_archive_document(session: int, ref: Dictionary) -> void:
+	_open_archive_document(session, ref, "right")
+
+
+func _open_archive_document(session: int, ref: Dictionary, route: String) -> void:
 	if session <= 0 or session != _session_id or _port.is_empty():
 		return
 	var receipt: Dictionary = _port.get_acquired_document.call(session, ref)
-	if receipt.get("route") != "left":
+	if receipt.get("route") != route:
 		return
 	set_open(true)
 	workspace.open_retrieved_document(ref)

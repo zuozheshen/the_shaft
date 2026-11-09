@@ -222,15 +222,23 @@ func _test_right_console(
 	destination.clear_destination_input()
 	for action in [
 		&"destination_digit_9", &"destination_digit_0", &"destination_digit_0",
-		&"destination_verify", &"destination_submit",
+		&"destination_verify",
 	]:
 		interaction._set_hovered_hotspot(_hotspot_for_action(interaction, action))
 		t.assert_true("手柄 / A 确认当前焦点 " + action,
 				interaction._handle_gamepad_confirm())
 		await _frames(tree, 2)
+	var terminal := cabin.find_child("核验终端", true, false) as VerificationTerminal3D
+	t.assert_true("手柄 / A 调阅打开 W 并接管输入", terminal.target_open and terminal.is_input_captured())
+	t.assert_false("手柄 / W 接管期间不会启动电梯", manager.is_elevator_moving())
+	terminal.set_open(false)
+	await tree.create_timer(terminal.slide_duration + 0.05).timeout
+	await _frames(tree, 2)
+	interaction._set_hovered_hotspot(_hotspot_for_action(interaction, &"destination_submit"))
+	t.assert_true("手柄 / 收起 W 后 A 可操作拨杆", interaction._handle_gamepad_confirm())
 	if manager.is_elevator_moving():
 		await manager.elevator_movement_completed
-	t.assert_equal("手柄 / 数字→VERIFY→SUBMIT 完成正常行驶", "900",
+	t.assert_equal("手柄 / 查询→调阅→收起 W→拨杆完成行驶", "900",
 			manager.get_current_floor())
 	t.assert_equal("手柄 / 行驶启动后沿用原清空规则", "",
 			str(destination.get_destination_presentation().input))

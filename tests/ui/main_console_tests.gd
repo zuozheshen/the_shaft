@@ -198,7 +198,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 			break
 		var dispatch := manager.get_active_dispatch()
 		t.assert_equal("主台 / 三单顺序", StringName("TEST_CASE_%03d" % case_number), dispatch.dispatch_id)
-		await _travel(destination, manager, String(dispatch.pickup_floor_id), false, tree)
+		await _travel(destination, manager, String(dispatch.pickup_floor_id), tree)
 		t.assert_true("主台 / 右台到达接乘点", manager.get_current_floor() == String(dispatch.pickup_floor_id))
 		_action(main, interaction, "麦克风热点")
 		await _frames(tree)
@@ -236,7 +236,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 		await _test_dialogue(t, tree, console, manager)
 		t.assert_true("主台 / 对话记录仍写入既有缓存", not manager.get_front_dialogue_history().is_empty())
 		t.assert_true("主台 / 系统判断仍写入左台", not manager.get_system_message_history().is_empty())
-		await _travel(destination, manager, String(dispatch.default_destination_floor_id), true, tree)
+		await _travel(destination, manager, String(dispatch.default_destination_floor_id), tree)
 		t.assert_equal("主台 / 右台抵达目标", DispatchPhase.ARRIVED_AT_DESTINATION, manager.get_case_phase())
 		_action(main, interaction, "开门热点")
 		await _frames(tree)
@@ -634,12 +634,10 @@ func _check_door_light(t: Variant, presentation: MainConsolePresentation3D, stat
 
 
 func _travel(destination: DestinationControlInterface, manager: DemoFlowManager,
-		floor: String, validate: bool, tree: SceneTree) -> void:
+		floor: String, tree: SceneTree) -> void:
 	destination.clear_destination_input()
 	for digit: String in floor:
 		destination.append_destination_digit(digit)
-	if validate:
-		destination._verify_destination()
 	destination._submit_destination()
 	for frame in 180:
 		if not manager.is_elevator_moving():
@@ -704,9 +702,8 @@ func _test_visual_replacement(t: Variant, tree: SceneTree) -> void:
 	interaction._execute_action(&"destination_digit_0")
 	interaction._execute_action(&"destination_digit_0")
 	interaction._execute_action(&"destination_digit_4")
-	interaction._execute_action(&"destination_verify")
-	t.assert_equal("美术解耦 / 数字与验证仍保留前导零", "004",
-			str(destination.get_destination_presentation().validated_floor))
+	t.assert_equal("美术解耦 / 数字查询仍保留前导零", "004",
+			str(destination.get_destination_presentation().query_floor))
 	t.assert_equal("美术解耦 / 动态屏继续使用原视口纹理", viewport.get_texture(),
 			(presentation.get_node(presentation.screen_mesh_path).material_override as ShaderMaterial).get_shader_parameter("feed_texture"))
 	var wheel := main.find_child("左操作台定位", true, false) as LeftTerminalScreen3D

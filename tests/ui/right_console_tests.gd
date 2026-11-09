@@ -3,10 +3,15 @@ extends RefCounted
 const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
 ## 使用正式 main_3d 验证右台实体入口仍复用唯一 DestinationControlInterface。
 
+const Archives := preload("res://tests/fixtures/runtime/test_right_lookup_documents.gd")
 const MAIN := preload("res://scenes/main/main_3d.tscn")
 
 
 func run(t: Variant, tree: SceneTree) -> void:
+	var case := ContentRegistry.get_dispatch("TEST_CASE_001")
+	var saved_documents := case.documents.duplicate()
+	case.documents.append(Archives.document(&"004"))
+	var blocked := Archives.install_blocked_floor()
 	var main := MAIN.instantiate()
 	TestContent.prepare_scene(main)
 	t.add_child(main)
@@ -88,67 +93,105 @@ func run(t: Variant, tree: SceneTree) -> void:
 			str(destination.get_destination_presentation().input))
 	t.assert_equal("右台 / LCD 读取同一字符串", "004",
 			(presentation.get_node(presentation.input_label_path) as Label3D).text)
-	interaction._execute_action(&"destination_verify")
-	await _frames(tree, 2)
+	var manager := destination.demo_flow_manager
+	var session := manager.get_document_session_id()
+	var terminal := main.find_child("核验终端", true, false) as VerificationTerminal3D
+	var information := presentation.get_node(presentation.information_label_path) as Label3D
 	var snapshot := destination.get_destination_presentation()
-	t.assert_equal("右台 / 验证按钮调用原验证入口", "004",
-			str(snapshot.validated_floor))
-	t.assert_equal("右台 / 验证状态驱动信息屏", "已验证",
-			str(snapshot.address_status))
-	var information := presentation.get_node(
-		presentation.information_label_path
-	) as Label3D
-	t.assert_true("右台 / 信息屏显示已验证目标",
-			"目标楼层：004" in information.text)
+	t.assert_equal("右台 / 自动查询完整编号", "004", snapshot.query_floor)
+	t.assert_true("右台 / 摘要显示当前功能、停靠、来源和日期",
+		"设备维护" in information.text and "支持停靠" in information.text
+		and "设施档案" in information.text and "2026-01-01" in information.text)
+	t.assert_true("右台 / 摘要不暗示推荐、行政批准或历史安全",
+		"系统推荐" not in information.text and "须出示" in information.text
+		and "物资周转" not in information.text and "获准" not in information.text)
+	t.assert_equal("右台 / 查询本身不取得资料", 0, manager.get_acquired_documents(session).size())
 
 	interaction._execute_action(&"destination_digit_7")
-	await _frames(tree, 2)
-	t.assert_equal("右台 / 输入改变使旧验证失效", "---",
-			str(destination.get_destination_presentation().validated_floor))
+	t.assert_equal("右台 / 未知输入撤销旧查询", "unknown", destination.get_destination_presentation().query_status)
+	interaction._execute_action(&"destination_verify")
+	t.assert_equal("右台 / 未知输入不得取得 A", 0, manager.get_acquired_documents(session).size())
 	interaction._execute_action(&"destination_backspace")
-	t.assert_equal("右台 / 退格删除末位", "004",
-			str(destination.get_destination_presentation().input))
+	interaction._execute_action(&"destination_verify")
+	var first_ref := {"document_id": "right/floor/004", "version": 1}
+	var receipt := manager.get_acquired_document(session, first_ref)
+	t.assert_equal("右台 / 实体键经 right 渠道取得精确档案", "right", receipt.get("route"))
+	t.assert_true("右台 / 实体键打开 W", terminal.target_open)
+	t.assert_true("右台 / W 档案包含历史字段与来源",
+		receipt.get("document", {}).get("fields", {}).has("historical_function")
+		and receipt.get("document", {}).get("source", {}).get("source_version") == "1")
+	await _close_workspace(terminal, tree)
+	var initial_events := manager.get_document_events(session).size()
+	case.documents.append(Archives.document(&"004", 2))
+	interaction._execute_action(&"destination_verify")
+	t.assert_equal("右台 / 源更新时不静默取得新版本", initial_events, manager.get_document_events(session).size())
+	t.assert_equal("右台 / 源更新刷新摘要", "设施检修", destination.get_destination_presentation().current_function)
+	interaction._execute_action(&"destination_verify")
+	t.assert_equal("右台 / 再次按键取得 v2", "right",
+		manager.get_acquired_document(session, {"document_id": "right/floor/004", "version": 2}).get("route"))
+	await _close_workspace(terminal, tree)
+	interaction._execute_action(&"destination_verify")
+	t.assert_equal("右台 / 重复调阅不追加事件", initial_events + 1, manager.get_document_events(session).size())
+	await _close_workspace(terminal, tree)
 	interaction._execute_action(&"destination_clear")
-	t.assert_equal("右台 / CLR 清空输入", "",
-			str(destination.get_destination_presentation().input))
+	interaction._execute_action(&"destination_verify")
+	t.assert_equal("右台 / 清空后不复用旧引用", initial_events + 1, manager.get_document_events(session).size())
+	_input_floor(destination, "0")
+	t.assert_equal("右台 / 已知前缀显示输入中", "prefix", destination.get_destination_presentation().query_status)
+	_input_floor(destination, "005")
+	t.assert_equal("右台 / 独立静态停靠状态", "不支持停靠", destination.get_destination_presentation().elevator_stop)
+	var refused := manager.request_travel_to_floor("005")
+	t.assert_equal("右台 / Manager 直调拒绝不支持停靠", &"FLOOR_NOT_ACCESSIBLE", refused.code)
 
-	var manager := destination.demo_flow_manager
 	var pickup_result := manager.request_travel_to_floor(manager.get_pickup_floor())
-	t.assert_true("右台 / 可推进到乘客接乘层", pickup_result.succeeded)
+	t.assert_true("右台 / 正式场景联锁已接线，可推进到接乘层", pickup_result.succeeded)
 	if manager.is_elevator_moving():
 		await manager.elevator_movement_completed
+	_input_floor(destination, "900")
 	var open_result := manager.request_open_cabin_door()
-	var close_result := manager.request_close_cabin_door()
-	t.assert_true("右台 / 测试乘客已进舱", open_result.succeeded \
-			and close_result.succeeded and manager.is_passenger_onboard())
-	for digit: String in ["9", "0", "0"]:
-		destination.append_destination_digit(digit)
-	interaction._execute_action(&"destination_submit")
-	await _frames(tree, 2)
-	var rejection_snapshot := destination.get_destination_presentation()
-	t.assert_false("右台 / 未验证提交不启动移动", manager.is_elevator_moving())
-	t.assert_equal("右台 / 未验证拒绝保留输入以便重试", "900",
-			str(rejection_snapshot.input))
-	t.assert_equal("右台 / 未验证拒绝写入上屏状态",
-			"未验证｜请先验证楼层", str(rejection_snapshot.address_status))
-	t.assert_true("右台 / 上屏显示未验证拒绝",
-			"地址状态：未验证｜请先验证楼层" in information.text)
-	t.assert_true("右台 / 未验证拒绝触发 Verify 提示",
-			presentation.is_verify_attention_active())
-	await tree.create_timer(
-		presentation.lever_forward_duration + presentation.lever_return_duration + 0.05
-	).timeout
-	interaction._execute_action(&"destination_verify")
-	await _frames(tree, 2)
-	t.assert_equal("右台 / 验证成功恢复地址状态", "已验证",
-			str(destination.get_destination_presentation().address_status))
 	destination.request_submit_destination()
-	t.assert_true("右台 / 验证后可沿既有流程移动", manager.is_elevator_moving())
+	t.assert_true("右台 / 开门拒绝仍绑定当前输入与查询", open_result.succeeded
+		and destination.get_destination_presentation().query_floor == "900"
+		and destination.get_destination_presentation().execution_target == "---"
+		and not manager.is_elevator_moving())
+	destination.request_retrieve_floor_archive()
+	t.assert_equal("右台 / 发车失败只允许调阅当前目标", "right",
+		manager.get_acquired_document(session, {"document_id": "registry/floor/900", "version": 1}).get("route"))
+	await _close_workspace(terminal, tree)
+	var close_result := manager.request_close_cabin_door()
+	t.assert_true("右台 / 测试乘客已进舱", close_result.succeeded and manager.is_passenger_onboard())
+	var stage := main.find_child("监控测试摄影棚", true, false) as MonitorStageController3D
+	var door_animation := stage.get_door_visual().get_animation_player()
+	stage.request_door_open_presentation()
+	door_animation.advance(2.0)
+	stage.request_door_close_presentation()
+	t.assert_equal("右台 / 正式场景直调 Manager 拒绝门动画期间发车",
+		&"PRESENTATION_BUSY", manager.request_travel_to_floor("900").code)
+	t.assert_false("右台 / busy 拒绝不启动移动", manager.is_elevator_moving())
+	door_animation.advance(2.0)
+	interaction._execute_action(&"destination_submit")
+	t.assert_true("右台 / 乘客在舱无需验证可拨杆发车", manager.is_elevator_moving())
 	var accepted_snapshot := destination.get_destination_presentation()
-	t.assert_equal("右台 / 行驶请求成功后清空 LCD 输入", "",
-			str(accepted_snapshot.input))
-	t.assert_equal("右台 / 清空 LCD 不清除本次验证", "900",
-			str(accepted_snapshot.validated_floor))
+	t.assert_equal("右台 / 发车清空输入", "", accepted_snapshot.input)
+	t.assert_equal("右台 / 发车撤销旧查询", "---", accepted_snapshot.query_floor)
+	t.assert_equal("右台 / 实际目标独立展示", "900", accepted_snapshot.execution_target)
+	var events_after_travel := manager.get_document_events(session).size()
+	interaction._execute_action(&"destination_verify")
+	t.assert_equal("右台 / 成功发车后立即调阅无旧事件", events_after_travel, manager.get_document_events(session).size())
+	t.assert_false("右台 / 成功发车后立即调阅不重开旧窗", terminal.target_open)
+	t.assert_equal("右台 / 运行中直调不能改目标", &"ELEVATOR_MOVING", manager.request_travel_to_floor("004").code)
+	_input_floor(destination, "001")
+	if manager.is_elevator_moving():
+		await manager.elevator_movement_completed
+	t.assert_equal("右台 / 到站不覆盖途中查询 B", "001", destination.get_destination_presentation().query_floor)
+	t.assert_equal("右台 / 到站后清除执行目标", "---", destination.get_destination_presentation().execution_target)
+	interaction._execute_action(&"destination_verify")
+	t.assert_equal("右台 / 到站调阅取得 B", "right",
+		manager.get_acquired_document(session, {"document_id": "registry/floor/001", "version": 1}).get("route"))
+	t.assert_equal("右台 / 到站仍保留已取得旧版 A", receipt, manager.get_acquired_document(session, first_ref))
+	await _close_workspace(terminal, tree)
+	await tree.create_timer(presentation.lever_forward_duration + presentation.lever_return_duration + 0.05).timeout
+	destination.clear_destination_input()
 
 	var slope := right_root.get_node("下部斜面根") as Node3D
 	t.assert_true("右台 / ART-06 冻结斜面为 12 度",
@@ -211,10 +254,30 @@ func run(t: Variant, tree: SceneTree) -> void:
 	interaction.set_process(was_processing)
 	await _frames(tree, 2)
 
+	var coordinator := main.find_child("监控表现协调器", true, false) as MonitorPresentationCoordinator3D
+	coordinator.queue_free()
+	await _frames(tree, 2)
+	t.assert_equal("右台 / 正式协调器失效时直调不能发车", &"TRAVEL_INTERLOCK_UNAVAILABLE",
+		manager.request_travel_to_floor("004").code)
+	t.assert_false("右台 / 联锁失效不启动 Timer", manager.is_elevator_moving())
+
 	main.queue_free()
 	await _frames(tree, 3)
+	case.documents = saved_documents
+	Archives.remove_blocked_floor(blocked)
 
 
 func _frames(tree: SceneTree, count: int = 8) -> void:
 	for frame in count:
 		await tree.process_frame
+
+func _input_floor(destination: DestinationControlInterface, floor_id: String) -> void:
+	destination.clear_destination_input()
+	for digit: String in floor_id:
+		destination.append_destination_digit(digit)
+
+
+func _close_workspace(terminal: VerificationTerminal3D, tree: SceneTree) -> void:
+	terminal.set_open(false)
+	await tree.create_timer(terminal.slide_duration + 0.05).timeout
+	await _frames(tree, 2)

@@ -81,7 +81,7 @@ const EXPORTED_PATHS := {
 }
 const METHODS := {
 	"CabinInteractionController3D": ["set_workspace_input_blocked"],
-	"VerificationTerminal3D": ["set_workspace_port", "reset_document_session", "open_left_archive_document", "set_open", "is_input_captured"],
+	"VerificationTerminal3D": ["set_workspace_port", "reset_document_session", "open_left_archive_document", "open_right_archive_document", "set_open", "is_input_captured"],
 	"FloatingCommUI": ["present", "set_minimized", "is_minimized", "blocks_pointer", "toggle_from_controller", "cancel_controller_context", "has_controller_choice_context", "focus_controller_choice", "confirm_controller_choice"],
 	"MainConsolePresentation3D": ["set_fault_active"],
 	"RightConsolePresentation3D": ["request_submit", "is_lever_animating"],
@@ -92,7 +92,7 @@ const METHODS := {
 	"ConsoleInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "get_current_camera_index", "request_open_door", "request_close_door", "request_toggle_microphone", "request_select_camera", "request_excerpt_current_call", "get_case_phase_display_text"],
 	"BuildingTerminalInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "set_actively_viewed", "show_system_log", "show_passenger_record", "retrieve_current_document", "can_retrieve_current_document", "scroll_current_content", "get_current_section", "get_unread_snapshot"],
 	"LeftTerminalScreen3D": ["rotate_scroll_wheel", "set_workspace_input_blocked"],
-	"DestinationControlInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "append_destination_digit", "backspace_destination_input", "clear_destination_input", "request_verify_destination", "request_submit_destination", "get_destination_presentation"],
+	"DestinationControlInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "append_destination_digit", "backspace_destination_input", "clear_destination_input", "request_retrieve_floor_archive", "request_submit_destination", "get_destination_presentation"],
 	"MonitorCameraController3D": ["setup", "select_camera"],
 	"MonitorPresentationCoordinator3D": ["setup", "is_presentation_busy"],
 	"MonitorStageController3D": ["request_door_open_presentation", "request_door_close_presentation", "request_passenger_boarding", "request_passenger_disembark", "apply_floor_visual_profile", "get_current_floor_visual_profile", "get_current_floor_visual_id"],
@@ -107,7 +107,7 @@ const SIGNALS := {
 	"CabinInterfaceRouter3D": ["main_console_visibility_changed"],
 	"ConsoleInterface": ["camera_selected", "mic_enabled_changed", "case_phase_display_changed", "presentation_effects_requested", "excerpt_button_pressed"],
 	"BuildingTerminalInterface": ["section_changed", "unread_state_changed", "retrieval_available_changed", "archive_document_retrieved"],
-	"DestinationControlInterface": ["presentation_effects_requested", "destination_presentation_changed"],
+	"DestinationControlInterface": ["presentation_effects_requested", "destination_presentation_changed", "archive_document_retrieved"],
 	"MonitorPresentationCoordinator3D": ["presentation_busy_changed"],
 	"MonitorStageController3D": ["door_presentation_state_changed", "door_presentation_opened", "door_presentation_closed", "passenger_boarded", "passenger_exited", "presentation_busy_changed"],
 	"ElevatorDoorVisual3D": ["door_state_changed", "door_busy_changed", "door_opened", "door_closed"],

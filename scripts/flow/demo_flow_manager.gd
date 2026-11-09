@@ -43,6 +43,7 @@ var shift_runner: ShiftRunnerScript
 var ui_history_state: UIHistoryStateScript
 var _document_applicability_resolver: Callable
 var _document_command_busy: bool = false
+var _travel_busy_query: Callable
 
 
 func _ready() -> void:
@@ -621,6 +622,10 @@ func request_clear_destination_validation() -> FlowCommandResultScript:
 	)
 
 
+func set_travel_busy_query(query: Callable) -> void:
+	_travel_busy_query = query
+
+
 func request_travel_to_floor(floor_id: String) -> FlowCommandResultScript:
 	var previous_phase: String = get_case_phase()
 	var normalized_floor_id: String = floor_id.strip_edges()
@@ -631,7 +636,8 @@ func request_travel_to_floor(floor_id: String) -> FlowCommandResultScript:
 			previous_phase,
 			previous_phase
 		)
-	if not ContentRegistry.has_floor(normalized_floor_id):
+	var definition := ContentRegistry.get_floor(normalized_floor_id)
+	if definition == null:
 		return FlowCommandResultScript.failure(
 			&"UNKNOWN_FLOOR",
 			"无法前往：楼层 %s 不在当前楼层数据库中。" % normalized_floor_id,
@@ -656,20 +662,32 @@ func request_travel_to_floor(floor_id: String) -> FlowCommandResultScript:
 			normalized_floor_id
 		)
 
+	if not definition.elevator_accessible:
+		var reason := definition.elevator_block_reason.strip_edges()
+		return FlowCommandResultScript.failure(
+			&"FLOOR_NOT_ACCESSIBLE",
+			"该楼层不支持电梯停靠。" if reason.is_empty() else reason,
+			previous_phase, previous_phase, normalized_floor_id
+		)
+	# 正式场景未接线或协调器已失效时，无法确认安全，拒绝启动。
+	var busy: Variant = _travel_busy_query.call() if _travel_busy_query.is_valid() else null
+	if not busy is bool:
+		return FlowCommandResultScript.failure(
+			&"TRAVEL_INTERLOCK_UNAVAILABLE", "电梯安全联锁未就绪。",
+			previous_phase, previous_phase, normalized_floor_id
+		)
+	if busy:
+		return FlowCommandResultScript.failure(
+			&"PRESENTATION_BUSY", "乘客或舱门动作尚未完成，暂时无法启动电梯。",
+			previous_phase, previous_phase, normalized_floor_id
+		)
+
 	var passenger_is_onboard: bool = is_passenger_onboard()
 	if passenger_is_onboard:
 		if not has_active_dispatch():
 			return FlowCommandResultScript.failure(
 				&"NO_ACTIVE_DISPATCH",
 				"当前没有可执行送达的派单。",
-				previous_phase,
-				previous_phase,
-				normalized_floor_id
-			)
-		if normalized_floor_id != get_validated_floor():
-			return FlowCommandResultScript.failure(
-				&"DESTINATION_NOT_VALIDATED",
-				"乘客在舱内时，请先验证目标楼层。",
 				previous_phase,
 				previous_phase,
 				normalized_floor_id

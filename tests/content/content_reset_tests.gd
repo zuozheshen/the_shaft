@@ -46,8 +46,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 		destination.clear_destination_input()
 		for digit in id:
 			destination.append_destination_digit(digit)
-		destination.request_verify_destination()
-		t.assert_equal("空舱基线 / 地址验证保留编号 " + id, id, destination.get_destination_presentation().validated_floor)
+		t.assert_equal("空舱基线 / 自动查询保留编号 " + id, id, destination.get_destination_presentation().query_floor)
 		destination.request_submit_destination()
 		t.assert_true("空舱基线 / 已启动 " + id, manager.is_elevator_moving())
 		t.assert_false("空舱基线 / 行驶中拒绝开门", manager.request_open_cabin_door().succeeded)

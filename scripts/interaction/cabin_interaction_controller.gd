@@ -603,7 +603,7 @@ func _execute_action(action_id: StringName, from_mouse: bool = false) -> void:
 				_destination_interface.backspace_destination_input()
 		DESTINATION_VERIFY_ACTION:
 			if _destination_interface != null:
-				_destination_interface.request_verify_destination()
+				_destination_interface.request_retrieve_floor_archive()
 		DESTINATION_SUBMIT_ACTION:
 			if _right_console_presentation != null:
 				_right_console_presentation.request_submit()
