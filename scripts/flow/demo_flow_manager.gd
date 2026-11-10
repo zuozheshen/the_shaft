@@ -6,6 +6,11 @@ class_name DemoFlowManager
 signal case_updated
 signal elevator_movement_completed(arrived_floor: String)
 signal dispatch_started(dispatch_id: StringName)
+signal passenger_event_pending
+signal passenger_event_changed
+
+const REVIEW_QUEUE_LIMIT := 4
+var _review_delivery_ready: Callable
 signal dispatch_completed(result: DispatchResult)
 signal shift_completed
 # 左台只订阅“既有内容已变化”的窄通知；业务内容仍由 UIHistoryState / Resource 唯一持有。
@@ -102,7 +107,11 @@ func _start_dispatch_internal(
 		initial_hint = "新派单已建立。\n%s 层检测到等待乘客。\n请前往接乘楼层。" \
 				% String(dispatch.pickup_floor_id)
 	ui_history_state.reset_for_new_dispatch(initial_hint)
-	document_session_changed.emit(get_document_session_id())
+	var session := get_document_session_id()
+	document_session_changed.emit(session)
+	_record_passenger_event(session, "dispatch_started")
+	if initial_phase == DispatchPhase.ARRIVED_AT_PICKUP:
+		_record_passenger_event(session, "arrived_at_pickup")
 	left_terminal_session_reset.emit(true)
 	if should_emit_case_updated:
 		case_updated.emit()
@@ -370,6 +379,7 @@ func get_dispatch_floor_relation(floor_id: String) -> DispatchFloorRelation:
 
 
 func request_open_cabin_door() -> FlowCommandResultScript:
+	var session := get_document_session_id()
 	var previous_phase: String = get_case_phase()
 	if is_elevator_moving():
 		return FlowCommandResultScript.failure(
@@ -424,6 +434,10 @@ func request_open_cabin_door() -> FlowCommandResultScript:
 			get_case_phase()
 		)
 	case_updated.emit()
+	if FlowCommandResultScript.PASSENGER_BOARDED in result_effects:
+		_record_passenger_event(session, "passenger_boarded")
+	elif FlowCommandResultScript.DROPOFF_FEEDBACK_REQUESTED in result_effects:
+		_record_passenger_event(session, "destination_opened")
 	return FlowCommandResultScript.success(
 		&"DOOR_OPENED",
 		message,
@@ -435,6 +449,7 @@ func request_open_cabin_door() -> FlowCommandResultScript:
 
 
 func request_close_cabin_door() -> FlowCommandResultScript:
+	var session := get_document_session_id()
 	var previous_phase: String = get_case_phase()
 	if not is_cabin_door_open():
 		return FlowCommandResultScript.failure(
@@ -512,6 +527,8 @@ func request_close_cabin_door() -> FlowCommandResultScript:
 			message = "本次派单已完成，值班已结束。"
 
 	case_updated.emit()
+	if FlowCommandResultScript.ONBOARD_DIALOGUE_AVAILABLE in result_effects:
+		_record_passenger_event(session, "onboard_secured")
 	return FlowCommandResultScript.success(
 		&"DOOR_CLOSED",
 		message,
@@ -780,6 +797,7 @@ func is_cabin_door_open() -> bool:
 
 
 func _on_elevator_movement_completed(arrived_floor: String) -> void:
+	var session := get_document_session_id()
 	# 到站后的派单含义仍由协调层判断，电梯模块只报告物理停靠结果。
 	if is_passenger_onboard() \
 			and not get_selected_target_floor().is_empty() \
@@ -808,6 +826,10 @@ func _on_elevator_movement_completed(arrived_floor: String) -> void:
 		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % arrived_floor)
 	else:
 		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % arrived_floor)
+	if get_case_phase() == DispatchPhase.ARRIVED_AT_PICKUP:
+		_record_passenger_event(session, "arrived_at_pickup")
+	elif get_case_phase() == DispatchPhase.ARRIVED_AT_DESTINATION:
+		_record_passenger_event(session, "arrived_at_destination")
 	elevator_movement_completed.emit(arrived_floor)
 
 
@@ -892,7 +914,9 @@ func get_document_workspace_port() -> Dictionary:
 		"get_document_events": get_document_events, "get_material_requests": get_material_requests,
 		"get_contradiction_challenges": get_contradiction_challenges,
 		"get_system_references": get_system_references, "open_system_reference": open_system_reference,
-		"request_material": request_material, "record_contradiction_challenge": record_contradiction_challenge}
+		"submit_material_request": submit_material_request, "submit_document_challenge": submit_document_challenge,
+		"retry_review_delivery": retry_review_delivery, "get_review_deliveries": get_review_deliveries,
+		"has_review_rules": has_review_rules}
 
 
 func get_document_session_id() -> int:
@@ -910,16 +934,20 @@ func _current_document_state(session: int) -> DispatchDocumentState:
 
 
 ## 只供主台接收当前 Dialogue 片段，W 的读取端口不暴露此命令。
-func acquire_main_call_excerpt(session: int, excerpt: Dictionary) -> FlowCommandResultScript:
+func acquire_main_call_excerpt(session: int, event_id: String) -> FlowCommandResultScript:
 	var state := _current_document_state(session)
 	if state == null:
 		return _document_command_result(DispatchDocumentState.outcome(false, "STALE_SESSION"))
 	if _document_command_busy:
 		return _document_command_result(DispatchDocumentState.outcome(false, "COMMAND_BUSY"))
+	var excerpt := _find_passenger_event(state, event_id)
+	if excerpt.is_empty():
+		return _document_command_result(DispatchDocumentState.outcome(false, "NO_EXCERPT"))
+	if not excerpt.has("presented_at"):
+		return _document_command_result(DispatchDocumentState.outcome(false, "EXCERPT_NOT_PRESENTED"))
 	var dispatch := get_active_dispatch()
 	var builder := preload("res://scripts/dialogue/call_excerpt_builder.gd")
-	var document := builder.build(excerpt, session, dispatch.passenger_id,
-		dispatch.dispatch_id, get_dispatch_dialogue_path())
+	var document := builder.build(excerpt, session, dispatch.passenger_id, get_dispatch_dialogue_path())
 	if document == null or ContentRegistry.validate_document_definitions([document]).has_errors():
 		return _document_command_result(DispatchDocumentState.outcome(false, "INVALID_EXCERPT"))
 	_document_command_busy = true
@@ -1099,3 +1127,293 @@ func _document_command_result(result: Dictionary) -> FlowCommandResultScript:
 	if result.succeeded:
 		return FlowCommandResultScript.success(code, "相关材料已提供。" if code == &"ALREADY_PROVIDED" else "")
 	return FlowCommandResultScript.failure(code, "该条款当前不适用。" if code == &"RULE_NOT_APPLICABLE" else "当前无法执行资料请求。")
+
+
+func _record_passenger_event(session: int, key: String) -> void:
+	var state := _current_document_state(session)
+	if state == null or state.passenger_events.has(key):
+		return
+	var dispatch := get_active_dispatch()
+	var title: String = dispatch.dialogue_events.get(key, "")
+	if title.is_empty():
+		return
+	state.passenger_events[key] = {
+		"source_event_id": "%d:%s" % [session, key], "session": session,
+		"key": key, "title": title, "resource_path": dispatch.dialogue_path,
+		"passenger_id": dispatch.passenger_id, "floor_id": get_current_floor(),
+		"occurred_at": Time.get_unix_time_from_system(), "status": "pending",
+	}
+	passenger_event_changed.emit()
+	passenger_event_pending.emit()
+
+
+func take_pending_passenger_event() -> Dictionary:
+	var state := _document_state()
+	if state != null:
+		var occupied := 0
+		for event: Dictionary in state.passenger_events.values():
+			if event.status in ["resolved", "running"]:
+				occupied += 1
+		if occupied >= REVIEW_QUEUE_LIMIT:
+			return {}
+		for event: Dictionary in state.passenger_events.values():
+			if event.status == "pending":
+				event.status = "running"
+				return event.duplicate(true)
+	return {}
+
+
+func finish_passenger_event(snapshot: Dictionary, source_version: String, rows: Array[Dictionary]) -> void:
+	var state := _current_document_state(snapshot.session)
+	if state == null:
+		return
+	var event: Dictionary = state.passenger_events.get(snapshot.key, {})
+	if event.get("source_event_id") != snapshot.source_event_id or event.get("status") != "running":
+		return
+	if event.get("attempt", 0) != snapshot.get("attempt", 0):
+		return
+	if not event.get("supplement_action", "").is_empty() and not event.get("supplement_done", false):
+		rows = []
+	event.status = "failed" if rows.is_empty() else "resolved"
+	event.source_version = source_version
+	event.rows = rows.duplicate(true)
+	for row: Dictionary in rows:
+		add_front_transcript_passenger(String(row.text))
+	passenger_event_changed.emit()
+
+
+func _find_passenger_event(state: DispatchDocumentState, event_id: String) -> Dictionary:
+	if state != null and not event_id.is_empty():
+		for event: Dictionary in state.passenger_events.values():
+			if event.source_event_id == event_id:
+				return event
+	return {}
+
+
+## 仅由主屏的末页绘制回执调用。原时间保留，重复回执不改摘录快照。
+func note_passenger_event_drawn(session: int, event_id: String) -> void:
+	var event := _find_passenger_event(_current_document_state(session), event_id)
+	if event.get("status") == "resolved" and not event.has("presented_at"):
+		event.presented_at = Time.get_unix_time_from_system()
+
+
+## 末页停留结束后释放槽位，已完整呈现的原文保留在本次派单。
+func mark_passenger_event_presented(session: int, event_id: String) -> void:
+	var event := _find_passenger_event(_current_document_state(session), event_id)
+	if event.get("status") == "resolved" and event.has("presented_at"):
+		event.status = "presented"
+		passenger_event_changed.emit()
+		passenger_event_pending.emit()
+
+
+func get_passenger_events() -> Array:
+	var state := _document_state()
+	return state.passenger_events.values().duplicate(true) if state != null else []
+
+
+## 正式 W 审查。兼容记录接口不暴露给 W，也不发起回应。
+func set_review_delivery_ready(check: Callable) -> void:
+	_review_delivery_ready = check
+
+
+func submit_material_request(session: int, operation_id: StringName, clause: Dictionary) -> FlowCommandResultScript:
+	return _submit_review(session, operation_id, [clause], true)
+
+
+func submit_document_challenge(session: int, operation_id: StringName,
+		a: Dictionary, b: Dictionary) -> FlowCommandResultScript:
+	var refs := [a, b]
+	if var_to_str(_review_ref(a)) > var_to_str(_review_ref(b)):
+		refs = [b, a]
+	return _submit_review(session, operation_id, refs, false)
+
+
+func _review_ref(ref: Dictionary) -> Dictionary:
+	return {"document_id": String(ref.get("document_id", "")), "version": ref.get("version"),
+		"field_id": String(ref.get("field_id", ""))}
+
+
+func _submit_review(session: int, operation_id: StringName, refs: Array,
+		material: bool) -> FlowCommandResultScript:
+	var state := _current_document_state(session)
+	if state == null:
+		return _review_result(false, &"STALE_SESSION", "当前派单已变更。")
+	if _document_command_busy or operation_id == &"":
+		return _review_result(false, &"COMMAND_BUSY", "暂时无法提交审查。")
+	if not state.has_initial_submission(session):
+		return _review_result(false, &"INITIAL_SUBMISSION_REQUIRED", "请等待乘客提交本批材料。")
+	for ref: Dictionary in refs:
+		if not DispatchDocumentState.valid_ref(ref, true):
+			return _review_result(false, &"INVALID_FIELD_REF", "请重新选择资料。")
+	var normalized: Array[Dictionary] = []
+	for ref: Dictionary in refs:
+		normalized.append(_review_ref(ref))
+	var prior: Dictionary = state.review_operations.get(operation_id, {})
+	if not prior.is_empty():
+		if prior.get("refs") != normalized:
+			return _review_result(false, &"EVENT_CONFLICT", "这次操作的资料已变更。")
+		return _review_already(state.passenger_events[prior.key])
+	var a := state.get_current_field(session, normalized[0])
+	var b := {} if material else state.get_current_field(session, normalized[1])
+	if a.is_empty() or (not material and (b.is_empty() or a.ref.document_id == b.ref.document_id)):
+		return _review_result(false, &"INVALID_FIELD_REF", "请选择当前已取得的资料。")
+	if material and state.get_clause(session, a.ref).is_empty():
+		return _review_result(false, &"INVALID_CLAUSE", "这条资料不是可索证的规程。")
+
+	var dispatch := get_active_dispatch()
+	var rules: Array[DocumentReviewRule] = []
+	for rule: DocumentReviewRule in dispatch.review_rules:
+		if not DocumentReviewMatcher.valid(rule):
+			continue
+		if material:
+			if a.requirement_key == String(rule.requirement_key) and a.applicability_key == String(rule.applicability_key) \
+					and DocumentReviewMatcher.context_matches(state, rule.context):
+				rules.append(rule)
+		elif DocumentReviewMatcher.challenge_matches(rule, state, a, b):
+			rules.append(rule)
+	if rules.size() != 1:
+		return _review_result(false, &"REVIEW_NO_MATCH", "暂未找到需要进一步说明的依据。")
+	var rule := rules[0]
+	var key := "review/" + String(rule.question_id)
+	if state.passenger_events.has(key):
+		state.review_operations[operation_id] = {"refs": normalized, "key": key}
+		var existing: Dictionary = state.passenger_events[key]
+		if material and existing.supplement_done and existing.status != "failed":
+			return _review_result(true, &"ALREADY_PROVIDED", "相关材料已提供。")
+		return _review_already(existing)
+	var target := {"type": "passenger", "id": String(dispatch.passenger_id)}
+	if material:
+		for receipt: Dictionary in state.get_documents(session, true):
+			var doc: Dictionary = receipt.document
+			if doc.owner_type == target.type and doc.owner_id == target.id and doc.material_type == a.required_material_type:
+				return _review_result(true, &"ALREADY_PROVIDED", "相关材料已提供。")
+	var supplements: Array[DocumentDefinition] = []
+	for ref: Dictionary in rule.supplement_refs:
+		var doc := ContentRegistry.get_document_definition(String(dispatch.dispatch_id), ref) as DocumentDefinition
+		if doc == null or doc.owner_id != dispatch.passenger_id or doc.owner_type != &"passenger" \
+				or doc.source == null or doc.source.kind != &"passenger_upload" or String(doc.material_type) != a.required_material_type:
+			return _review_result(false, &"REVIEW_UNAVAILABLE", "该回应暂不可用。")
+		supplements.append(doc.duplicate(true) as DocumentDefinition)
+	if not supplements.is_empty() and ContentRegistry.validate_document_definitions(supplements).has_errors():
+		return _review_result(false, &"REVIEW_UNAVAILABLE", "该回应暂不可用。")
+	var gate := _review_preflight(state, dispatch.dialogue_path, rule.response_title, rule.supplement_action)
+	if gate != null:
+		return gate
+
+	# 从校验到写入没有 await；通知只在问题与交付同时落地后发送。
+	var delivery_id := "%d:review:%d" % [session, state.passenger_events.size()]
+	var record := state.record_material_request(session, StringName(delivery_id), a.ref, target) if material \
+		else state.record_challenge(session, StringName(delivery_id), a.ref, b.ref)
+	if not record.changed:
+		return _document_command_result(record)
+	state.review_operations[operation_id] = {"refs": normalized, "key": key}
+	state.passenger_events[key] = {
+		"key": key, "source_event_id": delivery_id, "question_id": rule.question_id,
+		"review_refs": normalized, "session": session, "title": rule.response_title,
+		"resource_path": dispatch.dialogue_path, "passenger_id": dispatch.passenger_id,
+		"floor_id": get_current_floor(), "occurred_at": Time.get_unix_time_from_system(),
+		"status": "pending", "attempt": 1, "supplement_action": rule.supplement_action,
+		"supplements": supplements, "supplement_done": false,
+	}
+	_notify_review_pending()
+	return _review_result(true, &"REVIEW_SUBMITTED", "已提交，回应将显示在主台监视器。")
+
+
+func _review_preflight(state: DispatchDocumentState, path: String,
+		title: String, action: String) -> FlowCommandResultScript:
+	if not _review_delivery_ready.is_valid():
+		return _review_result(false, &"REVIEW_UNAVAILABLE", "主台回应通道暂不可用。")
+	var occupied := 0
+	for event: Dictionary in state.passenger_events.values():
+		if event.status in ["pending", "running"]:
+			return _review_result(false, &"REVIEW_BUSY", "回应处理中，请稍后再试。")
+		if event.status == "resolved":
+			occupied += 1
+	if occupied >= REVIEW_QUEUE_LIMIT:
+		return _review_result(false, &"REVIEW_QUEUE_FULL", "请先在主台查看待呈现的回应。")
+	var resource := load(path) as DialogueResource if ResourceLoader.exists(path) else null
+	if not DialogueManagerAdapter.is_event_title(resource, title, true, action):
+		return _review_result(false, &"REVIEW_UNAVAILABLE", "该回应暂不可用。")
+	var session := state.session_id
+	_document_command_busy = true
+	var ready: bool = _review_delivery_ready.call()
+	_document_command_busy = false
+	if _current_document_state(session) != state:
+		return _review_result(false, &"STALE_SESSION", "当前派单已变更。")
+	if not ready:
+		return _review_result(false, &"REVIEW_BUSY", "回应通道暂不可用，请稍后再试。")
+	return null
+
+
+func retry_review_delivery(session: int, operation_id: StringName, delivery_id: String) -> FlowCommandResultScript:
+	var state := _current_document_state(session)
+	var event := _find_passenger_event(state, delivery_id)
+	if event.is_empty() or not event.has("question_id"):
+		return _review_result(false, &"STALE_DELIVERY", "没有可重试的回应。")
+	if _document_command_busy or operation_id == &"":
+		return _review_result(false, &"COMMAND_BUSY", "暂时无法重试。")
+	var prior: Dictionary = state.review_operations.get(operation_id, {})
+	if not prior.is_empty():
+		if prior.get("retry") != delivery_id:
+			return _review_result(false, &"EVENT_CONFLICT", "这次操作的回应已变更。")
+		return _review_already(event)
+	if event.status != "failed":
+		return _review_already(event)
+	var gate := _review_preflight(state, event.resource_path, event.title, event.supplement_action)
+	if gate != null:
+		return gate
+	state.review_operations[operation_id] = {"retry": delivery_id}
+	event.attempt += 1
+	event.status = "pending"
+	_notify_review_pending()
+	return _review_result(true, &"REVIEW_RETRIED", "已重试同一回应。")
+
+
+## 受控对白动作只允许提交该交付预先固定的资料。先写动作完成标记，再通知 UI。
+func apply_review_supplement(session: int, snapshot: Dictionary, action: String) -> bool:
+	var state := _current_document_state(session)
+	var event := _find_passenger_event(state, snapshot.source_event_id)
+	if event.is_empty() or not event.has("question_id") or event.status != "running" \
+			or event.attempt != snapshot.get("attempt") or event.supplement_action != action or action.is_empty():
+		return false
+	if event.supplement_done:
+		return true
+	if _document_command_busy:
+		return false
+	_document_command_busy = true
+	var event_id := StringName("%d:review:%s:%s" % [session, event.question_id, action])
+	var result := state.receive(session, event_id, event.supplements, "passenger")
+	if result.succeeded:
+		event.supplement_done = true
+	_document_command_busy = false
+	if result.changed:
+		documents_changed.emit(session)
+	return result.succeeded
+
+
+func get_review_deliveries(session: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var state := _current_document_state(session)
+	if state != null:
+		for event: Dictionary in state.passenger_events.values():
+			if event.has("question_id"):
+				result.append({"delivery_id": event.source_event_id, "status": event.status})
+	return result
+
+
+func _notify_review_pending() -> void:
+	passenger_event_changed.emit()
+	passenger_event_pending.emit()
+
+
+func _review_already(event: Dictionary) -> FlowCommandResultScript:
+	return _review_result(true, &"REVIEW_ALREADY_SUBMITTED",
+		"回应未送达，可重试。" if event.status == "failed" else "该问题已提交。")
+
+
+func _review_result(ok: bool, code: StringName, message: String) -> FlowCommandResultScript:
+	return FlowCommandResultScript.success(code, message) if ok else FlowCommandResultScript.failure(code, message)
+
+
+func has_review_rules(session: int) -> bool:
+	return _current_document_state(session) != null and not get_active_dispatch().review_rules.is_empty()

@@ -8,7 +8,10 @@ signal newer_requested
 signal geometry_changed
 signal history_requested(ref: Dictionary)
 signal focus_layout_changed
+signal review_field_requested(ref: Dictionary)
 
+var review_enabled := false
+var _review_buttons: Array[Button] = []
 var document_ref: Dictionary = {}
 var receipt: Dictionary = {}
 var scroll: ScrollContainer
@@ -138,6 +141,8 @@ func show_document(value: Dictionary, latest: int) -> void:
 	for field_id: String in doc.fields:
 		var field: Dictionary = doc.fields[field_id]
 		_text(field.display_value)
+		if review_enabled and field.has_value:
+			_add_review_button(field_id, field)
 		var detail := _text("字段：%s · %s\n%s" % [field_id, field.source.source_id, field.source_note])
 		detail.set_meta("field_detail", true)
 		detail.visible = _details
@@ -160,6 +165,8 @@ func focus_controls() -> Array[Control]:
 			if button is Button and not button.disabled:
 				result.append(button)
 	result.append(scroll)
+	for button in _review_buttons:
+		result.append(button)
 	return result
 
 func scroll_by(amount: int) -> void:
@@ -270,3 +277,15 @@ func get_reading_position() -> int:
 func restore_reading_position(value: int) -> void:
 	_history_reading_position = value
 	scroll.set_deferred("scroll_vertical", 0 if history_list.visible else value)
+
+
+func _add_review_button(field_id: String, field: Dictionary) -> void:
+	var ref := document_ref.duplicate()
+	ref["field_id"] = field_id
+	var row := HBoxContainer.new()
+	body.add_child(row)
+	var button := _button(row, "加入比对")
+	button.tooltip_text = field.display_value
+	button.set_meta("review_ref", ref)
+	button.pressed.connect(review_field_requested.emit.bind(ref))
+	_review_buttons.append(button)

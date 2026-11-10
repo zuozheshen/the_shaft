@@ -10,8 +10,8 @@ func _ready() -> void:
 	add_child(main)
 	await get_tree().process_frame
 	var manager := main.get_node("游戏运行层/演示流程管理器") as DemoFlowManager
-	manager.start_dispatch(Fixture.FIRST)
-	print("CALL EXCERPT PREVIEW READY：MIC → 选择回复 → 摘录 → W 收件箱")
+	manager.start_dispatch(Fixture.SECOND)
+	print("CALL EXCERPT PREVIEW READY：等待监视器末页绘制，按实体摘录键，再按 W 查看收件箱")
 
 
 func _exit_tree() -> void:

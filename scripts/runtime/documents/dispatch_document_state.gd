@@ -4,6 +4,9 @@ extends RefCounted
 ## 每次开单生成新身份；即使派单 ID 相同，旧引用和回调也不能沿用。
 static var _next_session_id: int = 0
 var session_id: int
+# 只保存本次派单有限的已配置事件，随资料会话销毁。
+var passenger_events: Dictionary[String, Dictionary] = {}
+var review_operations: Dictionary = {}
 var _documents: Dictionary = {}
 var _latest: Dictionary = {}
 var _event_payloads: Dictionary = {}
@@ -26,6 +29,8 @@ func _init() -> void:
 
 func close() -> void:
 	session_id = 0
+	passenger_events.clear()
+	review_operations.clear()
 	_documents.clear()
 	_latest.clear()
 	_event_payloads.clear()
@@ -237,3 +242,10 @@ static func _same_identity(a: Dictionary, b: Dictionary) -> bool:
 			if a.fields[id][key] != b.fields[id][key]:
 				return false
 	return true
+
+
+## 正式审查只接受该文档最新取得版本；保留历史阅读能力。
+func get_current_field(expected: int, ref: Dictionary) -> Dictionary:
+	if not valid_ref(ref, true) or _latest.get(String(ref.document_id)) != ref.version:
+		return {}
+	return get_field(expected, ref)

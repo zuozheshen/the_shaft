@@ -3,8 +3,8 @@ extends RefCounted
 
 const MAIN_SCENE := "res://scenes/main/main_3d.tscn"
 const SCRIPTS := {
+	"MonitorDialoguePresentation3D": "res://scripts/presentation/monitor_dialogue_presentation_3d.gd",
 	"VerificationTerminal3D": "res://scripts/ui/verification_terminal_3d.gd",
-	"FloatingCommUI": "res://scripts/ui/floating_comm_ui.gd",
 	"MainConsolePresentation3D": "res://scripts/presentation/main_console_presentation_3d.gd",
 	"RightConsolePresentation3D": "res://scripts/presentation/right_console_presentation_3d.gd",
 	"GameRuntime": "res://scripts/runtime/game_runtime.gd",
@@ -26,7 +26,7 @@ const SCRIPTS := {
 	"LayeredFloorSlice25D": "res://scripts/presentation/layered_floor_slice_2_5d.gd",
 }
 const SCENES := {
-	"res://scenes/ui/FloatingCommUI.tscn": "FloatingCommUI",
+	"res://scenes/ui/monitor_dialogue_overlay.tscn": "MonitorDialoguePresentation3D",
 	MAIN_SCENE: "Node",
 	"res://scenes/runtime/game_runtime.tscn": "GameRuntime",
 	"res://scenes/elevator/elevator_cabin_3d.tscn": "CabinViewController3D",
@@ -51,7 +51,7 @@ const GODOT_AI_AUTOLOAD := "res://addons/godot_ai/runtime/game_helper.gd"
 const EXPORTED_PATHS := {
 	"MainConsolePresentation3D": {
 		"console_interface_path": "ConsoleInterface", "stage_controller_path": "MonitorStageController3D",
-		"monitor_subviewport_path": "SubViewport", "screen_mesh_path": "MeshInstance3D",
+		"monitor_subviewport_path": "SubViewport", "dialogue_overlay_path": "MonitorDialoguePresentation3D", "screen_mesh_path": "MeshInstance3D",
 		"cam_01_backlight_path": "Node3D", "cam_02_backlight_path": "Node3D",
 		"comm_light_path": "Node3D", "door_light_path": "MeshInstance3D",
 		"fault_light_path": "Node3D", "status_label_path": "Label",
@@ -63,7 +63,7 @@ const EXPORTED_PATHS := {
 		"information_label_path": "Label3D", "input_label_path": "Label3D",
 		"feedback_label_path": "Label3D", "lever_pivot_path": "Node3D",
 	},
-	"VerificationTerminal3D": {"view_controller_path": "CabinViewController3D", "interaction_controller_path": "CabinInteractionController3D", "console_interface_path": "ConsoleInterface", "left_screen_path": "LeftTerminalScreen3D"},
+	"VerificationTerminal3D": {"view_controller_path": "CabinViewController3D", "interaction_controller_path": "CabinInteractionController3D", "left_screen_path": "LeftTerminalScreen3D"},
 	"RuntimeConnector3D": {"game_runtime_path": "GameRuntime", "elevator_cabin_path": "CabinViewController3D"},
 	"CabinInteractionController3D": {"player_camera_path": "Camera3D", "view_controller_path": "CabinViewController3D", "console_interface_path": "ConsoleInterface", "building_terminal_interface_path": "BuildingTerminalInterface", "left_console_presentation_path": "LeftTerminalScreen3D", "destination_interface_path": "DestinationControlInterface", "right_console_presentation_path": "RightConsolePresentation3D", "interaction_hint_label_path": "Label"},
 	"LeftTerminalScreen3D": {"screen_mesh_path": "MeshInstance3D", "sub_viewport_path": "SubViewport", "terminal_interface_path": "BuildingTerminalInterface", "player_camera_path": "Camera3D", "view_controller_path": "CabinViewController3D", "system_key_selected_path": "Node3D", "record_key_selected_path": "Node3D", "system_unread_light_path": "Node3D", "record_unread_light_path": "Node3D", "retrieval_available_light_path": "Node3D", "scroll_wheel_visual_path": "Node3D"},
@@ -82,14 +82,13 @@ const EXPORTED_PATHS := {
 const METHODS := {
 	"CabinInteractionController3D": ["set_workspace_input_blocked"],
 	"VerificationTerminal3D": ["set_workspace_port", "reset_document_session", "open_left_archive_document", "open_right_archive_document", "set_open", "is_input_captured"],
-	"FloatingCommUI": ["present", "set_minimized", "is_minimized", "blocks_pointer", "toggle_from_controller", "cancel_controller_context", "has_controller_choice_context", "focus_controller_choice", "confirm_controller_choice"],
 	"MainConsolePresentation3D": ["set_fault_active"],
 	"RightConsolePresentation3D": ["request_submit", "is_lever_animating"],
 	"GameRuntime": ["get_demo_flow_manager"],
 	"RuntimeConnector3D": ["get_demo_flow_manager", "request_quit"],
 	"CabinViewController3D": ["get_current_direction", "is_turning", "set_workspace_input_blocked"],
 	"CabinInterfaceRouter3D": ["get_main_interface", "get_left_interface", "get_right_interface", "is_main_console_visible"],
-	"ConsoleInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "get_current_camera_index", "request_open_door", "request_close_door", "request_toggle_microphone", "request_select_camera", "request_excerpt_current_call", "get_case_phase_display_text"],
+	"ConsoleInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "get_current_camera_index", "request_open_door", "request_close_door", "request_select_camera", "request_excerpt_current_call", "get_case_phase_display_text"],
 	"BuildingTerminalInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "set_actively_viewed", "show_system_log", "show_passenger_record", "retrieve_current_document", "can_retrieve_current_document", "scroll_current_content", "get_current_section", "get_unread_snapshot"],
 	"LeftTerminalScreen3D": ["rotate_scroll_wheel", "set_workspace_input_blocked"],
 	"DestinationControlInterface": ["set_demo_flow_manager", "set_embedded_3d_mode", "append_destination_digit", "backspace_destination_input", "clear_destination_input", "request_retrieve_floor_archive", "request_submit_destination", "get_destination_presentation"],
@@ -101,11 +100,10 @@ const METHODS := {
 }
 const SIGNALS := {
 	"VerificationTerminal3D": ["input_capture_changed"],
-	"FloatingCommUI": ["choice_selected"],
 	"DemoFlowManager": ["case_updated", "dispatch_started", "dispatch_completed", "shift_completed", "elevator_movement_completed", "left_terminal_section_updated", "left_terminal_session_reset"],
 	"CabinViewController3D": ["turn_started", "facing_changed"],
 	"CabinInterfaceRouter3D": ["main_console_visibility_changed"],
-	"ConsoleInterface": ["camera_selected", "mic_enabled_changed", "case_phase_display_changed", "presentation_effects_requested", "excerpt_button_pressed"],
+	"ConsoleInterface": ["camera_selected", "case_phase_display_changed", "presentation_effects_requested", "excerpt_button_pressed"],
 	"BuildingTerminalInterface": ["section_changed", "unread_state_changed", "retrieval_available_changed", "archive_document_retrieved"],
 	"DestinationControlInterface": ["presentation_effects_requested", "destination_presentation_changed", "archive_document_retrieved"],
 	"MonitorPresentationCoordinator3D": ["presentation_busy_changed"],
@@ -181,7 +179,7 @@ func validate_configuration(config: ConfigFile) -> void:
 			str(godot_ai_config.get_value("plugin", "version", "missing")))
 	for action: String in [
 		"turn_left", "turn_right", "focus_left", "focus_right", "focus_up",
-		"focus_down", "interact_confirm", "interact_cancel", "comm_toggle",
+		"focus_down", "interact_confirm", "interact_cancel",
 		"context_scroll_up", "context_scroll_down", "verification_terminal_toggle",
 	]:
 		if not config.has_section_key("input", action):
@@ -259,7 +257,6 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 			_check_unique_script("VerificationTerminal3D")
 			_check_unique_script("LeftTerminalScreen3D")
 			_check_unique_script("ConsoleInterface")
-			_check_unique_script("FloatingCommUI")
 			_check_unique_script("MonitorCameraController3D")
 			_check_unique_script("MainConsolePresentation3D")
 			_check_unique_script("RightConsolePresentation3D")
@@ -269,12 +266,6 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 			_expect_named(node, "右操作台界面容器", "Control")
 			_expect_named(node, "ConsoleInterface", "ConsoleInterface")
 			_expect_named(node, "DestinationControlInterface", "DestinationControlInterface")
-		"FloatingCommUI":
-			_expect(node, "%PassengerSpeechLabel", "Label")
-			_expect(node, "%DialogueChoices", "VBoxContainer")
-			_expect(node, "%ContentScroll", "ScrollContainer")
-			_expect(node, "%TitleBar", "Control")
-			_expect(node, "%MinimizeButton", "Button")
 		"MainConsolePresentation3D":
 			for property: String in ["door_closed_material", "door_moving_material", "door_open_material"]:
 				if not node.get(property) is StandardMaterial3D:
@@ -300,6 +291,12 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 			var status_screen := node.get_node_or_null(node.get("status_mesh_path")) as MeshInstance3D
 			if status_screen != null and not status_screen.material_override is StandardMaterial3D:
 				_report(node, "status_mesh_path/material_override", "StandardMaterial3D", "missing or wrong type")
+		"MonitorDialoguePresentation3D":
+			if not node.disable_3d or not node.transparent_bg or not node.gui_disable_input:
+				_report(node, "SubViewport", "transparent non-interactive 2D", "invalid")
+			_expect(node, "Bubble", "Panel")
+			_expect(node, "Bubble/Speaker", "Label")
+			_expect(node, "Bubble/Text", "Label")
 		"RightConsolePresentation3D":
 			var right_root := _root.find_child("右操作台定位", true, false)
 			if right_root == null:
@@ -326,7 +323,6 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 			_expect(node, "滚轮根/CollisionShape3D", "CollisionShape3D")
 			_expect(node, "滚轮根/滚轮转轴", "Node3D")
 		"ConsoleInterface":
-			_expect(node, "FloatingCommUI", "FloatingCommUI")
 			_expect(node, "RejectionToast", "Label")
 			_expect(node, "ToastTimer", "Timer")
 		"BuildingTerminalInterface":

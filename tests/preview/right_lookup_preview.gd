@@ -14,7 +14,6 @@ func _ready() -> void:
 	_dispatch.documents = [Archives.document(&"001"), Archives.document(&"005")]
 	var main := preload("res://scenes/main/main_3d.tscn").instantiate()
 	Content.prepare_scene(main)
-	main.find_child("ConsoleInterface", true, false).dialogue_enabled = false
 	var manager := main.get_node("游戏运行层/演示流程管理器") as DemoFlowManager
 	manager.initial_floor = "318"
 	manager.initial_shift = null

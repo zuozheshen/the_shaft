@@ -1,25 +1,17 @@
 extends Node
 class_name DialogueManagerAdapter
 
-
-signal dialogue_line_received(character: String, text: String, has_choices: bool)
-signal choices_received(choices: Array)
-signal dialogue_finished
-signal status_hint_requested(text: String)
-signal floor_unlock_requested(floor_id: String)
-signal door_greeting_done_requested
 signal scoped_mutation_requested(scope: RefCounted, kind: StringName, value: String)
-signal line_presented_candidate(character: String, text: String, has_choices: bool, from_choice: bool)
-signal parse_started(from_choice: bool)
 
 const CallScope := preload("res://scripts/dialogue/dialogue_call_scope.gd")
+const MAX_LINES := 8
+const MAX_TEXT_LENGTH := 2048
+const MAX_STEPS := 32
+
 var _manager: DemoFlowManager
 var parse_generation: int = 0
-var _utterance_sequence: int = 0
-var _presented: Dictionary = {}
-var _exchange_prefix: Array[Dictionary] = []
-var _latest_excerpt: Dictionary = {}
-var _resource_version: String = ""
+var dialogue_resource: DialogueResource
+var _busy := false
 
 
 func bind_flow_manager(manager: DemoFlowManager) -> void:
@@ -27,200 +19,127 @@ func bind_flow_manager(manager: DemoFlowManager) -> void:
 	_manager = manager
 
 
-func discard_current_excerpt() -> void:
+func reset_dialogue() -> void:
 	parse_generation += 1
-	_presented.clear()
-	_exchange_prefix.clear()
-	_latest_excerpt.clear()
-
-
-func get_current_excerpt() -> Dictionary:
-	return _latest_excerpt.duplicate(true)
+	dialogue_resource = null
+	_busy = false
 
 
 func forward_scoped_mutation(scope: RefCounted, kind: StringName, value: String) -> void:
-	if not scope.is_current(self, _manager):
-		return
-	match kind:
-		&"open_reply": reply_when_open_door(value)
-		&"close_reply": reply_when_close_door(value)
-		_:
-			scoped_mutation_requested.emit(scope, kind, value)
-			if not scope.is_current(self, _manager):
-				return
-			match kind:
-				&"status_hint": status_hint(value)
-				&"unlock_floor": unlock_floor(value)
-				&"door_greeting": mark_door_greeting_done()
-
-
-var dialogue_resource: DialogueResource
-var current_line: DialogueLine
-var pending_open_door_reply: String = ""
-var pending_close_door_reply: String = ""
-
-
-func reset_dialogue() -> void:
-	# 切换派单时清掉资源和门控缓存，避免下一名乘客沿用上一段对话。
-	discard_current_excerpt()
-	_utterance_sequence = 0
-	dialogue_resource = null
-	current_line = null
-	pending_open_door_reply = ""
-	pending_close_door_reply = ""
-
-
-func start_dialogue(resource_path: String, title: String = "start") -> void:
-	# 同一个 DialogueResource 会在后续 next_id 中持续复用，避免对话状态被重新创建。
-	discard_current_excerpt()
-	dialogue_resource = load(resource_path) as DialogueResource
-	current_line = null
-
-	if dialogue_resource == null:
-		push_warning("DialogueManagerAdapter: Cannot load dialogue resource: %s" % resource_path)
-		dialogue_finished.emit()
-		return
-
-	_resource_version = JSON.stringify(dialogue_resource.lines).sha256_text()
-	await _load_line(title)
-
-
-func choose_response(index: int) -> void:
-	if current_line == null:
-		return
-	if index < 0 or index >= current_line.responses.size():
-		push_warning("DialogueManagerAdapter: Response index is out of range.")
-		return
-
-	var response: DialogueResponse = current_line.responses[index] as DialogueResponse
-	if response == null:
-		return
-	if not response.is_allowed:
-		return
-
-	var prefix: Array[Dictionary] = []
-	if not _presented.is_empty():
-		prefix.append(_presented.duplicate(true))
-		prefix.append(_utterance("操作员", response.text, response.id, "operator"))
-	await _load_line(response.next_id, prefix, true)
-
-
-func show_title(title: String) -> void:
-	# 外部系统事件（如目标楼层提交）可以跳到同一份 dialogue 的指定标题。
-	if dialogue_resource == null:
-		return
-	if not dialogue_resource.titles.has(title):
-		push_warning("DialogueManagerAdapter: Missing dialogue title: %s" % title)
-		return
-	await _load_line(title)
-
-
-func show_destination_feedback(floor_id: String) -> void:
-	# 楼层反馈统一约定为 destination_楼层号，例如 destination_001。
-	await show_title("destination_%s" % floor_id.strip_edges())
-
-
-func _load_line(line_id: String, prefix: Array[Dictionary] = [], from_choice: bool = false) -> void:
-	discard_current_excerpt()
-	current_line = null
-	var dm := get_node_or_null("/root/DialogueManager")
-	if dm == null or dialogue_resource == null or not is_instance_valid(_manager):
-		dialogue_finished.emit()
-		return
-	var scope := CallScope.new(self, _manager, _manager.get_document_session_id(),
-		parse_generation, dialogue_resource)
-	parse_started.emit(from_choice)
-	if not scope.is_current(self, _manager):
-		return
-	# DM 在返回对白行前也会调用 mutation；每次解析只暴露受控的调用入口。
-	var next_line: DialogueLine = await dm.get_next_dialogue_line(dialogue_resource, line_id, [scope])
-	if not scope.is_current(self, _manager):
-		return
-	current_line = next_line
-	if current_line == null:
-		dialogue_finished.emit()
-		return
-	_exchange_prefix = prefix
-	_emit_current_line(scope, from_choice)
-
-
-func _utterance(speaker: String, text: String, line_id: String, role: String) -> Dictionary:
-	_utterance_sequence += 1
-	return {"speaker": speaker, "text": text, "line_id": line_id, "role": role,
-		"sequence": _utterance_sequence, "occurred_at": Time.get_unix_time_from_system()}
-
-
-func confirm_presented_line(speaker: String, text: String, has_choices: bool, from_choice: bool) -> void:
-	# 只有 Console 已显示本行后才登记；摘录按钮不读取未选择的分支。
-	if current_line == null or current_line.text != text or not is_instance_valid(_manager):
-		return
-	if text.strip_edges().is_empty() or current_line.id.is_empty():
-		return
-	_presented = _utterance(speaker, text, current_line.id, "passenger")
-	if (from_choice and _exchange_prefix.size() != 2) or (not from_choice and has_choices):
-		return
-	var rows: Array[Dictionary] = _exchange_prefix.duplicate(true)
-	rows.append(_presented.duplicate(true))
-	var dispatch := _manager.get_active_dispatch()
-	if dispatch == null:
-		return
-	_latest_excerpt = {"session": _manager.get_document_session_id(), "generation": parse_generation,
-		"passenger_id": dispatch.passenger_id, "resource_path": dialogue_resource.resource_path,
-		"source_version": _resource_version, "rows": rows}
-
-
-func _emit_current_line(scope: RefCounted, from_choice: bool) -> void:
-	var choices: Array[Dictionary] = []
-	for response_data in current_line.responses:
-		var response: DialogueResponse = response_data as DialogueResponse
-		if response == null:
-			continue
-		choices.append({
-			"text": response.text,
-			"is_allowed": response.is_allowed,
-		})
-
-	var line := current_line
-	line_presented_candidate.emit(line.character, line.text, not choices.is_empty(), from_choice)
-	if not scope.is_current(self, _manager):
-		return
-	dialogue_line_received.emit(line.character, line.text, not choices.is_empty())
 	if scope.is_current(self, _manager):
-		choices_received.emit(choices)
+		scoped_mutation_requested.emit(scope, kind, value)
 
 
-func status_hint(text: String) -> void:
-	# Dialogue Manager 的 do status_hint(...) 会落到这里，再交给主操作台更新提示。
-	status_hint_requested.emit(text)
+## 只接受有限的顺序台词。预检整个标题，避免在碰到废弃选项前就执行副作用。
+static func is_event_title(resource: DialogueResource, title: String, review := false, action := "") -> bool:
+	if resource == null or not resource.titles.has(title):
+		return false
+	var id := String(resource.titles[title])
+	var count := 0
+	var supplement_seen := false
+	var length := 0
+	for step in range(MAX_STEPS):
+		if id in ["", "end", "end!"]:
+			return count > 0 and (action.is_empty() or supplement_seen)
+		var line: Dictionary = resource.lines.get(id, {})
+		if not line.get("responses", []).is_empty() or not line.get("siblings", []).is_empty() \
+				or not line.get("next_id_expression", []).is_empty():
+			return false
+		match line.get("type"):
+			"dialogue":
+				var speaker := String(line.get("character", "")).to_lower()
+				var text := String(line.get("text", ""))
+				if review and (speaker not in ["passenger", "乘客"] or text.strip_edges().is_empty()):
+					return false
+				if not line.get("concurrent_lines", []).is_empty() \
+						or not line.get("text_replacements", []).is_empty() \
+						or not line.get("character_replacements", []).is_empty() \
+						or "[" in text \
+						or speaker in ["操作员", "operator"]:
+					return false
+				count += 1
+				length += text.length()
+				if count > MAX_LINES or length > MAX_TEXT_LENGTH:
+					return false
+			"mutation":
+				var tokens: Array = line.get("mutation", {}).get("expression", [])
+				if not line.mutation.get("is_blocking", false) or tokens.size() != 1 \
+						or tokens[0].get("type") != "function":
+					return false
+				# 编译器把右括号留在最后一个参数的 token 列表中。
+				var args: Array = tokens[0].get("value", []).duplicate(true)
+				if not args.is_empty() and not args.back().is_empty() \
+						and args.back().back().get("type") == "parens_close":
+					args.back().pop_back()
+					if args.back().is_empty():
+						args.pop_back()
+				var method: String = tokens[0].get("function", "")
+				if review and method not in ["wait", "submit_review_supplement"]:
+					return false
+				match method:
+					"submit_review_supplement":
+						if not review or action.is_empty() or args.size() != 1 or args[0].size() != 1 \
+								or args[0][0].get("type") != "string" or args[0][0].get("value") != action:
+							return false
+						supplement_seen = true
+					"mark_door_greeting_done":
+						if not args.is_empty():
+							return false
+					"status_hint", "unlock_floor":
+						if args.size() != 1 or args[0].size() != 1 or args[0][0].get("type") != "string":
+							return false
+					"wait":
+						if args.size() != 1 or args[0].size() != 1 or args[0][0].get("type") != "number":
+							return false
+					_:
+						return false
+			"title", "goto":
+				if line.get("is_snippet", false):
+					return false
+			_:
+				return false
+		id = String(line.get("next_id", ""))
+	return false
 
 
-func unlock_floor(floor_id: String) -> void:
-	# 这里只发信号，不直接操作右侧 UI，保持 adapter 只负责对话桥接。
-	floor_unlock_requested.emit(floor_id)
+## 本阶段只解析并保存事件结果。没有屏幕回执，原文不能成为摘录候选。
+func process_pending_events() -> void:
+	if _busy or not is_instance_valid(_manager):
+		return
+	var dm := get_node_or_null("/root/DialogueManager")
+	if dm == null:
+		return
+	_busy = true
+	parse_generation += 1
+	var generation := parse_generation
+	while generation == parse_generation:
+		var event := _manager.take_pending_passenger_event()
+		if event.is_empty():
+			break
+		dialogue_resource = load(event.resource_path) as DialogueResource
+		var rows: Array[Dictionary] = []
+		var review := event.has("question_id")
+		var scope: RefCounted
+		if is_event_title(dialogue_resource, event.title, review, event.get("supplement_action", "")):
+			scope = CallScope.new(self, _manager, event.session, generation, dialogue_resource, event)
+			var id: String = event.title
+			for step in range(MAX_LINES + 1):
+				var line: DialogueLine = await dm.get_next_dialogue_line(dialogue_resource, id, [scope])
+				if not scope.is_current(self, _manager):
+					return
+				if line == null:
+					break
+				rows.append({"line_id": line.id, "speaker": line.character, "text": line.text})
+				id = line.next_id
+				if id in ["", "end", "end!"]:
+					break
+		if scope != null and scope.supplement_failed:
+			rows.clear()
+		var source_version := JSON.stringify(dialogue_resource.lines).sha256_text() if dialogue_resource != null else ""
+		_manager.finish_passenger_event(event, source_version, rows)
+	if generation == parse_generation:
+		_busy = false
 
 
-func mark_door_greeting_done() -> void:
-	# DM 只确认门外通话完成，真正开门和乘客进舱仍交给门控按钮。
-	door_greeting_done_requested.emit()
-
-
-func reply_when_open_door(text: String) -> void:
-	# 对话只登记“开门后回应”，真正显示由主操作台的开门按钮触发。
-	pending_open_door_reply = text
-
-
-func reply_when_close_door(text: String) -> void:
-	# 预留给关门请求：乘客要求关门后，玩家按关门才更新回应。
-	pending_close_door_reply = text
-
-
-func consume_open_door_reply() -> String:
-	var reply: String = pending_open_door_reply
-	pending_open_door_reply = ""
-	return reply
-
-
-func consume_close_door_reply() -> String:
-	var reply: String = pending_close_door_reply
-	pending_close_door_reply = ""
-	return reply
+func can_accept_review() -> bool:
+	return not _busy and is_instance_valid(_manager) and get_node_or_null("/root/DialogueManager") != null

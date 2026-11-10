@@ -27,8 +27,6 @@
 [ext_resource type="AudioStream" uid="uid://bac54dip0uayi" path="res://assets/audio/sfx/cabin/main_click_1.wav" id="main_click_1"]
 [ext_resource type="AudioStream" uid="uid://bpwrbakacl5kp" path="res://assets/audio/sfx/cabin/main_click_2.wav" id="main_click_2"]
 [ext_resource type="AudioStream" uid="uid://cbxif42tqp35n" path="res://assets/audio/sfx/cabin/main_click_3.wav" id="main_click_3"]
-[ext_resource type="AudioStream" uid="uid://b7hxfsesxj7f1" path="res://assets/audio/sfx/cabin/mic_off.wav" id="mic_off"]
-[ext_resource type="AudioStream" uid="uid://ctd27k15ryhfr" path="res://assets/audio/sfx/cabin/mic_on.wav" id="mic_on"]
 [ext_resource type="AudioStream" uid="uid://v2xxert2jui4" path="res://assets/audio/sfx/cabin/right_lever.wav" id="right_lever"]
 [ext_resource type="AudioStream" uid="uid://dk12qp03xm1e2" path="res://assets/audio/sfx/cabin/right_numbers_1.wav" id="right_numbers_1"]
 [ext_resource type="AudioStream" uid="uid://nxxtgtv3usqr" path="res://assets/audio/sfx/cabin/right_numbers_2.wav" id="right_numbers_2"]
@@ -71,6 +69,8 @@
 [ext_resource type="Resource" path="res://data/presentation/floor_visuals/floor_002_visual.tres" id="reset_002"]
 
 [ext_resource type="PackedScene" path="res://scenes/ui/verification_terminal_3d.tscn" id="verification_terminal"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/monitor_dialogue_overlay.tscn" id="monitor_dialogue"]
 
 [sub_resource type="BoxMesh" id="66_floor_trim"]
 material = ExtResource("66_trim")
@@ -420,31 +420,15 @@ mesh = SubResource("66_floor_trim")
 
 [node name="主台交互热点" type="Node3D" parent="操作台占位/主操作台定位" unique_id=266902568]
 
-[node name="麦克风热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=1122092151]
+[node name="麦克风装饰根" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=1122092151]
 transform = Transform3D(1, 0, 0, 0, 0.5735764, -0.81915206, 0, 0.81915206, 0.5735764, -0.6979811, 0.9449925, -1.2878817)
-collision_layer = 128
-collision_mask = 0
-script = ExtResource("8_hotspot")
-action_id = &"open_microphone"
-prompt_text = "使用麦克风"
-hover_visual_path = NodePath("交互反馈/麦克风高亮")
 
-[node name="交互反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点" unique_id=873774747]
+[node name="麦克风视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风装饰根" unique_id=601847303]
 
-[node name="麦克风高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/交互反馈" unique_id=832558151]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.021923, -0.035)
-visible = false
-mesh = SubResource("BoxMesh_sn0t7")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点" unique_id=548643525]
-shape = SubResource("BoxShape3D_microphone")
-
-[node name="麦克风视觉" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点" unique_id=601847303]
-
-[node name="固定调度麦克风" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点/麦克风视觉" unique_id=554960848 instance=ExtResource("63_microphone")]
+[node name="固定调度麦克风" parent="操作台占位/主操作台定位/主台交互热点/麦克风装饰根/麦克风视觉" unique_id=554960848 instance=ExtResource("63_microphone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.023923, -0.035)
 
-[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风热点" unique_id=1206620932]
+[node name="设备标识" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风装饰根" unique_id=1206620932]
 transform = Transform3D(1, 0, 0, 0, 7.54979e-08, 1, 0, -1, 7.54979e-08, 0, 0.14, 0.065)
 visible = false
 pixel_size = 0.002
@@ -668,7 +652,7 @@ collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
 action_id = &"excerpt_current_call"
-prompt_text = "摘录当前通话"
+prompt_text = "摘录乘客陈述"
 hover_visual_path = NodePath("悬停高亮")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/摘录热点"]
@@ -1698,7 +1682,6 @@ mesh = SubResource("QuadMesh_bhunq")
 [node name="核验终端" parent="玩家视角/摄像机旋转轴/玩家摄像机" instance=ExtResource("verification_terminal")]
 view_controller_path = NodePath("../../../..")
 interaction_controller_path = NodePath("../../../../交互控制器")
-console_interface_path = NodePath("../../../../操作台界面层/操作台界面根/全局通讯容器/ConsoleInterface")
 left_screen_path = NodePath("../../../../操作台占位/左操作台定位")
 
 [node name="交互控制器" type="Node" parent="." unique_id=981601509]
@@ -1780,7 +1763,6 @@ mouse_filter = 2
 [node name="ConsoleInterface" parent="操作台界面层/操作台界面根/全局通讯容器" unique_id=1656012971 instance=ExtResource("2_laov4")]
 layout_mode = 1
 mouse_filter = 2
-dialogue_enabled = false
 
 [node name="门区提示" type="Label" parent="操作台界面层" unique_id=308266697]
 visible = false
@@ -1827,6 +1809,7 @@ console_interface_path = NodePath("../操作台界面层/操作台界面根/全�
 stage_controller_path = NodePath("../监控摄影棚定位/监控测试摄影棚")
 monitor_subviewport_path = NodePath("../监控渲染系统/监控视口")
 screen_mesh_path = NodePath("../操作台占位/主操作台定位/主监视器")
+dialogue_overlay_path = NodePath("乘客对白视口")
 cam_01_backlight_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/交互反馈/选中背光")
 cam_02_backlight_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/交互反馈/选中背光")
 comm_light_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/COMM指示灯/灯面")
@@ -1841,18 +1824,14 @@ excerpt_button_visual_path = NodePath("../操作台占位/主操作台定位/主
 door_open_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮")
 door_close_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮")
 button_audio_player_path = NodePath("按钮音效")
-microphone_audio_player_path = NodePath("麦克风音效")
-microphone_on_sound = ExtResource("mic_on")
-microphone_off_sound = ExtResource("mic_off")
 door_closed_material = SubResource("52_closed")
 door_moving_material = SubResource("52_moving")
 door_open_material = SubResource("52_open")
 
+[node name="乘客对白视口" parent="主台展示绑定" instance=ExtResource("monitor_dialogue")]
+
 [node name="按钮音效" type="AudioStreamPlayer" parent="主台展示绑定" unique_id=1057185484]
 stream = SubResource("AudioStreamRandomizer_main_click")
-
-[node name="麦克风音效" type="AudioStreamPlayer" parent="主台展示绑定" unique_id=254980359]
-stream = ExtResource("mic_on")
 
 [node name="右台展示绑定" type="Node" parent="." unique_id=1687868255]
 script = ExtResource("53_right_presentation")

@@ -10,7 +10,6 @@ func _ready() -> void:
 	ContentRegistry.get_dispatch("TEST_CASE_001").documents = Documents.definitions()
 	main = load("res://scenes/main/main_3d.tscn").instantiate()
 	Content.prepare_scene(main)
-	main.find_child("ConsoleInterface", true, false).dialogue_enabled = false
 	manager = main.get_node("游戏运行层/演示流程管理器")
 	manager.initial_floor = "612"
 	manager.initial_shift = null

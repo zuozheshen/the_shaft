@@ -14,6 +14,8 @@ static func prepare() -> Node:
 		var item := (dispatches[id] as DispatchDefinition).duplicate() as DispatchDefinition
 		item.pickup_floor_id = &"612"
 		item.dialogue_path = DIALOGUE
+		# Resource.duplicate() 浅拷贝可能共享 Dictionary，替换而非清空原夹具的绑定。
+		item.dialogue_events = {"dispatch_started": "slow_statement" if id == FIRST else "statement"}
 		item.default_destination_floor_id = &"900"
 		var relations: Array[DispatchFloorRelation] = []
 		for relation in item.floor_relations:

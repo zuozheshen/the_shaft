@@ -426,9 +426,8 @@ func _test_coordinator_complete_shift(
 				and not coordinator.is_presentation_busy()
 	)
 
-	console.current_dialogue_context = ConsoleInterface.DialogueContext.DESTINATION
-	console.current_dialogue_context_finished = false
-	console._finish_current_dialogue_context()
+	var finish := manager.request_finish_dropoff_feedback()
+	console.presentation_effects_requested.emit(finish.get_effects())
 	test_runner.assert_true(
 		"表现协调器 / DROPOFF_FEEDBACK_FINISHED 触发离舱",
 		manager.get_case_phase() == DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE
@@ -613,25 +612,10 @@ func _complete_current_dispatch(
 		manager,
 		destination_floor
 	)
-	var dropoff_open_result := manager.request_open_cabin_door()
-	stage.request_door_open_presentation()
-	console.presentation_effects_requested.emit(
-		dropoff_open_result.get_effects()
-	)
+	console.request_open_door()
 	_advance_door_animation(stage)
-	test_runner.assert_true(
-		"完整表现流程 / destination 对话完成前保持舱内",
-		dropoff_open_result.succeeded
-				and dropoff_open_result.has_effect(
-					FlowCommandResult.DROPOFF_FEEDBACK_REQUESTED
-				)
-				and stage.get_passenger_presentation_state()
-						== MonitorStageController3D \
-								.PassengerPresentationState.CABIN
-	)
-	console.current_dialogue_context = ConsoleInterface.DialogueContext.DESTINATION
-	console.current_dialogue_context_finished = false
-	console._finish_current_dialogue_context()
+	test_runner.assert_equal("完整表现流程 / 开门后无需对白即可完成反馈",
+		DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE, manager.get_case_phase())
 	await _wait_for_short_tween(tree)
 	test_runner.assert_equal(
 		"完整表现流程 / destination 完成后离场",

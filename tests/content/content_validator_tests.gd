@@ -211,27 +211,10 @@ func _test_dialogue_file_and_titles(test_runner: Variant) -> void:
 
 	var title_bundle := _make_valid_bundle()
 	dispatch = title_bundle.dispatches[0]
-	dispatch.dialogue_path = MISSING_TITLES_DIALOGUE
-	var recommended_relation := _make_relation("200", true)
-	dispatch.floor_relations.append(recommended_relation)
-	title_bundle.floors.append(_make_floor("200"))
+	dispatch.dialogue_events["dispatch_started"] = "missing_title"
 	var title_report := _validate_bundle(title_bundle)
-	test_runner.assert_true(
-		"ContentValidator / 缺 pickup_start",
-		_has_code(title_report, "DIALOGUE_PICKUP_START_MISSING")
-	)
-	test_runner.assert_true(
-		"ContentValidator / 缺 onboard_start",
-		_has_code(title_report, "DIALOGUE_ONBOARD_START_MISSING")
-	)
-	test_runner.assert_true(
-		"ContentValidator / 缺默认 destination",
-		_has_code(title_report, "DIALOGUE_DEFAULT_DESTINATION_MISSING")
-	)
-	test_runner.assert_true(
-		"ContentValidator / 推荐楼层缺 destination",
-		_has_code(title_report, "DIALOGUE_RECOMMENDED_DESTINATION_MISSING")
-	)
+	test_runner.assert_true("ContentValidator / 配置标题必须存在",
+		_has_code(title_report, "DIALOGUE_EVENT_INVALID"))
 
 
 func _test_optional_destination_warning(test_runner: Variant) -> void:
@@ -240,15 +223,9 @@ func _test_optional_destination_warning(test_runner: Variant) -> void:
 	var dispatch: DispatchDefinition = bundle.dispatches[0]
 	dispatch.floor_relations.append(_make_relation("200", false))
 	var report := _validate_bundle(bundle)
-	test_runner.assert_equal(
-		"ContentValidator / 普通可达楼层缺 destination 不产生 Error",
-		0,
-		report.get_error_count()
-	)
-	test_runner.assert_true(
-		"ContentValidator / 普通可达楼层缺 destination 产生 Warning",
-		_has_code(report, "DIALOGUE_REGISTERED_DESTINATION_MISSING")
-	)
+	test_runner.assert_equal("ContentValidator / 楼层无需配置对白", 0, report.get_error_count())
+	test_runner.assert_false("ContentValidator / 未配置对白保持静默",
+		_has_code(report, "DIALOGUE_REGISTERED_DESTINATION_MISSING"))
 
 
 func _test_unlock_contracts(test_runner: Variant) -> void:

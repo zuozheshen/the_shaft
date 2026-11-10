@@ -25,6 +25,7 @@ static func dispatch(index: int) -> DispatchDefinition:
 	item.pickup_floor_id = [&"612", &"900", &"387"][index - 1]
 	item.default_destination_floor_id = [&"900", &"742", &"547"][index - 1]
 	item.dialogue_path = "res://tests/fixtures/runtime/test_passenger.dialogue"
+	item.dialogue_events["onboard_secured"] = "statement"
 	for key: String in ContentValidator.PICKUP_DATA_KEYS:
 		item.pickup_data[key] = "TEST " + key
 	for phase: String in DispatchPhase.get_all():
@@ -90,9 +91,6 @@ static func restore(registry: Node) -> void:
 	_saved.clear()
 
 static func prepare_scene(main: Node) -> void:
-	# 旧对白框架只在无剧情夹具中启用，不恢复正式空舱的对话/UI。
-	var console := main.find_child("ConsoleInterface", true, false) as ConsoleInterface
-	console.dialogue_enabled = true
 	var manager := main.get_node("游戏运行层/演示流程管理器") as DemoFlowManager
 	manager.initial_floor = "900"
 	manager.initial_shift = shift()

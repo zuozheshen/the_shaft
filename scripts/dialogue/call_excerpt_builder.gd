@@ -1,51 +1,52 @@
 extends RefCounted
-## 只封装已经呈现的原句；不提取地点、确定性或其他结论。
+## 只封装已完整呈现的乘客原句。事件出处属于来源，不属于台词。
 
 
 static func build(excerpt: Dictionary, session: int, passenger_id: StringName,
-		dispatch_id: StringName, resource_path: String) -> DocumentDefinition:
+		resource_path: String) -> DocumentDefinition:
 	if excerpt.get("session") != session or excerpt.get("passenger_id") != passenger_id \
 			or excerpt.get("resource_path") != resource_path or resource_path.is_empty():
 		return null
-	var generation: int = excerpt.get("generation", 0)
+	var event_id: String = excerpt.get("source_event_id", "")
+	var title: String = excerpt.get("title", "")
 	var version: String = excerpt.get("source_version", "")
 	var rows: Array = excerpt.get("rows", [])
-	if generation <= 0 or version.is_empty() or rows.size() not in [1, 3]:
+	var presented_at: float = excerpt.get("presented_at", 0.0)
+	if event_id.is_empty() or title.is_empty() or version.is_empty() or rows.is_empty() or presented_at <= 0.0:
 		return null
 
-	var id := "call_%d_%d" % [session, generation]
+	var id := "call_%s" % event_id.replace(":", "_")
+	var origin := "%s#%s/%s" % [resource_path, title, event_id]
+	var occurred := Time.get_datetime_string_from_unix_time(int(excerpt.occurred_at))
+	var presented := Time.get_datetime_string_from_unix_time(int(presented_at))
 	var document := DocumentDefinition.new()
 	document.document_id = StringName(id)
 	document.owner_type = &"passenger"
 	document.owner_id = passenger_id
 	document.material_type = &"call_excerpt"
-	document.title = "通话摘录 · %s" % str(rows.back().get("sequence", 0))
-	document.original_text = "乘客陈述，未经核实。以下为通话原文，按呈现顺序排列。"
-	document.source = _source(id, "%s#%s" % [resource_path, id], version)
-	var previous: int = 0
+	document.title = "乘客陈述摘录"
+	document.original_text = "乘客陈述，未经核实。"
+	document.source = _source(id, origin, version)
+	if excerpt.has("question_id"):
+		document.source.review_origin = {"question_id": String(excerpt.question_id),
+			"refs": excerpt.review_refs.duplicate(true)}
 	for index in rows.size():
 		var row: Dictionary = rows[index]
-		var operator := index == 1
-		var sequence: int = row.get("sequence", 0)
 		var raw: String = row.get("text", "")
 		var line_id: String = row.get("line_id", "")
-		if sequence <= previous or raw.strip_edges().is_empty() or line_id.is_empty() \
-				or row.get("role") != ("operator" if operator else "passenger"):
-			return null
-		previous = sequence
 		var speaker: String = row.get("speaker", "")
+		if raw.strip_edges().is_empty() or line_id.is_empty() or speaker.to_lower() in ["操作员", "operator"]:
+			return null
 		var field := DocumentFieldDefinition.new()
 		field.field_id = StringName("utterance_%03d" % (index + 1))
-		field.subject_type = &"dispatch" if operator else &"passenger"
-		field.subject_id = dispatch_id if operator else passenger_id
+		field.subject_type = &"passenger"
+		field.subject_id = passenger_id
 		field.comparison_key = &"spoken_quote"
-		field.display_value = "%s：%s" % [speaker if not speaker.is_empty() else "未标明说话人", raw]
+		field.display_value = "%s：%s" % ["乘客" if speaker in ["", "Passenger"] else speaker, raw]
 		field.comparable_value = [raw]
-		field.source = _source("%s_%d" % [id, sequence],
-			"%s#%s" % [resource_path, line_id], version)
-		field.source_note = "原句 · %s · 顺序 %d · %s UTC · %s" % [
-			field.source.origin_ref, sequence,
-			Time.get_datetime_string_from_unix_time(int(row.occurred_at)), id]
+		field.source = _source("%s_%d" % [id, index + 1], "%s/%s" % [origin, line_id], version)
+		field.source_note = "原句顺序 %d · 事件 %s · 发生 %s UTC · 呈现 %s UTC" % [
+			index + 1, event_id, occurred, presented]
 		document.fields.append(field)
 	return document
 

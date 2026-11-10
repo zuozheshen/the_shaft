@@ -61,13 +61,6 @@ func run() -> Array[String]:
 	instance.free()
 
 	instance = packed.instantiate()
-	var ui := instance.find_child("FloatingCommUI", true, false)
-	var button := ui.get_node("%PassengerSpeechLabel")
-	button.unique_name_in_owner = false
-	_expect("lost unique name used by code", _scene_errors(instance).contains("%PassengerSpeechLabel"))
-	instance.free()
-
-	instance = packed.instantiate()
 	var stage := instance.find_child("监控测试摄影棚", true, false)
 	var visual := stage.get_node(stage.get("initial_passenger_visual_path"))
 	visual.owner = null
@@ -136,12 +129,11 @@ func run() -> Array[String]:
 	comm_container.owner = null
 	comm_container.reparent(wrapper, false)
 	var interaction := instance.find_child("交互控制器", true, false)
-	ui = router.find_child("ConsoleInterface", true, false)
+	var ui := router.find_child("ConsoleInterface", true, false)
 	interaction.set("console_interface_path", interaction.get_path_to(ui))
 	var binding := instance.find_child("主台展示绑定", true, false)
 	binding.set("console_interface_path", binding.get_path_to(ui))
 	terminal = instance.find_child("核验终端", true, false)
-	terminal.set("console_interface_path", terminal.get_path_to(ui))
 	_expect("router permits layout wrapper with updated references", _scene_errors(instance).is_empty())
 	instance.free()
 

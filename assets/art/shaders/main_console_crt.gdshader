@@ -1,8 +1,9 @@
 shader_type spatial;
 render_mode unshaded;
 
-// 只采样原监控视口；低清过滤不扩散到全局 UI。
+// 监控仍按低清采样。文字层在 CRT 视频效果之后合成。
 uniform sampler2D feed_texture : source_color, filter_nearest, repeat_disable;
+uniform sampler2D dialogue_texture : source_color, filter_linear, repeat_disable, hint_default_transparent;
 uniform float curvature : hint_range(0.0, 0.03) = 0.015;
 uniform float scanline_strength : hint_range(0.0, 0.08) = 0.04;
 uniform float vignette_strength : hint_range(0.0, 0.15) = 0.08;
@@ -22,6 +23,8 @@ void fragment() {
         clamp(scanline_strength, 0.0, 0.08) * line_visibility;
     float edge_darkening = clamp(dot(centered, centered) * 0.5, 0.0, 1.0) *
         clamp(vignette_strength, 0.0, 0.15);
-    ALBEDO = feed * inside * (1.0 - line_darkening) * (1.0 - edge_darkening) *
+    vec3 video = feed * inside * (1.0 - line_darkening) * (1.0 - edge_darkening) *
         clamp(brightness, 0.9, 1.1);
+    vec4 dialogue = texture(dialogue_texture, UV);
+    ALBEDO = mix(video, dialogue.rgb, dialogue.a);
 }

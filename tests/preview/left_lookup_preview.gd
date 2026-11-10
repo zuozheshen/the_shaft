@@ -23,7 +23,6 @@ func _ready() -> void:
 
 	var main := preload("res://scenes/main/main_3d.tscn").instantiate()
 	Content.prepare_scene(main)
-	main.find_child("ConsoleInterface", true, false).dialogue_enabled = false
 	_manager = main.get_node("游戏运行层/演示流程管理器") as DemoFlowManager
 	_manager.initial_shift = null
 	_manager.initial_floor = "612"

@@ -24,7 +24,6 @@ func run(t: Variant, tree: SceneTree) -> void:
 	await _frames(tree)
 	var router := main.find_child("操作台界面层", true, false) as CabinInterfaceRouter3D
 	var console := router.get_main_interface()
-	var comm := console.comm_view
 	var presentation := main.find_child("主台展示绑定", true, false) as MainConsolePresentation3D
 	var interaction := main.find_child("交互控制器", true, false) as CabinInteractionController3D
 	var viewport := cabin.get_node("监控渲染系统/监控视口") as SubViewport
@@ -37,7 +36,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var status_screen := presentation.get_node(presentation.status_mesh_path) as MeshInstance3D
 	t.assert_equal("主台 / 唯一 ConsoleInterface", 1, main.find_children("ConsoleInterface", "", true, false).size())
 	t.assert_equal("主台 / 唯一 DialogueManagerAdapter", 1, main.find_children("DialogueManagerAdapter", "", true, false).size())
-	t.assert_equal("主台 / 左台、监控与 CASE 三个视口", 3, main.find_children("*", "SubViewport", true, false).size())
+	t.assert_equal("主台 / 左台、监控、CASE 和独立对白四个视口", 4, main.find_children("*", "SubViewport", true, false).size())
 	t.assert_equal("主台 / 原监控实际 320x240", Vector2i(320, 240), viewport.size)
 	t.assert_equal("主台 / 原监控保持纵向视野", Camera3D.KEEP_HEIGHT, camera.keep_aspect)
 	t.assert_equal("主台 / 原监控复用正式 World3D", cabin.get_viewport().world_3d, viewport.world_3d)
@@ -53,9 +52,12 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_equal("主台 / 监控只有原摄像机", 1, viewport.find_children("*", "Camera3D", true, false).size())
 	t.assert_equal("主台 / Mesh 直接使用原 ViewportTexture", viewport.get_texture(),
 			(screen.material_override as ShaderMaterial).get_shader_parameter("feed_texture"))
+	var dialogue := presentation.get_node(presentation.dialogue_overlay_path) as SubViewport
+	t.assert_true("主台 / 对白视口透明、纯 2D 且不接收输入",
+		dialogue.transparent_bg and dialogue.disable_3d and dialogue.gui_disable_input)
+	t.assert_equal("主台 / 对白使用同一屏面的独立纹理", dialogue.get_texture(),
+		(screen.material_override as ShaderMaterial).get_shader_parameter("dialogue_texture"))
 	t.assert_false("主台 / 旧大面板已移除", console.has_node("ConsoleLayout"))
-	t.assert_equal("主台 / 只保留 COMM 的实际按钮", comm.find_children("*", "Button", true, false).size(),
-			console.find_children("*", "Button", true, false).size())
 	t.assert_true("主台 / 初始通讯与故障灯熄灭", not comm_light.visible and not fault.visible)
 	t.assert_equal("主台 / 状态条复用展示数据", console.get_case_phase_display_text(), status.text)
 	# 全部真实派单阶段都经过同一展示信号，测量实际字体，不缩改文案。
@@ -73,10 +75,12 @@ func run(t: Variant, tree: SceneTree) -> void:
 		t.assert_equal("CASE / 三单真实刷新进入实际 Label", text, status.text)
 		_assert_status_layout(t, status, status_viewport, text)
 	)
-	var microphone := main.find_child("麦克风热点", true, false) as InteractionHotspot3D
+	var microphone := main.find_child("麦克风装饰根", true, false) as Node3D
 	var surface_root := main.find_child("斜台面新增控件根", true, false) as Node3D
 	t.assert_true("主台 / 新增控件根精确复用 MIC 斜面 Basis",
 			surface_root.transform.basis.is_equal_approx(microphone.transform.basis))
+	t.assert_true("主台 / 麦克风仅为装饰", not microphone is Area3D and microphone.find_child("固定调度麦克风") != null)
+	t.assert_true("主台 / 无悬浮通讯", main.find_child("FloatingCommUI", true, false) == null)
 	var microphone_label := microphone.get_node("设备标识") as Label3D
 	t.assert_false("主台 / 大号 MIC 标识不再显示", microphone_label.visible)
 	for device_name in ["CAM01热点", "CAM02热点", "COMM指示灯", "DOOR指示灯", "FAULT指示灯"]:
@@ -128,10 +132,13 @@ func run(t: Variant, tree: SceneTree) -> void:
 		door_materials_valid = door_materials_valid and open_material != null and close_material != null
 	t.assert_true("主台 / 两枚门按钮帽保留有效材质", door_materials_valid)
 	await tree.physics_frame
-	for name in ["麦克风热点", "CAM01热点", "CAM02热点", "开门热点", "关门热点"]:
+	var player := cabin.get_node("玩家视角/摄像机旋转轴/玩家摄像机") as Camera3D
+	var model := microphone.find_child("固定调度麦克风") as Node3D
+	t.assert_true("主台 / 麦克风不响应实体射线",
+		interaction._raycast_hotspot(player.unproject_position(model.global_position)) == null)
+	for name in ["CAM01热点", "CAM02热点", "开门热点", "关门热点"]:
 		var hotspot := main.find_child(name, true, false) as InteractionHotspot3D
 		var shape := hotspot.get_node("CollisionShape3D") as CollisionShape3D
-		var player := cabin.get_node("玩家视角/摄像机旋转轴/玩家摄像机") as Camera3D
 		t.assert_equal("主台 / 实体碰撞可射线命中 " + name, hotspot,
 				interaction._raycast_hotspot(player.unproject_position(shape.global_position)))
 
@@ -180,7 +187,6 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_true("主台 / 状态刷新保留手调 Transform", screen.transform == transform_before)
 	t.assert_equal("主台 / 状态刷新保留手调 Mesh", size_before, quad.size)
 
-	await _test_global_comm(t, tree, cabin, router, console, interaction, viewport)
 	var destination := router.get_right_interface()
 	var completed: Array[StringName] = []
 	manager.dispatch_completed.connect(func(result: DispatchResult) -> void:
@@ -200,17 +206,6 @@ func run(t: Variant, tree: SceneTree) -> void:
 		t.assert_equal("主台 / 三单顺序", StringName("TEST_CASE_%03d" % case_number), dispatch.dispatch_id)
 		await _travel(destination, manager, String(dispatch.pickup_floor_id), tree)
 		t.assert_true("主台 / 右台到达接乘点", manager.get_current_floor() == String(dispatch.pickup_floor_id))
-		_action(main, interaction, "麦克风热点")
-		await _frames(tree)
-		t.assert_true("主台 / 实体 MIC 同步 COMM", console.mic_enabled and comm_light.visible)
-		if case_number == 1:
-			_action(main, interaction, "麦克风热点")
-			t.assert_true("主台 / 关闭 MIC 熄灯并收起通讯", not console.mic_enabled
-					and not comm_light.visible and comm.is_minimized())
-			_action(main, interaction, "麦克风热点")
-			await _frames(tree)
-			t.assert_true("主台 / 重开 MIC 恢复通讯灯", console.mic_enabled and comm_light.visible)
-		await _test_dialogue(t, tree, console, manager)
 		_action(main, interaction, "开门热点")
 		var door := stage.get_door_visual()
 		t.assert_equal("主台 / 实体开门启动 OPENING", ElevatorDoorVisual3D.DoorPresentationState.OPENING, door.get_door_state())
@@ -233,20 +228,17 @@ func run(t: Variant, tree: SceneTree) -> void:
 		_action(main, interaction, "关门热点")
 		t.assert_equal("主台 / 实体关门启动 CLOSING", ElevatorDoorVisual3D.DoorPresentationState.CLOSING, door.get_door_state())
 		await _settle(stage, tree)
-		await _test_dialogue(t, tree, console, manager)
-		t.assert_true("主台 / 对话记录仍写入既有缓存", not manager.get_front_dialogue_history().is_empty())
 		t.assert_true("主台 / 系统判断仍写入左台", not manager.get_system_message_history().is_empty())
 		await _travel(destination, manager, String(dispatch.default_destination_floor_id), tree)
 		t.assert_equal("主台 / 右台抵达目标", DispatchPhase.ARRIVED_AT_DESTINATION, manager.get_case_phase())
 		_action(main, interaction, "开门热点")
 		await _frames(tree)
 		await _settle(stage, tree)
-		t.assert_equal("主台 / 原 DM 完成送达反馈", DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE, manager.get_case_phase())
+		t.assert_equal("主台 / 无需对白即可完成送达反馈", DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE, manager.get_case_phase())
 		t.assert_equal("主台 / 乘客完成离舱", MonitorStageController3D.PassengerPresentationState.EXITED,
 				stage.get_passenger_presentation_state())
 		_action(main, interaction, "关门热点")
 		await _settle(stage, tree)
-		t.assert_true("主台 / 换单复位 MIC 和 COMM", not console.mic_enabled and not comm_light.visible)
 		t.assert_false("主台 / 三单无虚假 FAULT", fault.visible)
 	t.assert_equal("主台 / 三单全部结算", [&"TEST_CASE_001", &"TEST_CASE_002", &"TEST_CASE_003"], completed)
 	t.assert_false("主台 / 值班结束", manager.has_active_dispatch())
@@ -255,8 +247,6 @@ func run(t: Variant, tree: SceneTree) -> void:
 		t.assert_true("主台 / 实际门状态覆盖 " + str(value), value in door_states)
 	console.toast_timer.timeout.emit()
 	t.assert_false("主台 / 短提示到时消失", console.rejection_toast.visible)
-	_action(main, interaction, "麦克风热点")
-	t.assert_true("主台 / 无派单 MIC 拒绝有提示", console.rejection_toast.visible and not console.mic_enabled)
 	t.assert_false("主台 / 无派单拒绝不触发 FAULT", fault.visible)
 	main.queue_free()
 	await _frames(tree)
@@ -397,161 +387,8 @@ func _test_button_feedback(t: Variant, tree: SceneTree, main: Node,
 	_action(main, interaction, "CAM01热点")
 	await tree.create_timer(buttons[0].press_down_duration + buttons[0].press_return_duration + 0.05).timeout
 
-func _test_dialogue(t: Variant, tree: SceneTree, console: ConsoleInterface,
-		manager: DemoFlowManager) -> void:
-	await _frames(tree)
-	var comm := console.comm_view
-	t.assert_true("COMM / 正式 DM 产生动态选项", not console.dm_choices.is_empty())
-	if console.dm_choices.is_empty():
-		return
-	t.assert_equal("COMM / 正式选项数量不截断", console.dm_choices.size(), comm.choice_container.get_child_count())
-	for index in console.dm_choices.size():
-		var button := comm.choice_container.get_child(index) as Button
-		t.assert_equal("COMM / 动态选项文本与次序", console.dm_choices[index].text, button.text)
-		t.assert_equal("COMM / 动态选项允许状态", not bool(console.dm_choices[index].get("is_allowed", true)), button.disabled)
-	var adapter := console.dialogue_manager_adapter
-	var line := adapter.current_line
-	comm.set_minimized(true)
-	console._refresh_case_display()
-	t.assert_true("COMM / 最小化不改 MIC 或 DM", console.mic_enabled and adapter == console.dialogue_manager_adapter
-			and line == adapter.current_line and console.dm_dialogue_started and not console.dm_dialogue_finished)
-	comm.set_minimized(false)
-	console._refresh_comm_view()
-	console._refresh_comm_view()
-	var operators_before := _operator_count(manager)
-	var button := comm.choice_container.get_child(0) as Button
-	button.pressed.emit()
-	comm.set_minimized(true)
-	await _frames(tree)
-	t.assert_equal("COMM / 多次刷新后单击仅一次响应", operators_before + 1, _operator_count(manager))
-	t.assert_true("COMM / 普通新台词不抢展开", comm.is_minimized())
-	t.assert_true("COMM / 原 DM 推进且当前发言更新", adapter.current_line != line
-			and comm.speech_label.text == console.current_passenger_line)
 
 
-func _test_global_comm(t: Variant, tree: SceneTree, cabin: CabinViewController3D,
-		router: CabinInterfaceRouter3D, console: ConsoleInterface,
-		interaction: CabinInteractionController3D, monitor: SubViewport) -> void:
-	var comm := console.comm_view
-	comm.set_minimized(false)
-	comm.move_window_to(Vector2(-200, -200))
-	t.assert_true("COMM / 拖动限制左上边界", comm.global_position.x >= 0 and comm.global_position.y >= 0)
-	comm.move_window_to(Vector2(100000, 100000))
-	await _frames(tree)
-	t.assert_true("COMM / 拖动限制右下边界", comm.get_viewport_rect().encloses(comm.get_global_rect()))
-	comm.move_window_to(Vector2(28, 100))
-	var position_before := comm.global_position
-	for direction in [1, 2, 3, 0]:
-		cabin._start_turn(1)
-		t.assert_true("COMM / 转身中保持全局可见", comm.is_visible_in_tree())
-		t.assert_equal("COMM / 转身中监控持续刷新，避免冻结旧帧", SubViewport.UPDATE_ALWAYS,
-				monitor.render_target_update_mode)
-		for frame in 90:
-			if not cabin.is_turning():
-				break
-			await tree.process_frame
-		t.assert_equal("COMM / 完成转向", direction, cabin.get_current_direction())
-		t.assert_true("COMM / 四朝向保持可见", comm.is_visible_in_tree())
-		t.assert_equal("COMM / 转向不重置位置", position_before, comm.global_position)
-		t.assert_equal("COMM / 四朝向监控持续刷新", SubViewport.UPDATE_ALWAYS,
-				monitor.render_target_update_mode)
-		var render_mode := monitor.render_target_update_mode
-		comm.set_minimized(true)
-		comm.set_minimized(false)
-		t.assert_equal("COMM / 收起展开不改变监控启停", render_mode, monitor.render_target_update_mode)
-		if direction == 1:
-			await _test_left_input(t, tree, cabin, comm)
-		if direction == 3:
-			t.assert_false("COMM / 右台旧界面保持隐藏",
-				router.find_child("右操作台界面容器", true, false).visible)
-			await _test_right_input(t, tree, cabin, interaction, comm)
-	comm.set_minimized(true)
-	var blank := comm.global_position + Vector2(10, 170)
-	t.assert_false("COMM / 最小化不留下隐形拦截区域", comm.blocks_pointer(blank))
-	t.assert_false("COMM / 窗外不拦截鼠标", comm.blocks_pointer(Vector2(1, 1)))
-	await _test_resize(t, tree, console)
-
-
-func _test_left_input(t: Variant, tree: SceneTree, cabin: CabinViewController3D, comm: FloatingCommUI) -> void:
-	var interaction := cabin.get_node("交互控制器") as CabinInteractionController3D
-	var key := cabin.get_node(
-		"操作台占位/左操作台定位/栏目控制区/乘客档案"
-	) as InteractionHotspot3D
-	var shape := key.get_node("CollisionShape3D") as CollisionShape3D
-	var player := cabin.get_node("玩家视角/摄像机旋转轴/玩家摄像机") as Camera3D
-	var pointer := player.unproject_position(shape.global_position)
-	await tree.physics_frame
-	t.assert_equal("COMM / 左台实体键射线可命中", key,
-			interaction._raycast_hotspot(pointer))
-	comm.move_window_to(pointer - Vector2(30, 70))
-	var motion := InputEventMouseMotion.new()
-	motion.position = pointer
-	motion.global_position = pointer
-	comm.get_viewport().push_input(motion, true)
-	await _frames(tree)
-	interaction._update_hovered_hotspot()
-	t.assert_true("COMM / 覆盖左台时阻止实体热点",
-			interaction._is_pointer_over_blocking_gui()
-			and interaction._hovered_hotspot == null)
-	comm.move_window_to(Vector2(0, 0))
-	comm.get_viewport().push_input(motion, true)
-	await _frames(tree)
-	t.assert_true("COMM / 移开后不遮挡左台实体键", not comm.blocks_pointer(pointer))
-	t.assert_equal("COMM / 移开后左台实体键仍可射线命中", key,
-			interaction._raycast_hotspot(pointer))
-	var old_minimized := comm.is_minimized()
-	_click(comm.get_viewport(), comm.minimize_button.get_global_rect().get_center())
-	await _frames(tree)
-	t.assert_equal("COMM / 覆盖左台时 GUI 最小化可点击", not old_minimized, comm.is_minimized())
-	comm.set_minimized(false)
-	await _frames(tree)
-	var before_drag := comm.global_position
-	var header_point := comm.title_bar.get_global_rect().get_center()
-	_mouse_button(comm.get_viewport(), header_point, true)
-	var drag := InputEventMouseMotion.new()
-	drag.position = header_point + Vector2(70, 40)
-	drag.global_position = drag.position
-	drag.button_mask = MOUSE_BUTTON_MASK_LEFT
-	comm.get_viewport().push_input(drag, true)
-	_mouse_button(comm.get_viewport(), drag.position, false)
-	await _frames(tree)
-	t.assert_true("COMM / 标题栏拖动实际移动窗口", comm.global_position != before_drag)
-	t.assert_true("COMM / 拖动释放不穿透左台", not comm._dragging)
-	interaction._clear_hovered_hotspot()
-	comm.move_window_to(Vector2(28, 100))
-
-
-func _test_right_input(t: Variant, tree: SceneTree, cabin: CabinViewController3D,
-		interaction: CabinInteractionController3D, comm: FloatingCommUI) -> void:
-	var key := cabin.get_node(
-		"操作台占位/右操作台定位/数字键盘/数字5"
-	) as InteractionHotspot3D
-	var shape := key.get_node("CollisionShape3D") as CollisionShape3D
-	var player := cabin.get_node(
-		"玩家视角/摄像机旋转轴/玩家摄像机"
-	) as Camera3D
-	var pointer := player.unproject_position(shape.global_position)
-	await tree.physics_frame
-	t.assert_equal("COMM / 右台实体键射线可命中", key,
-			interaction._raycast_hotspot(pointer))
-	comm.move_window_to(pointer - Vector2(30, 70))
-	var motion := InputEventMouseMotion.new()
-	motion.position = pointer
-	motion.global_position = pointer
-	comm.get_viewport().push_input(motion, true)
-	await _frames(tree)
-	interaction._update_hovered_hotspot()
-	t.assert_true("COMM / 覆盖右台时阻止实体热点",
-			interaction._is_pointer_over_blocking_gui()
-			and interaction._hovered_hotspot == null)
-	comm.move_window_to(Vector2(0, 0))
-	comm.get_viewport().push_input(motion, true)
-	await _frames(tree)
-	t.assert_true("COMM / 移开后不遮挡右台实体键", not comm.blocks_pointer(pointer))
-	t.assert_equal("COMM / 移开后右台实体键仍可射线命中", key,
-			interaction._raycast_hotspot(pointer))
-	interaction._clear_hovered_hotspot()
-	comm.move_window_to(Vector2(28, 100))
 
 
 func _click(viewport: Viewport, position: Vector2) -> void:
@@ -571,28 +408,6 @@ func _mouse_button(viewport: Viewport, position: Vector2, pressed: bool) -> void
 	event.pressed = pressed
 	viewport.push_input(event, true)
 
-
-func _test_resize(t: Variant, tree: SceneTree, console: ConsoleInterface) -> void:
-	# 临时纯 2D 视口仅测窗口布局，不属于正式监控场景，也不创建业务状态。
-	var viewport := SubViewport.new()
-	viewport.disable_3d = true
-	viewport.size = Vector2i(640, 360)
-	console.add_child(viewport)
-	var window := preload("res://scenes/ui/FloatingCommUI.tscn").instantiate() as FloatingCommUI
-	viewport.add_child(window)
-	window.set_minimized(false)
-	await _frames(tree)
-	window.move_window_to(Vector2(900, 900))
-	viewport.size = Vector2i(320, 180)
-	await _frames(tree)
-	t.assert_true("COMM / viewport 缩小时完整窗口仍在边界内",
-			Rect2(Vector2.ZERO, Vector2(viewport.size)).encloses(window.get_global_rect()))
-	window.set_minimized(true)
-	await _frames(tree)
-	t.assert_true("COMM / 小视口仍可收起",
-			window.size.y < window.expanded_size.y and window.size.x <= viewport.size.x)
-	viewport.queue_free()
-	await _frames(tree)
 
 
 func _assert_passenger_framing(t: Variant, camera: Camera3D,
@@ -614,13 +429,6 @@ func _action(main: Node, interaction: CabinInteractionController3D, hotspot_name
 	var hotspot := main.find_child(hotspot_name, true, false) as InteractionHotspot3D
 	interaction._execute_action(hotspot.get_action_id())
 
-
-func _operator_count(manager: DemoFlowManager) -> int:
-	var count: int = 0
-	for text in manager.get_front_dialogue_history():
-		if text.begins_with("操作员："):
-			count += 1
-	return count
 
 
 func _check_door_light(t: Variant, presentation: MainConsolePresentation3D, state: int) -> void:

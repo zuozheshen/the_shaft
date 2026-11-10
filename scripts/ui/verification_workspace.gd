@@ -26,6 +26,15 @@ var _history: Dictionary = {}
 var _active_key: String = ""
 var _arranged: bool = false
 var _focus_queued: bool = false
+var _review_panel: VBoxContainer
+var _review_labels: Array[Label] = []
+var _review_buttons: Array[Button] = []
+var _review_feedback: Label
+var _challenge: Button
+var _retry: Button
+var _slots: Array[Dictionary] = [{}, {}]
+var _review_operation := 0
+var _retry_delivery := ""
 
 func _ready() -> void:
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -86,6 +95,7 @@ func _ready() -> void:
 	desk.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	row.add_child(desk)
 	desk.resized.connect(_fit_windows)
+	_create_review_panel()
 	get_window().size_changed.connect(_update_font)
 	_update_font()
 	refresh()
@@ -103,6 +113,9 @@ func reset_session(value: int) -> void:
 		window.free()
 	windows.clear()
 	saved_views.clear()
+	_slots = [{}, {}]
+	_review_operation = 0
+	_review_feedback.text = ""
 	_latest.clear()
 	_history.clear()
 	_active_key = ""
@@ -143,6 +156,7 @@ func refresh(changed_session: int = -1) -> void:
 			window.show_document(window.receipt, int(_latest[id].document.version))
 			window.set_history(_older_refs(id))
 	_render_catalog()
+	refresh_review()
 	_queue_focus()
 
 func _select_category(index: int) -> void:
@@ -239,6 +253,8 @@ func open_document(ref: Dictionary) -> void:
 	window.history_requested.connect(open_document)
 	window.focus_layout_changed.connect(_queue_focus)
 	window.geometry_changed.connect(func() -> void: _arranged = false)
+	window.review_enabled = _review_panel.visible
+	window.review_field_requested.connect(_add_review_field)
 	window.show_document(snapshot, int(_latest.get(ref.document_id, snapshot).document.version))
 	window.set_history(_older_refs(String(ref.document_id)))
 	_update_font()
@@ -402,6 +418,10 @@ func rebuild_focus() -> void:
 		controls.append(button)
 	controls.append(directory_button)
 	controls.append(arrange_button)
+	if _review_panel.visible:
+		for button in _review_buttons:
+			if button.visible and not button.disabled:
+				controls.append(button)
 	if catalog_scroll.visible:
 		for child in catalog.get_children():
 			if child is Button:
@@ -461,3 +481,116 @@ func _update_font() -> void:
 	status_label.add_theme_font_size_override("font_size", maxi(14, roundi(13.0 / screen_scale)))
 	for window in windows.values():
 		window.version_label.add_theme_font_size_override("font_size", maxi(14, roundi(13.0 / screen_scale)))
+
+
+func _create_review_panel() -> void:
+	_review_panel = VBoxContainer.new()
+	_review_panel.hide()
+	add_child(_review_panel)
+	var row := HBoxContainer.new()
+	_review_panel.add_child(row)
+	for slot in range(2):
+		var label := Label.new()
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		row.add_child(label)
+		_review_labels.append(label)
+		_review_button(row, "清空", _clear_review_field.bind(slot))
+	_challenge = _review_button(row, "提出质疑", _submit_challenge)
+	_retry = _review_button(row, "重试回应", _retry_response)
+	_review_feedback = Label.new()
+	_review_feedback.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_review_panel.add_child(_review_feedback)
+
+
+func _review_button(row: HBoxContainer, label: String, action: Callable) -> Button:
+	var button := Button.new()
+	button.text = label
+	button.pressed.connect(action)
+	row.add_child(button)
+	_review_buttons.append(button)
+	return button
+
+
+func refresh_review() -> void:
+	if _review_panel == null:
+		return
+	_review_panel.visible = session_id > 0 and port.has("has_review_rules") and port.has_review_rules.call(session_id)
+	if not _review_panel.visible:
+		return
+	var complete := true
+	var single_clause := false
+	for slot in range(2):
+		var ref := _slots[slot]
+		var label := _review_labels[slot]
+		var item: Dictionary = _latest.get(ref.get("document_id"), {})
+		var current: bool = not ref.is_empty() and not item.is_empty() and item.document.version == ref.version
+		var field: Dictionary = item.document.fields.get(ref.field_id, {}) if current else {}
+		complete = complete and not field.is_empty()
+		if slot == 0 and not field.is_empty() and item.document.source.kind == "system_reference":
+			single_clause = field.requirement_key != "" and field.required_material_type != "" and field.applicability_key != ""
+		if ref.is_empty():
+			label.text = "未选择"
+		elif not current:
+			label.text = "版本已更新"
+		else:
+			label.text = item.document.title + "：" + String(field.get("display_value", ""))
+		label.tooltip_text = label.text
+	if _slots[1].is_empty():
+		_challenge.disabled = not single_clause
+	else:
+		_challenge.disabled = not complete or _slots[0].get("document_id") == _slots[1].get("document_id")
+	_retry_delivery = ""
+	for delivery: Dictionary in port.get_review_deliveries.call(session_id):
+		if delivery.status == "failed":
+			_retry_delivery = delivery.delivery_id
+			break
+	_retry.visible = not _retry_delivery.is_empty()
+	_queue_focus()
+
+
+func _add_review_field(ref: Dictionary) -> void:
+	for selected: Dictionary in _slots:
+		if selected.get("document_id") == ref.document_id:
+			_review_feedback.text = "这份资料已加入比对，请选择另一份。"
+			return
+	var empty_slot := _slots.find({})
+	if empty_slot == -1:
+		_review_feedback.text = "比对已选满，请先清空一项。"
+		return
+	_slots[empty_slot] = ref.duplicate()
+	_review_feedback.text = ""
+	refresh_review()
+
+
+func _clear_review_field(slot: int) -> void:
+	# 清空首项时把后选项前移，下一份资料总是接在已有项后面。
+	if slot == 0:
+		_slots[0] = _slots[1]
+	_slots[1] = {}
+	_review_feedback.text = ""
+	refresh_review()
+
+
+func _operation_id() -> StringName:
+	_review_operation += 1
+	return StringName("w-review:%d" % _review_operation)
+
+
+func _show_review_result(expected_session: int, result: FlowCommandResult) -> void:
+	if expected_session != session_id:
+		return
+	_review_feedback.text = result.message
+	refresh_review()
+
+
+func _submit_challenge() -> void:
+	# 单条规程索证和双字段质疑使用同一入口，由应用层分别校验。
+	if _slots[1].is_empty():
+		_show_review_result(session_id, port.submit_material_request.call(session_id, _operation_id(), _slots[0]))
+	else:
+		_show_review_result(session_id, port.submit_document_challenge.call(session_id, _operation_id(), _slots[0], _slots[1]))
+
+
+func _retry_response() -> void:
+	_show_review_result(session_id, port.retry_review_delivery.call(session_id, _operation_id(), _retry_delivery))

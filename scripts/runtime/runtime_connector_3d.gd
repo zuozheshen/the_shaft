@@ -100,8 +100,13 @@ func _connect_runtime() -> void:
 		verification_terminal.set_workspace_port(_demo_flow_manager.get_document_workspace_port())
 		_demo_flow_manager.document_session_changed.connect(verification_terminal.reset_document_session)
 		_demo_flow_manager.documents_changed.connect(verification_terminal.refresh_documents)
+		_demo_flow_manager.passenger_event_changed.connect(verification_terminal.workspace.refresh_review)
 		_left_interface.archive_document_retrieved.connect(verification_terminal.open_left_archive_document)
 		_right_interface.archive_document_retrieved.connect(verification_terminal.open_right_archive_document)
+
+	var presentation := elevator_cabin.get_node_or_null("主台展示绑定") as MainConsolePresentation3D
+	if presentation != null and verification_terminal != null:
+		presentation.bind_dialogue.call_deferred(_demo_flow_manager, elevator_cabin, verification_terminal)
 
 	# 舱内运行声复用同一个流程实例，只表现已接收的行驶与实际到站。
 	var movement_audio := elevator_cabin.get_node_or_null(

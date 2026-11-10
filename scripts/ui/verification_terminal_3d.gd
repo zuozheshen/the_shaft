@@ -7,13 +7,12 @@ signal input_capture_changed(captured: bool)
 const TOGGLE_ACTION: StringName = &"verification_terminal_toggle"
 const PAD_ACTIONS: Array[StringName] = [
 	&"focus_left", &"focus_right", &"focus_up", &"focus_down",
-	&"interact_confirm", &"interact_cancel", &"comm_toggle",
+	&"interact_confirm", &"interact_cancel",
 	&"context_scroll_up", &"context_scroll_down",
 ]
 
 @export var view_controller_path: NodePath
 @export var interaction_controller_path: NodePath
-@export var console_interface_path: NodePath
 @export var left_screen_path: NodePath
 @export_range(0.5, 0.9, 0.01) var width_fraction: float = 0.78
 @export_range(0.5, 0.9, 0.01) var height_fraction: float = 0.78
@@ -34,7 +33,6 @@ var _slide: Tween
 var _camera: Camera3D
 var _view: CabinViewController3D
 var _interaction: CabinInteractionController3D
-var _console: ConsoleInterface
 var _left_screen: LeftTerminalScreen3D
 var _port: Dictionary = {}
 var _session_id: int = 0
@@ -56,13 +54,10 @@ func _ready() -> void:
 func _connect_cabin() -> void:
 	_view = get_node(view_controller_path) as CabinViewController3D
 	_interaction = get_node(interaction_controller_path) as CabinInteractionController3D
-	_console = get_node(console_interface_path) as ConsoleInterface
 	_left_screen = get_node(left_screen_path) as LeftTerminalScreen3D
-	# 连接局部守卫，不新增全局输入所有者。COMM 在正式空舱中允许不存在。
+	# 连接 W 的局部输入守卫。
 	input_capture_changed.connect(_view.set_workspace_input_blocked)
 	input_capture_changed.connect(_interaction.set_workspace_input_blocked)
-	if is_instance_valid(_console.comm_view):
-		input_capture_changed.connect(_console.comm_view.set_workspace_input_blocked)
 	input_capture_changed.connect(_left_screen.set_workspace_input_blocked)
 
 func set_workspace_port(port: Dictionary) -> void:

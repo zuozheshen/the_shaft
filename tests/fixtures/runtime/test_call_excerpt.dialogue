@@ -1,26 +1,20 @@
-~ pickup_start
-Passenger: 我记得一部分。
-- 请说说你记得的地点。
-	do wait(0.18)
-	do status_hint("EXCERPT_A_LATE")
-	do unlock_floor("004")
-	do mark_door_greeting_done()
-	do reply_when_open_door("EXCERPT_A_OPEN")
-	do reply_when_close_door("EXCERPT_A_CLOSE")
-	Passenger: 那个人可能在 001，我不确定。
-	=> END
-- 请再确认一次。
-	do wait(0.75)
-	do status_hint("EXCERPT_B_CURRENT")
-	do unlock_floor("742")
-	do mark_door_greeting_done()
-	do reply_when_open_door("EXCERPT_B_OPEN")
-	do reply_when_close_door("EXCERPT_B_CLOSE")
-	Passenger: 我只记得可能是 002。
-	- 还有别的记忆吗？
-		Passenger: 没有了。
-		=> END
+~ slow_statement
+do wait(0.25)
+do status_hint("OLD EVENT")
+Passenger: 这条旧事件不能进入新派单。
+=> END
 
 ~ statement
-Passenger: 这是独立陈述。
+Passenger: 我只记得可能是 002。
+Passenger: 我还不能确认。
+=> END
+
+~ rejected_choices
+Passenger: TEST
+- TEST OPTION
+    Passenger: TEST RESPONSE
+    => END
+
+~ monitor_long
+Passenger: 我记得墙上的指示牌有两行字，但只看清第一行。走廊里的灯一直亮着，我在门口等了一会儿，听见里面有人说话，声音很轻，也没有听清名字。门旁边的地面有一条浅色的线，沿着线走能回到电梯口。我没走进去，所以不能确认房间里的情况。
 => END

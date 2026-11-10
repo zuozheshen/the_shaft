@@ -19,11 +19,11 @@ const TURN_LEFT_ACTION: StringName = &"turn_left"
 const TURN_RIGHT_ACTION: StringName = &"turn_right"
 const REQUIRED_GAMEPAD_ACTIONS: Array[StringName] = [
 	&"focus_left", &"focus_right", &"focus_up", &"focus_down",
-	&"interact_confirm", &"interact_cancel", &"comm_toggle",
+	&"interact_confirm", &"interact_cancel",
 	&"context_scroll_up", &"context_scroll_down",
 ]
 const OPERATION_HINT_TEXT: String = (
-	"Q/E 或 LB/RB 转向　十字键/左摇杆选择　A 确认　Y 通讯　右摇杆滚动　W/View 核验终端"
+	"Q/E 或 LB/RB 转向　十字键/左摇杆选择　A 确认　右摇杆滚动　W/View 核验终端"
 )
 const DIRECTION_NAMES: Array[String] = [
 	"主操作台",

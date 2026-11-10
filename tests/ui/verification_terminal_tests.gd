@@ -25,7 +25,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	second_pad.button_index = JOY_BUTTON_BACK
 	second_pad.pressed = true
 	t.assert_true("W / View绑定接受其他手柄设备", second_pad.is_action_pressed(VerificationTerminal3D.TOGGLE_ACTION))
-	t.assert_equal("W / 保持原来三个SubViewport", 3, main.find_children("*", "SubViewport", true, false).size())
+	t.assert_equal("W / 核验终端不增加额外视口", 4, main.find_children("*", "SubViewport", true, false).size())
 	t.assert_false("W / 端口不暴露上传入口", terminal._port.has("receive_passenger_batch"))
 	t.assert_false("W / 初始不接管", terminal.is_input_captured())
 
@@ -46,7 +46,6 @@ func run(t: Variant, tree: SceneTree) -> void:
 	_joy(viewport, JOY_BUTTON_Y)
 	await _settle(tree)
 	t.assert_equal("W / 展开期间Q不转向", CabinViewController3D.FacingDirection.MAIN_CONSOLE, cabin.get_current_direction())
-	t.assert_false("W / 展开期间Y不改变后台COMM", console.comm_view.has_controller_choice_context())
 	_key(viewport, KEY_W)
 	await _settle(tree)
 
@@ -122,19 +121,11 @@ func run(t: Variant, tree: SceneTree) -> void:
 	interaction._execute_action(&"destination_digit_1")
 	t.assert_equal("W / 背景鼠标与执行入口都无点穿", old_input, str(right.get_destination_presentation().input))
 
-	# COMM刷新可以继续；不能从W抢走焦点或推进选择。
-	console.comm_view.present(true, "TEST", [{"text":"TEST","is_allowed":true}], true, true)
-	terminal.close_button.grab_focus()
-	console.comm_view.present(true, "TEST UPDATE", [{"text":"TEST","is_allowed":true}], true, true)
-	t.assert_true("W / 通讯继续刷新但不抢焦点", terminal.close_button.has_focus())
-	t.assert_equal("W / 通讯正文继续更新", "TEST UPDATE", console.comm_view.speech_label.text)
-
-	# 用W收起期间持有B，后台COMM不能被这次旧输入最小化。
 	_key(viewport, KEY_W)
 	Input.action_press(&"interact_cancel")
 	_joy(viewport, JOY_BUTTON_B, true, false)
 	await _settle(tree)
-	t.assert_false("W / 持有B跨关闭边界不取消后台COMM", console.comm_view.is_minimized())
+	t.assert_false("W / 持有 B 跨关闭边界仍能释放捕获", terminal.is_input_captured())
 	Input.action_release(&"interact_cancel")
 	_joy(viewport, JOY_BUTTON_B, false, false)
 	await _frames(tree, 3)

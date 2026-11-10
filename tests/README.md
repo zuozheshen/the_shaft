@@ -321,6 +321,17 @@ W 的规程/样板和已调阅资料中另有夹具参考及右台来源档案�
 F6 更新维修任务表，从系统日志重新进入档案可查看新版。F7 切换到无工作记录乘客。
 正式默认入口仍为空舱。实机可读性、铭牌和手柄体验单独验收。
 
+## W 审查专项与实机预览
+
+```powershell
+.\tests\run_all_tests.ps1 -Check Existing -Group Flow
+godot.cmd --path . --scene res://tests/preview/document_review_preview.tscn
+```
+
+在预览中按 W 打开「维修核验规程」，将条款「加入比对」，保留另一项为空，再点「提出质疑」。收件箱可查看工作许可补件，收起 W 后从主监视器读取回应。
+也可依次点击「维修申请」和「当班任务单」目的楼层字段旁的「加入比对」，再点「提出质疑」。收起 W 查看乘客回应。
+Flow 覆盖规则、等价依据、当前已取得版本、交付失败重试、补件去重和换单隔离。
+
 ## 主台通话摘录专项与实机预览
 
 ```powershell
@@ -328,10 +339,8 @@ godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --cal
 godot.cmd --path . --scene res://tests/preview/call_excerpt_preview.tscn
 ```
 
-专项用真实 Dialogue Manager 的 wait 交错换单，验证旧 mutation、COMM、选择忙碌状态、门控/日志与资料状态；
-同时从正式主台投影位置点击实体键，经 W 收件箱打开原文。核对 CALL EXCERPT TESTS COMPLETE、失败 0、exit 0 且无 ERROR。
-预览中点击 MIC，选择一条回复，待答复后按「摘录」，再用 W 查看收件箱；复按给短提示。
-默认正式入口保持空舱，按「摘录」显示无派单。手柄用原方向焦点和 A，无新增全局按键。
+专项覆盖 Dialogue Manager 的 wait 期间换单、旧回执、来源与幂等。实机预览中面向主台，等监视器显示陈述末页后按实体「摘录」，再按 W 从收件箱打开乘客原文。复按只提示已取得，未完整呈现的陈述不可摘录。正式入口保持空舱，按「摘录」显示无派单。
+
 
 ## 右台楼层档案预览
 

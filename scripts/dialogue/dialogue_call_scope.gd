@@ -6,14 +6,17 @@ var _manager: WeakRef
 var _session: int
 var _generation: int
 var _resource: DialogueResource
+var _event: Dictionary
+var supplement_failed := false
 
 
-func _init(adapter: Node, manager: Node, session: int, generation: int, resource: DialogueResource) -> void:
+func _init(adapter: Node, manager: Node, session: int, generation: int, resource: DialogueResource, event: Dictionary) -> void:
 	_adapter = weakref(adapter)
 	_manager = weakref(manager)
 	_session = session
 	_generation = generation
 	_resource = resource
+	_event = event
 
 
 func is_current(adapter: Node, manager: Node) -> bool:
@@ -42,9 +45,8 @@ func mark_door_greeting_done() -> void:
 	_send(&"door_greeting")
 
 
-func reply_when_open_door(value: String) -> void:
-	_send(&"open_reply", value)
-
-
-func reply_when_close_door(value: String) -> void:
-	_send(&"close_reply", value)
+func submit_review_supplement(action: String) -> void:
+	var adapter := _adapter.get_ref() as Node
+	var manager := _manager.get_ref() as Node
+	if is_current(adapter, manager) and not supplement_failed:
+		supplement_failed = not manager.apply_review_supplement(_session, _event, action)

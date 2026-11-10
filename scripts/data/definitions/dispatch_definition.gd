@@ -8,6 +8,14 @@ extends Resource
 @export var pickup_floor_id: StringName
 @export var default_destination_floor_id: StringName
 @export var dialogue_path: String
+## 成功的业务事件 → 预编写陈述标题。没有配置的事件保持静默。
+@export var dialogue_events: Dictionary[String, String] = {}
+@export var review_rules: Array[DocumentReviewRule] = []
+
+const DIALOGUE_EVENT_KEYS := [
+	"dispatch_started", "arrived_at_pickup", "passenger_boarded",
+	"onboard_secured", "arrived_at_destination", "destination_opened",
+]
 
 ## 当前派单的固定接乘表现。它们随派单变化，但不是运行时状态。
 @export var pickup_data: Dictionary = {}

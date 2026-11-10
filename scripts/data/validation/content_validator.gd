@@ -202,6 +202,7 @@ static func _validate_dispatches(
 				report.add_error(&"FLOOR_ARCHIVE_AMBIGUOUS", context, "同一派单内每层只能配置一份楼层档案。")
 			else:
 				archive_ids[document.owner_id] = document.document_id
+		_validate_review_rules(dispatch, report, context)
 		validate_documents(dispatch.documents, report, context, {
 			"floor": floor_ids, "passenger": passenger_ids,
 			"dispatch": {String(dispatch.dispatch_id): dispatch},
@@ -247,7 +248,7 @@ static func _validate_dispatch_references(
 		report
 	)
 
-	if dispatch.dialogue_path.strip_edges().is_empty():
+	if not dispatch.dialogue_events.is_empty() and dispatch.dialogue_path.strip_edges().is_empty():
 		report.add_error(&"DISPATCH_DIALOGUE_PATH_EMPTY", context, "dialogue_path 不能为空。")
 
 
@@ -579,7 +580,7 @@ static func _validate_dialogue(
 			else:
 				unlock_floor_ids.append(unlock_match.get_string(1).strip_edges())
 
-	_validate_dialogue_titles(dispatch, context, floor_ids, relations, titles, report)
+	_validate_dialogue_titles(dispatch, context, titles, report)
 	_validate_dialogue_unlocks(
 		context,
 		floor_ids,
@@ -592,70 +593,19 @@ static func _validate_dialogue(
 static func _validate_dialogue_titles(
 	dispatch: DispatchDefinition,
 	context: String,
-	floor_ids: Dictionary,
-	relations: Dictionary,
 	titles: Dictionary,
 	report: ContentValidationReport
 ) -> void:
-	if not titles.has("pickup_start"):
-		report.add_error(
-			&"DIALOGUE_PICKUP_START_MISSING",
-			context,
-			"Dialogue 缺少 pickup_start 标题。"
-		)
-	if not titles.has("onboard_start"):
-		report.add_error(
-			&"DIALOGUE_ONBOARD_START_MISSING",
-			context,
-			"Dialogue 缺少 onboard_start 标题。"
-		)
-
-	var default_floor_id := _normalized_id(dispatch.default_destination_floor_id)
-	if not default_floor_id.is_empty():
-		var default_title := "destination_%s" % default_floor_id
-		if not titles.has(default_title):
-			report.add_error(
-				&"DIALOGUE_DEFAULT_DESTINATION_MISSING",
-				context,
-				"Dialogue 缺少默认目标标题：%s。" % default_title
-			)
-
-	for floor_id: String in relations:
-		var relation: DispatchFloorRelation = relations[floor_id]
-		if relation.recommendation_eligible:
-			var recommended_title := "destination_%s" % floor_id
-			if not titles.has(recommended_title):
-				report.add_error(
-					&"DIALOGUE_RECOMMENDED_DESTINATION_MISSING",
-					context,
-					"Dialogue 缺少推荐楼层标题：%s。" % recommended_title
-				)
-
-	for floor_id: String in floor_ids:
-		var destination_title := "destination_%s" % floor_id
-		if not titles.has(destination_title):
-			report.add_warning(
-				&"DIALOGUE_REGISTERED_DESTINATION_MISSING",
-				context,
-				"Dialogue 缺少已登记楼层反馈：%s。" % destination_title
-			)
-
-	for title: String in titles:
-		if not title.begins_with("destination_"):
-			continue
-		var title_floor_id := title.trim_prefix("destination_")
-		if not floor_ids.has(title_floor_id):
-			report.add_error(
-				&"DIALOGUE_DESTINATION_FLOOR_MISSING",
-				context,
-				"Dialogue 标题引用不存在楼层：%s。" % title
-			)
-		if not relations.has(title_floor_id):
-			report.add_warning(
-				&"DIALOGUE_DESTINATION_RELATION_MISSING",
-				context,
-				"Dialogue 标题存在，但派单没有对应 relation：%s。" % title
-			)
+	for key: String in dispatch.dialogue_events:
+		var title := dispatch.dialogue_events[key]
+		if key not in DispatchDefinition.DIALOGUE_EVENT_KEYS or not titles.has(title):
+			report.add_error(&"DIALOGUE_EVENT_INVALID", context,
+				"无效的乘客事件或标题：%s → %s。" % [key, title])
+		elif dispatch.dialogue_path.ends_with(".dialogue"):
+			var resource := load(dispatch.dialogue_path) as DialogueResource
+			if not DialogueManagerAdapter.is_event_title(resource, title):
+				report.add_error(&"DIALOGUE_EVENT_INVALID", context,
+					"标题不符合有限顺序陈述契约：%s。" % title)
 
 
 static func _validate_dialogue_unlocks(
@@ -795,3 +745,26 @@ static func _document_value_valid(field: DocumentFieldDefinition) -> bool:
 		"int": return value is int
 		"float": return value is float and is_finite(value)
 	return false
+
+
+static func _validate_review_rules(dispatch: DispatchDefinition, report: ContentValidationReport, context: String) -> void:
+	if dispatch.review_rules.is_empty():
+		return
+	var ids := {}
+	var resource := load(dispatch.dialogue_path) as DialogueResource if ResourceLoader.exists(dispatch.dialogue_path) else null
+	for rule: DocumentReviewRule in dispatch.review_rules:
+		if not DocumentReviewMatcher.valid(rule) or ids.has(rule.question_id):
+			report.add_error(&"REVIEW_RULE_INVALID", context, "无效或重复的审查规则。")
+			continue
+		ids[rule.question_id] = true
+		if not DialogueManagerAdapter.is_event_title(resource, rule.response_title, true, rule.supplement_action):
+			report.add_error(&"REVIEW_RESPONSE_INVALID", context, "回应标题或授权补件动作无效。")
+		for ref: Dictionary in rule.supplement_refs:
+			var found := false
+			for document: DocumentDefinition in dispatch.documents:
+				if document != null and document.document_id == ref.document_id and document.version == ref.version \
+						and document.source != null and document.source.kind == &"passenger_upload" \
+						and document.owner_type == &"passenger" and document.owner_id == dispatch.passenger_id:
+					found = true
+			if not found:
+				report.add_error(&"REVIEW_SUPPLEMENT_INVALID", context, "补件必须引用本单乘客的明确上传文档。")

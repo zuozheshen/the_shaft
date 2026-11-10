@@ -2,7 +2,6 @@ class_name CabinInteractionController3D
 extends Node
 
 
-const OPEN_MICROPHONE_ACTION: StringName = &"open_microphone"
 const EXCERPT_ACTION: StringName = &"excerpt_current_call"
 const OPEN_DOOR_ACTION: StringName = &"open_door"
 const CAM_01_ACTION: StringName = &"select_camera_01"
@@ -23,7 +22,6 @@ const FOCUS_UP_ACTION: StringName = &"focus_up"
 const FOCUS_DOWN_ACTION: StringName = &"focus_down"
 const INTERACT_CONFIRM_ACTION: StringName = &"interact_confirm"
 const INTERACT_CANCEL_ACTION: StringName = &"interact_cancel"
-const COMM_TOGGLE_ACTION: StringName = &"comm_toggle"
 const CONTEXT_SCROLL_UP_ACTION: StringName = &"context_scroll_up"
 const CONTEXT_SCROLL_DOWN_ACTION: StringName = &"context_scroll_down"
 
@@ -145,7 +143,7 @@ func _input(event: InputEvent) -> void:
 			and (_workspace_rearm or Engine.get_process_frames() == _workspace_release_frame):
 		get_viewport().set_input_as_handled()
 		return
-	# 在 GUI 之前仲裁手柄动作，防止 Control 的 ui_accept 消费 A 后绕过实体/COMM 优先级。
+	# 在 GUI 之前仲裁手柄动作，防止 Control 的 ui_accept 消费 A 后绕过实体操作优先级。
 	if event is InputEventMouseMotion or event is InputEventMouseButton:
 		_switch_to_mouse_mode()
 		return
@@ -156,26 +154,6 @@ func _input(event: InputEvent) -> void:
 			# 方向由 _process 的统一 threshold/repeat 状态机消费，阻止 GUI 自带导航抢焦点。
 			get_viewport().set_input_as_handled()
 			return
-	if event.is_action_pressed(COMM_TOGGLE_ACTION):
-		_switch_to_gamepad_mode()
-		_reset_gamepad_repeat_state()
-		var comm := _get_comm_view()
-		if comm != null:
-			comm.toggle_from_controller()
-			if not comm.has_controller_choice_context():
-				_establish_default_gamepad_focus()
-		get_viewport().set_input_as_handled()
-		return
-	if event.is_action_pressed(INTERACT_CANCEL_ACTION):
-		var cancel_comm := _get_comm_view()
-		if cancel_comm != null and cancel_comm.cancel_controller_context():
-			_switch_to_gamepad_mode()
-			_reset_gamepad_repeat_state()
-			_establish_default_gamepad_focus()
-			get_viewport().set_input_as_handled()
-			return
-
-		return
 	if event.is_action_pressed(INTERACT_CONFIRM_ACTION):
 		_switch_to_gamepad_mode()
 		_handle_gamepad_confirm()
@@ -184,9 +162,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# 只有鼠标点击与滚轮留给 GUI 先处理，避免穿透 Floating COMM。
 
-	# 使用未处理输入，让 Floating COMM 优先消费点击/滚轮，避免穿透到实体控件。
 	var mouse_event := event as InputEventMouseButton
 	if mouse_event == null or not mouse_event.pressed:
 		return
@@ -314,12 +290,6 @@ func _handle_gamepad_navigation(direction: Vector2i) -> void:
 	_switch_to_gamepad_mode()
 	if not _can_use_hotspots():
 		return
-	var comm := _get_comm_view()
-	if comm != null and comm.has_controller_choice_context():
-		# COMM 优先且只使用同一套 repeat；左右不移动背后 3D 热点。
-		if direction.y != 0:
-			comm.focus_controller_choice(direction.y)
-		return
 	if not _has_hovered_hotspot or not _is_gamepad_focus_valid(_hovered_hotspot):
 		_establish_default_gamepad_focus()
 	if not _has_hovered_hotspot:
@@ -332,9 +302,6 @@ func _handle_gamepad_navigation(direction: Vector2i) -> void:
 func _handle_gamepad_confirm() -> bool:
 	if not _can_use_hotspots():
 		return true
-	var comm := _get_comm_view()
-	if comm != null and comm.has_controller_choice_context():
-		return comm.confirm_controller_choice()
 	if not _has_hovered_hotspot or not _is_gamepad_focus_valid(_hovered_hotspot):
 		_establish_default_gamepad_focus()
 	if not _has_hovered_hotspot or not _is_gamepad_focus_valid(_hovered_hotspot):
@@ -346,14 +313,6 @@ func _handle_gamepad_confirm() -> bool:
 func _validate_gamepad_focus() -> void:
 	if _workspace_input_blocked:
 		return
-	var comm := _get_comm_view()
-	if comm != null and comm.has_controller_choice_context():
-		_clear_hovered_hotspot()
-		# 自动展开时，COMM 已接管输入，但 present() 当时可能仍处于最小化状态。
-		# 只补建缺失的选项焦点，不覆盖玩家后来选中的有效按钮。
-		if not comm.has_controller_choice_focus():
-			comm.focus_controller_choice(0)
-		return
 	if not _can_use_hotspots():
 		_clear_hovered_hotspot()
 		return
@@ -363,11 +322,6 @@ func _validate_gamepad_focus() -> void:
 
 func _establish_default_gamepad_focus() -> void:
 	if _input_mode != InputMode.GAMEPAD or not _can_use_hotspots():
-		return
-	var comm := _get_comm_view()
-	if comm != null and comm.has_controller_choice_context():
-		_clear_hovered_hotspot()
-		comm.focus_controller_choice(0)
 		return
 	var viewport_size := get_viewport().get_visible_rect().size
 	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
@@ -492,14 +446,8 @@ func _can_use_gamepad_context_scroll() -> bool:
 	if not _can_use_hotspots() \
 			or _view_controller.get_current_station_id() != &"left_console":
 		return false
-	var comm := _get_comm_view()
-	return comm == null or not comm.has_controller_choice_context()
+	return true
 
-
-func _get_comm_view() -> FloatingCommUI:
-	if _console_interface == null:
-		return null
-	return _console_interface.comm_view
 
 
 func _reset_gamepad_repeat_state() -> void:
@@ -512,9 +460,6 @@ func _reset_gamepad_repeat_state() -> void:
 func _is_pointer_over_blocking_gui(pointer_position: Vector2 = Vector2(-1, -1)) -> bool:
 	if pointer_position == Vector2(-1, -1):
 		pointer_position = get_viewport().get_mouse_position()
-	var comm := _get_comm_view()
-	if comm != null and comm.blocks_pointer(pointer_position):
-		return true
 	var hovered_control := get_viewport().gui_get_hovered_control()
 	return hovered_control != null \
 			and hovered_control.mouse_filter != Control.MOUSE_FILTER_IGNORE
@@ -568,9 +513,6 @@ func _execute_action(action_id: StringName, from_mouse: bool = false) -> void:
 		elif action_id == DESTINATION_VERIFY_ACTION:
 			_right_console_presentation.play_verify_sound()
 	match action_id:
-		OPEN_MICROPHONE_ACTION:
-			if _console_interface != null:
-				_console_interface.request_toggle_microphone()
 		EXCERPT_ACTION:
 			if _console_interface != null:
 				_console_interface.request_excerpt_current_call()
@@ -661,7 +603,7 @@ func set_workspace_input_blocked(blocked: bool) -> void:
 func _workspace_controls_held() -> bool:
 	for action: StringName in [FOCUS_LEFT_ACTION, FOCUS_RIGHT_ACTION, FOCUS_UP_ACTION,
 			FOCUS_DOWN_ACTION, INTERACT_CONFIRM_ACTION, INTERACT_CANCEL_ACTION,
-			COMM_TOGGLE_ACTION, CONTEXT_SCROLL_UP_ACTION, CONTEXT_SCROLL_DOWN_ACTION]:
+			CONTEXT_SCROLL_UP_ACTION, CONTEXT_SCROLL_DOWN_ACTION]:
 		if Input.get_action_strength(action) >= 0.2:
 			return true
 	return false

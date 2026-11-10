@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://dfohd0vych4js" path="res://scripts/ui/console_interface.gd" id="1_console"]
 
-[ext_resource type="PackedScene" path="res://scenes/ui/FloatingCommUI.tscn" id="2_comm"]
 
 [node name="ConsoleInterface" type="Control" unique_id=1275362082]
 layout_mode = 3
@@ -13,7 +12,6 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_console")
 
-[node name="FloatingCommUI" parent="." instance=ExtResource("2_comm")]
 
 [node name="RejectionToast" type="Label" parent="."]
 visible = false

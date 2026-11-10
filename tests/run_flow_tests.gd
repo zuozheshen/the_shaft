@@ -12,6 +12,7 @@ const MODULES := [
 	["dispatch_document_state", "Runtime", preload("res://tests/runtime/dispatch_document_state_tests.gd"), false, false],
 	["content_reset", "Content", preload("res://tests/content/content_reset_tests.gd"), true, false],
 	["document_flow", "Flow", preload("res://tests/flow/document_flow_tests.gd"), true, true],
+	["document_review", "Flow", preload("res://tests/flow/document_review_tests.gd"), true, true],
 	["dispatch_phase", "Flow", preload("res://tests/flow/dispatch_phase_tests.gd"), false, true],
 	["elevator_runtime_state", "Runtime", preload("res://tests/runtime/elevator_runtime_state_tests.gd"), true, true],
 	["dispatch_lifecycle", "Runtime", preload("res://tests/runtime/dispatch_lifecycle_tests.gd"), false, true],
