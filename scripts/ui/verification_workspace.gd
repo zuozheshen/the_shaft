@@ -6,6 +6,9 @@ const WINDOW := preload("res://scenes/ui/document_window.tscn")
 const CATEGORIES: Array[String] = ["收件箱", "规程 / 样板", "已调阅资料"]
 
 var port: Dictionary = {}
+# 仅由三文件测试预览注入，按已取得的文件版本读取陈述映射。
+var statement_documents: Dictionary = {}
+var _statement_slot_links: Array[Button] = []
 var session_id: int = 0
 var windows: Dictionary = {}
 var saved_views: Dictionary = {}
@@ -254,7 +257,11 @@ func open_document(ref: Dictionary) -> void:
 	window.focus_layout_changed.connect(_queue_focus)
 	window.geometry_changed.connect(func() -> void: _arranged = false)
 	window.review_enabled = _review_panel.visible
-	window.review_field_requested.connect(_add_review_field)
+	window.statement_blocks = statement_documents.get(key, [])
+	if not window.statement_blocks.is_empty():
+		window.review_field_requested.connect(_add_statement.bind(key, session_id))
+	else:
+		window.review_field_requested.connect(_add_review_field)
 	window.show_document(snapshot, int(_latest.get(ref.document_id, snapshot).document.version))
 	window.set_history(_older_refs(String(ref.document_id)))
 	_update_font()
@@ -274,6 +281,8 @@ func open_document(ref: Dictionary) -> void:
 	_render_switch_strip()
 	raise_window(key)
 	_render_catalog()
+	if not window.statement_blocks.is_empty():
+		refresh_review()
 	_queue_focus()
 
 func _open_latest(id: String) -> void:
@@ -283,7 +292,10 @@ func _open_latest(id: String) -> void:
 func raise_window(key: String, focus_body: bool = true) -> void:
 	if not windows.has(key):
 		return
+	var previous: String = _active_key
 	_active_key = key
+	if previous != key and windows.has(previous):
+		windows[previous].cancel_statement_selection()
 	var window: DocumentWindow = windows[key]
 	desk.move_child(window, desk.get_child_count() - 1)
 	_update_switch_active()
@@ -403,6 +415,7 @@ func set_reading_enabled(value: bool) -> void:
 	if not value:
 		for window in windows.values():
 			window.cancel_drag()
+			window.cancel_statement_selection()
 
 func _queue_focus() -> void:
 	if not _focus_queued:
@@ -452,16 +465,27 @@ func move_focus(direction: int) -> void:
 	if focused == null:
 		arrange_button.grab_focus()
 		return
+	var active: DocumentWindow = windows.get(_active_key)
+	if active != null and active.move_quote_focus(focused, direction):
+		return
 	var candidate := focused.find_prev_valid_focus() if direction < 0 else focused.find_next_valid_focus()
 	if candidate != null:
 		candidate.grab_focus()
 
 func confirm_focus() -> void:
 	var focused := get_viewport().gui_get_focus_owner()
+	if windows.has(_active_key):
+		var window: DocumentWindow = windows[_active_key]
+		window.cancel_statement_drag()
+		if window.confirm_statement(focused):
+			return
 	if focused is Button and not focused.disabled:
 		if focused.toggle_mode:
 			focused.button_pressed = not focused.button_pressed
 		focused.pressed.emit()
+
+func cancel_statement_selection() -> bool:
+	return windows.has(_active_key) and windows[_active_key].cancel_statement_selection(true)
 
 func scroll_active(amount: int) -> void:
 	var focused := get_viewport().gui_get_focus_owner()
@@ -493,8 +517,12 @@ func _create_review_panel() -> void:
 		var label := Label.new()
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		label.gui_input.connect(_statement_slot_input.bind(slot))
 		row.add_child(label)
 		_review_labels.append(label)
+		var locate := _review_button(row, "定位原文", _locate_statement.bind(slot))
+		locate.hide()
+		_statement_slot_links.append(locate)
 		_review_button(row, "清空", _clear_review_field.bind(slot))
 	_challenge = _review_button(row, "提出质疑", _submit_challenge)
 	_retry = _review_button(row, "重试回应", _retry_response)
@@ -515,7 +543,8 @@ func _review_button(row: HBoxContainer, label: String, action: Callable) -> Butt
 func refresh_review() -> void:
 	if _review_panel == null:
 		return
-	_review_panel.visible = session_id > 0 and port.has("has_review_rules") and port.has_review_rules.call(session_id)
+	var preview := not statement_documents.is_empty()
+	_review_panel.visible = session_id > 0 and (preview or (port.has("has_review_rules") and port.has_review_rules.call(session_id)))
 	if not _review_panel.visible:
 		return
 	var complete := true
@@ -525,21 +554,34 @@ func refresh_review() -> void:
 		var label := _review_labels[slot]
 		var item: Dictionary = _latest.get(ref.get("document_id"), {})
 		var current: bool = not ref.is_empty() and not item.is_empty() and item.document.version == ref.version
-		var field: Dictionary = item.document.fields.get(ref.field_id, {}) if current else {}
+		var field: Dictionary = item.document.fields.get(ref.get("field_id", ""), {}) if current else {}
 		complete = complete and not field.is_empty()
 		if slot == 0 and not field.is_empty() and item.document.source.kind == "system_reference":
 			single_clause = field.requirement_key != "" and field.required_material_type != "" and field.applicability_key != ""
 		if ref.is_empty():
 			label.text = "未选择"
 		elif not current:
-			label.text = "版本已更新"
+			label.text = "版本已更新 / 请重新选取"
+			if ref.has("quote"):
+				label.text += "\n" + String(ref.quote)
 		else:
 			label.text = item.document.title + "：" + String(field.get("display_value", ""))
+		if current and ref.has("quote"):
+			label.text = String(ref.quote) + "\n" + item.document.title + " · v%d" % ref.version
+		label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING if preview else TextServer.OVERRUN_TRIM_ELLIPSIS
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if preview else TextServer.AUTOWRAP_OFF
 		label.tooltip_text = label.text
+		_statement_slot_links[slot].visible = current and ref.has("quote")
+		label.mouse_filter = Control.MOUSE_FILTER_STOP if _statement_slot_links[slot].visible else Control.MOUSE_FILTER_IGNORE
 	if _slots[1].is_empty():
 		_challenge.disabled = not single_clause
 	else:
 		_challenge.disabled = not complete or _slots[0].get("document_id") == _slots[1].get("document_id")
+	if preview:
+		_challenge.disabled = true
+		_challenge.tooltip_text = "本原型仅验证选取与比对"
+		if _review_feedback.text.is_empty():
+			_review_feedback.text = _challenge.tooltip_text
 	_retry_delivery = ""
 	for delivery: Dictionary in port.get_review_deliveries.call(session_id):
 		if delivery.status == "failed":
@@ -548,6 +590,33 @@ func refresh_review() -> void:
 	_retry.visible = not _retry_delivery.is_empty()
 	_queue_focus()
 
+
+func _statement_slot_input(event: InputEvent, slot: int) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+		_locate_statement(slot)
+
+func _locate_statement(slot: int) -> void:
+	var ref := _slots[slot]
+	if not ref.has("quote"):
+		return
+	open_document(ref)
+	var window: DocumentWindow = windows.get(_key(ref))
+	if window != null:
+		window.locate_statement.call_deferred(int(ref.start), int(ref.end))
+
+func _add_statement(ref: Dictionary, key: String, expected_session: int) -> void:
+	if expected_session != session_id or not windows.has(key):
+		return
+	var item: Dictionary = _latest.get(ref.document_id, {})
+	if item.is_empty() or item.document.version != ref.version:
+		_review_feedback.text = "资料已更新，请重新选择当前版本。"
+		return
+	var text: String = item.document.original_text
+	if ref.start < 0 or ref.end > text.length() or text.substr(ref.start, ref.end - ref.start) != ref.quote:
+		_review_feedback.text = "选区已失效，请重新选择。"
+		return
+	ref["session_id"] = expected_session
+	_add_review_field(ref)
 
 func _add_review_field(ref: Dictionary) -> void:
 	for selected: Dictionary in _slots:
@@ -585,12 +654,21 @@ func _show_review_result(expected_session: int, result: FlowCommandResult) -> vo
 
 
 func _submit_challenge() -> void:
+	# 预览的按钮保持禁用，原文摘录须完整匹配字段才有业务引用。
+	for ref in _slots:
+		if ref.has("quote") and not ref.has("field_id"):
+			return
 	# 单条规程索证和双字段质疑使用同一入口，由应用层分别校验。
 	if _slots[1].is_empty():
-		_show_review_result(session_id, port.submit_material_request.call(session_id, _operation_id(), _slots[0]))
+		_show_review_result(session_id, port.submit_material_request.call(session_id, _operation_id(), _review_ref(_slots[0])))
 	else:
-		_show_review_result(session_id, port.submit_document_challenge.call(session_id, _operation_id(), _slots[0], _slots[1]))
+		_show_review_result(session_id, port.submit_document_challenge.call(session_id, _operation_id(), _review_ref(_slots[0]), _review_ref(_slots[1])))
 
+
+func _review_ref(ref: Dictionary) -> Dictionary:
+	if not ref.has("quote"):
+		return ref
+	return {"document_id": ref.document_id, "version": ref.version, "field_id": ref.field_id}
 
 func _retry_response() -> void:
 	_show_review_result(session_id, port.retry_review_delivery.call(session_id, _operation_id(), _retry_delivery))

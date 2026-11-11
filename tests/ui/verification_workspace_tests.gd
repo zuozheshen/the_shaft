@@ -2,10 +2,12 @@ extends RefCounted
 const MAIN := preload("res://scenes/main/main_3d.tscn")
 const Content := preload("res://tests/fixtures/runtime/test_content.gd")
 const Docs := preload("res://tests/fixtures/runtime/test_workspace_documents.gd")
+const Statements := preload("res://tests/fixtures/runtime/test_statement_selection.gd")
 
 func run(t: Variant, tree: SceneTree) -> void:
 	var original_size := tree.root.size
 	tree.root.size = Vector2i(1920, 1080)
+	await _test_statement_selection(t, tree)
 	var definition: DispatchDefinition = ContentRegistry.get_dispatch("TEST_CASE_001")
 	var saved: Array[DocumentDefinition] = definition.documents
 	definition.documents = Docs.definitions(true)
@@ -272,6 +274,91 @@ func _versions(workspace: VerificationWorkspace, id: String) -> int:
 		if ref.document_id == id:
 			count += 1
 	return count
+
+func _test_statement_selection(t: Variant, tree: SceneTree) -> void:
+	var saved: Dictionary = ContentRegistry.get("_dispatches_by_id")
+	var main := Statements.prepare()
+	t.add_child(main)
+	await frames(tree)
+	var terminal := Statements.open_preview(main)
+	var viewport := terminal.get_viewport()
+	var workspace := terminal.workspace
+	await tree.create_timer(terminal.slide_duration + 0.08).timeout
+	workspace.open_document(Statements.ref("application"))
+	await frames(tree)
+	var window: DocumentWindow = workspace.windows["statement/application@1"]
+	var text := window._quote_body
+	t.assert_true("摘取原文 / 质疑禁用", workspace._challenge.disabled)
+	t.assert_false("摘取原文 / 尚无选区时隐藏按钮", window._quote_join.visible)
+	# 使用控件原生选区，命中与拖动由可见的实机预览另外验证。
+	text.select(0, 8, 0, 5)
+	window._finish_quote_drag(window._selection_generation, true)
+	t.assert_equal("摘取原文 / 反向选区只摘取数字", "001", window._candidate.get("quote", ""))
+	t.assert_false("摘取原文 / 局部选区无结构化字段", window._candidate.has("field_id"))
+	t.assert_equal("摘取原文 / 区间准确", [5, 8], [window._candidate.get("start"), window._candidate.get("end")])
+	t.assert_true("摘取原文 / 选区只展示加入按钮", window._quote_join.visible and workspace._slots[0].is_empty())
+	window.cancel_statement_selection()
+	text.select(0, 8, 1, text.get_line(1).length())
+	window._finish_quote_drag(window._selection_generation, true)
+	var expected_cross_line := " 层处理维修任务。\n现场记录 [待填写]。"
+	t.assert_equal("摘取原文 / 跨段保留换行、空格和标点", expected_cross_line, window._candidate.get("quote", ""))
+	await frames(tree)
+	var join_at := window._quote_join.get_global_rect().get_center()
+	mouse(viewport, join_at, true)
+	mouse(viewport, join_at, false)
+	await frames(tree)
+	t.assert_equal("摘取原文 / 无映射的跨段片段可入槽", expected_cross_line, workspace._slots[0].get("quote", ""))
+	t.assert_true("摘取原文 / 入槽显示引文与出处", workspace._review_labels[0].text.begins_with(expected_cross_line + "\n维修申请"))
+	workspace._locate_statement(0)
+	await frames(tree)
+	t.assert_equal("摘取原文 / 定位后高亮原选区", expected_cross_line, text.get_selected_text())
+	t.assert_false("摘取原文 / 定位不再次显示加入按钮", window._quote_join.visible)
+
+	workspace.open_document(Statements.ref("task"))
+	await frames(tree)
+	var task: DocumentWindow = workspace.windows["statement/task@1"]
+	task._quote_body.grab_focus()
+	workspace.move_focus(1)
+	t.assert_equal("摘取原文 / 手柄可聚焦无映射段落", 1, task._quote_body.get_caret_line())
+	joy(viewport, JOY_BUTTON_A)
+	t.assert_true("摘取原文 / 手柄确认后高亮段落并聚焦加入", task._quote_join.has_focus())
+	t.assert_true("摘取原文 / 手柄第一次确认不入槽", workspace._slots[1].is_empty())
+	joy(viewport, JOY_BUTTON_B)
+	t.assert_true("摘取原文 / 取消后回到正文", terminal.target_open and task._quote_body.has_focus() and not task._quote_body.has_selection())
+	joy(viewport, JOY_BUTTON_A)
+	joy(viewport, JOY_BUTTON_A)
+	await frames(tree)
+	t.assert_equal("摘取原文 / 取消后仍可用两次确认加入", "记录供本班交接使用。", workspace._slots[1].get("quote", ""))
+
+	workspace.open_reference(Statements.ref("regulation"))
+	await frames(tree)
+	var rules: DocumentWindow = workspace.windows.get("statement/regulation@1")
+	t.assert_true("摘取原文 / 从既有入口取得规程", rules != null)
+	if rules != null:
+		rules._quote_body.grab_focus()
+		joy(viewport, JOY_BUTTON_A)
+		t.assert_equal("摘取原文 / 完整条款保留映射", "applicable", rules._candidate.get("field_id", ""))
+		joy(viewport, JOY_BUTTON_A)
+		t.assert_equal("摘取原文 / 满槽不覆盖", "记录供本班交接使用。", workspace._slots[1].get("quote", ""))
+		workspace._clear_review_field(0)
+		t.assert_equal("摘取原文 / 清空后第二槽前移", "记录供本班交接使用。", workspace._slots[0].get("quote", ""))
+		workspace._clear_review_field(0)
+		rules._quote_body.grab_focus()
+		joy(viewport, JOY_BUTTON_A)
+		joy(viewport, JOY_BUTTON_A)
+		t.assert_equal("摘取原文 / 完整条款生成既有引用", Statements.ref("regulation", "applicable"),
+			workspace._review_ref(workspace._slots[0]) if not workspace._slots[0].is_empty() else {})
+		rules._quote_body.grab_focus()
+		joy(viewport, JOY_BUTTON_A)
+		key(viewport, KEY_W)
+		await frames(tree)
+		t.assert_true("摘取原文 / 收起清选区并保留槽位", rules._candidate.is_empty() and not workspace._slots[0].is_empty())
+	workspace.reset_session(0)
+	t.assert_equal("摘取原文 / 换单清空槽位", [{}, {}], workspace._slots)
+	main.queue_free()
+	await frames(tree)
+	ContentRegistry.set("_dispatches_by_id", saved)
+
 
 func key(viewport: Viewport, code: Key, shift: bool = false) -> void:
 	for pressed in [true, false]:

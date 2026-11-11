@@ -38,6 +38,7 @@ var _port: Dictionary = {}
 var _session_id: int = 0
 var _ui_focus: WeakRef
 var _pad_needs_neutral: bool = false
+var _statement_confirm_held := false
 var _nav_direction: int = 0
 var _nav_remaining: float = 0.0
 var _scroll_direction: int = 0
@@ -176,12 +177,22 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventJoypadButton or event is InputEventJoypadMotion:
-		if target_open and not _pad_needs_neutral:
+		if event.is_action_released(&"interact_confirm"):
+			_statement_confirm_held = false
+		if not _pad_needs_neutral:
 			if event.is_action_pressed(&"interact_cancel"):
-				set_open(false)
-			elif event.is_action_pressed(&"interact_confirm"):
+				if not workspace.cancel_statement_selection():
+					set_open(false)
+			elif event.is_action_pressed(&"interact_confirm") and not _statement_confirm_held:
+				_statement_confirm_held = not workspace.statement_documents.is_empty()
 				workspace.confirm_focus()
 		get_viewport().set_input_as_handled()
+	if event is InputEventKey and event.is_action_pressed(&"ui_cancel") and not event.is_echo() \
+			and not workspace.statement_documents.is_empty():
+		if not workspace.cancel_statement_selection():
+			set_open(false)
+		get_viewport().set_input_as_handled()
+		return
 
 	# 键盘与鼠标先交给聚焦的工作区 GUI；后台事件和轮询已有显式守卫。
 	if event is InputEventKey:
@@ -203,6 +214,7 @@ func _process(delta: float) -> void:
 	if _pad_needs_neutral:
 		if _pad_controls_neutral():
 			_pad_needs_neutral = false
+			_statement_confirm_held = false
 		return
 	var axis := Vector2(
 		Input.get_action_strength(&"focus_right") - Input.get_action_strength(&"focus_left"),

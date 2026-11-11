@@ -11,6 +11,12 @@ signal focus_layout_changed
 signal review_field_requested(ref: Dictionary)
 
 var review_enabled := false
+var statement_blocks: Array = []
+var _quote_body: TextEdit
+var _quote_join: Button
+var _candidate: Dictionary = {}
+var _selecting_quote := false
+var _selection_generation := 0
 var _review_buttons: Array[Button] = []
 var document_ref: Dictionary = {}
 var receipt: Dictionary = {}
@@ -129,6 +135,8 @@ func show_document(value: Dictionary, latest: int) -> void:
 	version_label.text = "%s · v%d%s" % [{"passenger_upload":"乘客上传", "system_reference":"系统参考", "floor_archive":"右台档案", "personnel_record":"人员档案", "duty_record":"当班记录", "call_excerpt":"通话摘录"}.get(source.kind, source.kind), doc.version,
 		" · 旧版 / 有更新" if latest > int(doc.version) else ""]
 	update_button.visible = latest > int(doc.version)
+	if update_button.visible and not statement_blocks.is_empty():
+		cancel_statement_selection()
 	metadata_label.text = "来源：%s\n原始位置：%s\n来源版本：%s\n原始更新：%s\n取得时间：%s" % [
 		source.source_id, source.origin_ref, source.source_version,
 		source.updated_at if not String(source.updated_at).is_empty() else "未知",
@@ -137,6 +145,9 @@ func show_document(value: Dictionary, latest: int) -> void:
 	if _document_rendered:
 		return
 	_document_rendered = true
+	if not statement_blocks.is_empty():
+		_render_statements(doc)
+		return
 	_text(doc.original_text)
 	for field_id: String in doc.fields:
 		var field: Dictionary = doc.fields[field_id]
@@ -165,6 +176,10 @@ func focus_controls() -> Array[Control]:
 			if button is Button and not button.disabled:
 				result.append(button)
 	result.append(scroll)
+	if _quote_body != null:
+		result.append(_quote_body)
+		if _quote_join.visible:
+			result.append(_quote_join)
 	for button in _review_buttons:
 		result.append(button)
 	return result
@@ -202,6 +217,7 @@ func _grip_input(event: InputEvent) -> void:
 		accept_event()
 
 func _begin_drag(mode: int) -> void:
+	cancel_statement_selection()
 	_drag_mode = mode
 	_drag_start = get_global_mouse_position()
 	_start_rect = Rect2(position, size)
@@ -278,6 +294,168 @@ func restore_reading_position(value: int) -> void:
 	_history_reading_position = value
 	scroll.set_deferred("scroll_vertical", 0 if history_list.visible else value)
 
+
+# 一个只读正文控件保留跨行选区，鼠标和手柄使用相同的字符范围。
+func _render_statements(doc: Dictionary) -> void:
+	_quote_body = TextEdit.new()
+	_quote_body.text = doc.original_text
+	_quote_body.editable = false
+	_quote_body.caret_multiple = false
+	_quote_body.caret_draw_when_editable_disabled = true
+	_quote_body.context_menu_enabled = false
+	_quote_body.drag_and_drop_selection_enabled = false
+	_quote_body.deselect_on_focus_loss_enabled = false
+	_quote_body.virtual_keyboard_enabled = false
+	_quote_body.tab_input_mode = false
+	_quote_body.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	_quote_body.scroll_fit_content_height = true
+	_quote_body.highlight_current_line = true
+	var background := StyleBoxEmpty.new()
+	_quote_body.add_theme_stylebox_override("normal", background)
+	_quote_body.add_theme_stylebox_override("read_only", background)
+	_quote_body.add_theme_color_override("font_readonly_color", Color("#d4e1d7"))
+	_quote_body.add_theme_color_override("current_line_color", Color("#254239"))
+	_quote_body.gui_input.connect(_quote_input)
+	body.add_child(_quote_body)
+	_quote_join = _button(scroll.get_parent(), "加入比对")
+	_quote_join.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_quote_join.hide()
+	_quote_join.pressed.connect(_join_statement)
+	scroll.get_v_scroll_bar().value_changed.connect(func(_value: float) -> void:
+		if _selecting_quote:
+			cancel_statement_selection())
+	resized.connect(func() -> void: cancel_statement_selection())
+	get_window().focus_exited.connect(func() -> void: cancel_statement_selection())
+
+func _quote_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.is_echo() and event.is_action("ui_accept"):
+		confirm_statement(_quote_body)
+		accept_event()
+		return
+	if not event is InputEventMouseButton or event.button_index != MOUSE_BUTTON_LEFT:
+		return
+	if event.pressed:
+		cancel_statement_selection()
+		_selecting_quote = true
+		raised.emit()
+	elif _selecting_quote:
+		_selecting_quote = false
+		var inside := Rect2(Vector2.ZERO, _quote_body.size).has_point(event.position) \
+				and scroll.get_global_rect().has_point(_quote_body.get_global_transform() * event.position)
+		_finish_quote_drag.call_deferred(_selection_generation, inside)
+
+func _finish_quote_drag(generation: int, inside: bool) -> void:
+	if generation != _selection_generation or not is_visible_in_tree():
+		return
+	if inside:
+		_read_quote_selection()
+	else:
+		_quote_body.deselect()
+
+func _read_quote_selection() -> bool:
+	if update_button.visible or not _quote_body.has_selection():
+		return false
+	var quote := _quote_body.get_selected_text()
+	if quote.strip_edges().is_empty():
+		return false
+	var from_line := _quote_body.get_selection_from_line()
+	var start := _quote_body.get_selection_from_column()
+	for line in from_line:
+		start += _quote_body.get_line(line).length() + 1
+	var end := start + quote.length()
+	_candidate = document_ref.merged({"start": start, "end": end, "quote": quote})
+	for block: Dictionary in statement_blocks:
+		if start == block.start and end == block.end and quote == block.quote:
+			var field: Dictionary = receipt.document.fields.get(block.field_id, {})
+			if field.get("has_value", false):
+				_candidate["field_id"] = block.field_id
+			break
+	_quote_join.show()
+	focus_layout_changed.emit()
+	return true
+
+func confirm_statement(focused: Control) -> bool:
+	if _quote_body == null or focused != _quote_body:
+		return false
+	# 键盘可先用 Shift 选字。手柄未选择时，确认当前段落。
+	if not _quote_body.has_selection():
+		var line := _quote_body.get_caret_line()
+		_quote_body.select(line, 0, line, _quote_body.get_line(line).length())
+	if _read_quote_selection():
+		_quote_join.grab_focus()
+	return true
+
+func move_quote_focus(focused: Control, direction: int) -> bool:
+	if _quote_body == null or focused != _quote_body:
+		return false
+	var line := _quote_body.get_caret_line() + direction
+	if line < 0 or line >= _quote_body.get_line_count():
+		return false
+	cancel_statement_selection()
+	_quote_body.set_caret_line(line)
+	_quote_body.set_caret_column(0)
+	_reveal_quote_line(line)
+	return true
+
+func _reveal_quote_line(line: int) -> void:
+	var row := _quote_body.get_rect_at_line_column(line, 0)
+	var y := (_quote_body.get_global_transform() * Vector2(row.position)).y - scroll.get_global_rect().position.y
+	if y < 0:
+		scroll_by(floori(y))
+	elif y + row.size.y > scroll.size.y:
+		scroll_by(ceili(y + row.size.y - scroll.size.y))
+
+func _join_statement() -> void:
+	# 确认时读取当前高亮，避免键盘调整后仍加入上一次范围。
+	if _candidate.is_empty():
+		return
+	if not _read_quote_selection():
+		cancel_statement_selection(true)
+		return
+	var ref := _candidate.duplicate()
+	cancel_statement_selection(true)
+	review_field_requested.emit(ref)
+
+func locate_statement(start: int, end: int) -> void:
+	if _quote_body == null:
+		return
+	cancel_statement_selection()
+	var first := _quote_position(start)
+	var last := _quote_position(end)
+	_quote_body.set_caret_line(first.y)
+	_quote_body.set_caret_column(first.x)
+	_quote_body.select(first.y, first.x, last.y, last.x)
+	_quote_body.grab_focus()
+	_reveal_quote_line(first.y)
+
+func _quote_position(offset: int) -> Vector2i:
+	for line in _quote_body.get_line_count():
+		var length := _quote_body.get_line(line).length()
+		if offset <= length:
+			return Vector2i(offset, line)
+		offset -= length + 1
+	return Vector2i.ZERO
+
+func cancel_statement_drag() -> void:
+	if _selecting_quote:
+		_selecting_quote = false
+		_selection_generation += 1
+		_quote_body.deselect()
+
+func cancel_statement_selection(restore_focus: bool = false) -> bool:
+	if _quote_body == null:
+		return false
+	_selection_generation += 1
+	var had_selection := _selecting_quote or _quote_body.has_selection() or _quote_join.visible
+	_selecting_quote = false
+	_candidate.clear()
+	_quote_body.deselect()
+	if _quote_join.visible:
+		if restore_focus or _quote_join.has_focus():
+			_quote_body.grab_focus()
+		_quote_join.hide()
+		focus_layout_changed.emit()
+	return had_selection
 
 func _add_review_button(field_id: String, field: Dictionary) -> void:
 	var ref := document_ref.duplicate()

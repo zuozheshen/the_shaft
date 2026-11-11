@@ -94,6 +94,14 @@ powershell.exe -NoProfile -File .\tests\run_all_tests.ps1 -Check Existing -Group
 powershell.exe -NoProfile -File .\tests\runner_execution_tests.ps1
 ```
 
+## 三文件陈述拖选原型
+
+在 Godot 中运行 `res://tests/preview/statement_selection_preview.tscn`。
+维修申请已打开，当班任务单在「已调阅资料」，维修核验规程在「规程 / 样板」。
+在维修申请中拖选「001」后点「加入比对」，槽内会显示「001」和资料出处。
+说明文字和跨行片段也可加入。手柄用方向键选择段落，按 A 高亮，松开再按 A 加入。
+可点槽位旁的「定位原文」回到出处。专项使用 `-Check Existing -Group Presentation`。
+
 ## 音频退出回归
 
 `run_main_smoke.gd`在Autoload注册后读取project.godot当前配置入口并实例化，
