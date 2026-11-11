@@ -245,12 +245,14 @@ func request_open_door() -> void:
 		return
 
 	if result.has_effect(FlowCommandResultScript.DOOR_OPENED):
-		_request_door_open_presentation()
+		_request_door_open_presentation(
+			not result.has_effect(FlowCommandResultScript.DROPOFF_FEEDBACK_REQUESTED)
+		)
 	presentation_effects_requested.emit(result.get_effects())
 
 	if result.has_effect(FlowCommandResultScript.DROPOFF_FEEDBACK_REQUESTED) \
 			and session == demo_flow_manager.get_document_session_id():
-		# 保留原离舱效果，由门动画和表现联锁接管，不等待可选陈述。
+		# 反馈结束只通知协调器准备离舱，完成由乘客动作独立回执。
 		var finished := demo_flow_manager.request_finish_dropoff_feedback()
 		if finished.succeeded:
 			presentation_effects_requested.emit(finished.get_effects())
@@ -311,13 +313,14 @@ func _sync_door_presentation_to_business_state() -> void:
 		push_warning("ConsoleInterface: 双开门表现无法与业务门状态同步。")
 
 
-func _request_door_open_presentation() -> void:
+func _request_door_open_presentation(allow_snap: bool = true) -> void:
 	if not is_instance_valid(_monitor_stage_controller):
 		return
 	if _monitor_stage_controller.request_door_open_presentation():
 		return
 	push_warning("ConsoleInterface: 业务开门成功，但开门动画未能启动。")
-	_sync_door_presentation_to_business_state()
+	if allow_snap:
+		_sync_door_presentation_to_business_state()
 
 
 func _request_door_close_presentation() -> void:

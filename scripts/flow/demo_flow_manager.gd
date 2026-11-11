@@ -6,6 +6,7 @@ class_name DemoFlowManager
 signal case_updated
 signal elevator_movement_completed(arrived_floor: String)
 signal dispatch_started(dispatch_id: StringName)
+signal disembark_requested(action: Dictionary)
 signal passenger_event_pending
 signal passenger_event_changed
 
@@ -160,8 +161,10 @@ func _complete_active_dispatch_internal(
 	}
 	if not has_active_dispatch():
 		return completion
+	var active := dispatch_lifecycle.get_active_state()
 	if get_case_phase() != DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE \
-			or is_cabin_door_open():
+			or is_cabin_door_open() or is_elevator_moving() \
+			or active.passenger_inside or active.exited_floor_id == &"":
 		push_warning("DemoFlowManager: 当前阶段不允许完成派单。")
 		return completion
 
@@ -171,9 +174,20 @@ func _complete_active_dispatch_internal(
 	var result := DispatchResult.create(
 		dispatch_lifecycle.get_dispatch_id(),
 		dispatch.passenger_id,
-		StringName(get_selected_target_floor()),
+		active.exited_floor_id,
 		shift_runner.get_completed_count() + 1
 	)
+	result.requested_floor_id = active.requested_floor_id
+	result.travel_legs = active.travel_legs.duplicate(true)
+	# 逐次取得记录保留历史版本；只复制引用、来源及取得渠道。
+	var session := get_document_session_id()
+	for event: Dictionary in active.document_state.get_events(session):
+		for ref: Dictionary in event.document_refs:
+			var receipt := active.document_state.get_document(session, ref)
+			result.acquired_information.append({
+				"ref": ref, "source": receipt.document.source,
+				"route": receipt.route, "event_id": receipt.event_id,
+			})
 	shift_runner.record_completed_result(result)
 	dispatch_lifecycle.clear()
 	document_session_changed.emit(0)
@@ -414,7 +428,9 @@ func request_open_cabin_door() -> FlowCommandResultScript:
 		result_effects.append(FlowCommandResultScript.PASSENGER_BOARDED)
 		message = get_after_open_hint()
 	elif previous_phase == DispatchPhase.ARRIVED_AT_DESTINATION:
-		if not dispatch_lifecycle.begin_dropoff_feedback():
+		if get_current_floor() != get_selected_target_floor() \
+				or not _travel_interlock_clear() \
+				or not dispatch_lifecycle.begin_dropoff_feedback():
 			return FlowCommandResultScript.failure(
 				&"PHASE_TRANSITION_REJECTED",
 				"当前流程状态无法开始乘客反馈。",
@@ -437,7 +453,7 @@ func request_open_cabin_door() -> FlowCommandResultScript:
 	if FlowCommandResultScript.PASSENGER_BOARDED in result_effects:
 		_record_passenger_event(session, "passenger_boarded")
 	elif FlowCommandResultScript.DROPOFF_FEEDBACK_REQUESTED in result_effects:
-		_record_passenger_event(session, "destination_opened")
+		_record_passenger_event(session, "destination_opened", dispatch_lifecycle.get_active_state().travel_legs.size())
 	return FlowCommandResultScript.success(
 		&"DOOR_OPENED",
 		message,
@@ -461,9 +477,16 @@ func request_close_cabin_door() -> FlowCommandResultScript:
 	if previous_phase == DispatchPhase.DROPOFF_FEEDBACK:
 		return FlowCommandResultScript.failure(
 			&"DROPOFF_FEEDBACK_IN_PROGRESS",
-			"请等待乘客反馈结束后再关闭舱门。",
+			"请等待乘客离舱或安全返回舱内后再关闭舱门。",
 			previous_phase,
 			previous_phase
+		)
+	if previous_phase in [DispatchPhase.BOARDING_WAIT_DOOR_CLOSE,
+			DispatchPhase.ARRIVED_AT_DESTINATION, DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE] \
+			and not _travel_interlock_clear():
+		return FlowCommandResultScript.failure(
+			&"PRESENTATION_BUSY", "舱门或乘客动作尚未安全完成。",
+			previous_phase, previous_phase
 		)
 
 	var result_effects: Array[StringName] = [
@@ -643,6 +666,15 @@ func set_travel_busy_query(query: Callable) -> void:
 	_travel_busy_query = query
 
 
+func _travel_interlock_busy() -> Variant:
+	return _travel_busy_query.call() if _travel_busy_query.is_valid() else null
+
+
+func _travel_interlock_clear() -> bool:
+	var busy: Variant = _travel_interlock_busy()
+	return busy is bool and not busy
+
+
 func request_travel_to_floor(floor_id: String) -> FlowCommandResultScript:
 	var previous_phase: String = get_case_phase()
 	var normalized_floor_id: String = floor_id.strip_edges()
@@ -687,7 +719,7 @@ func request_travel_to_floor(floor_id: String) -> FlowCommandResultScript:
 			previous_phase, previous_phase, normalized_floor_id
 		)
 	# 正式场景未接线或协调器已失效时，无法确认安全，拒绝启动。
-	var busy: Variant = _travel_busy_query.call() if _travel_busy_query.is_valid() else null
+	var busy: Variant = _travel_interlock_busy()
 	if not busy is bool:
 		return FlowCommandResultScript.failure(
 			&"TRAVEL_INTERLOCK_UNAVAILABLE", "电梯安全联锁未就绪。",
@@ -700,29 +732,35 @@ func request_travel_to_floor(floor_id: String) -> FlowCommandResultScript:
 		)
 
 	var passenger_is_onboard: bool = is_passenger_onboard()
-	if passenger_is_onboard:
-		if not has_active_dispatch():
-			return FlowCommandResultScript.failure(
-				&"NO_ACTIVE_DISPATCH",
-				"当前没有可执行送达的派单。",
-				previous_phase,
-				previous_phase,
-				normalized_floor_id
-			)
-
-	var previous_selected_floor: String = get_selected_target_floor()
-	if passenger_is_onboard:
-		dispatch_lifecycle.set_selected_target_floor(normalized_floor_id)
-	if not elevator_runtime_state.request_movement(normalized_floor_id):
-		if passenger_is_onboard:
-			dispatch_lifecycle.set_selected_target_floor(previous_selected_floor)
+	if previous_phase in [DispatchPhase.DROPOFF_FEEDBACK,
+			DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE] or (passenger_is_onboard \
+			and previous_phase not in [DispatchPhase.PASSENGER_ONBOARD, DispatchPhase.ARRIVED_AT_DESTINATION]):
 		return FlowCommandResultScript.failure(
-			&"MOVEMENT_REJECTED",
-			"无法开始移动，请检查电梯状态。",
-			previous_phase,
-			get_case_phase(),
-			normalized_floor_id
+			&"TRAVEL_PHASE_BLOCKED", "当前乘客流程尚未允许发车。",
+			previous_phase, previous_phase, normalized_floor_id
 		)
+	var departure_floor := get_current_floor()
+	if passenger_is_onboard and previous_phase == DispatchPhase.ARRIVED_AT_DESTINATION \
+			and normalized_floor_id == departure_floor:
+		return FlowCommandResultScript.failure(
+			&"ALREADY_AT_FLOOR", "电梯已停靠在该楼层。",
+			previous_phase, previous_phase, normalized_floor_id
+		)
+	if not elevator_runtime_state.request_movement(normalized_floor_id):
+		return FlowCommandResultScript.failure(
+			&"MOVEMENT_REJECTED", "无法开始移动，请检查电梯状态。",
+			previous_phase, previous_phase, normalized_floor_id
+		)
+	if passenger_is_onboard:
+		# 发车成功后一次提交路线及阶段，更新通知不会看到上一站的到站状态。
+		var active := dispatch_lifecycle.get_active_state()
+		dispatch_lifecycle.set_selected_target_floor(normalized_floor_id)
+		active.travel_legs.append({
+			"from_floor_id": departure_floor, "target_floor_id": normalized_floor_id,
+			"arrived_floor_id": "",
+		})
+		if previous_phase == DispatchPhase.ARRIVED_AT_DESTINATION:
+			dispatch_lifecycle.try_set_phase(DispatchPhase.PASSENGER_ONBOARD)
 
 	ui_history_state.set_building_status_hint(
 		"电梯正在前往 %s 层。" % normalized_floor_id,
@@ -748,32 +786,56 @@ func request_travel_to_floor(floor_id: String) -> FlowCommandResultScript:
 
 
 func request_finish_dropoff_feedback() -> FlowCommandResultScript:
-	var previous_phase: String = get_case_phase()
-	if not dispatch_lifecycle.finish_dropoff_feedback():
+	var previous_phase := get_case_phase()
+	if not is_cabin_door_open() or not dispatch_lifecycle.finish_dropoff_feedback():
 		return FlowCommandResultScript.failure(
-			&"DROPOFF_FEEDBACK_NOT_ACTIVE",
-			"当前没有可结束的乘客反馈。",
-			previous_phase,
-			get_case_phase()
+			&"DROPOFF_FEEDBACK_NOT_ACTIVE", "当前没有可结束的乘客反馈。",
+			previous_phase, previous_phase
 		)
-	ui_history_state.set_building_status_hint(
-		"乘客已离舱。请关闭舱门完成本次派单。",
-		true,
-		"乘客已离舱，等待关门结算。"
-	)
-	left_terminal_section_updated.emit(LEFT_SECTION_SYSTEM_LOG)
-	var result_effects: Array[StringName] = [
-		FlowCommandResultScript.DROPOFF_FEEDBACK_FINISHED,
-	]
-	case_updated.emit()
+	var active := dispatch_lifecycle.get_active_state()
+	active.disembark_attempt += 1
+	active.pending_disembark = {
+		"session_id": get_document_session_id(),
+		"attempt": active.disembark_attempt,
+		"floor_id": get_current_floor(),
+	}
+	disembark_requested.emit(active.pending_disembark.duplicate())
 	return FlowCommandResultScript.success(
-		&"DROPOFF_FEEDBACK_FINISHED",
-		"乘客已离舱。请关闭舱门完成本次派单。",
-		previous_phase,
-		get_case_phase(),
-		get_current_floor(),
-		result_effects
+		&"DROPOFF_FEEDBACK_FINISHED", "乘客准备离舱。",
+		previous_phase, get_case_phase(), get_current_floor(),
+		[FlowCommandResultScript.DROPOFF_FEEDBACK_FINISHED]
 	)
+
+
+func resolve_disembark(action: Dictionary, completed: bool) -> bool:
+	var active := dispatch_lifecycle.get_active_state()
+	if active == null or action.is_empty() or action != active.pending_disembark \
+			or get_case_phase() != DispatchPhase.DROPOFF_FEEDBACK \
+			or get_current_floor() != action.floor_id or is_elevator_moving() \
+			or not is_cabin_door_open():
+		return false
+	# 先消费动作身份，再发通知。失败时保留在舱，等待安全恢复。
+	active.pending_disembark.clear()
+	if completed:
+		dispatch_lifecycle.confirm_passenger_exited(action.floor_id)
+		set_building_status_hint("乘客已离舱。请关闭舱门完成本次派单。", true)
+	else:
+		set_building_status_hint("离舱动作未完成，等待乘客恢复到舱内安全位置。", true)
+	return true
+
+
+func needs_disembark_recovery() -> bool:
+	var active := dispatch_lifecycle.get_active_state()
+	return active != null and get_case_phase() == DispatchPhase.DROPOFF_FEEDBACK \
+			and active.dropoff_feedback_finished and active.pending_disembark.is_empty()
+
+
+func confirm_disembark_recovery(session: int) -> void:
+	if _current_document_state(session) == null or not needs_disembark_recovery() \
+			or is_elevator_moving() or not is_cabin_door_open():
+		return
+	dispatch_lifecycle.restore_passenger_after_failed_exit()
+	set_building_status_hint("乘客已恢复到舱内。请关门后重试离舱或改送。", true)
 
 
 func get_current_floor() -> String:
@@ -799,15 +861,16 @@ func is_cabin_door_open() -> bool:
 func _on_elevator_movement_completed(arrived_floor: String) -> void:
 	var session := get_document_session_id()
 	# 到站后的派单含义仍由协调层判断，电梯模块只报告物理停靠结果。
-	if is_passenger_onboard() \
-			and not get_selected_target_floor().is_empty() \
-			and arrived_floor == get_selected_target_floor():
-		_try_transition_case_phase(DispatchPhase.ARRIVED_AT_DESTINATION)
-		set_building_status_hint(
-			"已抵达目标楼层。请开启舱门完成送达。",
-			true,
-			"已抵达目标楼层，等待开门送达。"
-		)
+	if is_passenger_onboard():
+		if get_case_phase() != DispatchPhase.PASSENGER_ONBOARD or arrived_floor != get_selected_target_floor():
+			return
+		var active := dispatch_lifecycle.get_active_state()
+		if active.travel_legs.is_empty() or not active.travel_legs.back().arrived_floor_id.is_empty():
+			return
+		active.travel_legs.back().arrived_floor_id = arrived_floor
+		dispatch_lifecycle.try_set_phase(DispatchPhase.ARRIVED_AT_DESTINATION)
+		set_building_status_hint("已抵达目标楼层。可开门送达或重新选择目的地。", true)
+		_record_passenger_event(session, "arrived_at_destination", active.travel_legs.size())
 	elif not is_passenger_onboard() and arrived_floor == get_pickup_floor():
 		var pickup_phase: String = DispatchPhase.DOOR_GREETING_DONE \
 				if is_door_greeting_done() else DispatchPhase.ARRIVED_AT_PICKUP
@@ -828,8 +891,6 @@ func _on_elevator_movement_completed(arrived_floor: String) -> void:
 		set_building_status_hint("已停靠于 %s 层，舱门保持关闭。" % arrived_floor)
 	if get_case_phase() == DispatchPhase.ARRIVED_AT_PICKUP:
 		_record_passenger_event(session, "arrived_at_pickup")
-	elif get_case_phase() == DispatchPhase.ARRIVED_AT_DESTINATION:
-		_record_passenger_event(session, "arrived_at_destination")
 	elevator_movement_completed.emit(arrived_floor)
 
 
@@ -1129,16 +1190,17 @@ func _document_command_result(result: Dictionary) -> FlowCommandResultScript:
 	return FlowCommandResultScript.failure(code, "该条款当前不适用。" if code == &"RULE_NOT_APPLICABLE" else "当前无法执行资料请求。")
 
 
-func _record_passenger_event(session: int, key: String) -> void:
+func _record_passenger_event(session: int, key: String, leg: int = 0) -> void:
+	var event_key := "%s:%d" % [key, leg] if leg > 0 else key
 	var state := _current_document_state(session)
-	if state == null or state.passenger_events.has(key):
+	if state == null or state.passenger_events.has(event_key):
 		return
 	var dispatch := get_active_dispatch()
 	var title: String = dispatch.dialogue_events.get(key, "")
 	if title.is_empty():
 		return
-	state.passenger_events[key] = {
-		"source_event_id": "%d:%s" % [session, key], "session": session,
+	state.passenger_events[event_key] = {
+		"source_event_id": "%d:%s" % [session, event_key], "session": session,
 		"key": key, "title": title, "resource_path": dispatch.dialogue_path,
 		"passenger_id": dispatch.passenger_id, "floor_id": get_current_floor(),
 		"occurred_at": Time.get_unix_time_from_system(), "status": "pending",

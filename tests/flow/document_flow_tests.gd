@@ -124,9 +124,23 @@ func run(t: Variant, tree: SceneTree) -> void:
 	manager.start_shift(TestContent.shift())
 	final_session = manager.get_document_session_id()
 	manager.receive_passenger_batch(final_session, &"complete", refs)
+	t.assert_true("结单 / 取得许可初版",
+		manager.receive_passenger_batch(final_session, &"complete-v1", [Fixture.ref("permit", 1)]).succeeded)
+	t.assert_true("结单 / 取得许可更新版",
+		manager.receive_passenger_batch(final_session, &"complete-v2", [Fixture.ref("permit", 2)]).succeeded)
+	var acquired: Array[Dictionary] = []
+	for event: Dictionary in manager.get_document_events(final_session):
+		for ref: Dictionary in event.document_refs:
+			var receipt := manager.get_acquired_document(final_session, ref)
+			acquired.append({"ref": ref, "source": receipt.document.source,
+				"route": receipt.route, "event_id": receipt.event_id})
 	var active: ActiveDispatchState = manager.dispatch_lifecycle.get_active_state()
 	active.current_phase = DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE
+	active.exited_floor_id = StringName(manager.get_current_floor())
 	manager.complete_active_dispatch()
+	var results := manager.shift_runner.get_completed_results()
+	t.assert_true("结单 / 资料会话清理后保留取得引用、版本和来源",
+		not results.is_empty() and acquired.size() == refs.size() + 2 and results[0].acquired_information == acquired)
 	t.assert_equal("会话 / 正常结单销毁旧资料会话", 0, active.document_state.session_id)
 	t.assert_true("会话 / 结单后旧事件拒绝", not manager.receive_passenger_batch(final_session, &"late_complete", refs).succeeded)
 	manager.queue_free()

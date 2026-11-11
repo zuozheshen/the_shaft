@@ -41,6 +41,11 @@ static func dispatch(index: int) -> DispatchDefinition:
 		item.floor_relations.append(relation)
 	return item
 
+# 无表现层的流程用例显式提交本次离舱回执。
+static func confirm_test_disembark(manager: DemoFlowManager) -> bool:
+	var action := manager.dispatch_lifecycle.get_active_state().pending_disembark.duplicate()
+	return manager.resolve_disembark(action, true)
+
 static func shift() -> ShiftDefinition:
 	var item := ShiftDefinition.new()
 	item.shift_id = &"TEST_SHIFT"

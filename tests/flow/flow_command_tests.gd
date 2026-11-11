@@ -14,6 +14,7 @@ func run(test_runner: Variant, tree: SceneTree) -> void:
 	await _test_validation_and_travel_commands(test_runner, tree)
 	await _test_registered_housing_floor(test_runner, tree)
 	await _test_dropoff_and_shift_completion_commands(test_runner, tree)
+	await _test_reroute_and_receipt_identity(test_runner, tree)
 	_test_ui_command_boundary(test_runner)
 
 
@@ -368,6 +369,9 @@ func _test_dropoff_and_shift_completion_commands(
 			FlowCommandResultScript.DROPOFF_FEEDBACK_FINISHED
 		)
 	)
+	test_runner.assert_true("结算命令 / 反馈结束仍在舱", manager.is_passenger_onboard())
+	test_runner.assert_false("结算命令 / 无离舱回执不能关门", manager.request_close_cabin_door().succeeded)
+	test_runner.assert_true("结算命令 / 显式离舱回执成功", TestContent.confirm_test_disembark(manager))
 	var completion_update_counter := {"count": 0}
 	manager.case_updated.connect(
 		func() -> void:
@@ -425,6 +429,7 @@ func _test_dropoff_and_shift_completion_commands(
 	await _travel_and_wait(manager, "742")
 	manager.request_open_cabin_door()
 	manager.request_finish_dropoff_feedback()
+	TestContent.confirm_test_disembark(manager)
 	var shift_signal_counter := {"count": 0}
 	manager.shift_completed.connect(
 		func() -> void:
@@ -464,6 +469,7 @@ func _test_dropoff_and_shift_completion_commands(
 	await _travel_and_wait(manager, "547")
 	manager.request_open_cabin_door()
 	manager.request_finish_dropoff_feedback()
+	TestContent.confirm_test_disembark(manager)
 	var final_completion_result = manager.request_close_cabin_door()
 	test_runner.assert_true(
 		"结算命令 / 最后一单关门不能误报失败",
@@ -496,6 +502,68 @@ func _test_dropoff_and_shift_completion_commands(
 		1,
 		int(shift_signal_counter["count"])
 	)
+	await _destroy_manager(manager, tree)
+
+
+func _test_reroute_and_receipt_identity(t: Variant, tree: SceneTree) -> void:
+	var manager := await _create_manager(tree)
+	await _board_at_pickup(manager, "612")
+	await _travel_and_wait(manager, "900")
+	var active := manager.dispatch_lifecycle.get_active_state()
+	t.assert_false("改送 / 同层不重复发车", manager.request_travel_to_floor("900").succeeded)
+	t.assert_false("改送 / 未知楼层拒绝", manager.request_travel_to_floor("999").succeeded)
+	t.assert_equal("改送 / 拒绝保留到站阶段", DispatchPhase.ARRIVED_AT_DESTINATION, manager.get_case_phase())
+	t.assert_equal("改送 / 拒绝保留旧行程", 1, active.travel_legs.size())
+	t.assert_equal("改送 / 拒绝保留目标", "900", manager.get_selected_target_floor())
+	var reroute := manager.request_travel_to_floor("742")
+	t.assert_true("改送 / 未调查也能发车", reroute.succeeded)
+	t.assert_equal("改送 / 发车时回到在舱阶段", DispatchPhase.PASSENGER_ONBOARD, manager.get_case_phase())
+	t.assert_equal("改送 / 成功启动第二段", 2, active.travel_legs.size())
+	if reroute.succeeded:
+		await manager.elevator_movement_completed
+	t.assert_equal("改送 / 第二站正常到站", DispatchPhase.ARRIVED_AT_DESTINATION, manager.get_case_phase())
+
+	manager.request_open_cabin_door()
+	manager.request_finish_dropoff_feedback()
+	var failed := active.pending_disembark.duplicate()
+	t.assert_true("回执 / 消费当前动作失败回执", manager.resolve_disembark(failed, false))
+	t.assert_true("回执 / 失败保持乘客在舱", manager.is_passenger_onboard())
+	t.assert_false("回执 / 未确认恢复时禁止关门", manager.request_close_cabin_door().succeeded)
+	manager.confirm_disembark_recovery(manager.get_document_session_id())
+	t.assert_true("回执 / 安全恢复后可关门", manager.request_close_cabin_door().succeeded)
+	t.assert_equal("回执 / 恢复关门不结单", 0, manager.shift_runner.get_completed_count())
+	manager.request_open_cabin_door()
+	manager.request_finish_dropoff_feedback()
+	t.assert_false("回执 / 同单重试拒绝上一次动作", manager.resolve_disembark(failed, true))
+	var current := active.pending_disembark.duplicate()
+	var wrong_floor := current.duplicate()
+	wrong_floor.floor_id = "900"
+	t.assert_false("回执 / 错误楼层不能结算", manager.resolve_disembark(wrong_floor, true))
+	t.assert_true("回执 / 当前动作确认离舱", manager.resolve_disembark(current, true))
+	t.assert_false("回执 / 重复完成不再次确认", manager.resolve_disembark(current, true))
+	t.assert_true("回执 / 离舱后关门结单", manager.request_close_cabin_door().succeeded)
+	var results := manager.shift_runner.get_completed_results()
+	if not results.is_empty():
+		var result := results[0]
+		t.assert_equal("结果 / 保留请求目的地", &"900", result.requested_floor_id)
+		t.assert_equal("结果 / 最终地点是实际离舱楼层", &"742", result.destination_floor_id)
+		t.assert_equal("结果 / 两段实际行程", [
+			{"from_floor_id": "612", "target_floor_id": "900", "arrived_floor_id": "900"},
+			{"from_floor_id": "900", "target_floor_id": "742", "arrived_floor_id": "742"},
+		], result.travel_legs)
+
+	manager.clear_active_dispatch()
+	manager.start_dispatch(&"TEST_CASE_001")
+	await _board_at_pickup(manager, "612")
+	await _travel_and_wait(manager, "742")
+	manager.request_open_cabin_door()
+	manager.request_finish_dropoff_feedback()
+	var reopened := manager.dispatch_lifecycle.get_active_state().pending_disembark.duplicate()
+	t.assert_equal("回执 / 同 ID 重开测试使用同层", failed.floor_id, reopened.floor_id)
+	t.assert_equal("回执 / 同 ID 重开测试使用同代次", failed.attempt, reopened.attempt)
+	t.assert_false("回执 / 同 ID 重开拒绝旧会话", manager.resolve_disembark(failed, true))
+	t.assert_true("回执 / 旧会话无法清除新单在舱状态", manager.is_passenger_onboard())
+	t.assert_true("回执 / 新单自己的回执仍可完成", manager.resolve_disembark(reopened, true))
 	await _destroy_manager(manager, tree)
 
 

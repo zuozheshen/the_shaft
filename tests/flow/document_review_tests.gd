@@ -119,8 +119,19 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_true("审查 / 对照无需质疑即可发车", travel.succeeded)
 	if travel.succeeded:
 		await manager.elevator_movement_completed
-		t.assert_true("审查 / 对照可完成运输", manager.request_open_cabin_door().succeeded \
-			and manager.request_finish_dropoff_feedback().succeeded and manager.request_close_cabin_door().succeeded)
+		var stage := main.find_child("监控测试摄影棚", true, false) as MonitorStageController3D
+		# 直调登舱命令的对照测试在此接回真实乘客表现。
+		stage.snap_passenger_cabin()
+		console.request_open_door()
+		var player := stage.get_door_visual().get_animation_player()
+		if player.is_playing():
+			player.advance(2.0)
+		var deadline := Time.get_ticks_msec() + 2500
+		while manager.get_case_phase() == DispatchPhase.DROPOFF_FEEDBACK \
+				and Time.get_ticks_msec() < deadline:
+			await tree.process_frame
+		console.request_close_door()
+		t.assert_false("审查 / 对照可完成运输", manager.has_active_dispatch())
 	main.queue_free()
 	await tree.process_frame
 	ContentRegistry.set("_dispatches_by_id", previous)

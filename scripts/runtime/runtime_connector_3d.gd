@@ -172,4 +172,8 @@ func _query_travel_busy() -> Variant:
 		return null
 	if not _monitor_presentation_coordinator.is_inside_tree() or not _monitor_stage_controller.is_inside_tree():
 		return null
-	return _monitor_presentation_coordinator.is_presentation_busy()
+	var door := _monitor_stage_controller.get_door_visual()
+	if not is_instance_valid(door) or not door.is_inside_tree() or not door.is_ready_for_commands():
+		return null
+	return _monitor_presentation_coordinator.is_presentation_busy() \
+			or (not _demo_flow_manager.is_cabin_door_open() and not door.is_closed())

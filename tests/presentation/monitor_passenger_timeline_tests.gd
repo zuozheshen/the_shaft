@@ -276,11 +276,11 @@ func _test_coordinator_complete_shift(
 	destination.set_demo_flow_manager(manager)
 	coordinator.setup(manager, console, destination, stage)
 	manager.set_travel_busy_query(coordinator.is_presentation_busy)
-	# 每次真实到站都检查业务/视觉一致，覆盖三单接乘与送达。
+	# 重接线后协调器的监听顺序会改变。等本次到站信号处理完再检查画面。
 	manager.elevator_movement_completed.connect(func(arrived_floor: String) -> void:
 		test_runner.assert_equal("三单流程 / 到站楼层视觉 " + arrived_floor,
 				StringName(arrived_floor), stage.get_current_floor_visual_id())
-	)
+	, CONNECT_DEFERRED)
 	console.set_monitor_presentation_coordinator(coordinator)
 	destination.set_monitor_presentation_coordinator(coordinator)
 
@@ -399,6 +399,12 @@ func _test_coordinator_complete_shift(
 	)
 
 	await _travel_with_destination(destination, manager, "900")
+	# 到站后先改送到另一站，再回到下一单的接乘楼层。
+	await _travel_with_destination(destination, manager, "742")
+	test_runner.assert_equal("表现协调器 / 改送后实际停靠第二站", "742", manager.get_current_floor())
+	test_runner.assert_equal("表现协调器 / 改送后重新进入到站阶段",
+		DispatchPhase.ARRIVED_AT_DESTINATION, manager.get_case_phase())
+	await _travel_with_destination(destination, manager, "900")
 	test_runner.assert_true(
 		"表现协调器 / MOVEMENT_STARTED 保持 CABIN 乘客",
 		stage.get_passenger_presentation_state()
@@ -426,11 +432,37 @@ func _test_coordinator_complete_shift(
 				and not coordinator.is_presentation_busy()
 	)
 
-	var finish := manager.request_finish_dropoff_feedback()
-	console.presentation_effects_requested.emit(finish.get_effects())
+	var exit_anchor := stage._outside_exit_anchor
+	stage._outside_exit_anchor = null
+	manager.request_finish_dropoff_feedback()
+	test_runner.assert_true("离舱恢复 / 缺少离场锚点时恢复到舱内",
+		manager.get_case_phase() == DispatchPhase.ARRIVED_AT_DESTINATION
+		and manager.is_passenger_onboard()
+		and stage.get_passenger_presentation_state() == MonitorStageController3D.PassengerPresentationState.CABIN)
+	console.request_close_door()
+	_advance_door_animation(stage)
+	test_runner.assert_equal("离舱恢复 / 恢复关门没有结单", 0, manager.shift_runner.get_completed_count())
+
+	stage._outside_exit_anchor = exit_anchor
+	console.request_open_door()
+	_advance_door_animation(stage)
+	var cabin_anchor := stage._cabin_position_anchor
+	stage._cabin_position_anchor = null
+	stage.cancel_passenger_movement()
+	test_runner.assert_true("离舱恢复 / 取消且舱内锚点缺失时继续阻止关门",
+		manager.needs_disembark_recovery() and not manager.request_close_cabin_door().succeeded)
+	stage._cabin_position_anchor = cabin_anchor
+	coordinator.setup(manager, console, destination, stage)
+	test_runner.assert_equal("离舱恢复 / 修复锚点并重接线后可重试",
+		DispatchPhase.ARRIVED_AT_DESTINATION, manager.get_case_phase())
+	console.request_close_door()
+	_advance_door_animation(stage)
+	console.request_open_door()
+	_advance_door_animation(stage)
 	test_runner.assert_true(
 		"表现协调器 / DROPOFF_FEEDBACK_FINISHED 触发离舱",
-		manager.get_case_phase() == DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE
+		manager.get_case_phase() == DispatchPhase.DROPOFF_FEEDBACK
+				and manager.is_passenger_onboard()
 				and stage.get_passenger_presentation_state()
 						== MonitorStageController3D \
 								.PassengerPresentationState.DISEMBARKING
@@ -450,6 +482,8 @@ func _test_coordinator_complete_shift(
 				== MonitorStageController3D.PassengerPresentationState.EXITED
 				and not passenger.visible
 				and not coordinator.is_presentation_busy()
+				and not manager.is_passenger_onboard()
+				and manager.get_case_phase() == DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE
 	)
 
 	console.request_close_door()
@@ -614,8 +648,8 @@ func _complete_current_dispatch(
 	)
 	console.request_open_door()
 	_advance_door_animation(stage)
-	test_runner.assert_equal("完整表现流程 / 开门后无需对白即可完成反馈",
-		DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE, manager.get_case_phase())
+	test_runner.assert_equal("完整表现流程 / 开门后等待实际离舱",
+		DispatchPhase.DROPOFF_FEEDBACK, manager.get_case_phase())
 	await _wait_for_short_tween(tree)
 	test_runner.assert_equal(
 		"完整表现流程 / destination 完成后离场",

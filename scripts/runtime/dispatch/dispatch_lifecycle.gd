@@ -163,8 +163,23 @@ func finish_dropoff_feedback() -> bool:
 			or _active_dispatch.dropoff_feedback_finished:
 		return false
 	_active_dispatch.dropoff_feedback_finished = true
+	return true
+
+
+func confirm_passenger_exited(floor_id: String) -> bool:
+	if not try_set_phase(DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE):
+		return false
 	_active_dispatch.passenger_inside = false
-	return try_set_phase(DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE)
+	_active_dispatch.exited_floor_id = StringName(floor_id)
+	return true
+
+
+func restore_passenger_after_failed_exit() -> bool:
+	if not try_set_phase(DispatchPhase.ARRIVED_AT_DESTINATION):
+		return false
+	_active_dispatch.arrival_triggered = false
+	_active_dispatch.dropoff_feedback_finished = false
+	return true
 
 
 func is_dropoff_feedback_finished() -> bool:

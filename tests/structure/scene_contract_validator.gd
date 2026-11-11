@@ -100,7 +100,7 @@ const METHODS := {
 }
 const SIGNALS := {
 	"VerificationTerminal3D": ["input_capture_changed"],
-	"DemoFlowManager": ["case_updated", "dispatch_started", "dispatch_completed", "shift_completed", "elevator_movement_completed", "left_terminal_section_updated", "left_terminal_session_reset"],
+	"DemoFlowManager": ["case_updated", "dispatch_started", "disembark_requested", "dispatch_completed", "shift_completed", "elevator_movement_completed", "left_terminal_section_updated", "left_terminal_session_reset"],
 	"CabinViewController3D": ["turn_started", "facing_changed"],
 	"CabinInterfaceRouter3D": ["main_console_visibility_changed"],
 	"ConsoleInterface": ["camera_selected", "case_phase_display_changed", "presentation_effects_requested", "excerpt_button_pressed"],

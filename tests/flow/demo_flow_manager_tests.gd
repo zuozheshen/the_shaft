@@ -294,6 +294,7 @@ func _complete_dispatch(
 		return false
 	if not manager.request_open_cabin_door().succeeded:
 		return false
-	if not manager.request_finish_dropoff_feedback().succeeded:
+	if not manager.request_finish_dropoff_feedback().succeeded \
+			or not TestContent.confirm_test_disembark(manager):
 		return false
 	return manager.request_close_cabin_door().succeeded

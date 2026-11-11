@@ -8,6 +8,13 @@ var current_phase: String = DispatchPhase.WAITING_FOR_PICKUP
 
 var validated_floor_id: StringName = &""
 var selected_target_floor_id: StringName = &""
+var requested_floor_id: StringName = &""
+var travel_legs: Array[Dictionary] = []
+var exited_floor_id: StringName = &""
+
+# 代次在同一会话内递增；清理或换单后旧回执无法匹配。
+var disembark_attempt: int = 0
+var pending_disembark: Dictionary = {}
 
 var passenger_inside: bool = false
 var arrival_triggered: bool = false
@@ -27,6 +34,7 @@ static func create_from_definition(dispatch: DispatchDefinition) -> ActiveDispat
 		return state
 
 	state.dispatch_id = dispatch.dispatch_id
+	state.requested_floor_id = dispatch.default_destination_floor_id
 	for relation: DispatchFloorRelation in dispatch.floor_relations:
 		if relation == null:
 			continue
