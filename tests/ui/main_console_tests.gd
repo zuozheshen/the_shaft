@@ -47,6 +47,9 @@ func run(t: Variant, tree: SceneTree) -> void:
 			and status_viewport.find_children("*", "Camera3D", true, false).is_empty())
 	t.assert_equal("主台 / CASE 独立纹理进入实际屏面", status_viewport.get_texture(),
 			(status_screen.material_override as StandardMaterial3D).albedo_texture)
+	t.assert_equal("主台 / CASE 发光仍采样状态视口",
+			status_viewport.get_texture(),
+			(status_screen.material_override as StandardMaterial3D).emission_texture)
 	var status_size := (status_screen.mesh as QuadMesh).size
 	t.assert_true("主台 / CASE 保持字形比例", is_equal_approx(status_size.x / status_size.y, 8.0))
 	t.assert_equal("主台 / 监控只有原摄像机", 1, viewport.find_children("*", "Camera3D", true, false).size())

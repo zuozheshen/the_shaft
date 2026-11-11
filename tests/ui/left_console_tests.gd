@@ -26,6 +26,16 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var interaction := cabin.get_node("交互控制器") as CabinInteractionController3D
 	var left := cabin.get_node("操作台占位/左操作台定位") as LeftTerminalScreen3D
 	var control_root := left.get_node("栏目控制区") as Node3D
+	var screen := left.get_node(left.screen_mesh_path) as ScreenSurface3D
+	var viewport := left.get_node(left.sub_viewport_path) as SubViewport
+	var profile := preload("res://assets/art/materials/left_archive_crt.tres")
+	var material := screen.material_override as ShaderMaterial
+
+	t.assert_equal("左台 / 实际档案视口保持 1152x648", Vector2i(1152, 648), viewport.size)
+	t.assert_equal("左台 / 当前场景的档案视口进入实体屏面", viewport.get_texture(),
+			material.get_shader_parameter(&"feed_texture"))
+	t.assert_true("左台 / 实例材质不把视口纹理写入共享 Profile", material != profile
+			and profile.get_shader_parameter(&"feed_texture") == null)
 
 	t.assert_equal("左台 / 唯一 BuildingTerminalInterface", 1,
 			main.find_children("BuildingTerminalInterface", "", true, false).size())

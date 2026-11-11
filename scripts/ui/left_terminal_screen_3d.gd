@@ -19,8 +19,6 @@ extends Node3D
 @onready var _scroll_audio_player := get_node_or_null(^"滚轮卡点音效") as AudioStreamPlayer
 
 var _workspace_input_blocked: bool = false
-var _screen_mesh: MeshInstance3D
-var _sub_viewport: SubViewport
 var _terminal: BuildingTerminalInterface
 var _player_camera: Camera3D
 var _view_controller: CabinViewController3D
@@ -31,8 +29,8 @@ var _scroll_wheel_visual: Node3D
 
 
 func _ready() -> void:
-	_screen_mesh = _get_required_node(screen_mesh_path, "MeshInstance3D") as MeshInstance3D
-	_sub_viewport = _get_required_node(sub_viewport_path, "SubViewport") as SubViewport
+	var screen := _get_required_node(screen_mesh_path, "MeshInstance3D") as ScreenSurface3D
+	var viewport := _get_required_node(sub_viewport_path, "SubViewport") as SubViewport
 	_terminal = _get_required_node(terminal_interface_path, "Control") as BuildingTerminalInterface
 	_player_camera = _get_required_node(player_camera_path, "Camera3D") as Camera3D
 	_view_controller = _get_required_node(view_controller_path, "Node3D") \
@@ -47,10 +45,8 @@ func _ready() -> void:
 	]
 	_retrieval_light = _get_required_node(retrieval_available_light_path, "Node3D") as Node3D
 	_scroll_wheel_visual = _get_required_node(scroll_wheel_visual_path, "Node3D") as Node3D
-	if _screen_mesh == null or not _screen_mesh.mesh is QuadMesh:
-		push_error("左台屏幕必须使用 QuadMesh 承载唯一 BuildingTerminalInterface。")
-	else:
-		_configure_screen_material()
+	if screen == null or not screen.bind_viewport(viewport):
+		push_error("左台屏幕需要带显示材质的 Quad 屏面和档案视口。")
 	if _view_controller == null:
 		push_error("左台屏幕控制器没有连接 CabinViewController3D。")
 	else:
@@ -86,21 +82,6 @@ func rotate_scroll_wheel(direction: int) -> void:
 func play_section_switch_sound() -> void:
 	if is_instance_valid(_section_audio_player):
 		_section_audio_player.play()
-
-
-func _configure_screen_material() -> void:
-	if _screen_mesh == null or _sub_viewport == null:
-		return
-	# 沿用主台的显示表面；只给档案视口轻微曲面与扫描线，不改变正文和滚动。
-	var screen_material := ShaderMaterial.new()
-	screen_material.resource_local_to_scene = true
-	screen_material.shader = preload("res://assets/art/shaders/main_console_crt.gdshader")
-	screen_material.set_shader_parameter("feed_texture", _sub_viewport.get_texture())
-	screen_material.set_shader_parameter("curvature", 0.006)
-	screen_material.set_shader_parameter("scanline_strength", 0.025)
-	screen_material.set_shader_parameter("vignette_strength", 0.04)
-	screen_material.set_shader_parameter("brightness", 1.0)
-	_screen_mesh.material_override = screen_material
 
 
 func set_workspace_input_blocked(blocked: bool) -> void:

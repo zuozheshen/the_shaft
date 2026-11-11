@@ -51,6 +51,8 @@
 [ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_status.tres" id="64_nameplate_status"]
 [ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_tx.tres" id="64_nameplate_tx"]
 [ext_resource type="Material" path="res://assets/art/materials/main_console_v2/crt_screen.tres" id="65_crt"]
+[ext_resource type="Script" path="res://scripts/presentation/screen_surface_3d.gd" id="65_screen_surface"]
+[ext_resource type="Material" path="res://assets/art/materials/left_archive_crt.tres" id="69_left_crt"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/cabin_assembly_v3_visual.tscn" id="66_assembly"]
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/ceiling.tres" id="66_ceiling"]
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/floor.tres" id="66_floor"]
@@ -794,6 +796,7 @@ outline_size = 0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.69087, -1.529)
 material_override = ExtResource("65_crt")
 mesh = SubResource("52_screen_quad")
+script = ExtResource("65_screen_surface")
 
 [node name="设备状态条" type="Node3D" parent="操作台占位/主操作台定位" unique_id=13673703]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.23, -1.51)
@@ -807,6 +810,7 @@ mesh = SubResource("52_status_box")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.019)
 material_override = SubResource("65_status_screen")
 mesh = SubResource("65_status_quad")
+script = ExtResource("65_screen_surface")
 
 [node name="状态视口" type="SubViewport" parent="操作台占位/主操作台定位/设备状态条" unique_id=1001332027]
 disable_3d = true
@@ -879,7 +883,9 @@ max_polyphony = 8
 
 [node name="左台屏幕" type="MeshInstance3D" parent="操作台占位/左操作台定位" unique_id=1873020594]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.542941, 1.65, 0)
+material_override = ExtResource("69_left_crt")
 mesh = SubResource("QuadMesh_1esiv")
+script = ExtResource("65_screen_surface")
 
 [node name="左台界面视口" type="SubViewport" parent="操作台占位/左操作台定位" unique_id=1860998438]
 disable_3d = true

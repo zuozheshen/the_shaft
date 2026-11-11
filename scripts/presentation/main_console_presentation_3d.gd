@@ -61,7 +61,7 @@ func _bind_presentation() -> void:
 	_console = get_node_or_null(console_interface_path) as ConsoleInterface
 	_stage = get_node_or_null(stage_controller_path) as MonitorStageController3D
 	var viewport := get_node_or_null(monitor_subviewport_path) as SubViewport
-	var screen := get_node_or_null(screen_mesh_path) as MeshInstance3D
+	var screen := get_node_or_null(screen_mesh_path) as ScreenSurface3D
 	_dialogue = get_node_or_null(dialogue_overlay_path) as MonitorDialoguePresentation3D
 	_cam_01 = get_node_or_null(cam_01_backlight_path) as Node3D
 	_cam_02 = get_node_or_null(cam_02_backlight_path) as Node3D
@@ -70,7 +70,7 @@ func _bind_presentation() -> void:
 	_fault = get_node_or_null(fault_light_path) as Node3D
 	_status = get_node_or_null(status_label_path) as Label
 	var status_viewport := get_node_or_null(status_subviewport_path) as SubViewport
-	var status_screen := get_node_or_null(status_mesh_path) as MeshInstance3D
+	var status_screen := get_node_or_null(status_mesh_path) as ScreenSurface3D
 	_cam_01_button = _get_button_visual(cam_01_button_visual_path)
 	_cam_02_button = _get_button_visual(cam_02_button_visual_path)
 	_excerpt_button = _get_button_visual(excerpt_button_visual_path)
@@ -84,28 +84,19 @@ func _bind_presentation() -> void:
 			or status_viewport == null or status_screen == null:
 		push_error("主台展示缺少关键导出路径或节点类型错误。")
 		return
-	var status_source_material := status_screen.material_override as StandardMaterial3D
-	if status_source_material == null or not status_viewport.disable_3d \
-			or not status_viewport.is_ancestor_of(_status):
+	if not status_viewport.disable_3d or not status_viewport.is_ancestor_of(_status) \
+			or not status_screen.material_override is StandardMaterial3D:
 		push_error("CASE 展示需要纯 2D 视口、其内部 Label 和独立屏面材质。")
 		return
-	var source_material := screen.material_override as ShaderMaterial
-	if source_material == null or source_material.shader == null or door_closed_material == null \
-			or door_moving_material == null or door_open_material == null:
-		push_error("主台展示缺少 CRT ShaderMaterial 或门灯 StandardMaterial3D。")
+	if door_closed_material == null or door_moving_material == null or door_open_material == null:
+		push_error("主台展示缺少门灯 StandardMaterial3D。")
 		return
-	# 复制原材质只隔离纹理写入，不覆盖用户调整的基础参数和 Mesh。
-	var material := source_material.duplicate() as ShaderMaterial
-	material.set_shader_parameter("feed_texture", viewport.get_texture())
-	if _dialogue != null:
-		material.set_shader_parameter("dialogue_texture", _dialogue.get_texture())
-	screen.material_override = material
-	# CASE 只渲染原派单展示文本；复制材质隔离写入，不改变屏面几何。
-	var status_material := status_source_material.duplicate() as StandardMaterial3D
-	status_material.albedo_texture = status_viewport.get_texture()
-	# 发光也采样同一视口，只增强状态文字，保留深底。
-	status_material.emission_texture = status_viewport.get_texture()
-	status_screen.material_override = status_material
+	if not screen.material_override is ShaderMaterial or not screen.bind_viewport(viewport, _dialogue):
+		push_error("主台监控需要带 CRT 材质的 Quad 屏面。")
+		return
+	if not status_screen.bind_viewport(status_viewport):
+		push_error("CASE 视口无法绑定到状态屏面。")
+		return
 	_console.camera_selected.connect(_on_camera_selected)
 	# 单独监听实际选择信号，初始化灯态不会播放按压。
 	_console.camera_selected.connect(_on_camera_button_selected)
