@@ -18,6 +18,7 @@ const EMPTY_SYSTEM_LOG_CONTENT: String = "暂无系统通信记录。"
 @export_range(24, 240, 8) var scroll_step: int = 96
 
 @onready var title_label: Label = $TerminalLayout/TitleLabel
+@onready var _section_rule: HSeparator = $TerminalLayout/SectionRule
 @onready var content_scroll_container: ScrollContainer = $TerminalLayout/ContentScrollContainer
 @onready var _reading: VBoxContainer = $TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/Reading
 @onready var document_heading: Label = _reading.get_node("DocumentHeading")
@@ -262,17 +263,18 @@ func _restore_scroll_after_layout() -> void:
 
 
 func _apply_terminal_theme() -> void:
-	theme = STYLE.make_theme(26)
-	title_label.add_theme_font_size_override("font_size", 34)
-	document_heading.add_theme_font_size_override("font_size", 31)
-	record_meta.add_theme_font_size_override("font_size", 21)
+	theme = STYLE.make_theme(23)
+	title_label.add_theme_font_size_override("font_size", 23)
+	document_heading.add_theme_font_size_override("font_size", 27)
+	record_meta.add_theme_font_size_override("font_size", 19)
 	record_meta.add_theme_color_override("font_color", STYLE.MUTED)
-	terminal_hint_label.add_theme_font_size_override("font_size", 22)
+	terminal_hint_label.add_theme_font_size_override("font_size", 20)
 	terminal_hint_label.add_theme_color_override("font_color", STYLE.AMBER)
 
 
 func _render_record() -> void:
-	title_label.text = "乘客档案"
+	title_label.hide()
+	_section_rule.hide()
 	_log_rows.hide()
 	_clear_rows(_record_fields)
 	terminal_hint_label.hide()
@@ -305,7 +307,8 @@ func _render_record() -> void:
 
 
 func _render_system_log() -> void:
-	title_label.text = "系统日志"
+	title_label.show()
+	_section_rule.show()
 	document_heading.hide()
 	record_meta.hide()
 	terminal_hint_label.hide()

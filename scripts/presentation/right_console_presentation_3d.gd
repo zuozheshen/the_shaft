@@ -1,6 +1,12 @@
 class_name RightConsolePresentation3D
 extends Node
 
+const SUMMARY_ROWS := {
+	"current_function": ^"功能行",
+	"current_area": ^"区域行",
+	"administrative_access_conditions": ^"访问行",
+}
+
 
 # 外形、位置和角度都留在场景；本脚本只把旧右台状态映射到实体显示。
 @export var destination_interface_path: NodePath
@@ -29,6 +35,9 @@ var _information_label: Label
 var _current_floor_label: Label
 var _execution_target_label: Label
 var _source_label: Label
+var _query_caption: Label
+var _stop_badge: PanelContainer
+var _summary_rows: Dictionary[String, HBoxContainer] = {}
 var _input_label: Label
 var _feedback_label: Label
 var _lever_pivot: Node3D
@@ -57,6 +66,11 @@ func _bind_presentation() -> void:
 			or _lever_pivot == null:
 		push_error("右台实体展示缺少关键导出路径或节点类型错误。")
 		return
+	var summary := _information_label.get_parent()
+	_query_caption = summary.get_node("查询标题") as Label
+	_stop_badge = summary.get_node("停靠标记") as PanelContainer
+	for key: String in SUMMARY_ROWS:
+		_summary_rows[key] = summary.get_node(SUMMARY_ROWS[key]) as HBoxContainer
 	_lever_rest_rotation = _lever_pivot.rotation
 	_lever_hotspot = _lever_pivot.get_parent() as InteractionHotspot3D
 	if not _destination.destination_presentation_changed.is_connected(
@@ -146,23 +160,27 @@ func _on_destination_presentation_changed(snapshot: Dictionary) -> void:
 	if _feedback_label.text.is_empty() and snapshot.current_floor != "---":
 		# 现有快照只在实际行驶时提供执行目标。
 		_feedback_label.text = "运行中" if snapshot.execution_target != "---" else "已停靠"
+	var found: bool = snapshot.query_status == "found"
+	_query_caption.visible = found
+	_stop_badge.visible = found
+	_information_label.position.x = 86.0 if found else 26.0
+	_information_label.add_theme_font_size_override("font_size", 34 if found else 27)
 	_source_label.text = ""
+	for key: String in _summary_rows:
+		var row := _summary_rows[key]
+		var value: String = snapshot[key]
+		row.visible = found and value not in ["", "—", "未知", "未登记", "未记录"]
+		(row.get_node("值") as Label).text = value.replace("\r", " ").replace("\n", " ")
 	match String(snapshot.query_status):
 		"found":
-			var lines := PackedStringArray(["%s   ·   %s" % [snapshot.query_floor, snapshot.elevator_stop]])
-			var facilities := PackedStringArray()
-			if _has_summary_value(snapshot.current_function):
-				facilities.append("功能 %s" % _short_text(snapshot.current_function, 14))
-			if _has_summary_value(snapshot.current_area):
-				facilities.append("区域 %s" % _short_text(snapshot.current_area, 14))
-			if not facilities.is_empty():
-				lines.append("   ｜   ".join(facilities))
-			if _has_summary_value(snapshot.administrative_access_conditions):
-				lines.append("行政访问 %s" % _short_text(snapshot.administrative_access_conditions, 28))
-			_information_label.text = "\n".join(lines)
-			var origin := ("%s %s" % [snapshot.source, snapshot.source_version]).strip_edges()
+			_information_label.text = snapshot.query_floor
+			(_stop_badge.get_node("值") as Label).text = snapshot.elevator_stop
+			var origin := str(snapshot.source).strip_edges()
+			var version: String = snapshot.source_version
+			if not version.is_empty():
+				origin += " v" + version
 			var updated: String = snapshot.updated_at
-			_source_label.text = "   ·   ".join(PackedStringArray([origin, updated])) \
+			_source_label.text = " · ".join(PackedStringArray([origin, updated])) \
 					if not origin.is_empty() and not updated.is_empty() else origin + updated
 		"prefix":
 			_information_label.text = "输入中"
@@ -172,14 +190,3 @@ func _on_destination_presentation_changed(snapshot: Dictionary) -> void:
 			_information_label.text = "档案配置需核对"
 		_:
 			_information_label.text = "未查询"
-
-
-func _has_summary_value(value: String) -> bool:
-	return value not in ["", "—", "未知", "未登记", "未记录"]
-
-
-
-## 右台只展示短摘要，原始字段和完整来源保留在 W。
-func _short_text(value: String, limit: int = 24) -> String:
-	var line := value.replace("\r", " ").replace("\n", " ")
-	return line.left(limit - 1) + "…" if line.length() > limit else line

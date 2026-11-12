@@ -52,7 +52,6 @@
 [ext_resource type="ArrayMesh" path="res://assets/art/materials/main_console_v2/nameplate_tx.tres" id="64_nameplate_tx"]
 [ext_resource type="Material" path="res://assets/art/materials/main_console_v2/crt_screen.tres" id="65_crt"]
 [ext_resource type="Script" path="res://scripts/presentation/screen_surface_3d.gd" id="65_screen_surface"]
-[ext_resource type="Material" path="res://assets/art/materials/left_archive_crt.tres" id="69_left_crt"]
 [ext_resource type="PackedScene" path="res://scenes/visuals/cabin_assembly_v3_visual.tscn" id="66_assembly"]
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/ceiling.tres" id="66_ceiling"]
 [ext_resource type="Material" path="res://assets/art/materials/elevator_cabin_v3/floor.tres" id="66_floor"]
@@ -258,9 +257,16 @@ outer_radius = 0.078
 rings = 24
 ring_segments = 6
 
-[sub_resource type="StandardMaterial3D" id="RightDisplayMaterial"]
+[sub_resource type="StandardMaterial3D" id="TerminalDisplayMaterial"]
 shading_mode = 0
 texture_filter = 1
+
+[sub_resource type="StyleBoxFlat" id="RightStopBadge"]
+bg_color = Color(0.655, 0.455, 0.235, 1)
+content_margin_left = 10.0
+content_margin_top = 2.0
+content_margin_right = 10.0
+content_margin_bottom = 2.0
 
 [sub_resource type="QuadMesh" id="RightInformationQuad"]
 size = Vector2(1.874405, 0.63)
@@ -903,7 +909,7 @@ max_polyphony = 8
 
 [node name="左台屏幕" type="MeshInstance3D" parent="操作台占位/左操作台定位" unique_id=1873020594]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -1.542941, 1.65, 0)
-material_override = ExtResource("69_left_crt")
+material_override = SubResource("TerminalDisplayMaterial")
 mesh = SubResource("QuadMesh_1esiv")
 script = ExtResource("65_screen_surface")
 
@@ -1095,7 +1101,7 @@ transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0.776, 0.76, 0)
 [node name="屏面" type="MeshInstance3D" parent="操作台占位/右操作台定位/验证信息屏" unique_id=1629878233]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.4245, 2.086667, 0)
 cast_shadow = 0
-material_override = SubResource("RightDisplayMaterial")
+material_override = SubResource("TerminalDisplayMaterial")
 mesh = SubResource("RightInformationQuad")
 script = ExtResource("65_screen_surface")
 
@@ -1177,26 +1183,126 @@ theme_override_fonts/font = SubResource("71_terminal_font")
 theme_override_font_sizes/font_size = 56
 text = "—"
 
-[node name="信息文字" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口" unique_id=543401517]
+[node name="查询标题" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
 offset_left = 26.0
+offset_top = 114.0
+offset_right = 85.0
+offset_bottom = 151.0
+vertical_alignment = 1
+text = "查询"
+theme_override_colors/font_color = Color(0.737, 0.616, 0.467, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 23
+
+[node name="信息文字" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口" unique_id=543401517]
+offset_left = 86.0
 offset_top = 110.0
+offset_right = 670.0
+offset_bottom = 154.0
+vertical_alignment = 1
+text = "未查询"
+theme_override_colors/font_color = Color(0.99, 0.87, 0.62, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 34
+
+[node name="停靠标记" type="PanelContainer" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_left = 790.0
+offset_top = 116.0
 offset_right = 934.0
-offset_bottom = 245.0
+offset_bottom = 151.0
+theme_override_styles/panel = SubResource("RightStopBadge")
+
+[node name="值" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口/停靠标记"]
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.208, 0.153, 0.114, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 22
+
+[node name="功能行" type="HBoxContainer" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_left = 26.0
+offset_top = 164.0
+offset_right = 466.0
+offset_bottom = 197.0
+theme_override_constants/separation = 12
+
+[node name="标题" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口/功能行"]
+layout_mode = 2
+text = "功能"
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.737, 0.616, 0.467, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 22
+
+[node name="值" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口/功能行"]
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+vertical_alignment = 1
 theme_override_colors/font_color = Color(0.882, 0.729, 0.49, 1)
 theme_override_fonts/font = SubResource("71_terminal_font")
-theme_override_font_sizes/font_size = 27
-theme_override_constants/line_spacing = -1
-text = "未查询"
+theme_override_font_sizes/font_size = 26
+
+[node name="区域行" type="HBoxContainer" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_left = 505.0
+offset_top = 164.0
+offset_right = 934.0
+offset_bottom = 197.0
+theme_override_constants/separation = 12
+
+[node name="标题" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口/区域行"]
+layout_mode = 2
+text = "区域"
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.737, 0.616, 0.467, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 22
+
+[node name="值" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口/区域行"]
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.882, 0.729, 0.49, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 26
+
+[node name="访问行" type="HBoxContainer" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_left = 26.0
+offset_top = 206.0
+offset_right = 934.0
+offset_bottom = 239.0
+theme_override_constants/separation = 12
+
+[node name="标题" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口/访问行"]
+layout_mode = 2
+text = "访问"
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.737, 0.616, 0.467, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 22
+
+[node name="值" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口/访问行"]
+layout_mode = 2
+size_flags_horizontal = 3
+text_overrun_behavior = 3
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.882, 0.729, 0.49, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 26
 
 [node name="信息来源" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
 offset_left = 26.0
-offset_top = 244.0
+offset_top = 248.0
 offset_right = 934.0
 offset_bottom = 279.0
+text_overrun_behavior = 3
+horizontal_alignment = 2
+vertical_alignment = 1
 theme_override_colors/font_color = Color(0.737, 0.616, 0.467, 1)
 theme_override_fonts/font = SubResource("71_terminal_font")
-theme_override_font_sizes/font_size = 21
-text_overrun_behavior = 3
+theme_override_font_sizes/font_size = 20
 
 [node name="反馈底色" type="ColorRect" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
 offset_left = 0.0
@@ -1231,7 +1337,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14833333, -0.016666668, 0)
 [node name="LCD屏面" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组" unique_id=1331569856]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.3225, 1.491667, -0.216667)
 cast_shadow = 0
-material_override = SubResource("RightDisplayMaterial")
+material_override = SubResource("TerminalDisplayMaterial")
 mesh = SubResource("RightInputQuad")
 script = ExtResource("65_screen_surface")
 

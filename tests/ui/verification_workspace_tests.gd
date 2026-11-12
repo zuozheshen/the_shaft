@@ -28,6 +28,10 @@ func run(t: Variant, tree: SceneTree) -> void:
 	key(viewport, KEY_W)
 	await tree.create_timer(0.06).timeout
 	t.assert_equal("工作区 / 未提交不生成缺件或窗口", 0, workspace.windows.size())
+	t.assert_true("工作区 / 无证据时也常驻两张卡，质疑仍禁用",
+		workspace._review_panel.visible and workspace._challenge.disabled
+		and workspace._evidence_buttons.all(func(button: Button) -> bool:
+			return button.disabled and button.text == "未选择证据"))
 	t.assert_false("工作区 / 未取得楼层档案不可读取", not manager.get_acquired_document(manager.get_document_session_id(), Docs.ref("floor")).is_empty())
 	var boarded := manager.request_open_cabin_door()
 	t.assert_true("工作区 / 真实登舱命令成功", boarded.succeeded and manager.is_passenger_onboard())

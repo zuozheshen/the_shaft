@@ -102,6 +102,10 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var target := presentation.get_node(presentation.execution_target_label_path) as Label
 	var feedback := presentation.get_node(presentation.feedback_label_path) as Label
 	var information_viewport := presentation.get_node(presentation.information_viewport_path) as SubViewport
+	var function_value := information_viewport.get_node("功能行/值") as Label
+	var area_value := information_viewport.get_node("区域行/值") as Label
+	var access_value := information_viewport.get_node("访问行/值") as Label
+	var stop_badge := information_viewport.get_node("停靠标记/值") as Label
 	var input_viewport := presentation.get_node(presentation.input_viewport_path) as SubViewport
 	var information_surface := presentation.get_node(presentation.information_screen_path) as ScreenSurface3D
 	var input_surface := presentation.get_node(presentation.input_screen_path) as ScreenSurface3D
@@ -114,17 +118,19 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var snapshot := destination.get_destination_presentation()
 	t.assert_equal("右台 / 自动查询完整编号", "004", snapshot.query_floor)
 	t.assert_true("右台 / 摘要显示当前功能、停靠、来源和日期",
-		"设备维护" in information.text and "支持停靠" in information.text
+		information.text == "004" and "设备维护" in function_value.text
+		and not area_value.text.is_empty() and stop_badge.text == "支持停靠"
 		and "设施档案" in source.text and "2026-01-01" in source.text)
 	t.assert_true("右台 / 摘要的末行与反馈区不重叠",
-			information.position.y + information.get_minimum_size().y <= source.position.y
-			and source.position.y + source.get_minimum_size().y <= feedback.position.y)
+			access_value.get_global_rect().end.y <= source.position.y
+			and source.position.y + source.get_minimum_size().y <= feedback.position.y
+			and source.horizontal_alignment == HORIZONTAL_ALIGNMENT_RIGHT)
 	t.assert_equal("右台 / 独立读数使用实际当前位置", snapshot.current_floor, current.text)
 	t.assert_equal("右台 / 执行目标不等于查询号码", snapshot.execution_target, target.text)
 	t.assert_equal("右台 / 无操作反馈时显示真实停靠状态", "已停靠", feedback.text)
 	t.assert_true("右台 / 摘要不暗示推荐、行政批准或历史安全",
-		"系统推荐" not in information.text and "须出示" in information.text
-		and "物资周转" not in information.text and "获准" not in information.text)
+		"系统推荐" not in function_value.text and "须出示" in access_value.text
+		and "物资周转" not in function_value.text and "获准" not in access_value.text)
 	t.assert_equal("右台 / 查询本身不取得资料", 0, manager.get_acquired_documents(session).size())
 	t.assert_true("右台 / 反馈位于实际摘要视口", information_viewport.is_ancestor_of(feedback))
 
@@ -133,7 +139,8 @@ func run(t: Variant, tree: SceneTree) -> void:
 	interaction._execute_action(&"destination_verify")
 	t.assert_equal("右台 / 未知输入不得取得 A", 0, manager.get_acquired_documents(session).size())
 	t.assert_true("右台 / 未知地址与操作反馈同时显示",
-			"未知地址" in information.text and "完整楼层编号" in feedback.text)
+			"未知地址" in information.text and "完整楼层编号" in feedback.text
+			and not access_value.is_visible_in_tree() and source.text.is_empty())
 	interaction._execute_action(&"destination_backspace")
 	interaction._execute_action(&"destination_verify")
 	var first_ref := {"document_id": "right/floor/004", "version": 1}

@@ -32,6 +32,7 @@ var _arranged: bool = false
 var _focus_queued: bool = false
 var _review_panel: VBoxContainer
 var _evidence_buttons: Array[Button] = []
+var _clear_buttons: Array[Button] = []
 var _review_buttons: Array[Button] = []
 var _review_feedback: Label
 var _challenge: Button
@@ -151,12 +152,7 @@ func refresh(changed_session: int = -1) -> void:
 				var snapshot: Dictionary = port.get_acquired_document.call(session_id, ref)
 				if not snapshot.is_empty():
 					_history[_key(ref)] = ref.duplicate()
-	var passenger_batches: int = 0
-	for event: Dictionary in events:
-		if event.route == "passenger":
-			passenger_batches += 1
-	status_label.text = "暂无派单" if session_id == 0 else (
-		"等待提交" if passenger_batches == 0 else "提交批次 %d" % passenger_batches)
+	status_label.text = ""
 	for window in windows.values():
 		var id: String = window.document_ref.document_id
 		if _latest.has(id):
@@ -313,7 +309,7 @@ func open_document(ref: Dictionary) -> void:
 	window.history_requested.connect(open_document)
 	window.focus_layout_changed.connect(_queue_focus)
 	window.geometry_changed.connect(func() -> void: _arranged = false)
-	window.review_enabled = _review_panel.visible
+	window.review_enabled = _can_review()
 	window.statement_blocks = statement_documents.get(key, [])
 	if not window.statement_blocks.is_empty():
 		window.review_field_requested.connect(_add_statement.bind(key, session_id))
@@ -540,7 +536,6 @@ func _update_font() -> void:
 
 func _create_review_panel() -> void:
 	_review_panel = VBoxContainer.new()
-	_review_panel.hide()
 	add_child(_review_panel)
 	var row := HBoxContainer.new()
 	_review_panel.add_child(row)
@@ -568,6 +563,7 @@ func _create_review_panel() -> void:
 		clear.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		clear.custom_minimum_size.x = 34
 		clear.tooltip_text = "清空这项证据"
+		_clear_buttons.append(clear)
 	var actions := HBoxContainer.new()
 	_review_panel.add_child(actions)
 	_review_feedback = Label.new()
@@ -590,19 +586,24 @@ func _review_button(row: HBoxContainer, label: String, action: Callable) -> Butt
 	return button
 
 
+func _can_review() -> bool:
+	# 常驻卡槽只改变呈现，证据操作仍受原有会话和规则约束。
+	return session_id > 0 and (not statement_documents.is_empty() \
+			or (port.has("has_review_rules") and port.has_review_rules.call(session_id)))
+
+
 func refresh_review() -> void:
 	if _review_panel == null:
 		return
 	var preview := not statement_documents.is_empty()
-	_review_panel.visible = session_id > 0 and (preview or (port.has("has_review_rules") and port.has_review_rules.call(session_id)))
-	if not _review_panel.visible:
-		return
+	var can_review := _can_review()
 	var valid_fields := 0
 	var single_clause := false
 	for slot in range(2):
 		var ref := _slots[slot]
 		var button := _evidence_buttons[slot]
-		button.disabled = ref.is_empty()
+		button.disabled = not can_review or ref.is_empty()
+		_clear_buttons[slot].disabled = not can_review
 		var item: Dictionary = _latest.get(ref.get("document_id"), {})
 		var current: bool = not item.is_empty() and item.document.version == ref.get("version")
 		var field: Dictionary = item.document.fields.get(ref.get("field_id", ""), {}) if current else {}
@@ -627,7 +628,7 @@ func refresh_review() -> void:
 	for window: DocumentWindow in windows.values():
 		window.set_evidence_fields(_slots)
 	var selected_count := _selected_refs().size()
-	_challenge.disabled = preview or not (
+	_challenge.disabled = not can_review or preview or not (
 			(selected_count == 1 and valid_fields == 1 and single_clause)
 			or (selected_count == 2 and valid_fields == 2 and _slots[0].document_id != _slots[1].document_id))
 	if preview:
@@ -635,10 +636,11 @@ func refresh_review() -> void:
 		if _review_feedback.text.is_empty():
 			_review_feedback.text = _challenge.tooltip_text
 	_delivery_feedback.hide()
-	for delivery: Dictionary in port.get_review_deliveries.call(session_id):
-		if delivery.status == "failed":
-			_delivery_feedback.show()
-			break
+	if can_review and port.has("get_review_deliveries"):
+		for delivery: Dictionary in port.get_review_deliveries.call(session_id):
+			if delivery.status == "failed":
+				_delivery_feedback.show()
+				break
 	_queue_focus()
 
 

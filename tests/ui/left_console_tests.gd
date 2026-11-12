@@ -28,14 +28,17 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var control_root := left.get_node("栏目控制区") as Node3D
 	var screen := left.get_node(left.screen_mesh_path) as ScreenSurface3D
 	var viewport := left.get_node(left.sub_viewport_path) as SubViewport
-	var profile := preload("res://assets/art/materials/left_archive_crt.tres")
-	var material := screen.material_override as ShaderMaterial
+	var right_presentation := cabin.get_node("右台展示绑定") as RightConsolePresentation3D
+	var right_screen := right_presentation.get_node(right_presentation.information_screen_path) as ScreenSurface3D
+	var right_material := right_screen.material_override as StandardMaterial3D
+	var material := screen.material_override as StandardMaterial3D
 
 	t.assert_equal("左台 / 实际档案视口保持 1152x648", Vector2i(1152, 648), viewport.size)
 	t.assert_equal("左台 / 当前场景的档案视口进入实体屏面", viewport.get_texture(),
-			material.get_shader_parameter(&"feed_texture"))
-	t.assert_true("左台 / 实例材质不把视口纹理写入共享 Profile", material != profile
-			and profile.get_shader_parameter(&"feed_texture") == null)
+			material.albedo_texture)
+	t.assert_true("左台 / 线性采样且不污染右台的视口纹理",
+			material.texture_filter == BaseMaterial3D.TEXTURE_FILTER_LINEAR
+			and material != right_material and material.albedo_texture != right_material.albedo_texture)
 
 	t.assert_equal("左台 / 唯一 BuildingTerminalInterface", 1,
 			main.find_children("BuildingTerminalInterface", "", true, false).size())
