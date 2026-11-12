@@ -36,7 +36,6 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var status_screen := presentation.get_node(presentation.status_mesh_path) as MeshInstance3D
 	t.assert_equal("主台 / 唯一 ConsoleInterface", 1, main.find_children("ConsoleInterface", "", true, false).size())
 	t.assert_equal("主台 / 唯一 DialogueManagerAdapter", 1, main.find_children("DialogueManagerAdapter", "", true, false).size())
-	t.assert_equal("主台 / 左台、监控、CASE 和独立对白四个视口", 4, main.find_children("*", "SubViewport", true, false).size())
 	t.assert_equal("主台 / 原监控实际 320x240", Vector2i(320, 240), viewport.size)
 	t.assert_equal("主台 / 原监控保持纵向视野", Camera3D.KEEP_HEIGHT, camera.keep_aspect)
 	t.assert_equal("主台 / 原监控复用正式 World3D", cabin.get_viewport().world_3d, viewport.world_3d)
@@ -56,6 +55,8 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_equal("主台 / Mesh 直接使用原 ViewportTexture", viewport.get_texture(),
 			(screen.material_override as ShaderMaterial).get_shader_parameter("feed_texture"))
 	var dialogue := presentation.get_node(presentation.dialogue_overlay_path) as SubViewport
+	t.assert_true("主台 / 监控、CASE、对白继续各用自己的视口",
+			viewport != status_viewport and viewport != dialogue and status_viewport != dialogue)
 	t.assert_true("主台 / 对白视口透明、纯 2D 且不接收输入",
 		dialogue.transparent_bg and dialogue.disable_3d and dialogue.gui_disable_input)
 	t.assert_equal("主台 / 对白使用同一屏面的独立纹理", dialogue.get_texture(),
@@ -82,7 +83,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var surface_root := main.find_child("斜台面新增控件根", true, false) as Node3D
 	t.assert_true("主台 / 新增控件根精确复用 MIC 斜面 Basis",
 			surface_root.transform.basis.is_equal_approx(microphone.transform.basis))
-	t.assert_true("主台 / 麦克风仅为装饰", not microphone is Area3D and microphone.find_child("固定调度麦克风") != null)
+	t.assert_true("主台 / 麦克风整体无独立碰撞", not microphone is Area3D and microphone.find_child("固定调度麦克风") != null)
 	t.assert_true("主台 / 无悬浮通讯", main.find_child("FloatingCommUI", true, false) == null)
 	var microphone_label := microphone.get_node("设备标识") as Label3D
 	t.assert_false("主台 / 大号 MIC 标识不再显示", microphone_label.visible)
@@ -137,8 +138,36 @@ func run(t: Variant, tree: SceneTree) -> void:
 	await tree.physics_frame
 	var player := cabin.get_node("玩家视角/摄像机旋转轴/玩家摄像机") as Camera3D
 	var model := microphone.find_child("固定调度麦克风") as Node3D
-	t.assert_true("主台 / 麦克风不响应实体射线",
-		interaction._raycast_hotspot(player.unproject_position(model.global_position)) == null)
+	var excerpt := microphone.get_node("摘录热点") as InteractionHotspot3D
+	var excerpt_count := 0
+	for candidate: Node in cabin.find_children("*", "Area3D", true, false):
+		if candidate is InteractionHotspot3D and candidate.get_action_id() == &"excerpt_current_call":
+			excerpt_count += 1
+	t.assert_equal("主台 / 只保留一个摘录动作热点", 1, excerpt_count)
+	t.assert_false("主台 / 原独立摘录键和铭牌已经移除", surface_root.has_node("摘录热点"))
+	for local_point in [Vector3(0, 0.050, 0.041), Vector3(0.063, 0.050, 0.020),
+			Vector3(-0.063, 0.050, 0.062)]:
+		t.assert_equal("主台 / 浅灰方块中心和边缘可独立命中 " + str(local_point), excerpt,
+				interaction._raycast_hotspot(player.unproject_position(model.to_global(local_point))))
+	for local_point in [Vector3.ZERO, Vector3(0.108, 0.047, 0.041),
+			Vector3(0, 0.14, -0.070), Vector3(0, 0.25, -0.067)]:
+		t.assert_true("主台 / 方块之外不会触发摘录 " + str(local_point),
+				interaction._raycast_hotspot(player.unproject_position(model.to_global(local_point))) != excerpt)
+	var old_excerpt := surface_root.to_global(Vector3(-1.10, 0, 0.025))
+	t.assert_true("主台 / 旧摘录位置不再命中", interaction._raycast_hotspot(
+			player.unproject_position(old_excerpt)) != excerpt)
+	var feedback := excerpt.get_node("按压反馈") as ConsoleButtonVisualScript
+	var axis := feedback.get_node(feedback.press_axis_path) as Node3D
+	var outline := excerpt.get_node(excerpt.hover_visual_path) as Node3D
+	var model_before := model.global_transform
+	excerpt.set_hovered(true)
+	t.assert_true("主台 / 小方块显示局部高亮", outline.visible)
+	interaction._execute_action(excerpt.get_action_id())
+	await tree.create_timer(feedback.press_down_duration * 0.5).timeout
+	t.assert_true("主台 / 摘录信号驱动局部反馈且麦克风静止",
+			axis.position.y < 0.0 and model.global_transform.is_equal_approx(model_before))
+	excerpt.set_hovered(false)
+	t.assert_false("主台 / 离开方块收起局部高亮", outline.visible)
 	for name in ["CAM01热点", "CAM02热点", "开门热点", "关门热点"]:
 		var hotspot := main.find_child(name, true, false) as InteractionHotspot3D
 		var shape := hotspot.get_node("CollisionShape3D") as CollisionShape3D

@@ -56,21 +56,27 @@ func run(t: Variant, tree: SceneTree) -> void:
 				&"left_console", key.get_station_id())
 		t.assert_equal("左台 / 保留现有中文术语 " + names[index], names[index],
 				(key.get_node("标识") as Label3D).text)
+		t.assert_true("左台 / 文字与键根一同移动 " + names[index],
+				(key.get_node("标识") as Label3D).is_visible_in_tree())
 		t.assert_true("左台 / 视觉挂载与碰撞跟随同一按键根 " + names[index],
 				collision.global_transform.basis.is_equal_approx(
 					cap.global_transform.basis
 				))
 		t.assert_true("左台 / 栏目模型导入后有可见网格 " + names[index],
 				cap.find_children("*", "MeshInstance3D", true, false).size() > 0)
-	# 左视角中 z 从大到小对应画面从左到右；人工验收冻结为 档案、调阅、日志、滚轮。
 	var passenger_key := control_root.get_node("乘客档案") as Node3D
 	var retrieve_key := control_root.get_node("调阅") as Node3D
 	var system_key := control_root.get_node("系统日志") as Node3D
 	var scroll_root := left.get_node("滚轮根") as Node3D
 	t.assert_true("左台 / 实体件从左到右顺序固定",
-			passenger_key.position.z > retrieve_key.position.z
-			and retrieve_key.position.z > system_key.position.z
-			and system_key.position.z > scroll_root.position.z)
+			system_key.position.z > passenger_key.position.z
+			and passenger_key.position.z > retrieve_key.position.z
+			and retrieve_key.position.z > scroll_root.position.z)
+	var shell := left.get_node("视觉资产/档案终端外壳")
+	for old_label: String in ["固定铭牌_系统日志", "固定铭牌_乘客档案", "固定铭牌_对话记录"]:
+		var decal := shell.find_child(old_label, true, false) as MeshInstance3D
+		t.assert_true("左台 / 旧壳体标签已隐藏 " + old_label,
+				decal != null and not decal.is_visible_in_tree())
 
 	# 首单在主台启动：SYSTEM 与新档案都未被玩家实际查看。
 	t.assert_false("左台 / 初始不在左台视角", terminal.is_actively_viewed())
@@ -86,6 +92,16 @@ func run(t: Variant, tree: SceneTree) -> void:
 	_key(cabin.get_viewport(), KEY_Q)
 	await tree.create_timer(0.08).timeout
 	t.assert_true("左台 / 实际按键转到左台", terminal.is_actively_viewed())
+	var camera := left.get_node(left.player_camera_path) as Camera3D
+	var system_x := camera.unproject_position(system_key.global_position).x
+	var passenger_x := camera.unproject_position(passenger_key.global_position).x
+	var retrieve_x := camera.unproject_position(retrieve_key.global_position).x
+	t.assert_true("左台 / 正式玩家视角下调阅和两栏分组",
+			system_x < passenger_x and retrieve_x - passenger_x > passenger_x - system_x)
+	t.assert_equal("左台 / 原调阅位置只命中乘客档案", passenger_key,
+			interaction._raycast_hotspot(camera.unproject_position(passenger_key.global_position)))
+	t.assert_equal("左台 / 调阅新位置独立命中", retrieve_key,
+			interaction._raycast_hotspot(camera.unproject_position(retrieve_key.global_position)))
 	t.assert_false("左台 / 实际转到左台清当前 SYSTEM",
 			terminal.get_section_unread(BuildingTerminalInterface.Section.SYSTEM_LOG))
 	manager.add_front_transcript_operator("新的对话记录")

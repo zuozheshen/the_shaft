@@ -92,25 +92,41 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_equal("右台 / 实体数字键复用原输入并保留 004", "004",
 			str(destination.get_destination_presentation().input))
 	t.assert_equal("右台 / LCD 读取同一字符串", "004",
-			(presentation.get_node(presentation.input_label_path) as Label3D).text)
+			(presentation.get_node(presentation.input_label_path) as Label).text)
 	var manager := destination.demo_flow_manager
 	var session := manager.get_document_session_id()
 	var terminal := main.find_child("核验终端", true, false) as VerificationTerminal3D
-	var information := presentation.get_node(presentation.information_label_path) as Label3D
+	var information := presentation.get_node(presentation.information_label_path) as Label
+	var feedback := presentation.get_node(presentation.feedback_label_path) as Label
+	var information_viewport := presentation.get_node(presentation.information_viewport_path) as SubViewport
+	var input_viewport := presentation.get_node(presentation.input_viewport_path) as SubViewport
+	var information_surface := presentation.get_node(presentation.information_screen_path) as ScreenSurface3D
+	var input_surface := presentation.get_node(presentation.input_screen_path) as ScreenSurface3D
+	var information_material := information_surface.material_override as StandardMaterial3D
+	var input_material := input_surface.material_override as StandardMaterial3D
+	t.assert_true("右台 / 摘要与数字分别绑定独立屏面和真实视口纹理",
+			information_material != input_material
+			and information_material.albedo_texture == information_viewport.get_texture()
+			and input_material.albedo_texture == input_viewport.get_texture())
 	var snapshot := destination.get_destination_presentation()
 	t.assert_equal("右台 / 自动查询完整编号", "004", snapshot.query_floor)
 	t.assert_true("右台 / 摘要显示当前功能、停靠、来源和日期",
 		"设备维护" in information.text and "支持停靠" in information.text
 		and "设施档案" in information.text and "2026-01-01" in information.text)
+	t.assert_true("右台 / 摘要的末行与反馈区不重叠",
+			information.position.y + information.get_minimum_size().y <= feedback.position.y)
 	t.assert_true("右台 / 摘要不暗示推荐、行政批准或历史安全",
 		"系统推荐" not in information.text and "须出示" in information.text
 		and "物资周转" not in information.text and "获准" not in information.text)
 	t.assert_equal("右台 / 查询本身不取得资料", 0, manager.get_acquired_documents(session).size())
+	t.assert_true("右台 / 反馈位于实际摘要视口", information_viewport.is_ancestor_of(feedback))
 
 	interaction._execute_action(&"destination_digit_7")
 	t.assert_equal("右台 / 未知输入撤销旧查询", "unknown", destination.get_destination_presentation().query_status)
 	interaction._execute_action(&"destination_verify")
 	t.assert_equal("右台 / 未知输入不得取得 A", 0, manager.get_acquired_documents(session).size())
+	t.assert_true("右台 / 未知地址与操作反馈同时显示",
+			"未知地址" in information.text and "完整楼层编号" in feedback.text)
 	interaction._execute_action(&"destination_backspace")
 	interaction._execute_action(&"destination_verify")
 	var first_ref := {"document_id": "right/floor/004", "version": 1}

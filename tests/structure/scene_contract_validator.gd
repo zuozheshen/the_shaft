@@ -60,8 +60,10 @@ const EXPORTED_PATHS := {
 	},
 	"RightConsolePresentation3D": {
 		"destination_interface_path": "DestinationControlInterface",
-		"information_label_path": "Label3D", "input_label_path": "Label3D",
-		"feedback_label_path": "Label3D", "lever_pivot_path": "Node3D",
+		"information_screen_path": "MeshInstance3D", "information_viewport_path": "SubViewport",
+		"input_screen_path": "MeshInstance3D", "input_viewport_path": "SubViewport",
+		"information_label_path": "Label", "input_label_path": "Label",
+		"feedback_label_path": "Label", "lever_pivot_path": "Node3D",
 	},
 	"VerificationTerminal3D": {"view_controller_path": "CabinViewController3D", "interaction_controller_path": "CabinInteractionController3D", "left_screen_path": "LeftTerminalScreen3D"},
 	"RuntimeConnector3D": {"game_runtime_path": "GameRuntime", "elevator_cabin_path": "CabinViewController3D"},
@@ -298,6 +300,21 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 			_expect(node, "Bubble/Speaker", "Label")
 			_expect(node, "Bubble/Text", "Label")
 		"RightConsolePresentation3D":
+			for prefix: String in ["information", "input"]:
+				var surface := node.get_node_or_null(node.get(prefix + "_screen_path")) as ScreenSurface3D
+				if surface == null or not surface.mesh is QuadMesh or not surface.material_override is StandardMaterial3D:
+					_report(node, prefix + "_screen_path", "ScreenSurface3D LCD Quad", "missing or wrong type")
+				var viewport := node.get_node_or_null(node.get(prefix + "_viewport_path")) as SubViewport
+				if viewport == null or not viewport.disable_3d or not viewport.gui_disable_input:
+					_report(node, prefix + "_viewport_path", "non-interactive 2D SubViewport", "invalid")
+					continue
+				var label := node.get_node_or_null(node.get(prefix + "_label_path")) as Label
+				if label != null and not viewport.is_ancestor_of(label):
+					_report(node, prefix + "_label_path", "Label inside display SubViewport", "outside viewport")
+				if prefix == "information":
+					var feedback := node.get_node_or_null(node.get("feedback_label_path")) as Label
+					if feedback != null and not viewport.is_ancestor_of(feedback):
+						_report(node, "feedback_label_path", "Label inside information SubViewport", "outside viewport")
 			var right_root := _root.find_child("右操作台定位", true, false)
 			if right_root == null:
 				_report(node, "右操作台定位", "Node3D", "missing")

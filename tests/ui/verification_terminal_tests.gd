@@ -25,7 +25,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	second_pad.button_index = JOY_BUTTON_BACK
 	second_pad.pressed = true
 	t.assert_true("W / View绑定接受其他手柄设备", second_pad.is_action_pressed(VerificationTerminal3D.TOGGLE_ACTION))
-	t.assert_equal("W / 核验终端不增加额外视口", 4, main.find_children("*", "SubViewport", true, false).size())
+	t.assert_equal("W / 核验终端无独立 SubViewport", 0, terminal.find_children("*", "SubViewport", true, false).size())
 	t.assert_true("W / 正式机壳可见、灰盒仅保留回退", terminal.shell.get_node("W机壳").visible
 		and not terminal.shell.get_node("LegacyGraybox").visible)
 	t.assert_false("W / 端口不暴露上传入口", terminal._port.has("receive_passenger_batch"))

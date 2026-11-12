@@ -345,7 +345,7 @@ godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --cal
 godot.cmd --path . --scene res://tests/preview/call_excerpt_preview.tscn
 ```
 
-专项覆盖 Dialogue Manager 的 wait 期间换单、旧回执、来源与幂等。实机预览中面向主台，等监视器显示陈述末页后按实体「摘录」，再按 W 从收件箱打开乘客原文。复按只提示已取得，未完整呈现的陈述不可摘录。正式入口保持空舱，按「摘录」显示无派单。
+专项覆盖 Dialogue Manager 的 wait 期间换单、旧回执、来源与幂等。实机预览中面向主台，等监视器显示陈述末页后按麦克风底座的浅灰方块，再按 W 从「陈述摘录」打开乘客原文。复按只提示已取得，未完整呈现的陈述不可摘录。正式入口保持空舱，按「摘录」显示无派单。
 
 
 ## 右台楼层档案预览

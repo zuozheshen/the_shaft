@@ -5,3 +5,14 @@
 [node name="档案终端外壳视觉" type="Node3D"]
 
 [node name="Blender模型" parent="." instance=ExtResource("1_model")]
+
+[node name="固定铭牌_乘客档案" parent="Blender模型/左台档案终端外壳" index="11"]
+visible = false
+
+[node name="固定铭牌_对话记录" parent="Blender模型/左台档案终端外壳" index="12"]
+visible = false
+
+[node name="固定铭牌_系统日志" parent="Blender模型/左台档案终端外壳" index="14"]
+visible = false
+
+[editable path="Blender模型"]

@@ -4,6 +4,10 @@ extends Node
 
 # 外形、位置和角度都留在场景；本脚本只把旧右台状态映射到实体显示。
 @export var destination_interface_path: NodePath
+@export var information_screen_path: NodePath
+@export var information_viewport_path: NodePath
+@export var input_screen_path: NodePath
+@export var input_viewport_path: NodePath
 @export var information_label_path: NodePath
 @export var input_label_path: NodePath
 @export var feedback_label_path: NodePath
@@ -18,9 +22,9 @@ extends Node
 @onready var _lever_audio_player := get_node_or_null(^"拨杆音效") as AudioStreamPlayer
 
 var _destination: DestinationControlInterface
-var _information_label: Label3D
-var _input_label: Label3D
-var _feedback_label: Label3D
+var _information_label: Label
+var _input_label: Label
+var _feedback_label: Label
 var _lever_pivot: Node3D
 var _lever_hotspot: InteractionHotspot3D
 var _lever_rest_rotation: Vector3
@@ -34,9 +38,9 @@ func _ready() -> void:
 
 func _bind_presentation() -> void:
 	_destination = get_node_or_null(destination_interface_path) as DestinationControlInterface
-	_information_label = get_node_or_null(information_label_path) as Label3D
-	_input_label = get_node_or_null(input_label_path) as Label3D
-	_feedback_label = get_node_or_null(feedback_label_path) as Label3D
+	_information_label = get_node_or_null(information_label_path) as Label
+	_input_label = get_node_or_null(input_label_path) as Label
+	_feedback_label = get_node_or_null(feedback_label_path) as Label
 	_lever_pivot = get_node_or_null(lever_pivot_path) as Node3D
 	if _destination == null or _information_label == null or _input_label == null \
 			or _feedback_label == null \
@@ -54,6 +58,15 @@ func _bind_presentation() -> void:
 	_on_destination_presentation_changed(
 		_destination.get_destination_presentation()
 	)
+	# 显示接线异常时仍保留实体键、拨杆和业务联锁。
+	var information_screen := get_node_or_null(information_screen_path) as ScreenSurface3D
+	var information_viewport := get_node_or_null(information_viewport_path) as SubViewport
+	var input_screen := get_node_or_null(input_screen_path) as ScreenSurface3D
+	var input_viewport := get_node_or_null(input_viewport_path) as SubViewport
+	if information_screen == null or input_screen == null \
+			or not information_screen.bind_viewport(information_viewport) \
+			or not input_screen.bind_viewport(input_viewport):
+		push_error("右台摘要屏或数字 LCD 无法绑定现有显示视口。")
 
 
 func request_submit() -> void:
@@ -128,11 +141,11 @@ func _on_destination_presentation_changed(snapshot: Dictionary) -> void:
 			query = "档案配置需核对"
 	var updated: String = snapshot.updated_at
 	_information_label.text = (
-		"当前位置 %s   执行目标 %s\n查询楼层 %s\n功能 %s\n区域 %s\n行政访问 %s\n电梯停靠状态 %s\n来源 %s\n更新时间 %s"
+		"当前位置 %s   执行目标 %s\n查询楼层 %s   电梯停靠状态 %s\n功能 %s\n区域 %s\n行政访问 %s\n来源 %s\n更新时间 %s"
 	) % [
-		snapshot.current_floor, snapshot.execution_target, query,
+		snapshot.current_floor, snapshot.execution_target, query, snapshot.elevator_stop,
 		_short_text(snapshot.current_function), _short_text(snapshot.current_area),
-		_short_text(snapshot.administrative_access_conditions), snapshot.elevator_stop,
+		_short_text(snapshot.administrative_access_conditions),
 		_short_text(("%s %s" % [snapshot.source, snapshot.source_version]).strip_edges()),
 		_short_text(updated) if not updated.is_empty() else "未知",
 	]

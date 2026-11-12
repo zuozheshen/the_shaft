@@ -61,6 +61,17 @@ func run() -> Array[String]:
 	instance.free()
 
 	instance = packed.instantiate()
+	var right := instance.find_child("右台展示绑定", true, false)
+	var information_viewport := right.get_node(right.get("information_viewport_path")) as SubViewport
+	information_viewport.gui_disable_input = false
+	right.set("feedback_label_path", right.get("input_label_path"))
+	var display_errors := _scene_errors(instance)
+	_expect("right display must not accept GUI input", display_errors.contains("information_viewport_path"))
+	information_viewport.gui_disable_input = true
+	_expect("right feedback belongs to information viewport", _scene_errors(instance).contains("feedback_label_path"))
+	instance.free()
+
+	instance = packed.instantiate()
 	var stage := instance.find_child("监控测试摄影棚", true, false)
 	var visual := stage.get_node(stage.get("initial_passenger_visual_path"))
 	visual.owner = null

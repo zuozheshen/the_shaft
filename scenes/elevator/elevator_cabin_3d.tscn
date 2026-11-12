@@ -73,6 +73,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/verification_terminal_3d.tscn" id="verification_terminal"]
 
 [ext_resource type="PackedScene" path="res://scenes/ui/monitor_dialogue_overlay.tscn" id="monitor_dialogue"]
+[ext_resource type="Script" path="res://scripts/presentation/console_button_visual_3d.gd" id="excerpt_visual"]
 
 [sub_resource type="BoxMesh" id="66_floor_trim"]
 material = ExtResource("66_trim")
@@ -107,7 +108,15 @@ size = Vector3(0.176, 0.004, 0.176)
 size = Vector3(0.22, 0.07, 0.22)
 
 [sub_resource type="BoxShape3D" id="95_excerpt_shape"]
-size = Vector3(0.18, 0.07, 0.18)
+size = Vector3(0.145, 0.014, 0.056)
+
+[sub_resource type="BoxMesh" id="ExcerptEdgeWide"]
+material = SubResource("52_hover")
+size = Vector3(0.144, 0.002, 0.0025)
+
+[sub_resource type="BoxMesh" id="ExcerptEdgeShort"]
+material = SubResource("52_hover")
+size = Vector3(0.0025, 0.002, 0.052)
 
 [sub_resource type="StandardMaterial3D" id="52_cam02_hover_material"]
 resource_local_to_scene = true
@@ -249,19 +258,19 @@ outer_radius = 0.078
 rings = 24
 ring_segments = 6
 
-[sub_resource type="StandardMaterial3D" id="53_screen"]
-resource_local_to_scene = true
+[sub_resource type="StandardMaterial3D" id="RightDisplayMaterial"]
 shading_mode = 0
-albedo_color = Color(0.035, 0.09, 0.085, 1)
+texture_filter = 1
+
+[sub_resource type="QuadMesh" id="RightInformationQuad"]
+size = Vector2(1.874405, 0.63)
+
+[sub_resource type="QuadMesh" id="RightInputQuad"]
+size = Vector2(1.133333, 0.19)
 
 [sub_resource type="SystemFont" id="71_terminal_font"]
 font_names = PackedStringArray("Consolas", "Cascadia Mono", "Noto Sans Mono CJK SC", "Microsoft YaHei UI")
 subpixel_positioning = 0
-
-[sub_resource type="StandardMaterial3D" id="53_lcd"]
-resource_local_to_scene = true
-shading_mode = 0
-albedo_color = Color(0.36, 0.43, 0.32, 1)
 
 [sub_resource type="BoxShape3D" id="53_verify_shape"]
 size = Vector3(0.15, 0.19, 0.42)
@@ -436,6 +445,47 @@ visible = false
 pixel_size = 0.002
 text = "MIC"
 font_size = 28
+
+[node name="摘录热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风装饰根"]
+position = Vector3(0, 0.022077, 0.006)
+collision_layer = 128
+collision_mask = 0
+script = ExtResource("8_hotspot")
+action_id = &"excerpt_current_call"
+prompt_text = "摘录乘客陈述"
+hover_visual_path = NodePath("按压反馈/按钮按压轴/悬停高亮")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风装饰根/摘录热点"]
+shape = SubResource("95_excerpt_shape")
+
+[node name="按压反馈" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风装饰根/摘录热点"]
+script = ExtResource("excerpt_visual")
+
+[node name="按钮按压轴" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风装饰根/摘录热点/按压反馈"]
+
+[node name="悬停高亮" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风装饰根/摘录热点/按压反馈/按钮按压轴"]
+position = Vector3(0, 0.005, 0)
+visible = false
+
+[node name="近边" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风装饰根/摘录热点/按压反馈/按钮按压轴/悬停高亮"]
+position = Vector3(0, 0, 0.0265)
+mesh = SubResource("ExcerptEdgeWide")
+cast_shadow = 0
+
+[node name="远边" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风装饰根/摘录热点/按压反馈/按钮按压轴/悬停高亮"]
+position = Vector3(0, 0, -0.0265)
+mesh = SubResource("ExcerptEdgeWide")
+cast_shadow = 0
+
+[node name="左边" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风装饰根/摘录热点/按压反馈/按钮按压轴/悬停高亮"]
+position = Vector3(-0.071, 0, 0)
+mesh = SubResource("ExcerptEdgeShort")
+cast_shadow = 0
+
+[node name="右边" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/麦克风装饰根/摘录热点/按压反馈/按钮按压轴/悬停高亮"]
+position = Vector3(0.071, 0, 0)
+mesh = SubResource("ExcerptEdgeShort")
+cast_shadow = 0
 
 [node name="开门热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点" unique_id=227531788]
 transform = Transform3D(0.62513196, 0, 0, 0, 0.28785196, -0.38915044, 0, 0.41109532, 0.27248603, 0.23426473, 1.01, -1.35)
@@ -647,36 +697,6 @@ modulate = Color(0.035, 0.045, 0.04, 1)
 text = "CAM 02"
 font_size = 25
 outline_size = 0
-
-[node name="摘录热点" type="Area3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根"]
-position = Vector3(-1.10, 0, 0.025)
-collision_layer = 128
-collision_mask = 0
-script = ExtResource("8_hotspot")
-action_id = &"excerpt_current_call"
-prompt_text = "摘录乘客陈述"
-hover_visual_path = NodePath("悬停高亮")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/摘录热点"]
-shape = SubResource("95_excerpt_shape")
-
-[node name="悬停高亮" type="MeshInstance3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/摘录热点"]
-position = Vector3(0, -0.014, 0)
-scale = Vector3(0.8, 1, 0.8)
-visible = false
-mesh = SubResource("52_cam01_hover")
-
-[node name="方形按钮" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/摘录热点" instance=ExtResource("63_square")]
-position = Vector3(0, -0.03211, 0)
-scale = Vector3(0.8, 1, 0.8)
-
-[node name="铭牌" type="Label3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/摘录热点"]
-transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, -0.01, 0.105)
-text = "摘录"
-font_size = 30
-pixel_size = 0.0017
-modulate = Color(0.94, 0.86, 0.68, 1)
-outline_size = 4
 
 [node name="COMM指示灯" type="Node3D" parent="操作台占位/主操作台定位/主台交互热点/斜台面新增控件根" unique_id=100710776]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.91, -0.01606014, -0.052801643)
@@ -897,7 +917,7 @@ render_target_update_mode = 4
 [node name="栏目控制区" type="Node3D" parent="操作台占位/左操作台定位" unique_id=1003016163]
 
 [node name="系统日志" type="Area3D" parent="操作台占位/左操作台定位/栏目控制区" unique_id=283681331]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.513529, 0.81, -0.32)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.513529, 0.81, 0.72)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -927,16 +947,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0076, 0.085, 0)
 visible = false
 mesh = SubResource("55_lamp_on_mesh")
 
+[node name="铭牌底板" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志"]
+position = Vector3(0.0035, -0.148, 0)
+mesh = SubResource("LeftRetrievalPlate")
+
 [node name="标识" type="Label3D" parent="操作台占位/左操作台定位/栏目控制区/系统日志" unique_id=1764376960]
-transform = Transform3D(7.54979e-08, 0, 1, 0, 1, 0, -1, 0, 7.54979e-08, 0.008, -0.135, 0)
-visible = false
-pixel_size = 0.001
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0.005, -0.148, 0)
+pixel_size = 0.0012
+modulate = Color(0.11765, 0.13333, 0.13725, 1)
 text = "系统日志"
-font_size = 22
-outline_size = 1
+font = SubResource("LeftRetrievalFont")
+font_size = 36
+outline_size = 0
 
 [node name="乘客档案" type="Area3D" parent="操作台占位/左操作台定位/栏目控制区" unique_id=1850520152]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.513529, 0.81, 0.72)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.513529, 0.81, 0.2)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -967,16 +992,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0076, 0.085, 0)
 visible = false
 mesh = SubResource("55_lamp_on_mesh")
 
+[node name="铭牌底板" type="MeshInstance3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案"]
+position = Vector3(0.0035, -0.148, 0)
+mesh = SubResource("LeftRetrievalPlate")
+
 [node name="标识" type="Label3D" parent="操作台占位/左操作台定位/栏目控制区/乘客档案" unique_id=612465671]
-transform = Transform3D(7.54979e-08, 0, 1, 0, 1, 0, -1, 0, 7.54979e-08, 0.008, -0.135, 0)
-visible = false
-pixel_size = 0.001
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0.005, -0.148, 0)
+pixel_size = 0.0012
+modulate = Color(0.11765, 0.13333, 0.13725, 1)
 text = "乘客档案"
-font_size = 22
-outline_size = 1
+font = SubResource("LeftRetrievalFont")
+font_size = 36
+outline_size = 0
 
 [node name="调阅" type="Area3D" parent="操作台占位/左操作台定位/栏目控制区" unique_id=925465813]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.513529, 0.81, 0.2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.513529, 0.81, -0.45)
 collision_layer = 128
 collision_mask = 0
 script = ExtResource("8_hotspot")
@@ -1062,38 +1092,89 @@ transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0.776, 0.76, 0)
 
 [node name="验证信息屏" type="Node3D" parent="操作台占位/右操作台定位" unique_id=208119045]
 
-[node name="屏面" type="CSGBox3D" parent="操作台占位/右操作台定位/验证信息屏" unique_id=1629878233]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.44, 2.086667, 0)
-material_override = SubResource("53_screen")
-size = Vector3(0.025, 0.63, 1.874405)
+[node name="屏面" type="MeshInstance3D" parent="操作台占位/右操作台定位/验证信息屏" unique_id=1629878233]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.4245, 2.086667, 0)
+cast_shadow = 0
+material_override = SubResource("RightDisplayMaterial")
+mesh = SubResource("RightInformationQuad")
+script = ExtResource("65_screen_surface")
 
-[node name="信息文字" type="Label3D" parent="操作台占位/右操作台定位/验证信息屏" unique_id=543401517]
-transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, 1.425, 2.086667, -0.897321)
-pixel_size = 0.0025
-modulate = Color(0.741176, 0.811765, 0.658824, 1)
-text = "当前位置 ---   执行目标 ---
-查询楼层 —"
-font = SubResource("71_terminal_font")
-font_size = 22
-outline_size = 1
-horizontal_alignment = 0
-width = 600.0
+[node name="摘要视口" type="SubViewport" parent="操作台占位/右操作台定位/验证信息屏"]
+disable_3d = true
+gui_disable_input = true
+size = Vector2i(960, 324)
+render_target_update_mode = 2
+
+[node name="底色" type="ColorRect" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.0471, 0.0902, 0.0706, 1)
+
+[node name="信息文字" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口" unique_id=543401517]
+offset_left = 26.0
+offset_top = 12.0
+offset_right = 934.0
+offset_bottom = 260.0
+theme_override_colors/font_color = Color(0.741176, 0.811765, 0.658824, 1)
+theme_override_constants/line_spacing = -2
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 27
+
+[node name="反馈底色" type="ColorRect" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_top = 266.0
+offset_right = 960.0
+offset_bottom = 324.0
+mouse_filter = 2
+color = Color(0.0784, 0.1255, 0.098, 1)
+
+[node name="反馈文字" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口" unique_id=1025337700]
+offset_left = 26.0
+offset_top = 267.0
+offset_right = 934.0
+offset_bottom = 323.0
+theme_override_colors/font_color = Color(0.85098, 0.890196, 0.737255, 1)
+theme_override_constants/line_spacing = 0
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 22
+vertical_alignment = 1
+autowrap_mode = 3
 
 [node name="数字显示组" type="Node3D" parent="操作台占位/右操作台定位" unique_id=1841267422]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14833333, -0.016666668, 0)
 
-[node name="LCD屏面" type="CSGBox3D" parent="操作台占位/右操作台定位/数字显示组" unique_id=1331569856]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.3376666, 1.491667, -0.216667)
-material_override = SubResource("53_lcd")
-size = Vector3(0.025, 0.19, 1.133333)
+[node name="LCD屏面" type="MeshInstance3D" parent="操作台占位/右操作台定位/数字显示组" unique_id=1331569856]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 1.3225, 1.491667, -0.216667)
+cast_shadow = 0
+material_override = SubResource("RightDisplayMaterial")
+mesh = SubResource("RightInputQuad")
+script = ExtResource("65_screen_surface")
 
-[node name="输入数字" type="Label3D" parent="操作台占位/右操作台定位/数字显示组" unique_id=720066921]
-transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, 1.3226666, 1.491667, 0.308333)
-pixel_size = 0.0022
-font = SubResource("71_terminal_font")
-font_size = 42
-outline_size = 2
+[node name="数字视口" type="SubViewport" parent="操作台占位/右操作台定位/数字显示组"]
+disable_3d = true
+gui_disable_input = true
+size = Vector2i(576, 96)
+render_target_update_mode = 2
+
+[node name="底色" type="ColorRect" parent="操作台占位/右操作台定位/数字显示组/数字视口"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.36, 0.43, 0.32, 1)
+
+[node name="输入数字" type="Label" parent="操作台占位/右操作台定位/数字显示组/数字视口" unique_id=720066921]
+offset_left = 16.0
+offset_right = 560.0
+offset_bottom = 96.0
+theme_override_colors/font_color = Color(0.0588, 0.0902, 0.0588, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 68
 horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+text_overrun_behavior = 3
 
 [node name="验证楼层热点" type="Area3D" parent="操作台占位/右操作台定位/数字显示组" unique_id=242798645]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.35, 1.491667, 0.583333)
@@ -1125,17 +1206,6 @@ text = "调阅档案"
 font = SubResource("71_terminal_font")
 font_size = 26
 outline_size = 0
-
-[node name="反馈文字" type="Label3D" parent="操作台占位/右操作台定位/数字显示组" unique_id=1025337700]
-transform = Transform3D(7.54979e-08, 0, -1, 0, 1, 0, 1, 0, 7.54979e-08, 1.43, 1.36, -0.82)
-visible = false
-pixel_size = 0.0015
-text = "请输入目标楼层"
-font = SubResource("71_terminal_font")
-font_size = 22
-outline_size = 4
-horizontal_alignment = 0
-width = 800.0
 
 [node name="数字键盘" type="Node3D" parent="操作台占位/右操作台定位" unique_id=1155692852]
 transform = Transform3D(0.9781476, 0.2079117, 0, -0.2079117, 0.9781476, 0, 0, 0, 1, -0.3463446, 0.33240706, 0.10036766)
@@ -1826,7 +1896,7 @@ status_subviewport_path = NodePath("../操作台占位/主操作台定位/设备
 status_mesh_path = NodePath("../操作台占位/主操作台定位/设备状态条/状态屏面")
 cam_01_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM01热点/视觉/方形按钮")
 cam_02_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/CAM02热点/视觉/方形按钮")
-excerpt_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/斜台面新增控件根/摘录热点/方形按钮")
+excerpt_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/麦克风装饰根/摘录热点/按压反馈")
 door_open_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮")
 door_close_button_visual_path = NodePath("../操作台占位/主操作台定位/主台交互热点/关门热点/关门视觉/大型按钮")
 button_audio_player_path = NodePath("按钮音效")
@@ -1842,9 +1912,13 @@ stream = SubResource("AudioStreamRandomizer_main_click")
 [node name="右台展示绑定" type="Node" parent="." unique_id=1687868255]
 script = ExtResource("53_right_presentation")
 destination_interface_path = NodePath("../操作台界面层/操作台界面根/右操作台界面容器/DestinationControlInterface")
-information_label_path = NodePath("../操作台占位/右操作台定位/验证信息屏/信息文字")
-input_label_path = NodePath("../操作台占位/右操作台定位/数字显示组/输入数字")
-feedback_label_path = NodePath("../操作台占位/右操作台定位/数字显示组/反馈文字")
+information_screen_path = NodePath("../操作台占位/右操作台定位/验证信息屏/屏面")
+information_viewport_path = NodePath("../操作台占位/右操作台定位/验证信息屏/摘要视口")
+information_label_path = NodePath("../操作台占位/右操作台定位/验证信息屏/摘要视口/信息文字")
+feedback_label_path = NodePath("../操作台占位/右操作台定位/验证信息屏/摘要视口/反馈文字")
+input_screen_path = NodePath("../操作台占位/右操作台定位/数字显示组/LCD屏面")
+input_viewport_path = NodePath("../操作台占位/右操作台定位/数字显示组/数字视口")
+input_label_path = NodePath("../操作台占位/右操作台定位/数字显示组/数字视口/输入数字")
 lever_pivot_path = NodePath("../操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴")
 
 [node name="键盘音效" type="AudioStreamPlayer" parent="右台展示绑定" unique_id=439088608]
