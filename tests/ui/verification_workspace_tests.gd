@@ -344,10 +344,9 @@ func _test_statement_selection(t: Variant, tree: SceneTree) -> void:
 	mouse(viewport, join_at, false)
 	await frames(tree)
 	t.assert_equal("摘取原文 / 无映射的跨段片段可入槽", expected_cross_line, workspace._slots[0].get("quote", ""))
-	t.assert_true("摘取原文 / 入槽显示引文与出处",
-		workspace._evidence_buttons[0].text.begins_with("维修申请 · v1 · ")
-		and window.receipt.document.source.source_id in workspace._evidence_buttons[0].text
-		and expected_cross_line.replace("\n", " ") in workspace._evidence_buttons[0].text)
+	t.assert_true("摘取原文 / 卡片只显示引文，悬停只提示定位",
+		workspace._evidence_buttons[0].text == expected_cross_line.replace("\n", " ")
+		and workspace._evidence_buttons[0].tooltip_text == "点击定位原文")
 	workspace._evidence_buttons[0].grab_focus()
 	key(viewport, KEY_ENTER)
 	await frames(tree)

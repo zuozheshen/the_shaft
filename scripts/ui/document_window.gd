@@ -157,8 +157,6 @@ func show_document(value: Dictionary, latest: int) -> void:
 	_document_rendered = true
 	if not statement_blocks.is_empty():
 		_render_statements(doc)
-		var origin := _text("%s · v%d" % [doc.source.source_id, doc.version])
-		origin.add_theme_font_size_override("font_size", 15)
 		return
 	_render_document(doc)
 
@@ -190,9 +188,6 @@ func _render_document(doc: Dictionary) -> void:
 			_text(doc.original_text)
 	if not kind in ["personnel_record", "duty_record", "floor_archive"]:
 		_render_fields(doc, false)
-	var source := _text("%s · v%d" % [doc.source.source_id, doc.version])
-	source.add_theme_font_size_override("font_size", 15)
-	source.add_theme_color_override("font_color", STYLE.PICKED)
 
 
 func _quote_card() -> PanelContainer:

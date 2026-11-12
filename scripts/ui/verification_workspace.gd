@@ -622,17 +622,16 @@ func refresh_review() -> void:
 						and field.applicability_key != ""
 		if ref.is_empty():
 			button.text = "未选择证据"
-		else:
+			button.tooltip_text = ""
+			continue
+		var excerpt: String = ref.get("quote", "")
+		if excerpt.is_empty():
 			var snapshot: Dictionary = item if current else port.get_acquired_document.call(session_id, ref)
-			if snapshot.is_empty():
-				button.text = "v%d · 无法定位" % ref.version
-			else:
-				var doc: Dictionary = snapshot.document
-				var quoted_field: Dictionary = doc.fields.get(ref.get("field_id", ""), {})
-				var excerpt: String = ref.get("quote", quoted_field.get("display_value", ""))
-				button.text = "%s · v%d%s · %s\n%s" % [doc.title, ref.version,
-						"" if current else " · 旧版", doc.source.source_id, excerpt.replace("\n", " ")]
-		button.tooltip_text = button.text if ref.is_empty() else button.text + "\n点击定位原文"
+			if not snapshot.is_empty():
+				var quoted_field: Dictionary = snapshot.document.fields.get(ref.get("field_id", ""), {})
+				excerpt = quoted_field.get("display_value", "")
+		button.text = excerpt.replace("\n", " ") if not excerpt.is_empty() else "原文不可定位"
+		button.tooltip_text = "点击定位原文"
 	for window: DocumentWindow in windows.values():
 		window.set_evidence_fields(_slots)
 	var selected_count := _selected_refs().size()
