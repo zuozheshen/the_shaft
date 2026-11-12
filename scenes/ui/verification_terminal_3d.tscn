@@ -1,8 +1,10 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/verification_terminal_3d.gd" id="1_terminal"]
 [ext_resource type="PackedScene" path="res://scenes/ui/verification_workspace.tscn" id="2_workspace"]
 [ext_resource type="PackedScene" path="res://assets/art/models/verification_terminal_w.glb" id="3_housing"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/cabin/verification_panel_raise.wav" id="4_raise"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/cabin/verification_panel_retract.wav" id="5_retract"]
 [sub_resource type="StandardMaterial3D" id="ShellMaterial"]
 shading_mode = 0
 albedo_color = Color(0.23, 0.25, 0.24, 1)
@@ -68,6 +70,10 @@ shader = SubResource("ScreenGlass")
 script = ExtResource("1_terminal")
 width_fraction = 0.9
 height_fraction = 0.88
+raise_audio = ExtResource("4_raise")
+retract_audio = ExtResource("5_retract")
+
+[node name="开合音效" type="AudioStreamPlayer" parent="."]
 
 [node name="Shell" type="Node3D" parent="."]
 visible = false

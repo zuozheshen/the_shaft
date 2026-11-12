@@ -19,6 +19,8 @@ const PAD_ACTIONS: Array[StringName] = [
 @export var view_controller_path: NodePath
 @export var interaction_controller_path: NodePath
 @export var left_screen_path: NodePath
+@export var raise_audio: AudioStream
+@export var retract_audio: AudioStream
 @export_range(0.5, 0.9, 0.01) var width_fraction: float = 0.78
 @export_range(0.5, 0.9, 0.01) var height_fraction: float = 0.78
 @export_range(0.5, 1.5, 0.05) var camera_distance: float = 0.9
@@ -29,6 +31,7 @@ const PAD_ACTIONS: Array[StringName] = [
 @onready var input_shield: Control = $WorkspaceLayer/InputShield
 @onready var screen: PanelContainer = $WorkspaceLayer/InputShield/Screen
 @onready var workspace: VerificationWorkspace = %VerificationWorkspace
+@onready var _slide_audio: AudioStreamPlayer = $开合音效
 
 var target_open: bool = false
 var open_progress: float = 0.0
@@ -118,9 +121,16 @@ func set_open(value: bool) -> void:
 	if is_instance_valid(_slide):
 		_slide.kill()
 	var endpoint := 1.0 if value else 0.0
+	var remaining := absf(endpoint - open_progress)
+	# 中途反向时切换音效；若还没离开原端点，只停掉刚才的音效。
+	_slide_audio.stop()
+	var cue := raise_audio if value else retract_audio
+	if not is_zero_approx(remaining) and cue != null:
+		_slide_audio.stream = cue
+		_slide_audio.play()
 	_slide = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_slide.tween_method(_set_progress, open_progress, endpoint,
-			maxf(0.001, slide_duration * absf(endpoint - open_progress)))
+			maxf(0.001, slide_duration * remaining))
 	_slide.tween_callback(_finish_slide.bind(value))
 
 func _set_progress(value: float) -> void:
