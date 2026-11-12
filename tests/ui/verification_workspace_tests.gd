@@ -490,7 +490,7 @@ func _test_review_cards(t: Variant, tree: SceneTree) -> void:
 	await frames(tree)
 	t.assert_true("证据框 / 换单撤销待完成的定位和旧交付提示",
 		workspace.windows.is_empty() and not workspace._delivery_feedback.visible
-		and terminal.close_button.has_focus())
+		and workspace.directory_button.has_focus())
 	main.queue_free()
 	await frames(tree)
 	ContentRegistry.set("_dispatches_by_id", saved)

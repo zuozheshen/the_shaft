@@ -47,7 +47,7 @@ func set_projected(value: bool) -> void:
 	if is_instance_valid(focus) and screen.is_ancestor_of(focus):
 		focus.grab_focus()
 	elif is_input_captured():
-		close_button.grab_focus()
+		workspace.directory_button.grab_focus()
 	print("W GATE mode=", "3D" if projected else "CanvasLayer", " logical=", screen.size, " texture=", gui.size)
 
 func _update_layout() -> void:

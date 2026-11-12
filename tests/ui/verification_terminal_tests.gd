@@ -39,7 +39,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 		InputMap.action_add_event(&"ui_up", up_event)
 	_key(viewport, KEY_W)
 	await _settle(tree)
-	t.assert_true("W / 真实按键打开且压过ui_up", terminal.target_open and terminal.close_button.has_focus())
+	t.assert_true("W / 真实按键打开且压过ui_up", terminal.target_open and terminal.workspace.directory_button.has_focus())
 	_key(viewport, KEY_W, true)
 	t.assert_true("W / echo不反转", terminal.target_open)
 	if not already_up:
@@ -87,10 +87,9 @@ func run(t: Variant, tree: SceneTree) -> void:
 	_key(viewport, KEY_W)
 	await _settle(tree)
 	old_focus.interaction_enabled = false
-	terminal.close_button.grab_focus()
-	_joy(viewport, JOY_BUTTON_A)
+	_joy(viewport, JOY_BUTTON_B)
 	await _settle(tree)
-	t.assert_true("W / A收起不执行失效后台焦点", not terminal.is_input_captured() and console.get_current_camera_index() == 1)
+	t.assert_true("W / B收起不执行失效后台焦点", not terminal.is_input_captured() and console.get_current_camera_index() == 1)
 	t.assert_true("W / 失效焦点降级到当前台位", interaction._hovered_hotspot != null and interaction._hovered_hotspot != old_focus)
 	old_focus.interaction_enabled = true
 
@@ -222,10 +221,12 @@ func _test_sizes(t: Variant, tree: SceneTree, terminal: VerificationTerminal3D) 
 	terminal.set_open(true)
 	await tree.create_timer(0.10).timeout
 	t.assert_equal("W / 上升过程中保持水平居中", available.x * 0.5, terminal.get_screen_rect().get_center().x)
-	terminal.close_button.grab_focus()
-	_click(window, terminal.close_button.get_global_rect().get_center())
+	terminal.workspace._set_directory_visible(true)
+	terminal.workspace.arrange_button.grab_focus()
+	_click(window, terminal.workspace.arrange_button.get_global_rect().get_center())
 	_joy(window, JOY_BUTTON_A)
-	t.assert_true("W / 动画中点击与A不会激活收起键", terminal.target_open and terminal.is_input_captured())
+	t.assert_true("W / 动画中点击与A不会触发整理", terminal.target_open
+			and terminal.is_input_captured() and terminal.workspace.catalog_scroll.visible)
 	await tree.create_timer(0.17).timeout
 	window.size = original_size
 	terminal.slide_duration = 0.025

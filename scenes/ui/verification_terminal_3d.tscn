@@ -149,14 +149,6 @@ theme_override_styles/panel = SubResource("ScreenStyle")
 [node name="Layout" type="VBoxContainer" parent="WorkspaceLayer/InputShield/Screen"]
 layout_mode = 2
 theme_override_constants/separation = 4
-[node name="Header" type="HBoxContainer" parent="WorkspaceLayer/InputShield/Screen/Layout"]
-layout_mode = 2
-alignment = 2
-[node name="CloseButton" type="Button" parent="WorkspaceLayer/InputShield/Screen/Layout/Header"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "收起"
-tooltip_text = "W / View / B"
 [node name="VerificationWorkspace" parent="WorkspaceLayer/InputShield/Screen/Layout" instance=ExtResource("2_workspace")]
 unique_name_in_owner = true
 layout_mode = 2

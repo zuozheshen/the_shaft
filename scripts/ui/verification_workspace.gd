@@ -19,12 +19,10 @@ var category: int = 0
 var catalog: VBoxContainer
 var catalog_scroll: ScrollContainer
 var desk: Control
-var status_label: Label
 var arrange_button: Button
 var directory_button: Button
 var category_buttons: Array[Button] = []
 var _catalog_lists: Array[VBoxContainer] = []
-var _outer_focus: Control
 var _latest: Dictionary = {}
 var _history: Dictionary = {}
 var _active_key: String = ""
@@ -45,8 +43,6 @@ func _ready() -> void:
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	theme = STYLE.make_theme(22)
 	add_theme_constant_override("separation", 6)
-	var toolbar := HBoxContainer.new()
-	add_child(toolbar)
 	directory_button = Button.new()
 	directory_button.text = "目录  ▾"
 	directory_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -54,28 +50,25 @@ func _ready() -> void:
 	directory_button.toggle_mode = true
 	directory_button.button_pressed = true
 	directory_button.toggled.connect(_set_directory_visible)
-	arrange_button = Button.new()
-	arrange_button.text = "整理"
-	arrange_button.pressed.connect(arrange_windows)
-	toolbar.add_child(arrange_button)
-	status_label = Label.new()
-	status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	status_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	status_label.add_theme_font_size_override("font_size", 14)
-	toolbar.add_child(status_label)
-	toolbar.move_child(status_label, 0)
 	var row := HBoxContainer.new()
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(row)
 	var sidebar := VBoxContainer.new()
 	row.add_child(sidebar)
 	sidebar.add_child(directory_button)
+	# 即使目录折叠，留出的纵向空间也把整理固定在侧栏底部。
+	var directory_space := MarginContainer.new()
+	directory_space.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sidebar.add_child(directory_space)
 	catalog_scroll = ScrollContainer.new()
 	catalog_scroll.custom_minimum_size.x = 244
 	catalog_scroll.add_theme_stylebox_override("panel", STYLE.box(STYLE.SURFACE, STYLE.EDGE, 1, 6, 6))
 	catalog_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	catalog_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	sidebar.add_child(catalog_scroll)
+	directory_space.add_child(catalog_scroll)
+	arrange_button = Button.new()
+	arrange_button.text = "整理"
+	arrange_button.pressed.connect(arrange_windows)
+	sidebar.add_child(arrange_button)
 	var directory := VBoxContainer.new()
 	directory.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	catalog_scroll.add_child(directory)
@@ -110,9 +103,8 @@ func _ready() -> void:
 	_update_font()
 	refresh()
 
-func bind_port(value: Dictionary, outside_focus: Control) -> void:
+func bind_port(value: Dictionary) -> void:
 	port = value.duplicate()
-	_outer_focus = outside_focus
 	reset_session(int(port.get_session_id.call()))
 
 func reset_session(value: int) -> void:
@@ -152,7 +144,6 @@ func refresh(changed_session: int = -1) -> void:
 				var snapshot: Dictionary = port.get_acquired_document.call(session_id, ref)
 				if not snapshot.is_empty():
 					_history[_key(ref)] = ref.duplicate()
-	status_label.text = ""
 	for window in windows.values():
 		var id: String = window.document_ref.document_id
 		if _latest.has(id):
@@ -294,7 +285,7 @@ func open_document(ref: Dictionary) -> void:
 		return
 	var snapshot: Dictionary = port.get_acquired_document.call(session_id, ref)
 	if snapshot.is_empty():
-		status_label.text = "该版本已失效 / 请重新调阅"
+		_review_feedback.text = "该版本已失效，请重新调阅"
 		return
 	var key := _key(ref)
 	if windows.has(key):
@@ -447,14 +438,7 @@ func _queue_focus() -> void:
 func rebuild_focus() -> void:
 	_focus_queued = false
 	var controls: Array[Control] = []
-	if is_instance_valid(_outer_focus):
-		controls.append(_outer_focus)
 	controls.append(directory_button)
-	controls.append(arrange_button)
-	if _review_panel.visible:
-		for button in _review_buttons:
-			if button.visible and not button.disabled:
-				controls.append(button)
 	if catalog_scroll.visible:
 		for index in category_buttons.size():
 			var button := category_buttons[index]
@@ -465,6 +449,11 @@ func rebuild_focus() -> void:
 				for entry in _catalog_lists[index].get_children():
 					if entry is Button and entry.visible and not entry.disabled:
 						controls.append(entry)
+	controls.append(arrange_button)
+	if _review_panel.visible:
+		for button in _review_buttons:
+			if button.visible and not button.disabled:
+				controls.append(button)
 	for key: String in windows:
 		var window: DocumentWindow = windows[key]
 		var window_controls: Array[Control] = window.focus_controls()
@@ -529,7 +518,6 @@ func _update_font() -> void:
 	var font_size: int = maxi(22, roundi(18.0 / screen_scale))
 	if theme.default_font_size != font_size:
 		theme.default_font_size = font_size
-	status_label.add_theme_font_size_override("font_size", maxi(14, roundi(13.0 / screen_scale)))
 	for window in windows.values():
 		window.version_label.add_theme_font_size_override("font_size", maxi(14, roundi(13.0 / screen_scale)))
 
@@ -568,13 +556,34 @@ func _create_review_panel() -> void:
 	_review_panel.add_child(actions)
 	_review_feedback = Label.new()
 	_review_feedback.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_review_feedback.clip_text = true
 	_review_feedback.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	actions.add_child(_review_feedback)
+	_challenge = _review_button(actions, "质疑", _submit_challenge)
+	_challenge.custom_minimum_size = Vector2(232, 42)
+	var fills := {
+		"normal": Color("#a4372e"),
+		"hover": Color("#c24d3e"),
+		"pressed": Color("#842b24"),
+		"hover_pressed": Color("#a4372e"),
+		"disabled": Color("#6c312b"),
+	}
+	for state: String in fills:
+		_challenge.add_theme_stylebox_override(state, STYLE.box(fills[state], Color("#c2745b")))
+	for role in ["font_color", "font_focus_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
+		_challenge.add_theme_color_override(role, STYLE.LIGHT)
+	_challenge.add_theme_color_override("font_disabled_color", Color("#e6b4a4"))
+	# 两侧各留一列反馈，交付提示隐藏时按钮也保持居中。
+	var delivery_slot := MarginContainer.new()
+	delivery_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	actions.add_child(delivery_slot)
 	_delivery_feedback = Label.new()
 	_delivery_feedback.text = "回应未送达"
+	_delivery_feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_delivery_feedback.clip_text = true
+	_delivery_feedback.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_delivery_feedback.hide()
-	actions.add_child(_delivery_feedback)
-	_challenge = _review_button(actions, "质疑", _submit_challenge)
+	delivery_slot.add_child(_delivery_feedback)
 
 
 func _review_button(row: HBoxContainer, label: String, action: Callable) -> Button:

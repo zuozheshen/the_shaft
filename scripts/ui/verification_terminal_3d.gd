@@ -29,7 +29,6 @@ const PAD_ACTIONS: Array[StringName] = [
 @onready var input_shield: Control = $WorkspaceLayer/InputShield
 @onready var screen: PanelContainer = $WorkspaceLayer/InputShield/Screen
 @onready var workspace: VerificationWorkspace = %VerificationWorkspace
-@onready var close_button: Button = %CloseButton
 
 var target_open: bool = false
 var open_progress: float = 0.0
@@ -53,7 +52,6 @@ var _held_keys: Dictionary = {}
 func _ready() -> void:
 	screen.theme = preload("res://scripts/ui/terminal_ui_style.gd").make_theme(20)
 	_camera = get_parent() as Camera3D
-	close_button.pressed.connect(set_open.bind(false))
 	get_viewport().size_changed.connect(_update_layout)
 	get_window().focus_exited.connect(_on_focus_exited)
 	_update_layout()
@@ -70,7 +68,7 @@ func _connect_cabin() -> void:
 
 func set_workspace_port(port: Dictionary) -> void:
 	_port = port.duplicate()
-	workspace.bind_port(_port, close_button)
+	workspace.bind_port(_port)
 	reset_document_session(int(_port["get_session_id"].call()))
 
 func reset_document_session(session: int) -> void:
@@ -80,7 +78,7 @@ func reset_document_session(session: int) -> void:
 	workspace.reset_session(session)
 	_ui_focus = null
 	if _captured and open_progress >= 1.0:
-		close_button.grab_focus()
+		workspace.directory_button.grab_focus()
 
 func is_input_captured() -> bool:
 	return _captured
@@ -141,7 +139,7 @@ func _finish_slide(opened: bool) -> void:
 			if _is_screen_focus(restored):
 				restored.grab_focus()
 			else:
-				close_button.grab_focus()
+				workspace.directory_button.grab_focus()
 	else:
 		_set_capture(false)
 
@@ -223,7 +221,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey:
 		var focused := get_viewport().gui_get_focus_owner()
 		if not _is_screen_focus(focused):
-			close_button.grab_focus()
+			workspace.directory_button.grab_focus()
 
 func _shortcut_input(event: InputEvent) -> void:
 	# GUI 之后再拦截剩余按键；不能在 _input 吞掉 Tab/Enter/Space。
