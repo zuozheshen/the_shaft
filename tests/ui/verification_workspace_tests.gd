@@ -3,11 +3,13 @@ const MAIN := preload("res://scenes/main/main_3d.tscn")
 const Content := preload("res://tests/fixtures/runtime/test_content.gd")
 const Docs := preload("res://tests/fixtures/runtime/test_workspace_documents.gd")
 const Statements := preload("res://tests/fixtures/runtime/test_statement_selection.gd")
+const Review := preload("res://tests/fixtures/runtime/test_document_review.gd")
 
 func run(t: Variant, tree: SceneTree) -> void:
 	var original_size := tree.root.size
 	tree.root.size = Vector2i(1920, 1080)
 	await _test_statement_selection(t, tree)
+	await _test_review_cards(t, tree)
 	var definition: DispatchDefinition = ContentRegistry.get_dispatch("TEST_CASE_001")
 	var saved: Array[DocumentDefinition] = definition.documents
 	definition.documents = Docs.definitions(true)
@@ -37,39 +39,48 @@ func run(t: Variant, tree: SceneTree) -> void:
 	workspace._select_category(1)
 	t.assert_equal("工作区 / 规程样板每份仅一项", ["preview/rules", "preview/sample"], catalog_ids(workspace))
 	workspace._select_category(2)
-	t.assert_equal("工作区 / 已调阅仅左右台", ["preview/floor", "preview/personnel"], catalog_ids(workspace))
-	t.assert_equal("工作区 / 三个资料栏目", 3, workspace.category_buttons.size())
+	t.assert_equal("工作区 / 人员记录只包含左台结果", ["preview/personnel"], catalog_ids(workspace))
+	workspace._select_category(3)
+	t.assert_equal("工作区 / 楼层档案只包含右台结果", ["preview/floor"], catalog_ids(workspace))
+	workspace._select_category(4)
+	t.assert_true("工作区 / 未摘录的陈述不出现", catalog_ids(workspace).is_empty())
+	t.assert_equal("工作区 / 五个资料栏目", 5, workspace.category_buttons.size())
 	workspace._select_category(0)
 	for id: String in ["identity", "task", "floor"]:
 		workspace.open_document(Docs.ref(id))
 	workspace.arrange_windows()
 	await frames(tree)
 	t.assert_equal("工作区 / 三份同时打开", 3, workspace.windows.size())
-	t.assert_equal("工作区 / 切换条独立列出三窗", 3, workspace.switch_buttons.size())
-	var strip_order: Array = workspace.switch_buttons.keys()
+	workspace._select_category(0)
+	await frames(tree)
+	workspace._arranged = false
+	# 人为重叠两窗，目录应找回同一版本、同一实例。
+	var original_identity: DocumentWindow = workspace.windows["preview/identity@1"]
+	original_identity.position = workspace.windows["preview/task@1"].position
+	workspace.raise_window("preview/task@1")
 	var rects: Dictionary = {}
 	for window_key: String in workspace.windows:
 		var open_window: DocumentWindow = workspace.windows[window_key]
 		rects[window_key] = Rect2(open_window.position, open_window.size)
-	var switch_button: Button = workspace.switch_buttons["preview/identity@1"]
-	mouse(viewport, switch_button.get_global_rect().get_center(), true)
-	mouse(viewport, switch_button.get_global_rect().get_center(), false)
+	var entry := _catalog_entry(workspace, Docs.ref("identity"))
+	mouse(viewport, entry.get_global_rect().get_center(), true)
+	mouse(viewport, entry.get_global_rect().get_center(), false)
 	await frames(tree)
-	t.assert_equal("工作区 / 鼠标切换条置顶", "preview/identity@1", workspace._active_key)
-	t.assert_true("工作区 / 当前窗口有切换条标记", switch_button.button_pressed)
-	switch_button = workspace.switch_buttons["preview/task@1"]
-	switch_button.grab_focus()
-	key(viewport, KEY_ENTER)
+	t.assert_equal("工作区 / 鼠标目录找回同一遮挡窗", original_identity, workspace.windows.get("preview/identity@1"))
+	t.assert_true("工作区 / 鼠标找回置顶并聚焦正文", original_identity.scroll.has_focus()
+		and workspace.desk.get_child(-1) == original_identity)
+	activate_catalog(workspace, viewport, Docs.ref("task"))
 	await frames(tree)
-	t.assert_true("工作区 / Enter切换聚焦阅读窗", workspace.windows["preview/task@1"].scroll.has_focus())
-	workspace.switch_buttons["preview/floor@1"].grab_focus()
+	t.assert_true("工作区 / Enter目录聚焦阅读窗", workspace.windows["preview/task@1"].scroll.has_focus())
+	workspace._select_category(3)
+	_catalog_entry(workspace, Docs.ref("floor")).grab_focus()
 	joy(viewport, JOY_BUTTON_A)
 	await frames(tree)
-	t.assert_equal("工作区 / 手柄A切换窗口", "preview/floor@1", workspace._active_key)
-	t.assert_equal("工作区 / 置顶不改变切换条顺序", strip_order, workspace.switch_buttons.keys())
+	t.assert_equal("工作区 / 手柄A从目录找回窗口", "preview/floor@1", workspace._active_key)
+	t.assert_equal("工作区 / 目录找回不会创建重复窗", 3, workspace.windows.size())
 	for window_key: String in rects:
 		var open_window: DocumentWindow = workspace.windows[window_key]
-		t.assert_equal("工作区 / 切换不移动并排窗口", rects[window_key], Rect2(open_window.position, open_window.size))
+		t.assert_equal("工作区 / 找回不移动现有窗口", rects[window_key], Rect2(open_window.position, open_window.size))
 	var task: DocumentWindow = workspace.windows["preview/task@1"]
 	var identity: DocumentWindow = workspace.windows["preview/identity@1"]
 	t.assert_equal("工作区 / 身份证明为乘客实收", "passenger", identity.receipt.route)
@@ -101,8 +112,8 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_false("工作区 / Space关闭单窗", workspace.windows.has("preview/task@1"))
 	t.assert_true("工作区 / 关闭后焦点留在W", terminal.screen.is_ancestor_of(viewport.gui_get_focus_owner()))
 	var focus_after_close := viewport.gui_get_focus_owner()
-	t.assert_true("工作区 / 关闭当前窗后焦点落到相邻切换项", focus_after_close in workspace.switch_buttons.values())
-	t.assert_false("工作区 / 关闭即移除切换项", workspace.switch_buttons.has("preview/task@1"))
+	t.assert_true("工作区 / 关闭当前窗后焦点落到剩余正文",
+			windows_scroll_has_focus(workspace))
 	Docs.supplement(manager)
 	await frames(tree)
 	var event_count := manager.get_document_events(manager.get_document_session_id()).size()
@@ -139,7 +150,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	key(viewport, KEY_ENTER)
 	await frames(tree)
 	t.assert_true("工作区 / Enter查看新版且旧版保留", workspace.windows.has("preview/task@2") and workspace.windows.has("preview/task@1"))
-	t.assert_equal("工作区 / 重复查看不增加切换项", 4, workspace.switch_buttons.size())
+	t.assert_equal("工作区 / 重复查看不重复开窗", 4, workspace.windows.size())
 	var old_field := manager.get_acquired_field(manager.get_document_session_id(),
 		{"document_id":"preview/task", "version":1, "field_id":"destination"})
 	t.assert_equal("工作区 / 旧FieldRef固定001", "001", old_field.comparable_value)
@@ -151,7 +162,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	workspace.arrange_windows()
 	await frames(tree)
 	workspace._select_category(2)
-	t.assert_equal("工作区 / 已取得规程不进入调阅栏目", ["preview/floor", "preview/personnel"], catalog_ids(workspace))
+	t.assert_equal("工作区 / 已取得规程不进入人员目录", ["preview/personnel"], catalog_ids(workspace))
 	workspace.arrange_windows()
 	await frames(tree)
 	t.assert_true("工作区 / 规程与乘客资料同屏", workspace.windows.has("preview/rules@1") and workspace.windows.has("preview/identity@1"))
@@ -180,6 +191,13 @@ func run(t: Variant, tree: SceneTree) -> void:
 	motion(viewport, start + Vector2(20, 15))
 	mouse(viewport, start + Vector2(20, 15), false)
 	t.assert_true("工作区 / 单角柄可靠缩放", task.size.x > before_size.x)
+	start = task.title_label.get_global_rect().get_center()
+	mouse(viewport, start, true)
+	terminal._on_focus_exited()
+	before_position = task.position
+	motion(viewport, start + Vector2(32, 32))
+	mouse(viewport, start + Vector2(32, 32), false)
+	t.assert_equal("工作区 / 失焦后拖动不残留", before_position, task.position)
 	workspace.arrange_windows()
 	await frames(tree)
 	task.scroll.grab_focus()
@@ -214,13 +232,13 @@ func run(t: Variant, tree: SceneTree) -> void:
 		workspace.windows[window_key].close_button.grab_focus()
 		key(viewport, KEY_SPACE)
 		await frames(tree)
-	t.assert_equal("工作区 / 全部关闭清空切换条", 0, workspace.switch_buttons.size())
+	t.assert_equal("工作区 / 全部关闭清空桌面", 0, workspace.desk.get_child_count())
 	t.assert_true("工作区 / 最后窗口关闭有安全焦点", workspace.arrange_button.has_focus())
 	# 右台档案同样可从所属栏目打开最新，再从文件内恢复旧版。
 	workspace.open_document(Docs.ref("floor"))
 	workspace.close_window("preview/floor@1")
 	manager.accept_right_lookup_result(manager.get_document_session_id(), &"preview:right:2", [Docs.ref("floor", 2)])
-	workspace._select_category(2)
+	workspace._select_category(3)
 	var before_history_events := manager.get_document_events(manager.get_document_session_id()).size()
 	activate_catalog(workspace, viewport, Docs.ref("floor", 2))
 	await frames(tree)
@@ -259,7 +277,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	await frames(tree)
 	t.assert_equal("工作区 / 同ID重开清窗口", 0, workspace.windows.size())
 	t.assert_equal("工作区 / 同ID重开清历史", 0, workspace._history.size())
-	t.assert_equal("工作区 / 同ID重开清切换条", 0, workspace.switch_buttons.size())
+	t.assert_equal("工作区 / 同ID重开清活动窗", "", workspace._active_key)
 	workspace.open_document(Docs.ref("task"))
 	t.assert_equal("工作区 / 新会话拒绝旧引用", 0, workspace.windows.size())
 	definition.documents = saved
@@ -308,8 +326,11 @@ func _test_statement_selection(t: Variant, tree: SceneTree) -> void:
 	mouse(viewport, join_at, false)
 	await frames(tree)
 	t.assert_equal("摘取原文 / 无映射的跨段片段可入槽", expected_cross_line, workspace._slots[0].get("quote", ""))
-	t.assert_true("摘取原文 / 入槽显示引文与出处", workspace._review_labels[0].text.begins_with(expected_cross_line + "\n维修申请"))
-	workspace._locate_statement(0)
+	t.assert_true("摘取原文 / 入槽显示引文与出处",
+		workspace._evidence_buttons[0].text.begins_with("维修申请 · v1\n")
+		and expected_cross_line.replace("\n", " ") in workspace._evidence_buttons[0].text)
+	workspace._evidence_buttons[0].grab_focus()
+	key(viewport, KEY_ENTER)
 	await frames(tree)
 	t.assert_equal("摘取原文 / 定位后高亮原选区", expected_cross_line, text.get_selected_text())
 	t.assert_false("摘取原文 / 定位不再次显示加入按钮", window._quote_join.visible)
@@ -341,8 +362,8 @@ func _test_statement_selection(t: Variant, tree: SceneTree) -> void:
 		joy(viewport, JOY_BUTTON_A)
 		t.assert_equal("摘取原文 / 满槽不覆盖", "记录供本班交接使用。", workspace._slots[1].get("quote", ""))
 		workspace._clear_review_field(0)
-		t.assert_equal("摘取原文 / 清空后第二槽前移", "记录供本班交接使用。", workspace._slots[0].get("quote", ""))
-		workspace._clear_review_field(0)
+		t.assert_true("摘取原文 / 清左后右槽位置不变", workspace._slots[0].is_empty()
+			and workspace._slots[1].get("quote", "") == "记录供本班交接使用。")
 		rules._quote_body.grab_focus()
 		joy(viewport, JOY_BUTTON_A)
 		joy(viewport, JOY_BUTTON_A)
@@ -358,6 +379,107 @@ func _test_statement_selection(t: Variant, tree: SceneTree) -> void:
 	main.queue_free()
 	await frames(tree)
 	ContentRegistry.set("_dispatches_by_id", saved)
+
+
+func _test_review_cards(t: Variant, tree: SceneTree) -> void:
+	var saved: Dictionary = ContentRegistry.get("_dispatches_by_id")
+	var main := Review.prepare()
+	t.add_child(main)
+	await frames(tree)
+	var manager := main.get_node("游戏运行层/演示流程管理器") as DemoFlowManager
+	var terminal := main.find_child("核验终端", true, false) as VerificationTerminal3D
+	var workspace := terminal.workspace
+	var viewport := terminal.get_viewport()
+	terminal.slide_duration = 0.01
+	manager.start_dispatch(Review.CASE)
+	var session := manager.get_document_session_id()
+	Review.submit_fixture_documents(manager)
+	terminal.set_open(true)
+	await tree.create_timer(0.05).timeout
+	workspace.open_reference(Review.ref("regulation"))
+	workspace.open_document(Review.ref("application"))
+	workspace.open_document(Review.ref("task"))
+	await frames(tree)
+	var clause := Review.ref("regulation", "applicable")
+	var application := Review.ref("application", "destination")
+	var task := Review.ref("task", "destination")
+	workspace._add_review_field(application)
+	workspace._add_review_field(clause)
+	var clear_left := workspace._evidence_buttons[0].get_parent().get_child(1) as Button
+	mouse(viewport, clear_left.get_global_rect().get_center(), true)
+	mouse(viewport, clear_left.get_global_rect().get_center(), false)
+	t.assert_equal("证据框 / ×只清左槽，保留右槽", [{}, clause], workspace._slots)
+	t.assert_true("证据框 / 清空不触发定位且焦点留在×", clear_left.has_focus())
+	t.assert_false("证据框 / 仅右侧有效条款仍可索证", workspace._challenge.disabled)
+	workspace._challenge.grab_focus()
+	key(viewport, KEY_ENTER)
+	t.assert_equal("证据框 / 仅右槽从正式界面提交原索证", 1, manager.get_material_requests(session).size())
+
+	# 模拟这一笔确已提交的交付发生技术失败。3A 只展示失败，不复投。
+	var failed := manager.take_pending_passenger_event()
+	manager.finish_passenger_event(failed, "", [])
+	await frames(tree)
+	t.assert_true("证据框 / 显示真实失败且未自动重试", workspace._delivery_feedback.visible
+		and manager.get_review_deliveries(session).size() == 1
+		and manager.get_review_deliveries(session)[0].status == "failed")
+	t.assert_true("证据框 / 正式界面无重试入口",
+		workspace._review_buttons.all(func(button: Button) -> bool: return button.text != "重试回应"))
+
+	workspace._clear_review_field(1)
+	workspace._add_review_field(application)
+	workspace._add_review_field(Review.ref("access", "destination"))
+	workspace._challenge.grab_focus()
+	key(viewport, KEY_ENTER)
+	t.assert_equal("证据框 / 无匹配规则不创建交付", 1, manager.get_review_deliveries(session).size())
+	workspace._clear_review_field(1)
+	workspace._add_review_field(task)
+	workspace._challenge.grab_focus()
+	key(viewport, KEY_ENTER)
+	t.assert_equal("证据框 / 双字段从正式界面提交质疑", 1, manager.get_contradiction_challenges(session).size())
+	manager.accept_left_lookup_result(session, &"review-fixture-left-v2", [Review.ref("task", "", 2)])
+	workspace.open_document(Review.ref("task", "", 2))
+	workspace.close_window("review/task@1")
+	await frames(tree)
+	t.assert_true("证据框 / 旧版证据不可提交", workspace._challenge.disabled)
+	workspace._evidence_buttons[1].grab_focus()
+	joy(viewport, JOY_BUTTON_A)
+	await frames(tree)
+	var located := workspace.windows.get("review/task@1") as DocumentWindow
+	t.assert_true("证据框 / 手柄从证据找回旧版字段",
+		located != null and located._located_field == located._field_labels.get("destination")
+		and located.scroll.has_focus() and workspace.desk.get_child(-1) == located)
+	if located != null:
+		located._field_labels["complete"].text = located._field_labels["current"].text
+		workspace._clear_review_field(1)
+		workspace._add_review_field(Review.ref("task", "current"))
+		workspace._evidence_buttons[1].grab_focus()
+		key(viewport, KEY_ENTER)
+		await frames(tree)
+		t.assert_true("证据框 / 字段显示值相同仍按ID定位",
+			located._located_field == located._field_labels["current"])
+	workspace._locate_evidence(0)
+	manager.start_dispatch(Review.CASE)
+	await frames(tree)
+	t.assert_true("证据框 / 换单撤销待完成的定位和旧交付提示",
+		workspace.windows.is_empty() and not workspace._delivery_feedback.visible
+		and terminal.close_button.has_focus())
+	main.queue_free()
+	await frames(tree)
+	ContentRegistry.set("_dispatches_by_id", saved)
+
+
+func windows_scroll_has_focus(workspace: VerificationWorkspace) -> bool:
+	for window: DocumentWindow in workspace.windows.values():
+		if window.scroll.has_focus():
+			return true
+	return false
+
+
+func _catalog_entry(workspace: VerificationWorkspace, ref: Dictionary) -> Button:
+	for button in workspace.catalog.get_children():
+		if button is Button and button.get_meta("document_ref", {}) == ref:
+			return button
+	return null
 
 
 func key(viewport: Viewport, code: Key, shift: bool = false) -> void:

@@ -26,6 +26,8 @@ func run(t: Variant, tree: SceneTree) -> void:
 	second_pad.pressed = true
 	t.assert_true("W / View绑定接受其他手柄设备", second_pad.is_action_pressed(VerificationTerminal3D.TOGGLE_ACTION))
 	t.assert_equal("W / 核验终端不增加额外视口", 4, main.find_children("*", "SubViewport", true, false).size())
+	t.assert_true("W / 正式机壳可见、灰盒仅保留回退", terminal.shell.get_node("W机壳").visible
+		and not terminal.shell.get_node("LegacyGraybox").visible)
 	t.assert_false("W / 端口不暴露上传入口", terminal._port.has("receive_passenger_batch"))
 	t.assert_false("W / 初始不接管", terminal.is_input_captured())
 
@@ -180,7 +182,8 @@ func run(t: Variant, tree: SceneTree) -> void:
 func _test_sizes(t: Variant, tree: SceneTree, terminal: VerificationTerminal3D) -> void:
 	var window := tree.root
 	var original_size := window.size
-	for size: Vector2i in [Vector2i(1280,720),Vector2i(1920,1080),Vector2i(2560,1080),Vector2i(1280,1024)]:
+	for size: Vector2i in [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(1600, 1000),
+			Vector2i(2560, 1080), Vector2i(2560, 1440), Vector2i(1280, 1024)]:
 		window.size = size
 		await _frames(tree, 3)
 		terminal._update_layout()
@@ -188,6 +191,18 @@ func _test_sizes(t: Variant, tree: SceneTree, terminal: VerificationTerminal3D) 
 		var available := terminal.get_viewport().get_visible_rect().size
 		t.assert_true("W / 屏口在可视范围内 " + str(size), rect.position.x >= 0 and rect.position.y >= 0 and rect.end.x <= available.x and rect.end.y <= available.y)
 		t.assert_true("W / Control与3D屏口投影对齐 " + str(size), terminal.screen.position.distance_to(rect.position) < 1.0 and terminal.screen.size.distance_to(rect.size) < 1.0)
+		var scale := terminal.shell.scale
+		t.assert_true("W / 整个机身只用统一缩放 " + str(size), scale.is_equal_approx(Vector3.ONE * scale.x))
+		t.assert_true("W / 屏口保持实际16:9 " + str(size), is_equal_approx(rect.size.x / rect.size.y, 16.0 / 9.0))
+		var camera := terminal.get_parent() as Camera3D
+		var bounds := VerificationTerminal3D.HOUSING_HALF_SIZE
+		var contained := true
+		for x in [-bounds.x, bounds.x]:
+			for y in [-bounds.y, bounds.y]:
+				for z in [-VerificationTerminal3D.HOUSING_BACK, VerificationTerminal3D.HOUSING_FRONT]:
+					var point := terminal.shell.to_global(Vector3(x, y, z))
+					contained = contained and Rect2(Vector2.ZERO, available).has_point(camera.unproject_position(point))
+		t.assert_true("W / 整个机身包络在画面内 " + str(size), contained)
 	# resize发生在动画途中时，保留进度并重算位置，不累加旧像素偏移。
 	terminal.slide_duration = 0.2
 	terminal.set_open(false)
@@ -199,6 +214,19 @@ func _test_sizes(t: Variant, tree: SceneTree, terminal: VerificationTerminal3D) 
 	terminal.set_open(true)
 	await tree.create_timer(0.24).timeout
 	t.assert_true("W / resize后可反转回精确展开端点", terminal.open_progress == 1.0 and terminal.is_input_captured())
+	terminal.set_open(false)
+	await tree.create_timer(0.24).timeout
+	var closed := terminal.get_screen_rect()
+	var available := terminal.get_viewport().get_visible_rect().size
+	t.assert_true("W / 关闭时屏口在窗口下方", closed.position.y >= available.y)
+	terminal.set_open(true)
+	await tree.create_timer(0.10).timeout
+	t.assert_equal("W / 上升过程中保持水平居中", available.x * 0.5, terminal.get_screen_rect().get_center().x)
+	terminal.close_button.grab_focus()
+	_click(window, terminal.close_button.get_global_rect().get_center())
+	_joy(window, JOY_BUTTON_A)
+	t.assert_true("W / 动画中点击与A不会激活收起键", terminal.target_open and terminal.is_input_captured())
+	await tree.create_timer(0.17).timeout
 	window.size = original_size
 	terminal.slide_duration = 0.025
 	await _frames(tree, 3)

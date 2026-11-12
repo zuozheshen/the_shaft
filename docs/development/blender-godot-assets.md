@@ -212,3 +212,9 @@ r7用户修订：
 生成器强制校验 project.godot、专属 filepath、Scene 与 Collection，只替换本资产生成对象，保存专属源并导出选中的静态 Mesh / 原点 Empty。标准 glTF Y-up；不导出 Camera/Light/碰撞，不改写 Godot wrapper 或四种外部材质。A 只生成基础几何，不含固定件；正式资产使用 C。Godot 对同路径 GLB reimport 后，在正式 `main_3d`、ART-04 正常灯光和 FOV70 复查五个完整玩家视角及热点/监控。
 
 `elevator_cabin_visual_v3_source.py` 是 #66 历史 worktree 的原生资源重建工具，未发现当前正式 regenerate 入口引用；本次保持不变。它会重建旧 V3 装配，不能把 #66 历史重建命令当作当前舱壁再生成入口，也不要为兼容它重新耦合新墙板。回滚当前 Issue commit 可恢复旧装配显隐并移除独立挂接；原 V3 资源、台体、检修门和记录不依赖新 GLB。
+
+## W 核验终端机壳（#101）
+
+可编辑源为 `art_source/verification_terminal_w.blend`，运行资产为 `assets/art/models/verification_terminal_w.glb`，两者沿用 Git LFS。Blender Scene 为 W Verification Terminal，导出集合为 W_Terminal_Export。集合只包含金属机壳、内凹屏口、背盖、密封边、通风细节和螺丝。按 glTF 标准 Y-up 导出集合网格，保留材质、UV、法线及物体原点。
+
+外壳包络为 620 × 384 × 70.3 mm。有效屏口为 556 × 312.75 mm，位于 Godot 局部 Z=0.020 m 的平面。Godot `verification_terminal_3d.tscn` 负责机壳挂载、四个屏口标记、独立 CanvasLayer 及隐藏的 LegacyGraybox。宽高限制只决定统一缩放上限。重导出时保持这些尺寸与原点，尺寸变更应同步核对包络和四角。灰盒回退需要同时恢复对应投影尺寸和布局。

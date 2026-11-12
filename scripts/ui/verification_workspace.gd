@@ -3,12 +3,13 @@ extends VBoxContainer
 ## 只缓存引用和阅读布局；资料真值来自受限端口和已有提交事件。
 
 const WINDOW := preload("res://scenes/ui/document_window.tscn")
-const CATEGORIES: Array[String] = ["收件箱", "规程 / 样板", "已调阅资料"]
+const CATEGORIES: Array[String] = ["乘客材料", "规程与样板", "人员记录", "楼层档案", "陈述摘录"]
+const CATEGORY_ROUTES: Array[String] = ["passenger", "", "left", "right", "main"]
+const REFERENCE_CATEGORY := 1
 
 var port: Dictionary = {}
 # 仅由三文件测试预览注入，按已取得的文件版本读取陈述映射。
 var statement_documents: Dictionary = {}
-var _statement_slot_links: Array[Button] = []
 var session_id: int = 0
 var windows: Dictionary = {}
 var saved_views: Dictionary = {}
@@ -20,9 +21,6 @@ var status_label: Label
 var arrange_button: Button
 var directory_button: Button
 var category_buttons: Array[Button] = []
-var switch_scroll: ScrollContainer
-var switch_strip: HBoxContainer
-var switch_buttons: Dictionary = {}
 var _outer_focus: Control
 var _latest: Dictionary = {}
 var _history: Dictionary = {}
@@ -30,14 +28,14 @@ var _active_key: String = ""
 var _arranged: bool = false
 var _focus_queued: bool = false
 var _review_panel: VBoxContainer
-var _review_labels: Array[Label] = []
+var _evidence_buttons: Array[Button] = []
 var _review_buttons: Array[Button] = []
 var _review_feedback: Label
 var _challenge: Button
-var _retry: Button
+var _delivery_feedback: Label
 var _slots: Array[Dictionary] = [{}, {}]
 var _review_operation := 0
-var _retry_delivery := ""
+var _reading_enabled := false
 
 func _ready() -> void:
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -46,51 +44,45 @@ func _ready() -> void:
 	add_theme_constant_override("separation", 4)
 	var toolbar := HBoxContainer.new()
 	add_child(toolbar)
-	for index in CATEGORIES.size():
-		var button := Button.new()
-		button.text = CATEGORIES[index]
-		button.toggle_mode = true
-		button.button_pressed = index == category
-		button.pressed.connect(_select_category.bind(index))
-		toolbar.add_child(button)
-		category_buttons.append(button)
 	directory_button = Button.new()
 	directory_button.text = "目录"
 	directory_button.toggle_mode = true
 	directory_button.button_pressed = true
-	directory_button.toggled.connect(func(value: bool) -> void:
-		catalog_scroll.visible = value
-		_queue_focus()
-		_fit_windows.call_deferred())
+	directory_button.toggled.connect(_set_directory_visible)
 	toolbar.add_child(directory_button)
 	arrange_button = Button.new()
-	arrange_button.text = "自动并排"
+	arrange_button.text = "整理窗口"
 	arrange_button.pressed.connect(arrange_windows)
 	toolbar.add_child(arrange_button)
-	# 提交状态与窗口条共用一行，避免增加导航高度挤占正文。
-	var status_row := HBoxContainer.new()
-	add_child(status_row)
 	status_label = Label.new()
+	status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	status_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	status_label.add_theme_font_size_override("font_size", 14)
-	status_row.add_child(status_label)
-	status_row.add_child(VSeparator.new())
-	switch_scroll = ScrollContainer.new()
-	switch_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	switch_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	switch_scroll.follow_focus = true
-	status_row.add_child(switch_scroll)
-	switch_strip = HBoxContainer.new()
-	switch_scroll.add_child(switch_strip)
+	toolbar.add_child(status_label)
+	toolbar.move_child(status_label, 0)
 	var row := HBoxContainer.new()
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(row)
 	catalog_scroll = ScrollContainer.new()
-	catalog_scroll.custom_minimum_size.x = 166
+	catalog_scroll.custom_minimum_size.x = 226
 	catalog_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	row.add_child(catalog_scroll)
+	var directory := VBoxContainer.new()
+	directory.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	catalog_scroll.add_child(directory)
+	for index in CATEGORIES.size():
+		var button := Button.new()
+		button.text = CATEGORIES[index]
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.toggle_mode = true
+		button.button_pressed = index == category
+		button.pressed.connect(_select_category.bind(index))
+		button.focus_entered.connect(_reveal_directory_focus.call_deferred)
+		directory.add_child(button)
+		category_buttons.append(button)
+	directory.add_child(HSeparator.new())
 	catalog = VBoxContainer.new()
-	catalog.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	catalog_scroll.add_child(catalog)
+	directory.add_child(catalog)
 	desk = Control.new()
 	desk.name = "WindowDesk"
 	desk.clip_contents = true
@@ -119,10 +111,10 @@ func reset_session(value: int) -> void:
 	_slots = [{}, {}]
 	_review_operation = 0
 	_review_feedback.text = ""
+	_delivery_feedback.hide()
 	_latest.clear()
 	_history.clear()
 	_active_key = ""
-	_render_switch_strip()
 	session_id = value
 	refresh()
 
@@ -162,14 +154,24 @@ func refresh(changed_session: int = -1) -> void:
 	refresh_review()
 	_queue_focus()
 
+func _set_directory_visible(value: bool) -> void:
+	var focused := get_viewport().gui_get_focus_owner()
+	if not value and focused != null and catalog_scroll.is_ancestor_of(focused):
+		directory_button.grab_focus()
+	catalog_scroll.visible = value
+	directory_button.set_pressed_no_signal(value)
+	_queue_focus()
+	_fit_windows.call_deferred()
+
+
 func _select_category(index: int) -> void:
 	category = index
 	for n in category_buttons.size():
 		category_buttons[n].set_pressed_no_signal(n == index)
-	catalog_scroll.visible = true
-	directory_button.set_pressed_no_signal(true)
+	_set_directory_visible(true)
 	_render_catalog()
 	_queue_focus()
+
 
 func _catalog_button(text: String, action: Callable, ref: Dictionary = {}) -> Button:
 	var button := Button.new()
@@ -178,51 +180,56 @@ func _catalog_button(text: String, action: Callable, ref: Dictionary = {}) -> Bu
 	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	button.tooltip_text = text
 	button.set_meta("document_ref", ref.duplicate())
+	button.focus_entered.connect(_reveal_directory_focus.call_deferred)
 	button.pressed.connect(action)
 	catalog.add_child(button)
 	return button
 
-func _render_catalog() -> void:
-	# 更新目录时保留键盘所处行；无关更新不能抢走正文焦点。
+func _reveal_directory_focus() -> void:
 	var focused := get_viewport().gui_get_focus_owner()
-	var focus_index := focused.get_index() if focused != null and focused.get_parent() == catalog else -1
+	if focused != null and catalog_scroll.visible and catalog_scroll.is_ancestor_of(focused):
+		catalog_scroll.ensure_control_visible(focused)
+
+
+func _render_catalog() -> void:
+	# 刷新目录时用资料引用恢复焦点；正文焦点不受目录重建影响。
+	var focused := get_viewport().gui_get_focus_owner()
+	var focused_ref: Dictionary = {}
+	if focused != null and focused.get_parent() == catalog:
+		focused_ref = focused.get_meta("document_ref", {})
 	var old_scroll := catalog_scroll.scroll_vertical
 	for child in catalog.get_children():
 		catalog.remove_child(child)
 		child.queue_free()
-	match category:
-		0:
-			for item: Dictionary in _latest.values():
-				# 主台摘录进入收件箱；上传批次仍只计算 passenger 事件。
-				if item.route in ["passenger", "main"]:
-					var ref := {"document_id": item.document.document_id, "version": item.document.version}
-					_catalog_button(item.document.title, open_document.bind(ref), ref)
-		1:
-			if session_id > 0 and not port.is_empty():
-				var references: Dictionary = {}
-				for ref: Dictionary in port.get_system_references.call(session_id):
-					if not references.has(ref.document_id) or int(ref.version) > int(references[ref.document_id].version):
-						references[ref.document_id] = ref
-				for ref: Dictionary in references.values():
-					_catalog_button(ref.title, open_reference.bind(ref), {"document_id":ref.document_id, "version":ref.version})
-		2:
-			for item: Dictionary in _latest.values():
-				# 只按实际取得渠道分类，字段的引述出处不能提升权限。
-				if item.route not in ["left", "right"]:
-					continue
-				var ref := {"document_id":item.document.document_id, "version":item.document.version}
-				_catalog_button(item.document.title, open_document.bind(ref), ref)
+	if category == REFERENCE_CATEGORY:
+		if session_id > 0 and not port.is_empty():
+			var references: Dictionary = {}
+			for ref: Dictionary in port.get_system_references.call(session_id):
+				if not references.has(ref.document_id) or int(ref.version) > int(references[ref.document_id].version):
+					references[ref.document_id] = ref
+			for ref: Dictionary in references.values():
+				_catalog_button(ref.title, open_reference.bind(ref),
+						{"document_id": ref.document_id, "version": ref.version})
+	else:
+		for item: Dictionary in _latest.values():
+			# 字段的引述出处不改变取得渠道或权限。
+			if item.route == CATEGORY_ROUTES[category]:
+				var ref := {"document_id": item.document.document_id, "version": item.document.version}
+				_catalog_button("%s · v%d" % [item.document.title, ref.version], open_document.bind(ref), ref)
 	if catalog.get_child_count() == 0:
 		var empty := Label.new()
 		empty.text = "暂无资料"
 		catalog.add_child(empty)
-	if focus_index >= 0:
-		var candidate := catalog.get_child(mini(focus_index, catalog.get_child_count() - 1)) as Control
-		if candidate.focus_mode == Control.FOCUS_ALL:
-			candidate.grab_focus()
-		else:
-			category_buttons[category].grab_focus()
 	catalog_scroll.set_deferred("scroll_vertical", old_scroll)
+	if not focused_ref.is_empty() and catalog_scroll.visible:
+		for button in catalog.get_children():
+			var ref: Dictionary = button.get_meta("document_ref", {})
+			# 同一资料升级时，目录焦点跟到这份资料的新版。
+			if ref.get("document_id") == focused_ref.document_id:
+				button.grab_focus()
+				return
+		category_buttons[category].grab_focus()
+
 
 func open_reference(ref: Dictionary) -> void:
 	if session_id <= 0:
@@ -232,7 +239,12 @@ func open_reference(ref: Dictionary) -> void:
 	open_document(ref)
 
 func open_retrieved_document(ref: Dictionary) -> void:
-	_select_category(2) # 已调阅资料
+	if session_id <= 0 or port.is_empty():
+		return
+	var receipt: Dictionary = port.get_acquired_document.call(session_id, ref)
+	var route: String = receipt.get("route", "")
+	if route in ["left", "right"]:
+		_select_category(CATEGORY_ROUTES.find(route))
 	open_document(ref)
 
 
@@ -278,7 +290,6 @@ func open_document(ref: Dictionary) -> void:
 		window.position = Vector2(18, 14) * ((windows.size() - 1) % 4)
 	window.constrain()
 	_arranged = false
-	_render_switch_strip()
 	raise_window(key)
 	_render_catalog()
 	if not window.statement_blocks.is_empty():
@@ -298,7 +309,6 @@ func raise_window(key: String, focus_body: bool = true) -> void:
 		windows[previous].cancel_statement_selection()
 	var window: DocumentWindow = windows[key]
 	desk.move_child(window, desk.get_child_count() - 1)
-	_update_switch_active()
 	if focus_body:
 		window.scroll.grab_focus()
 
@@ -310,21 +320,19 @@ func close_window(key: String) -> void:
 		"scroll": window.get_reading_position(), "details": window.detail_button.button_pressed,
 		"history_open": window.history_button.button_pressed}
 	var focused := get_viewport().gui_get_focus_owner()
-	var lost_focus: bool = focused != null and (window.is_ancestor_of(focused) or focused == switch_buttons.get(key))
-	var open_keys: Array = windows.keys()
-	var closed_index: int = open_keys.find(key)
+	var lost_focus := focused != null and window.is_ancestor_of(focused)
 	windows.erase(key)
 	window.hide()
 	desk.remove_child(window)
 	window.queue_free()
 	if _active_key == key:
-		var remaining: Array = windows.keys()
-		_active_key = String(remaining[mini(closed_index, remaining.size() - 1)]) if not remaining.is_empty() else ""
-	_render_switch_strip()
+		var top := desk.get_child(desk.get_child_count() - 1) as DocumentWindow if not windows.is_empty() else null
+		_active_key = _key(top.document_ref) if top != null else ""
 	if lost_focus:
-		if switch_buttons.has(_active_key):
-			raise_window(_active_key, false)
-			switch_buttons[_active_key].grab_focus()
+		if windows.has(_active_key):
+			raise_window(_active_key)
+		elif catalog_scroll.visible:
+			category_buttons[category].grab_focus()
 		else:
 			arrange_button.grab_focus()
 	_render_catalog()
@@ -341,56 +349,17 @@ func _older_refs(id: String) -> Array[Dictionary]:
 	result.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.version > b.version)
 	return result
 
-func _render_switch_strip() -> void:
-	if switch_strip == null:
-		return
-	var focused := get_viewport().gui_get_focus_owner()
-	var focused_key: String = ""
-	for key: String in switch_buttons:
-		if switch_buttons[key] == focused:
-			focused_key = key
-	for child in switch_strip.get_children():
-		switch_strip.remove_child(child)
-		child.queue_free()
-	switch_buttons.clear()
-	# Dictionary保留开窗顺序；置顶只移动阅读窗，不让切换目标跳动。
-	for key: String in windows:
-		var window: DocumentWindow = windows[key]
-		var button := Button.new()
-		button.text = "%s · v%d" % [window.receipt.document.title, window.document_ref.version]
-		button.toggle_mode = true
-		var selected := StyleBoxFlat.new()
-		selected.bg_color = Color("#36594f")
-		selected.border_color = Color("#a8c7b2")
-		selected.set_border_width_all(1)
-		selected.set_content_margin_all(4)
-		button.add_theme_stylebox_override("pressed", selected)
-		button.set_meta("document_ref", window.document_ref.duplicate())
-		button.pressed.connect(raise_window.bind(key))
-		button.focus_entered.connect(switch_scroll.ensure_control_visible.bind(button))
-		switch_strip.add_child(button)
-		switch_buttons[key] = button
-	switch_scroll.visible = not switch_buttons.is_empty()
-	_update_switch_active()
-	if switch_buttons.has(focused_key):
-		switch_buttons[focused_key].grab_focus()
-	_queue_focus()
-
-func _update_switch_active() -> void:
-	for key: String in switch_buttons:
-		switch_buttons[key].set_pressed_no_signal(key == _active_key)
-
 func arrange_windows() -> void:
 	# 收折目录后再排版，给正文留出屏口空间。
-	directory_button.set_pressed_no_signal(false)
-	catalog_scroll.visible = false
+	_set_directory_visible(false)
 	_arranged = true
 	_tile.call_deferred()
 	_queue_focus()
 
 func _tile() -> void:
-	var count := desk.get_child_count()
-	if count == 0:
+	var ordered := windows.values()
+	var count := ordered.size()
+	if count == 0 or not _arranged:
 		return
 	var columns := 1 if count == 1 else 2
 	if count == 3 and desk.size.x >= 1050:
@@ -398,7 +367,7 @@ func _tile() -> void:
 	var rows := ceili(float(count) / columns)
 	var cell := (desk.size - Vector2(6 * (columns - 1), 6 * (rows - 1))) / Vector2(columns, rows)
 	for index in count:
-		var window := desk.get_child(index) as DocumentWindow
+		var window := ordered[index] as DocumentWindow
 		window.position = Vector2(index % columns, index / columns) * (cell + Vector2(6, 6))
 		window.size = cell
 		window.constrain()
@@ -411,11 +380,16 @@ func _fit_windows() -> void:
 			window.constrain()
 
 func set_reading_enabled(value: bool) -> void:
+	_reading_enabled = value
 	mouse_filter = Control.MOUSE_FILTER_PASS if value else Control.MOUSE_FILTER_IGNORE
 	if not value:
-		for window in windows.values():
-			window.cancel_drag()
-			window.cancel_statement_selection()
+		cancel_pointer_interaction()
+
+
+func cancel_pointer_interaction() -> void:
+	for window in windows.values():
+		window.cancel_drag()
+		window.cancel_statement_selection()
 
 func _queue_focus() -> void:
 	if not _focus_queued:
@@ -427,8 +401,6 @@ func rebuild_focus() -> void:
 	var controls: Array[Control] = []
 	if is_instance_valid(_outer_focus):
 		controls.append(_outer_focus)
-	for button in category_buttons:
-		controls.append(button)
 	controls.append(directory_button)
 	controls.append(arrange_button)
 	if _review_panel.visible:
@@ -436,11 +408,10 @@ func rebuild_focus() -> void:
 			if button.visible and not button.disabled:
 				controls.append(button)
 	if catalog_scroll.visible:
+		controls.append_array(category_buttons)
 		for child in catalog.get_children():
 			if child is Button:
 				controls.append(child)
-	for button in switch_buttons.values():
-		controls.append(button)
 	for key: String in windows:
 		var window: DocumentWindow = windows[key]
 		var window_controls: Array[Control] = window.focus_controls()
@@ -513,22 +484,38 @@ func _create_review_panel() -> void:
 	add_child(_review_panel)
 	var row := HBoxContainer.new()
 	_review_panel.add_child(row)
+	var frame := StyleBoxFlat.new()
+	frame.bg_color = Color("#102c2b")
+	frame.border_color = Color("#63837a")
+	frame.set_border_width_all(1)
+	frame.set_content_margin_all(4)
 	for slot in range(2):
-		var label := Label.new()
-		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		label.gui_input.connect(_statement_slot_input.bind(slot))
-		row.add_child(label)
-		_review_labels.append(label)
-		var locate := _review_button(row, "定位原文", _locate_statement.bind(slot))
-		locate.hide()
-		_statement_slot_links.append(locate)
-		_review_button(row, "清空", _clear_review_field.bind(slot))
-	_challenge = _review_button(row, "提出质疑", _submit_challenge)
-	_retry = _review_button(row, "重试回应", _retry_response)
+		var card := PanelContainer.new()
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.add_theme_stylebox_override("panel", frame)
+		row.add_child(card)
+		var contents := HBoxContainer.new()
+		card.add_child(contents)
+		var body := _review_button(contents, "", _locate_evidence.bind(slot))
+		body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		body.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		body.clip_text = true
+		body.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		_evidence_buttons.append(body)
+		var clear := _review_button(contents, "×", _clear_review_field.bind(slot))
+		clear.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		clear.tooltip_text = "清空这项证据"
+	var actions := HBoxContainer.new()
+	_review_panel.add_child(actions)
 	_review_feedback = Label.new()
+	_review_feedback.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_review_feedback.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_review_panel.add_child(_review_feedback)
+	actions.add_child(_review_feedback)
+	_delivery_feedback = Label.new()
+	_delivery_feedback.text = "回应未送达"
+	_delivery_feedback.hide()
+	actions.add_child(_delivery_feedback)
+	_challenge = _review_button(actions, "提出质疑", _submit_challenge)
 
 
 func _review_button(row: HBoxContainer, label: String, action: Callable) -> Button:
@@ -547,62 +534,82 @@ func refresh_review() -> void:
 	_review_panel.visible = session_id > 0 and (preview or (port.has("has_review_rules") and port.has_review_rules.call(session_id)))
 	if not _review_panel.visible:
 		return
-	var complete := true
+	var valid_fields := 0
 	var single_clause := false
 	for slot in range(2):
 		var ref := _slots[slot]
-		var label := _review_labels[slot]
+		var button := _evidence_buttons[slot]
+		button.disabled = ref.is_empty()
 		var item: Dictionary = _latest.get(ref.get("document_id"), {})
-		var current: bool = not ref.is_empty() and not item.is_empty() and item.document.version == ref.version
+		var current: bool = not item.is_empty() and item.document.version == ref.get("version")
 		var field: Dictionary = item.document.fields.get(ref.get("field_id", ""), {}) if current else {}
-		complete = complete and not field.is_empty()
-		if slot == 0 and not field.is_empty() and item.document.source.kind == "system_reference":
-			single_clause = field.requirement_key != "" and field.required_material_type != "" and field.applicability_key != ""
+		if not field.is_empty():
+			valid_fields += 1
+			if item.document.source.kind == "system_reference":
+				single_clause = field.requirement_key != "" and field.required_material_type != "" \
+						and field.applicability_key != ""
 		if ref.is_empty():
-			label.text = "未选择"
+			button.text = "未选择证据"
 		elif not current:
-			label.text = "版本已更新 / 请重新选取"
-			if ref.has("quote"):
-				label.text += "\n" + String(ref.quote)
+			button.text = "v%d · 版本已更新 / 请重新选取" % ref.version
 		else:
-			label.text = item.document.title + "：" + String(field.get("display_value", ""))
-		if current and ref.has("quote"):
-			label.text = String(ref.quote) + "\n" + item.document.title + " · v%d" % ref.version
-		label.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING if preview else TextServer.OVERRUN_TRIM_ELLIPSIS
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if preview else TextServer.AUTOWRAP_OFF
-		label.tooltip_text = label.text
-		_statement_slot_links[slot].visible = current and ref.has("quote")
-		label.mouse_filter = Control.MOUSE_FILTER_STOP if _statement_slot_links[slot].visible else Control.MOUSE_FILTER_IGNORE
-	if _slots[1].is_empty():
-		_challenge.disabled = not single_clause
-	else:
-		_challenge.disabled = not complete or _slots[0].get("document_id") == _slots[1].get("document_id")
+			var excerpt: String = ref.get("quote", field.get("display_value", ""))
+			button.text = "%s · v%d\n%s" % [item.document.title, ref.version, excerpt.replace("\n", " ")]
+		button.tooltip_text = button.text if ref.is_empty() else button.text + "\n点击定位原文"
+	var selected_count := _selected_refs().size()
+	_challenge.disabled = preview or not (
+			(selected_count == 1 and valid_fields == 1 and single_clause)
+			or (selected_count == 2 and valid_fields == 2 and _slots[0].document_id != _slots[1].document_id))
 	if preview:
-		_challenge.disabled = true
 		_challenge.tooltip_text = "本原型仅验证选取与比对"
 		if _review_feedback.text.is_empty():
 			_review_feedback.text = _challenge.tooltip_text
-	_retry_delivery = ""
+	_delivery_feedback.hide()
 	for delivery: Dictionary in port.get_review_deliveries.call(session_id):
 		if delivery.status == "failed":
-			_retry_delivery = delivery.delivery_id
+			_delivery_feedback.show()
 			break
-	_retry.visible = not _retry_delivery.is_empty()
 	_queue_focus()
 
 
-func _statement_slot_input(event: InputEvent, slot: int) -> void:
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
-		_locate_statement(slot)
+func _selected_refs() -> Array[Dictionary]:
+	var refs: Array[Dictionary] = []
+	for ref in _slots:
+		if not ref.is_empty():
+			refs.append(ref)
+	return refs
 
-func _locate_statement(slot: int) -> void:
-	var ref := _slots[slot]
-	if not ref.has("quote"):
+
+func _locate_evidence(slot: int) -> void:
+	var ref := _slots[slot].duplicate()
+	if ref.is_empty():
 		return
+	var expected_session := session_id
 	open_document(ref)
-	var window: DocumentWindow = windows.get(_key(ref))
-	if window != null:
-		window.locate_statement.call_deferred(int(ref.start), int(ref.end))
+	var key := _key(ref)
+	var window := windows.get(key) as DocumentWindow
+	if window == null:
+		_review_feedback.text = "该版本不可定位"
+		return
+	if window.history_list.visible:
+		window.history_button.button_pressed = false
+	# 等开窗布局和阅读位置恢复完成；已经转移的焦点不应被旧定位抢回。
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if not _reading_enabled or expected_session != session_id or _slots[slot] != ref \
+			or not is_instance_valid(window) or windows.get(key) != window \
+			or not window.is_ancestor_of(get_viewport().gui_get_focus_owner()):
+		return
+	if ref.has("quote"):
+		var original: String = window.receipt.document.original_text
+		if ref.start >= 0 and ref.end > ref.start and ref.end <= original.length() \
+				and original.substr(ref.start, ref.end - ref.start) == ref.quote:
+			window.locate_statement(ref.start, ref.end)
+			return
+	elif window.locate_field(ref.get("field_id", "")):
+		return
+	_review_feedback.text = "该证据原文不可定位"
+
 
 func _add_statement(ref: Dictionary, key: String, expected_session: int) -> void:
 	if expected_session != session_id or not windows.has(key):
@@ -633,10 +640,7 @@ func _add_review_field(ref: Dictionary) -> void:
 
 
 func _clear_review_field(slot: int) -> void:
-	# 清空首项时把后选项前移，下一份资料总是接在已有项后面。
-	if slot == 0:
-		_slots[0] = _slots[1]
-	_slots[1] = {}
+	_slots[slot] = {}
 	_review_feedback.text = ""
 	refresh_review()
 
@@ -654,21 +658,17 @@ func _show_review_result(expected_session: int, result: FlowCommandResult) -> vo
 
 
 func _submit_challenge() -> void:
-	# 预览的按钮保持禁用，原文摘录须完整匹配字段才有业务引用。
-	for ref in _slots:
-		if ref.has("quote") and not ref.has("field_id"):
-			return
-	# 单条规程索证和双字段质疑使用同一入口，由应用层分别校验。
-	if _slots[1].is_empty():
-		_show_review_result(session_id, port.submit_material_request.call(session_id, _operation_id(), _review_ref(_slots[0])))
-	else:
-		_show_review_result(session_id, port.submit_document_challenge.call(session_id, _operation_id(), _review_ref(_slots[0]), _review_ref(_slots[1])))
+	if _challenge.disabled:
+		return
+	var refs := _selected_refs()
+	# 业务只看非空证据；清左后留在右侧的条款仍然可以索证。
+	if refs.size() == 1:
+		_show_review_result(session_id, port.submit_material_request.call(session_id, _operation_id(), _review_ref(refs[0])))
+	elif refs.size() == 2:
+		_show_review_result(session_id, port.submit_document_challenge.call(session_id, _operation_id(), _review_ref(refs[0]), _review_ref(refs[1])))
 
 
 func _review_ref(ref: Dictionary) -> Dictionary:
 	if not ref.has("quote"):
 		return ref
 	return {"document_id": ref.document_id, "version": ref.version, "field_id": ref.field_id}
-
-func _retry_response() -> void:
-	_show_review_result(session_id, port.retry_review_delivery.call(session_id, _operation_id(), _retry_delivery))

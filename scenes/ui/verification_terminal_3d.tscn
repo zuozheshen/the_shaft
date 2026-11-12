@@ -1,7 +1,8 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/verification_terminal_3d.gd" id="1_terminal"]
 [ext_resource type="PackedScene" path="res://scenes/ui/verification_workspace.tscn" id="2_workspace"]
+[ext_resource type="PackedScene" path="res://assets/art/models/verification_terminal_w.glb" id="3_housing"]
 [sub_resource type="StandardMaterial3D" id="ShellMaterial"]
 shading_mode = 0
 albedo_color = Color(0.23, 0.25, 0.24, 1)
@@ -38,49 +39,69 @@ content_margin_bottom = 8.0
 
 [node name="核验终端" type="Node3D"]
 script = ExtResource("1_terminal")
+width_fraction = 0.9
+height_fraction = 0.88
+
 [node name="Shell" type="Node3D" parent="."]
 visible = false
-[node name="厚机壳" type="MeshInstance3D" parent="Shell"]
+
+[node name="W机壳" parent="Shell" instance=ExtResource("3_housing")]
+
+[node name="ScreenCorners" type="Node3D" parent="Shell"]
+
+[node name="TopLeft" type="Marker3D" parent="Shell/ScreenCorners"]
+position = Vector3(-0.278, 0.156375, 0.020)
+[node name="TopRight" type="Marker3D" parent="Shell/ScreenCorners"]
+position = Vector3(0.278, 0.156375, 0.020)
+[node name="BottomLeft" type="Marker3D" parent="Shell/ScreenCorners"]
+position = Vector3(-0.278, -0.156375, 0.020)
+[node name="BottomRight" type="Marker3D" parent="Shell/ScreenCorners"]
+position = Vector3(0.278, -0.156375, 0.020)
+
+[node name="LegacyGraybox" type="Node3D" parent="Shell"]
+visible = false
+scale = Vector3(0.298, 0.298, 0.298)
+[node name="厚机壳" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
 position = Vector3(0, 0, -0.18)
 mesh = SubResource("BodyMesh")
 cast_shadow = 0
-[node name="上框" type="MeshInstance3D" parent="Shell"]
+[node name="上框" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
 position = Vector3(0, 0.55, 0.025)
 mesh = SubResource("HorizontalMesh")
 cast_shadow = 0
-[node name="下框" type="MeshInstance3D" parent="Shell"]
+[node name="下框" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
 position = Vector3(0, -0.55, 0.025)
 mesh = SubResource("HorizontalMesh")
 cast_shadow = 0
-[node name="左框" type="MeshInstance3D" parent="Shell"]
+[node name="左框" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
 position = Vector3(-0.92, 0, 0.025)
 mesh = SubResource("VerticalMesh")
 cast_shadow = 0
-[node name="右框" type="MeshInstance3D" parent="Shell"]
+[node name="右框" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
 position = Vector3(0.92, 0, 0.025)
 mesh = SubResource("VerticalMesh")
 cast_shadow = 0
-[node name="内凹屏口" type="MeshInstance3D" parent="Shell"]
+[node name="内凹屏口" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
 position = Vector3(0, 0, -0.014)
 mesh = SubResource("ScreenMesh")
 cast_shadow = 0
-[node name="右上安装支座" type="MeshInstance3D" parent="Shell"]
+[node name="右上安装支座" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
 position = Vector3(1.12, 0.52, -0.18)
 mesh = SubResource("MountMesh")
 cast_shadow = 0
-[node name="左上紧固件" type="MeshInstance3D" parent="Shell"]
+[node name="左上紧固件" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
 position = Vector3(-0.93, 0.55, 0.09)
 mesh = SubResource("ScrewMesh")
 cast_shadow = 0
-[node name="右上紧固件" type="MeshInstance3D" parent="Shell"]
+[node name="右上紧固件" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
 position = Vector3(0.93, 0.55, 0.09)
 mesh = SubResource("ScrewMesh")
 cast_shadow = 0
-[node name="左下紧固件" type="MeshInstance3D" parent="Shell"]
+[node name="左下紧固件" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
 position = Vector3(-0.93, -0.55, 0.09)
 mesh = SubResource("ScrewMesh")
 cast_shadow = 0
-[node name="右下紧固件" type="MeshInstance3D" parent="Shell"]
+[node name="右下紧固件" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
 position = Vector3(0.93, -0.55, 0.09)
 mesh = SubResource("ScrewMesh")
 cast_shadow = 0

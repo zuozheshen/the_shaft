@@ -37,6 +37,8 @@ var history_button: Button
 var history_list: VBoxContainer
 var _history_refs: Array[Dictionary] = []
 var _document_rendered: bool = false
+var _field_labels: Dictionary = {}
+var _located_field: Label
 var _history_reading_position: int = 0
 
 func _ready() -> void:
@@ -151,7 +153,7 @@ func show_document(value: Dictionary, latest: int) -> void:
 	_text(doc.original_text)
 	for field_id: String in doc.fields:
 		var field: Dictionary = doc.fields[field_id]
-		_text(field.display_value)
+		_field_labels[field_id] = _text(field.display_value)
 		if review_enabled and field.has_value:
 			_add_review_button(field_id, field)
 		var detail := _text("字段：%s · %s\n%s" % [field_id, field.source.source_id, field.source_note])
@@ -415,6 +417,20 @@ func _join_statement() -> void:
 	var ref := _candidate.duplicate()
 	cancel_statement_selection(true)
 	review_field_requested.emit(ref)
+
+## 定位使用字段 ID，避免正文中有两个同值字段时跳错位置。
+func locate_field(field_id: String) -> bool:
+	var label := _field_labels.get(field_id) as Label
+	if label == null:
+		return false
+	if is_instance_valid(_located_field):
+		_located_field.add_theme_color_override("font_color", Color("#d4e1d7"))
+	_located_field = label
+	label.add_theme_color_override("font_color", Color("#fff2b7"))
+	scroll.grab_focus()
+	scroll.ensure_control_visible(label)
+	return true
+
 
 func locate_statement(start: int, end: int) -> void:
 	if _quote_body == null:

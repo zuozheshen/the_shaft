@@ -1470,7 +1470,7 @@ func _notify_review_pending() -> void:
 
 func _review_already(event: Dictionary) -> FlowCommandResultScript:
 	return _review_result(true, &"REVIEW_ALREADY_SUBMITTED",
-		"回应未送达，可重试。" if event.status == "failed" else "该问题已提交。")
+		"回应未送达。" if event.status == "failed" else "该问题已提交。")
 
 
 func _review_result(ok: bool, code: StringName, message: String) -> FlowCommandResultScript:
