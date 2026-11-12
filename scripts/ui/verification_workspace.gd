@@ -313,7 +313,6 @@ func open_document(ref: Dictionary) -> void:
 		var saved: Dictionary = saved_views[key]
 		window.position = saved.position
 		window.size = saved.size
-		window.detail_button.button_pressed = saved.details
 		if window.history_button.visible:
 			window.history_button.button_pressed = saved.get("history_open", false)
 		window.restore_reading_position(saved.scroll)
@@ -354,7 +353,7 @@ func close_window(key: String) -> void:
 		return
 	var window: DocumentWindow = windows[key]
 	saved_views[key] = {"position": window.position, "size": window.size,
-		"scroll": window.get_reading_position(), "details": window.detail_button.button_pressed,
+		"scroll": window.get_reading_position(),
 		"history_open": window.history_button.button_pressed}
 	var focused := get_viewport().gui_get_focus_owner()
 	var lost_focus := focused != null and window.is_ancestor_of(focused)

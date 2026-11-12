@@ -25,15 +25,13 @@ var scroll: ScrollContainer
 var title_label: Label
 var version_label: Label
 var update_button: Button
-var detail_button: Button
+var _version_actions: HBoxContainer
 var _title_bar: PanelContainer
 var close_button: Button
 var body: VBoxContainer
-var metadata_label: Label
 var _drag_mode: int = 0
 var _drag_start: Vector2
 var _start_rect: Rect2
-var _details: bool = false
 var history_button: Button
 var history_list: VBoxContainer
 var _history_refs: Array[Dictionary] = []
@@ -70,16 +68,15 @@ func _ready() -> void:
 	close_button.custom_minimum_size.x = 36
 	close_button.pressed.connect(func() -> void: closing.emit())
 	set_active(false)
-	var actions := HBoxContainer.new()
-	layout.add_child(actions)
-	detail_button = _button(actions, "详情")
-	detail_button.toggle_mode = true
-	detail_button.toggled.connect(_show_details)
-	history_button = _button(actions, "历史版本")
+	_version_actions = HBoxContainer.new()
+	_version_actions.hide()
+	layout.add_child(_version_actions)
+	history_button = _button(_version_actions, "历史版本")
 	history_button.toggle_mode = true
 	history_button.visible = false
 	history_button.toggled.connect(_show_history)
-	update_button = _button(actions, "查看新版")
+	update_button = _button(_version_actions, "查看新版")
+	update_button.hide()
 	update_button.pressed.connect(func() -> void: newer_requested.emit())
 	scroll = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -95,8 +92,6 @@ func _ready() -> void:
 	history_list = VBoxContainer.new()
 	history_list.visible = false
 	body.add_child(history_list)
-	metadata_label = _text("")
-	metadata_label.visible = false
 	# 角柄只负责局部缩放，不使用原生 OS 窗口。
 	var grip_space := Control.new()
 	grip_space.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -151,22 +146,18 @@ func show_document(value: Dictionary, latest: int) -> void:
 	var doc: Dictionary = receipt.document
 	document_ref = {"document_id": doc.document_id, "version": doc.version}
 	title_label.text = doc.title
-	var source: Dictionary = doc.source
 	version_label.text = "v%d%s" % [doc.version, " · 旧版" if latest > int(doc.version) else ""]
 	update_button.visible = latest > int(doc.version)
+	_version_actions.visible = update_button.visible or history_button.visible
 	if update_button.visible and not statement_blocks.is_empty():
 		cancel_statement_selection()
-	metadata_label.text = "来源：%s\n原始位置：%s\n来源版本：%s\n原始更新：%s\n取得时间：%s" % [
-		source.source_id, source.origin_ref, source.source_version,
-		source.updated_at if not String(source.updated_at).is_empty() else "未知",
-		Time.get_datetime_string_from_unix_time(int(receipt.acquired_at))]
 	# 刷新版本提示不重建正文，避免无关资料更新打断阅读。
 	if _document_rendered:
 		return
 	_document_rendered = true
 	if not statement_blocks.is_empty():
 		_render_statements(doc)
-		var origin := _text("%s · v%d" % [source.source_id, doc.version])
+		var origin := _text("%s · v%d" % [doc.source.source_id, doc.version])
 		origin.add_theme_font_size_override("font_size", 15)
 		return
 	_render_document(doc)
@@ -226,19 +217,10 @@ func _render_fields(doc: Dictionary, ruled: bool) -> void:
 			body.add_child(label)
 			if ruled:
 				body.add_child(HSeparator.new())
-		var detail := _text("字段：%s · %s\n%s" % [field_id, field.source.source_id, field.source_note])
-		detail.set_meta("field_detail", true)
-		detail.visible = _details
 
-func _show_details(value: bool) -> void:
-	_details = value
-	metadata_label.visible = value
-	for child in body.get_children():
-		if child.has_meta("field_detail"):
-			child.visible = value
 
 func focus_controls() -> Array[Control]:
-	var result: Array[Control] = [close_button, detail_button]
+	var result: Array[Control] = [close_button]
 	if update_button.visible:
 		result.append(update_button)
 	if history_button.visible:
@@ -333,6 +315,7 @@ func set_history(refs: Array[Dictionary]) -> void:
 		history_list.remove_child(child)
 		child.queue_free()
 	history_button.visible = not refs.is_empty()
+	_version_actions.visible = update_button.visible or history_button.visible
 	history_button.text = "历史版本 (%d)" % refs.size()
 	if refs.is_empty():
 		history_button.set_pressed_no_signal(false)
@@ -347,7 +330,7 @@ func set_history(refs: Array[Dictionary]) -> void:
 		if history_button.visible:
 			history_button.grab_focus()
 		else:
-			detail_button.grab_focus()
+			scroll.grab_focus()
 	focus_layout_changed.emit()
 
 func _show_history(value: bool) -> void:
