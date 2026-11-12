@@ -194,7 +194,7 @@ func _exercise_archive(t: Variant, tree: SceneTree, terminal: BuildingTerminalIn
 	await _frames(tree, 4)
 	t.assert_equal("左台 / 第二份显示名称与序号", "维修任务表   2 / 3", terminal.document_heading.text)
 	t.assert_true("左台 / 原文包含完整范围与原始更新时间",
-		terminal.terminal_content_label.text.contains("001、002") and terminal.terminal_content_label.text.contains("2026-11-08 08:30"))
+		terminal.terminal_content_label.text.contains("001、002") and terminal.record_meta.text.contains("2026-11-08 08:30"))
 	interaction._execute_left_scroll(2)
 	var second_scroll := terminal.content_scroll_container.scroll_vertical
 	t.assert_true("左台 / 真实布局允许滚动且两份位置不同", first_scroll > 0 and second_scroll > first_scroll)
@@ -258,7 +258,7 @@ func _exercise_archive(t: Variant, tree: SceneTree, terminal: BuildingTerminalIn
 	interaction._execute_action(&"left_passenger_record")
 	await _frames(tree, 4)
 	t.assert_equal("左台 / 新版从顶部开始", 0, terminal.content_scroll_container.scroll_vertical)
-	t.assert_true("左台 / 刷新后显示新版时间", terminal.terminal_content_label.text.contains("2026-11-08 09:00"))
+	t.assert_true("左台 / 刷新后显示新版时间", terminal.record_meta.text.contains("2026-11-08 09:00"))
 	interaction._execute_action(&"left_retrieve_document")
 	t.assert_false("左台 / 旧版与新版都可精确读", manager.get_acquired_document(session, work).is_empty()
 		or manager.get_acquired_document(session, Docs.ref(Archive.WORK, 2)).is_empty())

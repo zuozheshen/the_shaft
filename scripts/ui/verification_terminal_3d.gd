@@ -30,7 +30,6 @@ const PAD_ACTIONS: Array[StringName] = [
 @onready var screen: PanelContainer = $WorkspaceLayer/InputShield/Screen
 @onready var workspace: VerificationWorkspace = %VerificationWorkspace
 @onready var close_button: Button = %CloseButton
-@onready var session_label: Label = %SessionLabel
 
 var target_open: bool = false
 var open_progress: float = 0.0
@@ -52,6 +51,7 @@ var _scroll_remaining: float = 0.0
 var _held_keys: Dictionary = {}
 
 func _ready() -> void:
+	screen.theme = preload("res://scripts/ui/terminal_ui_style.gd").make_theme(20)
 	_camera = get_parent() as Camera3D
 	close_button.pressed.connect(set_open.bind(false))
 	get_viewport().size_changed.connect(_update_layout)
@@ -79,14 +79,8 @@ func reset_document_session(session: int) -> void:
 	_session_id = session
 	workspace.reset_session(session)
 	_ui_focus = null
-	_refresh_session_label()
 	if _captured and open_progress >= 1.0:
 		close_button.grab_focus()
-
-func _refresh_session_label() -> void:
-	# 只切换场景里已写好的中性空态，不枚举未取得资料或创建假业务内容。
-	session_label.text = session_label.get_meta("idle_text") if _session_id == 0 \
-			else "当前派单 / 核验工作区"
 
 func is_input_captured() -> bool:
 	return _captured

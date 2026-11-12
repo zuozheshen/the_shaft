@@ -1,6 +1,7 @@
 class_name DocumentWindow
 extends PanelContainer
 ## 窗口固定到一个已取得版本；移动、滚动与焦点均为本单 UI 状态。
+const STYLE := preload("res://scripts/ui/terminal_ui_style.gd")
 
 signal closing
 signal raised
@@ -25,7 +26,7 @@ var title_label: Label
 var version_label: Label
 var update_button: Button
 var detail_button: Button
-var top_button: Button
+var _title_bar: PanelContainer
 var close_button: Button
 var body: VBoxContainer
 var metadata_label: Label
@@ -39,42 +40,38 @@ var _history_refs: Array[Dictionary] = []
 var _document_rendered: bool = false
 var _field_labels: Dictionary = {}
 var _located_field: Label
+var _location_generation: int = 0
+var _selected_fields: Dictionary = {}
 var _history_reading_position: int = 0
 
 func _ready() -> void:
 	clip_contents = true
-	custom_minimum_size = Vector2(200, 120)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color("#102c2b")
-	style.border_color = Color("#63837a")
-	style.set_border_width_all(1)
-	style.content_margin_left = 8
-	style.content_margin_right = 8
-	style.content_margin_top = 5
-	style.content_margin_bottom = 7
-	add_theme_stylebox_override("panel", style)
+	custom_minimum_size = Vector2(288, 168)
+	add_theme_stylebox_override("panel", STYLE.box(STYLE.PAPER, STYLE.EDGE, 1, 2, 2))
 	var layout := VBoxContainer.new()
 	layout.add_theme_constant_override("separation", 3)
 	add_child(layout)
+	_title_bar = PanelContainer.new()
+	layout.add_child(_title_bar)
 	var header := HBoxContainer.new()
-	layout.add_child(header)
+	_title_bar.add_child(header)
 	title_label = Label.new()
 	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	title_label.mouse_filter = Control.MOUSE_FILTER_STOP
 	title_label.gui_input.connect(_title_input)
 	header.add_child(title_label)
-	top_button = _button(header, "置顶")
-	top_button.pressed.connect(func() -> void: raised.emit())
-	close_button = _button(header, "关闭")
-	close_button.pressed.connect(func() -> void: closing.emit())
 	version_label = Label.new()
-	version_label.add_theme_font_size_override("font_size", 14)
-	version_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	version_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	version_label.mouse_filter = Control.MOUSE_FILTER_STOP
+	version_label.gui_input.connect(_title_input)
+	header.add_child(version_label)
+	close_button = _button(header, "×")
+	close_button.tooltip_text = "关闭文书"
+	close_button.custom_minimum_size.x = 36
+	close_button.pressed.connect(func() -> void: closing.emit())
+	set_active(false)
 	var actions := HBoxContainer.new()
 	layout.add_child(actions)
-	actions.add_child(version_label)
 	detail_button = _button(actions, "详情")
 	detail_button.toggle_mode = true
 	detail_button.toggled.connect(_show_details)
@@ -89,6 +86,7 @@ func _ready() -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.focus_mode = Control.FOCUS_ALL
 	scroll.gui_input.connect(_body_input)
+	scroll.add_theme_stylebox_override("panel", STYLE.box(STYLE.PAPER, STYLE.EDGE, 0, 20, 9))
 	layout.add_child(scroll)
 	body = VBoxContainer.new()
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -100,11 +98,17 @@ func _ready() -> void:
 	metadata_label = _text("")
 	metadata_label.visible = false
 	# 角柄只负责局部缩放，不使用原生 OS 窗口。
+	var grip_space := Control.new()
+	grip_space.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	grip_space.custom_minimum_size.y = 28
+	layout.add_child(grip_space)
 	var grip := Button.new()
 	grip.text = "◢"
 	grip.tooltip_text = "拖动调整窗口"
 	grip.focus_mode = Control.FOCUS_NONE
-	grip.custom_minimum_size = Vector2(22, 22)
+	grip.custom_minimum_size = Vector2(30, 28)
+	grip.add_theme_stylebox_override("normal", STYLE.box(STYLE.PAPER, STYLE.EDGE, 1, 3, 0))
+	grip.add_theme_color_override("font_color", STYLE.INK)
 	grip.size_flags_horizontal = Control.SIZE_SHRINK_END
 	grip.size_flags_vertical = Control.SIZE_SHRINK_END
 	grip.gui_input.connect(_grip_input)
@@ -113,6 +117,14 @@ func _ready() -> void:
 		if event is InputEventMouseButton and event.pressed:
 			raised.emit())
 
+func set_active(value: bool) -> void:
+	_title_bar.add_theme_stylebox_override("panel",
+			STYLE.box(STYLE.ACTIVE if value else STYLE.INACTIVE, STYLE.EDGE, 1, 9, 1))
+	var color := STYLE.INK if value else STYLE.LIGHT
+	title_label.add_theme_color_override("font_color", color)
+	version_label.add_theme_color_override("font_color", color)
+
+
 func _button(parent: Node, text: String) -> Button:
 	var result := Button.new()
 	result.text = text
@@ -120,12 +132,18 @@ func _button(parent: Node, text: String) -> Button:
 	return result
 
 func _text(text: String) -> Label:
+	var label := _detached_text(text)
+	body.add_child(label)
+	return label
+
+
+func _detached_text(text: String) -> Label:
 	var label := Label.new()
-	label.add_theme_color_override("font_color", Color("#d4e1d7"))
+	label.add_theme_color_override("font_color", STYLE.INK)
 	label.text = text
+	label.add_theme_constant_override("line_spacing", 5)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	body.add_child(label)
 	return label
 
 func show_document(value: Dictionary, latest: int) -> void:
@@ -134,8 +152,7 @@ func show_document(value: Dictionary, latest: int) -> void:
 	document_ref = {"document_id": doc.document_id, "version": doc.version}
 	title_label.text = doc.title
 	var source: Dictionary = doc.source
-	version_label.text = "%s · v%d%s" % [{"passenger_upload":"乘客上传", "system_reference":"系统参考", "floor_archive":"右台档案", "personnel_record":"人员档案", "duty_record":"当班记录", "call_excerpt":"通话摘录"}.get(source.kind, source.kind), doc.version,
-		" · 旧版 / 有更新" if latest > int(doc.version) else ""]
+	version_label.text = "v%d%s" % [doc.version, " · 旧版" if latest > int(doc.version) else ""]
 	update_button.visible = latest > int(doc.version)
 	if update_button.visible and not statement_blocks.is_empty():
 		cancel_statement_selection()
@@ -149,13 +166,66 @@ func show_document(value: Dictionary, latest: int) -> void:
 	_document_rendered = true
 	if not statement_blocks.is_empty():
 		_render_statements(doc)
+		var origin := _text("%s · v%d" % [source.source_id, doc.version])
+		origin.add_theme_font_size_override("font_size", 15)
 		return
-	_text(doc.original_text)
+	_render_document(doc)
+
+
+func _render_document(doc: Dictionary) -> void:
+	# 模板只分派布局。原文和引用仍绑定取得时的版本快照。
+	var kind: String = doc.source.kind
+	match kind:
+		"system_reference":
+			var prose := _text(doc.original_text)
+			prose.add_theme_font_override("font", STYLE.font(["Noto Serif SC", "SimSun"]))
+			prose.add_theme_constant_override("line_spacing", 8)
+		"personnel_record", "duty_record":
+			_render_fields(doc, true)
+			body.add_child(HSeparator.new())
+			_text(doc.original_text)
+		"floor_archive":
+			if not String(doc.owner_id).is_empty():
+				var number := _text(doc.owner_id)
+				number.add_theme_font_override("font", STYLE.font(["Consolas", "Cascadia Mono"]))
+				number.add_theme_font_size_override("font_size", 54)
+			body.add_child(HSeparator.new())
+			_render_fields(doc, true)
+			_text(doc.original_text)
+		"call_excerpt":
+			_quote_card().add_child(_detached_text(doc.original_text))
+		_:
+			# 乘客原件和未知类型保留来源本身的标题、换行和字段顺序。
+			_text(doc.original_text)
+	if not kind in ["personnel_record", "duty_record", "floor_archive"]:
+		_render_fields(doc, false)
+	var source := _text("%s · v%d" % [doc.source.source_id, doc.version])
+	source.add_theme_font_size_override("font_size", 15)
+	source.add_theme_color_override("font_color", STYLE.PICKED)
+
+
+func _quote_card() -> PanelContainer:
+	var panel := PanelContainer.new()
+	var rule := STYLE.box(STYLE.HOVER, STYLE.PICKED, 0, 14, 10)
+	rule.border_width_left = 4
+	panel.add_theme_stylebox_override("panel", rule)
+	body.add_child(panel)
+	return panel
+
+
+func _render_fields(doc: Dictionary, ruled: bool) -> void:
+	if not doc.fields.is_empty():
+		body.add_child(HSeparator.new())
 	for field_id: String in doc.fields:
 		var field: Dictionary = doc.fields[field_id]
-		_field_labels[field_id] = _text(field.display_value)
+		var label := _detached_text(field.display_value)
+		_field_labels[field_id] = label
 		if review_enabled and field.has_value:
-			_add_review_button(field_id, field)
+			_add_review_row(field_id, label, ruled)
+		else:
+			body.add_child(label)
+			if ruled:
+				body.add_child(HSeparator.new())
 		var detail := _text("字段：%s · %s\n%s" % [field_id, field.source.source_id, field.source_note])
 		detail.set_meta("field_detail", true)
 		detail.visible = _details
@@ -168,7 +238,7 @@ func _show_details(value: bool) -> void:
 			child.visible = value
 
 func focus_controls() -> Array[Control]:
-	var result: Array[Control] = [top_button, close_button, detail_button]
+	var result: Array[Control] = [close_button, detail_button]
 	if update_button.visible:
 		result.append(update_button)
 	if history_button.visible:
@@ -190,6 +260,8 @@ func scroll_by(amount: int) -> void:
 	scroll.scroll_vertical += amount
 
 func _body_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		raised.emit()
 	if not event is InputEventKey or not event.pressed:
 		return
 	match event.keycode:
@@ -315,10 +387,10 @@ func _render_statements(doc: Dictionary) -> void:
 	var background := StyleBoxEmpty.new()
 	_quote_body.add_theme_stylebox_override("normal", background)
 	_quote_body.add_theme_stylebox_override("read_only", background)
-	_quote_body.add_theme_color_override("font_readonly_color", Color("#d4e1d7"))
-	_quote_body.add_theme_color_override("current_line_color", Color("#254239"))
+	_quote_body.add_theme_color_override("font_readonly_color", STYLE.INK)
+	_quote_body.add_theme_color_override("current_line_color", Color("#ccad7c"))
 	_quote_body.gui_input.connect(_quote_input)
-	body.add_child(_quote_body)
+	_quote_card().add_child(_quote_body)
 	_quote_join = _button(scroll.get_parent(), "加入比对")
 	_quote_join.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_quote_join.hide()
@@ -423,13 +495,29 @@ func locate_field(field_id: String) -> bool:
 	var label := _field_labels.get(field_id) as Label
 	if label == null:
 		return false
-	if is_instance_valid(_located_field):
-		_located_field.add_theme_color_override("font_color", Color("#d4e1d7"))
+	var previous := _located_field
 	_located_field = label
-	label.add_theme_color_override("font_color", Color("#fff2b7"))
+	_location_generation += 1
+	var generation := _location_generation
+	for id: String in _field_labels:
+		if _field_labels[id] == previous or _field_labels[id] == label:
+			_refresh_field_style(id)
 	scroll.grab_focus()
-	scroll.ensure_control_visible(label)
+	var target := label
+	if label.get_parent().has_meta("review_button"):
+		scroll.ensure_control_visible(label.get_parent())
+	else:
+		scroll.ensure_control_visible(target)
+	_clear_location_later(generation, field_id)
 	return true
+
+
+func _clear_location_later(generation: int, field_id: String) -> void:
+	await get_tree().create_timer(1.5).timeout
+	if generation != _location_generation:
+		return
+	_located_field = null
+	_refresh_field_style(field_id)
 
 
 func locate_statement(start: int, end: int) -> void:
@@ -443,6 +531,14 @@ func locate_statement(start: int, end: int) -> void:
 	_quote_body.select(first.y, first.x, last.y, last.x)
 	_quote_body.grab_focus()
 	_reveal_quote_line(first.y)
+	var generation := _selection_generation
+	await get_tree().create_timer(1.5).timeout
+	if generation == _selection_generation and _candidate.is_empty() and _quote_body.has_selection() \
+			and _quote_body.get_selection_from_line() == first.y \
+			and _quote_body.get_selection_from_column() == first.x \
+			and _quote_body.get_selection_to_line() == last.y \
+			and _quote_body.get_selection_to_column() == last.x:
+		_quote_body.deselect()
 
 func _quote_position(offset: int) -> Vector2i:
 	for line in _quote_body.get_line_count():
@@ -473,13 +569,47 @@ func cancel_statement_selection(restore_focus: bool = false) -> bool:
 		focus_layout_changed.emit()
 	return had_selection
 
-func _add_review_button(field_id: String, field: Dictionary) -> void:
-	var ref := document_ref.duplicate()
-	ref["field_id"] = field_id
-	var row := HBoxContainer.new()
+func _add_review_row(field_id: String, label: Label, ruled: bool) -> void:
+	var ref := document_ref.merged({"field_id": field_id})
+	var row := PanelContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_stylebox_override("panel", STYLE.box(Color.TRANSPARENT, STYLE.EDGE, 0, 9, 6))
 	body.add_child(row)
-	var button := _button(row, "加入比对")
-	button.tooltip_text = field.display_value
+	var button := _button(row, "")
 	button.set_meta("review_ref", ref)
+	button.tooltip_text = label.text
 	button.pressed.connect(review_field_requested.emit.bind(ref))
+	button.focus_entered.connect(func() -> void: scroll.ensure_control_visible(row))
+	button.add_theme_stylebox_override("focus", STYLE.box(Color.TRANSPARENT, STYLE.PICKED, 2, 0, 0))
+	row.set_meta("review_button", button)
+	row.set_meta("ruled", ruled)
+	row.add_child(label)
 	_review_buttons.append(button)
+	_refresh_field_style(field_id)
+
+
+func set_evidence_fields(refs: Array[Dictionary]) -> void:
+	_selected_fields.clear()
+	for ref: Dictionary in refs:
+		if ref.get("document_id") == document_ref.document_id and ref.get("version") == document_ref.version \
+				and ref.has("field_id"):
+			_selected_fields[ref.field_id] = true
+	for id: String in _field_labels:
+		_refresh_field_style(id)
+
+
+func _refresh_field_style(id: String) -> void:
+	var label: Label = _field_labels[id]
+	var row := label.get_parent()
+	var button := row.get_meta("review_button", null) as Button if row.has_meta("review_button") else null
+	var located := _located_field == label
+	var selected := _selected_fields.has(id)
+	label.add_theme_color_override("font_color", STYLE.LIGHT if selected and not located else STYLE.INK)
+	if button == null:
+		return
+	var fill := STYLE.HOVER if located else (STYLE.PICKED if selected else STYLE.PAPER)
+	var normal := STYLE.box(fill, STYLE.PICKED if located else STYLE.EDGE, 1 if located or row.get_meta("ruled") else 0, 0, 0)
+	var hover := STYLE.box(STYLE.INACTIVE if selected and not located else STYLE.HOVER, STYLE.PICKED, 1, 0, 0)
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("pressed", hover)

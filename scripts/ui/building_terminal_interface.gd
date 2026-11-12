@@ -10,6 +10,7 @@ signal archive_document_retrieved(session: int, ref: Dictionary)
 
 enum Section { SYSTEM_LOG, PASSENGER_RECORD }
 
+const STYLE := preload("res://scripts/ui/terminal_ui_style.gd")
 const SECTION_SYSTEM_LOG: StringName = &"system_log"
 const SECTION_PASSENGER_RECORD: StringName = &"passenger_record"
 const EMPTY_SYSTEM_LOG_CONTENT: String = "暂无系统通信记录。"
@@ -17,10 +18,13 @@ const EMPTY_SYSTEM_LOG_CONTENT: String = "暂无系统通信记录。"
 @export_range(24, 240, 8) var scroll_step: int = 96
 
 @onready var title_label: Label = $TerminalLayout/TitleLabel
-@onready var access_status_label: Label = $TerminalLayout/AccessStatusLabel
-@onready var document_heading: Label = $TerminalLayout/DocumentHeading
 @onready var content_scroll_container: ScrollContainer = $TerminalLayout/ContentScrollContainer
-@onready var terminal_content_label: Label = $TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/TerminalContentLabel
+@onready var _reading: VBoxContainer = $TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/Reading
+@onready var document_heading: Label = _reading.get_node("DocumentHeading")
+@onready var record_meta: Label = _reading.get_node("RecordMeta")
+@onready var terminal_content_label: Label = _reading.get_node("TerminalContentLabel")
+@onready var _log_rows: VBoxContainer = _reading.get_node("LogRows")
+@onready var _record_fields: VBoxContainer = _reading.get_node("RecordFields")
 @onready var terminal_hint_label: Label = $TerminalLayout/TerminalHintLabel
 
 var demo_flow_manager: DemoFlowManager
@@ -45,7 +49,6 @@ var _scroll_pending: bool = false
 
 func _ready() -> void:
 	_apply_terminal_theme()
-	_initialize_terminal_text()
 	_render_system_log()
 
 
@@ -126,7 +129,7 @@ func retrieve_current_document() -> void:
 		return
 	if not can_retrieve_current_document():
 		if _current_section == Section.SYSTEM_LOG:
-			terminal_hint_label.text = "请先查看乘客档案。"
+			_show_feedback("请先查看乘客档案。")
 		return
 	var document := _current_document()
 	var key := _document_key(document)
@@ -142,10 +145,10 @@ func retrieve_current_document() -> void:
 		archive_document_retrieved.emit(session, {"document_id": document.document_id, "version": document.version})
 	elif result.code == &"LEFT_RECORD_CHANGED" or result.code == &"VERSION_CONFLICT" or result.code == &"STALE_VERSION":
 		_stale_documents[key] = true
-		terminal_hint_label.text = "资料已更新，请返回系统日志后重新打开乘客档案。"
+		_show_feedback("资料已更新，请返回系统日志后重新打开乘客档案。")
 		_publish_read_state()
 	else:
-		terminal_hint_label.text = "当前无法调阅此文档。"
+		_show_feedback("当前无法调阅此文档。")
 
 
 func can_retrieve_current_document() -> bool:
@@ -258,96 +261,83 @@ func _restore_scroll_after_layout() -> void:
 		_scroll_pending = false
 
 
-func _initialize_terminal_text() -> void:
-	_set_label_text(title_label, "ARCHIVE TERMINAL")
-	_set_label_text(access_status_label, "SHAFT FACILITIES // OPERATOR ACCESS // LINK ACTIVE")
-
-
 func _apply_terminal_theme() -> void:
-	# 氛围实验采用深绿黑与灰绿文字；保留系统等宽字体和中文回退。
-	var terminal_font := SystemFont.new()
-	terminal_font.font_names = PackedStringArray([
-		"Consolas",
-		"Cascadia Mono",
-		"Noto Sans Mono CJK SC",
-		"Microsoft YaHei UI",
-	])
-	var terminal_theme := Theme.new()
-	terminal_theme.default_font = terminal_font
-	terminal_theme.default_font_size = 19
-	terminal_theme.set_color("font_color", "Label", Color("bdcfa8"))
-	terminal_theme.set_color("font_shadow_color", "Label", Color(0.0, 0.025, 0.04, 0.85))
-	terminal_theme.set_constant("shadow_offset_x", "Label", 1)
-	terminal_theme.set_constant("shadow_offset_y", "Label", 1)
-	terminal_theme.set_stylebox("panel", "PanelContainer", _create_terminal_style(
-		Color("142019"), Color("51684c"), 1
-	))
-	theme = terminal_theme
-	# 设备头以字号区分名称与状态，亮度贴近正文，不抢阅读内容。
-	title_label.add_theme_font_size_override("font_size", 24)
-	title_label.add_theme_color_override("font_color", Color("bdcfa8"))
-	access_status_label.add_theme_font_size_override("font_size", 14)
-	access_status_label.add_theme_color_override("font_color", Color("819774"))
-	terminal_hint_label.add_theme_font_size_override("font_size", 16)
-	terminal_hint_label.add_theme_color_override("font_color", Color("819774"))
-
-
-func _create_terminal_style(
-		background_color: Color,
-		border_color: Color,
-		border_width: int
-) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = background_color
-	style.border_color = border_color
-	style.set_border_width_all(border_width)
-	style.content_margin_left = 12.0
-	style.content_margin_top = 8.0
-	style.content_margin_right = 12.0
-	style.content_margin_bottom = 8.0
-	return style
+	theme = STYLE.make_theme(26)
+	title_label.add_theme_font_size_override("font_size", 34)
+	document_heading.add_theme_font_size_override("font_size", 31)
+	record_meta.add_theme_font_size_override("font_size", 21)
+	record_meta.add_theme_color_override("font_color", STYLE.MUTED)
+	terminal_hint_label.add_theme_font_size_override("font_size", 22)
+	terminal_hint_label.add_theme_color_override("font_color", STYLE.AMBER)
 
 
 func _render_record() -> void:
-	document_heading.show()
+	title_label.text = "乘客档案"
+	_log_rows.hide()
+	_clear_rows(_record_fields)
+	terminal_hint_label.hide()
+	document_heading.visible = not _documents.is_empty()
+	record_meta.visible = document_heading.visible
 	if _documents.is_empty():
-		document_heading.text = "乘客档案"
 		terminal_content_label.text = "暂无当前乘客。" if _session <= 0 else "暂无可用乘客档案。"
-		terminal_hint_label.text = "当前没有可调阅的文档。"
 		return
 	var document := _current_document()
 	document_heading.text = "%s   %d / %d" % [document.title, _document_index + 1, _documents.size()]
 	var source: Dictionary = document.source
-	var updated: String = source.updated_at if not String(source.updated_at).is_empty() else "未知"
+	var metadata := PackedStringArray()
+	if not String(document.owner_id).is_empty():
+		metadata.append("人员编号 %s" % document.owner_id)
+	metadata.append("%s · v%d" % [source.source_id, document.version])
+	if not String(source.updated_at).is_empty():
+		metadata.append(source.updated_at)
+	record_meta.text = "   ｜   ".join(metadata)
 	var original_text: String = document.original_text
 	if String(document.document_id).begins_with("registry/passenger/"):
-		# 旧身份档案的模板只在左台展示时展开，取得记录保留原文。
+		# 旧身份档案只在左台展开；取得记录保留原文。
 		original_text = original_text.replace("{dispatch}", demo_flow_manager.get_dispatch_text())
-	var lines := PackedStringArray([
-		"人员编号：%s" % document.owner_id,
-		"来源：%s · v%d" % [source.source_id, document.version],
-		"记录更新时间：%s" % updated,
-		"", original_text,
-	])
+	terminal_content_label.text = original_text
 	for field: Dictionary in document.fields.values():
 		if field.has_value:
-			lines.append(String(field.display_value))
-	terminal_content_label.text = "\n".join(lines)
+			_record_fields.add_child(HSeparator.new())
+			_record_fields.add_child(_reading_label(field.display_value))
 	if _stale_documents.has(_document_key(document)):
-		terminal_hint_label.text = "资料已更新，请返回系统日志后重新打开乘客档案。"
-	else:
-		var navigation := "档案键：下一份  ｜  " if _documents.size() > 1 else ""
-		terminal_hint_label.text = navigation + "滚轮：阅读  ｜  调阅：展开至核验终端"
+		_show_feedback("资料已更新，请返回系统日志后重新打开乘客档案。")
 
 
 func _render_system_log() -> void:
+	title_label.text = "系统日志"
 	document_heading.hide()
+	record_meta.hide()
+	terminal_hint_label.hide()
+	_clear_rows(_record_fields)
+	_clear_rows(_log_rows)
+	_log_rows.show()
 	var history: Array[String] = []
 	if demo_flow_manager != null:
 		history = demo_flow_manager.get_system_message_history()
-	terminal_content_label.text = EMPTY_SYSTEM_LOG_CONTENT if history.is_empty() else "系统日志\n\n" + "\n\n".join(history)
-	terminal_hint_label.text = "暂无需要复核的系统通信。" if history.is_empty() else "已读取本轮系统通信历史。"
+	terminal_content_label.text = EMPTY_SYSTEM_LOG_CONTENT if history.is_empty() else ""
+	for message in history:
+		var record := PanelContainer.new()
+		var line := STYLE.box(STYLE.DESK, STYLE.EDGE, 0, 16, 8)
+		line.border_width_left = 3
+		record.add_theme_stylebox_override("panel", line)
+		record.add_child(_reading_label(message))
+		_log_rows.add_child(record)
 
 
-func _set_label_text(label: Label, new_text: String) -> void:
-	label.text = new_text
+func _reading_label(text: String) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return label
+
+
+func _clear_rows(rows: VBoxContainer) -> void:
+	for child in rows.get_children():
+		rows.remove_child(child)
+		child.queue_free()
+
+
+func _show_feedback(text: String) -> void:
+	terminal_hint_label.text = text
+	terminal_hint_label.show()

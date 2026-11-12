@@ -9,6 +9,9 @@ extends Node
 @export var input_screen_path: NodePath
 @export var input_viewport_path: NodePath
 @export var information_label_path: NodePath
+@export var current_floor_label_path: NodePath
+@export var execution_target_label_path: NodePath
+@export var source_label_path: NodePath
 @export var input_label_path: NodePath
 @export var feedback_label_path: NodePath
 @export var lever_pivot_path: NodePath
@@ -23,6 +26,9 @@ extends Node
 
 var _destination: DestinationControlInterface
 var _information_label: Label
+var _current_floor_label: Label
+var _execution_target_label: Label
+var _source_label: Label
 var _input_label: Label
 var _feedback_label: Label
 var _lever_pivot: Node3D
@@ -39,11 +45,15 @@ func _ready() -> void:
 func _bind_presentation() -> void:
 	_destination = get_node_or_null(destination_interface_path) as DestinationControlInterface
 	_information_label = get_node_or_null(information_label_path) as Label
+	_current_floor_label = get_node_or_null(current_floor_label_path) as Label
+	_execution_target_label = get_node_or_null(execution_target_label_path) as Label
+	_source_label = get_node_or_null(source_label_path) as Label
 	_input_label = get_node_or_null(input_label_path) as Label
 	_feedback_label = get_node_or_null(feedback_label_path) as Label
 	_lever_pivot = get_node_or_null(lever_pivot_path) as Node3D
 	if _destination == null or _information_label == null or _input_label == null \
-			or _feedback_label == null \
+			or _feedback_label == null or _current_floor_label == null \
+			or _execution_target_label == null or _source_label == null \
 			or _lever_pivot == null:
 		push_error("右台实体展示缺少关键导出路径或节点类型错误。")
 		return
@@ -129,28 +139,44 @@ func _finish_lever_animation() -> void:
 func _on_destination_presentation_changed(snapshot: Dictionary) -> void:
 	if _information_label == null or _input_label == null or _feedback_label == null:
 		return
-	var query := "—"
-	match String(snapshot.query_status):
-		"found":
-			query = snapshot.query_floor
-		"prefix":
-			query = "输入中"
-		"unknown":
-			query = "未知地址"
-		"ambiguous", "invalid":
-			query = "档案配置需核对"
-	var updated: String = snapshot.updated_at
-	_information_label.text = (
-		"当前位置 %s   执行目标 %s\n查询楼层 %s   电梯停靠状态 %s\n功能 %s\n区域 %s\n行政访问 %s\n来源 %s\n更新时间 %s"
-	) % [
-		snapshot.current_floor, snapshot.execution_target, query, snapshot.elevator_stop,
-		_short_text(snapshot.current_function), _short_text(snapshot.current_area),
-		_short_text(snapshot.administrative_access_conditions),
-		_short_text(("%s %s" % [snapshot.source, snapshot.source_version]).strip_edges()),
-		_short_text(updated) if not updated.is_empty() else "未知",
-	]
+	_current_floor_label.text = str(snapshot.current_floor)
+	_execution_target_label.text = str(snapshot.execution_target)
 	_input_label.text = str(snapshot.input)
 	_feedback_label.text = str(snapshot.feedback)
+	if _feedback_label.text.is_empty() and snapshot.current_floor != "---":
+		# 现有快照只在实际行驶时提供执行目标。
+		_feedback_label.text = "运行中" if snapshot.execution_target != "---" else "已停靠"
+	_source_label.text = ""
+	match String(snapshot.query_status):
+		"found":
+			var lines := PackedStringArray(["%s   ·   %s" % [snapshot.query_floor, snapshot.elevator_stop]])
+			var facilities := PackedStringArray()
+			if _has_summary_value(snapshot.current_function):
+				facilities.append("功能 %s" % _short_text(snapshot.current_function, 14))
+			if _has_summary_value(snapshot.current_area):
+				facilities.append("区域 %s" % _short_text(snapshot.current_area, 14))
+			if not facilities.is_empty():
+				lines.append("   ｜   ".join(facilities))
+			if _has_summary_value(snapshot.administrative_access_conditions):
+				lines.append("行政访问 %s" % _short_text(snapshot.administrative_access_conditions, 28))
+			_information_label.text = "\n".join(lines)
+			var origin := ("%s %s" % [snapshot.source, snapshot.source_version]).strip_edges()
+			var updated: String = snapshot.updated_at
+			_source_label.text = "   ·   ".join(PackedStringArray([origin, updated])) \
+					if not origin.is_empty() and not updated.is_empty() else origin + updated
+		"prefix":
+			_information_label.text = "输入中"
+		"unknown":
+			_information_label.text = "未知地址"
+		"ambiguous", "invalid":
+			_information_label.text = "档案配置需核对"
+		_:
+			_information_label.text = "未查询"
+
+
+func _has_summary_value(value: String) -> bool:
+	return value not in ["", "—", "未知", "未登记", "未记录"]
+
 
 
 ## 右台只展示短摘要，原始字段和完整来源保留在 W。

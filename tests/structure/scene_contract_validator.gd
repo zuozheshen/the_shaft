@@ -63,6 +63,8 @@ const EXPORTED_PATHS := {
 		"information_screen_path": "MeshInstance3D", "information_viewport_path": "SubViewport",
 		"input_screen_path": "MeshInstance3D", "input_viewport_path": "SubViewport",
 		"information_label_path": "Label", "input_label_path": "Label",
+		"current_floor_label_path": "Label", "execution_target_label_path": "Label",
+		"source_label_path": "Label",
 		"feedback_label_path": "Label", "lever_pivot_path": "Node3D",
 	},
 	"VerificationTerminal3D": {"view_controller_path": "CabinViewController3D", "interaction_controller_path": "CabinInteractionController3D", "left_screen_path": "LeftTerminalScreen3D"},
@@ -344,8 +346,8 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 			_expect(node, "ToastTimer", "Timer")
 		"BuildingTerminalInterface":
 			_expect(node, "TerminalLayout/ContentScrollContainer", "ScrollContainer")
-			_expect(node, "TerminalLayout/DocumentHeading", "Label")
-			_expect(node, "TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/TerminalContentLabel", "Label")
+			_expect(node, "TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/Reading/DocumentHeading", "Label")
+			_expect(node, "TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/Reading/TerminalContentLabel", "Label")
 		"MonitorStageController3D":
 			_check_mount(node, "initial_floor_slice_path", "floor_slice_mount_path")
 			_check_mount(node, "initial_passenger_visual_path", "passenger_mount_path")

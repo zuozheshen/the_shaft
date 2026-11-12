@@ -1106,40 +1106,124 @@ size = Vector2i(960, 324)
 render_target_update_mode = 2
 
 [node name="底色" type="ColorRect" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-mouse_filter = 2
-color = Color(0.0471, 0.0902, 0.0706, 1)
-
-[node name="信息文字" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口" unique_id=543401517]
-offset_left = 26.0
-offset_top = 12.0
-offset_right = 934.0
-offset_bottom = 260.0
-theme_override_colors/font_color = Color(0.741176, 0.811765, 0.658824, 1)
-theme_override_constants/line_spacing = -2
-theme_override_fonts/font = SubResource("71_terminal_font")
-theme_override_font_sizes/font_size = 27
-
-[node name="反馈底色" type="ColorRect" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
-offset_top = 266.0
+offset_left = 0.0
+offset_top = 0.0
 offset_right = 960.0
 offset_bottom = 324.0
 mouse_filter = 2
-color = Color(0.0784, 0.1255, 0.098, 1)
+color = Color(0.141, 0.106, 0.086, 1)
+
+[node name="读数底色" type="ColorRect" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_left = 10.0
+offset_top = 8.0
+offset_right = 950.0
+offset_bottom = 102.0
+mouse_filter = 2
+color = Color(0.188, 0.145, 0.11, 1)
+
+[node name="读数隔线" type="ColorRect" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_left = 480.0
+offset_top = 16.0
+offset_right = 482.0
+offset_bottom = 94.0
+mouse_filter = 2
+color = Color(0.502, 0.384, 0.263, 1)
+
+[node name="读数下沿" type="ColorRect" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_left = 10.0
+offset_top = 101.0
+offset_right = 950.0
+offset_bottom = 103.0
+mouse_filter = 2
+color = Color(0.502, 0.384, 0.263, 1)
+
+[node name="当前位置标题" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_left = 26.0
+offset_top = 11.0
+offset_right = 454.0
+offset_bottom = 37.0
+theme_override_colors/font_color = Color(0.737, 0.616, 0.467, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 20
+text = "当前位置"
+
+[node name="当前位置读数" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_left = 24.0
+offset_top = 35.0
+offset_right = 454.0
+offset_bottom = 99.0
+theme_override_colors/font_color = Color(0.99, 0.87, 0.62, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 56
+text = "—"
+
+[node name="执行目标标题" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_left = 503.0
+offset_top = 11.0
+offset_right = 928.0
+offset_bottom = 37.0
+theme_override_colors/font_color = Color(0.737, 0.616, 0.467, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 20
+text = "执行目标"
+
+[node name="执行目标读数" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_left = 501.0
+offset_top = 35.0
+offset_right = 928.0
+offset_bottom = 99.0
+theme_override_colors/font_color = Color(0.99, 0.87, 0.62, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 56
+text = "—"
+
+[node name="信息文字" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口" unique_id=543401517]
+offset_left = 26.0
+offset_top = 110.0
+offset_right = 934.0
+offset_bottom = 245.0
+theme_override_colors/font_color = Color(0.882, 0.729, 0.49, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 27
+theme_override_constants/line_spacing = -1
+text = "未查询"
+
+[node name="信息来源" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_left = 26.0
+offset_top = 244.0
+offset_right = 934.0
+offset_bottom = 279.0
+theme_override_colors/font_color = Color(0.737, 0.616, 0.467, 1)
+theme_override_fonts/font = SubResource("71_terminal_font")
+theme_override_font_sizes/font_size = 21
+text_overrun_behavior = 3
+
+[node name="反馈底色" type="ColorRect" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_left = 0.0
+offset_top = 282.0
+offset_right = 960.0
+offset_bottom = 324.0
+mouse_filter = 2
+color = Color(0.188, 0.145, 0.11, 1)
+
+[node name="反馈分隔" type="ColorRect" parent="操作台占位/右操作台定位/验证信息屏/摘要视口"]
+offset_left = 10.0
+offset_top = 282.0
+offset_right = 950.0
+offset_bottom = 284.0
+mouse_filter = 2
+color = Color(0.502, 0.384, 0.263, 1)
 
 [node name="反馈文字" type="Label" parent="操作台占位/右操作台定位/验证信息屏/摘要视口" unique_id=1025337700]
 offset_left = 26.0
-offset_top = 267.0
+offset_top = 285.0
 offset_right = 934.0
-offset_bottom = 323.0
-theme_override_colors/font_color = Color(0.85098, 0.890196, 0.737255, 1)
-theme_override_constants/line_spacing = 0
+offset_bottom = 324.0
+theme_override_colors/font_color = Color(0.99, 0.87, 0.62, 1)
 theme_override_fonts/font = SubResource("71_terminal_font")
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 24
 vertical_alignment = 1
-autowrap_mode = 3
+text_overrun_behavior = 3
 
 [node name="数字显示组" type="Node3D" parent="操作台占位/右操作台定位" unique_id=1841267422]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14833333, -0.016666668, 0)
@@ -1915,6 +1999,9 @@ destination_interface_path = NodePath("../操作台界面层/操作台界面根/
 information_screen_path = NodePath("../操作台占位/右操作台定位/验证信息屏/屏面")
 information_viewport_path = NodePath("../操作台占位/右操作台定位/验证信息屏/摘要视口")
 information_label_path = NodePath("../操作台占位/右操作台定位/验证信息屏/摘要视口/信息文字")
+current_floor_label_path = NodePath("../操作台占位/右操作台定位/验证信息屏/摘要视口/当前位置读数")
+execution_target_label_path = NodePath("../操作台占位/右操作台定位/验证信息屏/摘要视口/执行目标读数")
+source_label_path = NodePath("../操作台占位/右操作台定位/验证信息屏/摘要视口/信息来源")
 feedback_label_path = NodePath("../操作台占位/右操作台定位/验证信息屏/摘要视口/反馈文字")
 input_screen_path = NodePath("../操作台占位/右操作台定位/数字显示组/LCD屏面")
 input_viewport_path = NodePath("../操作台占位/右操作台定位/数字显示组/数字视口")

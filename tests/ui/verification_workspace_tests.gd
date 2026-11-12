@@ -45,6 +45,20 @@ func run(t: Variant, tree: SceneTree) -> void:
 	workspace._select_category(4)
 	t.assert_true("工作区 / 未摘录的陈述不出现", catalog_ids(workspace).is_empty())
 	t.assert_equal("工作区 / 五个资料栏目", 5, workspace.category_buttons.size())
+	t.assert_true("工作区 / 展开其他分类保留原目录文件",
+		workspace._catalog_lists[0].visible and workspace._catalog_lists[3].visible)
+	workspace.category_buttons[3].grab_focus()
+	await frames(tree)
+	key(viewport, KEY_ENTER)
+	t.assert_true("工作区 / 键盘只收起当前分类",
+		workspace._catalog_lists[0].visible and not workspace._catalog_lists[3].visible)
+	workspace._select_category(3)
+	await frames(tree)
+	_catalog_entry(workspace, Docs.ref("floor")).grab_focus()
+	workspace._set_directory_visible(false)
+	t.assert_true("工作区 / 总开关收起后保留焦点",
+		workspace.directory_button.has_focus() and not workspace.catalog_scroll.visible)
+	workspace._set_directory_visible(true)
 	workspace._select_category(0)
 	for id: String in ["identity", "task", "floor"]:
 		workspace.open_document(Docs.ref(id))
@@ -327,7 +341,8 @@ func _test_statement_selection(t: Variant, tree: SceneTree) -> void:
 	await frames(tree)
 	t.assert_equal("摘取原文 / 无映射的跨段片段可入槽", expected_cross_line, workspace._slots[0].get("quote", ""))
 	t.assert_true("摘取原文 / 入槽显示引文与出处",
-		workspace._evidence_buttons[0].text.begins_with("维修申请 · v1\n")
+		workspace._evidence_buttons[0].text.begins_with("维修申请 · v1 · ")
+		and window.receipt.document.source.source_id in workspace._evidence_buttons[0].text
 		and expected_cross_line.replace("\n", " ") in workspace._evidence_buttons[0].text)
 	workspace._evidence_buttons[0].grab_focus()
 	key(viewport, KEY_ENTER)
@@ -403,13 +418,22 @@ func _test_review_cards(t: Variant, tree: SceneTree) -> void:
 	var clause := Review.ref("regulation", "applicable")
 	var application := Review.ref("application", "destination")
 	var task := Review.ref("task", "destination")
-	workspace._add_review_field(application)
+	var application_window: DocumentWindow = workspace.windows["review/application@1"]
+	workspace.raise_window("review/application@1")
+	var row := application_window._field_labels["destination"].get_parent() as Control
+	application_window.scroll.ensure_control_visible(row)
+	await frames(tree)
+	mouse(viewport, row.get_global_rect().get_center(), true)
+	mouse(viewport, row.get_global_rect().get_center(), false)
+	t.assert_equal("证据框 / 点击正文整行取得原字段引用", application, workspace._slots[0])
+	t.assert_true("证据框 / 入槽后才标记字段选中", application_window._selected_fields.has("destination"))
 	workspace._add_review_field(clause)
 	var clear_left := workspace._evidence_buttons[0].get_parent().get_child(1) as Button
 	mouse(viewport, clear_left.get_global_rect().get_center(), true)
 	mouse(viewport, clear_left.get_global_rect().get_center(), false)
 	t.assert_equal("证据框 / ×只清左槽，保留右槽", [{}, clause], workspace._slots)
 	t.assert_true("证据框 / 清空不触发定位且焦点留在×", clear_left.has_focus())
+	t.assert_false("证据框 / 清槽同步取消字段选中", application_window._selected_fields.has("destination"))
 	t.assert_false("证据框 / 仅右侧有效条款仍可索证", workspace._challenge.disabled)
 	workspace._challenge.grab_focus()
 	key(viewport, KEY_ENTER)

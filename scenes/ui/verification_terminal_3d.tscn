@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/verification_terminal_3d.gd" id="1_terminal"]
 [ext_resource type="PackedScene" path="res://scenes/ui/verification_workspace.tscn" id="2_workspace"]
@@ -31,11 +31,38 @@ size = Vector3(0.18, 0.72, 0.22)
 material = SubResource("DarkMaterial")
 size = Vector3(0.035, 0.035, 0.018)
 [sub_resource type="StyleBoxFlat" id="ScreenStyle"]
-bg_color = Color(0.025, 0.065, 0.062, 1)
-content_margin_left = 10.0
-content_margin_top = 8.0
-content_margin_right = 10.0
-content_margin_bottom = 8.0
+bg_color = Color(0.141, 0.106, 0.086, 1)
+content_margin_left = 14.0
+content_margin_top = 12.0
+content_margin_right = 14.0
+content_margin_bottom = 12.0
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0.035, 0.028, 0.022, 1)
+
+[sub_resource type="Shader" id="ScreenGlass"]
+code = "shader_type canvas_item;
+render_mode unshaded;
+
+void fragment() {
+	vec2 edge_distance = min(UV, vec2(1.0) - UV);
+	float inset = 1.0 - smoothstep(0.0, 0.045, min(edge_distance.x, edge_distance.y));
+	float corners = smoothstep(0.30, 0.71, length((UV - 0.5) * vec2(0.9, 1.1)));
+	float scan = 0.018 * (1.0 - step(1.0, mod(FRAGCOORD.y, 3.0)));
+	float reflection = pow(max(1.0 - UV.y - 0.30 * UV.x, 0.0), 10.0) * 0.11;
+	float rim = (1.0 - smoothstep(0.0, 0.003, UV.y)) * 0.13;
+	float shadow = inset * 0.38 + corners * 0.13 + scan;
+	float sheen = reflection + rim;
+	float opacity = shadow + sheen;
+	COLOR = vec4(mix(vec3(0.025, 0.016, 0.01), vec3(0.82, 0.69, 0.51),
+			sheen / max(opacity, 0.001)), opacity);
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ScreenGlassMaterial"]
+shader = SubResource("ScreenGlass")
 
 [node name="核验终端" type="Node3D"]
 script = ExtResource("1_terminal")
@@ -127,23 +154,19 @@ layout_mode = 2
 [node name="Title" type="Label" parent="WorkspaceLayer/InputShield/Screen/Layout/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.76, 0.85, 0.78, 1)
+theme_override_colors/font_color = Color(0.88, 0.73, 0.49, 1)
 theme_override_font_sizes/font_size = 20
-text = "VERIFICATION / 核验终端"
+text = "核验"
 [node name="CloseButton" type="Button" parent="WorkspaceLayer/InputShield/Screen/Layout/Header"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "收起  W / B"
-[node name="SessionLabel" type="Label" parent="WorkspaceLayer/InputShield/Screen/Layout"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "值班待命 / 暂无当前派单"
-metadata/idle_text = "值班待命 / 暂无当前派单"
-metadata/active_text = "当前派单 / 工作区占位"
+text = "收起"
+tooltip_text = "W / View / B"
 [node name="VerificationWorkspace" parent="WorkspaceLayer/InputShield/Screen/Layout" instance=ExtResource("2_workspace")]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-[node name="Hint" type="Label" parent="WorkspaceLayer/InputShield/Screen/Layout"]
+[node name="Glass" type="ColorRect" parent="WorkspaceLayer/InputShield/Screen"]
+material = SubResource("ScreenGlassMaterial")
 layout_mode = 2
-text = "Tab / 方向键选择 · Enter / A 确认 · 右摇杆滚动 · W / View / B 收起"
+mouse_filter = 2

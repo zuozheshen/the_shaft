@@ -97,6 +97,9 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var session := manager.get_document_session_id()
 	var terminal := main.find_child("核验终端", true, false) as VerificationTerminal3D
 	var information := presentation.get_node(presentation.information_label_path) as Label
+	var source := presentation.get_node(presentation.source_label_path) as Label
+	var current := presentation.get_node(presentation.current_floor_label_path) as Label
+	var target := presentation.get_node(presentation.execution_target_label_path) as Label
 	var feedback := presentation.get_node(presentation.feedback_label_path) as Label
 	var information_viewport := presentation.get_node(presentation.information_viewport_path) as SubViewport
 	var input_viewport := presentation.get_node(presentation.input_viewport_path) as SubViewport
@@ -112,9 +115,13 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_equal("右台 / 自动查询完整编号", "004", snapshot.query_floor)
 	t.assert_true("右台 / 摘要显示当前功能、停靠、来源和日期",
 		"设备维护" in information.text and "支持停靠" in information.text
-		and "设施档案" in information.text and "2026-01-01" in information.text)
+		and "设施档案" in source.text and "2026-01-01" in source.text)
 	t.assert_true("右台 / 摘要的末行与反馈区不重叠",
-			information.position.y + information.get_minimum_size().y <= feedback.position.y)
+			information.position.y + information.get_minimum_size().y <= source.position.y
+			and source.position.y + source.get_minimum_size().y <= feedback.position.y)
+	t.assert_equal("右台 / 独立读数使用实际当前位置", snapshot.current_floor, current.text)
+	t.assert_equal("右台 / 执行目标不等于查询号码", snapshot.execution_target, target.text)
+	t.assert_equal("右台 / 无操作反馈时显示真实停靠状态", "已停靠", feedback.text)
 	t.assert_true("右台 / 摘要不暗示推荐、行政批准或历史安全",
 		"系统推荐" not in information.text and "须出示" in information.text
 		and "物资周转" not in information.text and "获准" not in information.text)
