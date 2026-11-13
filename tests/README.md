@@ -102,6 +102,16 @@ powershell.exe -NoProfile -File .\tests\runner_execution_tests.ps1
 说明文字和跨行片段也可加入。手柄用方向键选择段落，按 A 高亮，松开再按 A 加入。
 可点槽位旁的「定位原文」回到出处。专项使用 `-Check Existing -Group Presentation`。
 
+## 休息入口与开发者页
+
+正式场景从仰躺休息菜单开始。点「开始值守」坐起并进入原主台。Esc 或手柄 Menu / Start 从休息菜单、台位或 W 文书进入同一个设置页，再按一次原路返回。退出、显示预览、改键确认先处理自己的取消操作。普通文书仍用 W / View 开合，B 保留原文书取消。
+
+```powershell
+godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --cabin-entry-only
+```
+
+专项覆盖三条返回路径、实际行驶 Timer、设置存储和输入保留。W 定向测试覆盖原文选区与焦点，通话摘录定向测试覆盖设置暂停期间到期的对白回调。独立游戏窗口验证显示预览及 15 秒回退，实体手柄、布局和实际音量另做体验验收。
+
 ## 音频退出回归
 
 `run_main_smoke.gd`在Autoload注册后读取project.godot当前配置入口并实例化，

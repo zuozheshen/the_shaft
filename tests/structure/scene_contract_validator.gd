@@ -184,7 +184,7 @@ func validate_configuration(config: ConfigFile) -> void:
 	for action: String in [
 		"turn_left", "turn_right", "focus_left", "focus_right", "focus_up",
 		"focus_down", "interact_confirm", "interact_cancel",
-		"context_scroll_up", "context_scroll_down", "verification_terminal_toggle",
+		"context_scroll_up", "context_scroll_down", "verification_terminal_toggle", "developer_mode",
 	]:
 		if not config.has_section_key("input", action):
 			_problem("res://project.godot", "input/" + action, "script-referenced action", "missing")
@@ -202,6 +202,9 @@ func validate_scene(instance: Node, scene_path: String) -> void:
 		_expect_named(instance, "游戏运行层", "GameRuntime")
 		_expect_named(instance, "运行层连接器", "RuntimeConnector3D")
 		_expect_named(instance, "三维操作舱", "CabinViewController3D")
+		_expect_named(instance, "值守入口", "Node")
+		_expect_named(instance, "休息菜单", "CanvasLayer")
+		_check_unique_script("VerificationTerminal3D")
 		_check_unique_script("GameRuntime")
 		_check_unique_script("DemoFlowManager")
 	_visit(instance)
@@ -242,8 +245,10 @@ func _check_fixed_dependencies(node: Node, type_name: String) -> void:
 			_expect(node, "WorkspaceLayer", "CanvasLayer")
 			_expect(node, "WorkspaceLayer/InputShield", "Control")
 			_expect(node, "%VerificationWorkspace", "VBoxContainer")
+			_expect(node, "%DeveloperSettingsPanel", "VBoxContainer")
 		"CabinViewController3D":
 			_expect(node, "玩家视角/摄像机旋转轴", "Node3D")
+			_expect(node, "观察方向/仰靠休息姿态", "Marker3D")
 			_expect(node, "玩家视角/摄像机旋转轴/玩家摄像机", "Camera3D")
 			_expect(node, "调试界面/当前方向文本", "Label")
 			_expect(node, "调试界面/操作提示文本", "Label")

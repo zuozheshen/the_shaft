@@ -143,6 +143,10 @@ func _after_draw() -> void:
 
 
 func _advance(session: int, event_id: String, page: int) -> void:
+	while is_inside_tree() and get_tree().paused:
+		await get_tree().process_frame
+	if not is_inside_tree():
+		return
 	if _event.get("session") != session or _event.get("source_event_id") != event_id or _page != page:
 		return
 	if _page + 1 < _pages.size():
@@ -152,7 +156,7 @@ func _advance(session: int, event_id: String, page: int) -> void:
 
 
 func _can_read() -> bool:
-	if _event.is_empty() or _page_complete or not _bubble.visible \
+	if get_tree().paused or _event.is_empty() or _page_complete or not _bubble.visible \
 			or _manager.get_document_session_id() != _event.session:
 		return false
 	if _view.get_current_station_id() != &"main_console" or _view.is_turning() \
@@ -185,5 +189,9 @@ func get_current_event_id() -> String:
 
 
 func _confirm_final_draw(session: int, event_id: String, page: int) -> void:
+	while is_inside_tree() and get_tree().paused:
+		await get_tree().process_frame
+	if not is_inside_tree():
+		return
 	if _event.get("session") == session and _event.get("source_event_id") == event_id and _page == page:
 		_manager.note_passenger_event_drawn(session, event_id)

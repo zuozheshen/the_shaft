@@ -19,6 +19,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	manager.initial_floor = "612"
 	manager.initial_shift = null
 	t.add_child(main)
+	await main.get_node("值守入口").start_duty()
 	await frames(tree)
 	manager.start_dispatch(&"TEST_CASE_001")
 	var terminal := main.find_child("核验终端", true, false) as VerificationTerminal3D
@@ -316,6 +317,7 @@ func _test_statement_selection(t: Variant, tree: SceneTree) -> void:
 	var saved: Dictionary = ContentRegistry.get("_dispatches_by_id")
 	var main := Statements.prepare()
 	t.add_child(main)
+	await main.get_node("值守入口").start_duty()
 	await frames(tree)
 	var terminal := Statements.open_preview(main)
 	var viewport := terminal.get_viewport()
@@ -325,6 +327,28 @@ func _test_statement_selection(t: Variant, tree: SceneTree) -> void:
 	await frames(tree)
 	var window: DocumentWindow = workspace.windows["statement/application@1"]
 	var text := window._quote_body
+	text.grab_focus()
+	text.select(0, 0, 0, 3)
+	var selection := text.get_selected_text()
+	var esc := InputEventKey.new()
+	esc.physical_keycode = KEY_ESCAPE
+	esc.pressed = true
+	terminal.get_viewport().push_input(esc)
+	await tree.process_frame
+	t.assert_true("开发者页 / 首次 Esc 直接接管，不取消原文选区",
+		terminal.developer_active and tree.paused and not selection.is_empty())
+	esc.pressed = false
+	terminal.get_viewport().push_input(esc)
+	esc.pressed = true
+	terminal.get_viewport().push_input(esc)
+	esc.pressed = false
+	terminal.get_viewport().push_input(esc)
+	await tree.process_frame
+	await tree.process_frame
+	t.assert_true("开发者页 / Esc 回到同一文书、选区与焦点",
+		not terminal.developer_active and terminal.target_open and not tree.paused
+		and text.has_focus() and text.get_selected_text() == selection)
+	text.deselect()
 	t.assert_true("摘取原文 / 质疑禁用", workspace._challenge.disabled)
 	t.assert_false("摘取原文 / 尚无选区时隐藏按钮", window._quote_join.visible)
 	# 使用控件原生选区，命中与拖动由可见的实机预览另外验证。
@@ -404,6 +428,7 @@ func _test_review_cards(t: Variant, tree: SceneTree) -> void:
 	var saved: Dictionary = ContentRegistry.get("_dispatches_by_id")
 	var main := Review.prepare()
 	t.add_child(main)
+	await main.get_node("值守入口").start_duty()
 	await frames(tree)
 	var manager := main.get_node("游戏运行层/演示流程管理器") as DemoFlowManager
 	var terminal := main.find_child("核验终端", true, false) as VerificationTerminal3D

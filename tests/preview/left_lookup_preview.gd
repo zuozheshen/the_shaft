@@ -29,6 +29,7 @@ func _ready() -> void:
 	get_tree().root.add_child.call_deferred(main)
 	await get_tree().process_frame
 	get_tree().current_scene = main
+	await main.get_node("值守入口").start_duty()
 	_manager.start_dispatch(_case.dispatch_id)
 	# 只为同屏演示准备右台来源资料，左台文档必须用实体键调阅。
 	Workspace.acquire_floor(_manager)

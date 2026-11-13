@@ -4,6 +4,9 @@
 [ext_resource type="PackedScene" uid="uid://pfkh2fdm64ga" path="res://scenes/elevator/elevator_cabin_3d.tscn" id="2_cabin"]
 [ext_resource type="Script" uid="uid://bl5lw41vv26my" path="res://scripts/runtime/runtime_connector_3d.gd" id="3_connector"]
 
+[ext_resource type="Script" path="res://scripts/ui/cabin_entry_controller.gd" id="4_entry"]
+[ext_resource type="PackedScene" path="res://scenes/ui/cabin_rest_menu.tscn" id="5_rest_menu"]
+
 [node name="三维主场景" type="Node" unique_id=1329777507]
 
 [node name="游戏运行层" parent="." unique_id=983804269 instance=ExtResource("1_runtime")]
@@ -12,3 +15,9 @@
 
 [node name="运行层连接器" type="Node" parent="." unique_id=1410257360]
 script = ExtResource("3_connector")
+
+[node name="休息菜单" parent="." instance=ExtResource("5_rest_menu")]
+
+[node name="值守入口" type="Node" parent="."]
+process_mode = 3
+script = ExtResource("4_entry")

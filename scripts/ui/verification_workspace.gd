@@ -417,11 +417,17 @@ func _fit_windows() -> void:
 		for window in windows.values():
 			window.constrain()
 
-func set_reading_enabled(value: bool) -> void:
+func set_reading_enabled(value: bool, cancel_selection := true) -> void:
 	_reading_enabled = value
 	mouse_filter = Control.MOUSE_FILTER_PASS if value else Control.MOUSE_FILTER_IGNORE
-	if not value:
+	if not value and cancel_selection:
 		cancel_pointer_interaction()
+
+
+func set_developer_suspended(value: bool) -> void:
+	_reading_enabled = not value
+	for window: DocumentWindow in windows.values():
+		window.set_developer_suspended(value)
 
 
 func cancel_pointer_interaction() -> void:

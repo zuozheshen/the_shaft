@@ -106,6 +106,9 @@ static func is_event_title(resource: DialogueResource, title: String, review := 
 func process_pending_events() -> void:
 	if _busy or not is_instance_valid(_manager):
 		return
+	await wait_for_active_game()
+	if not is_inside_tree() or _busy or not is_instance_valid(_manager):
+		return
 	var dm := get_node_or_null("/root/DialogueManager")
 	if dm == null:
 		return
@@ -125,7 +128,8 @@ func process_pending_events() -> void:
 			var id: String = event.title
 			for step in range(MAX_LINES + 1):
 				var line: DialogueLine = await dm.get_next_dialogue_line(dialogue_resource, id, [scope])
-				if not scope.is_current(self, _manager):
+				await wait_for_active_game()
+				if not is_inside_tree() or not scope.is_current(self, _manager):
 					return
 				if line == null:
 					break
@@ -139,6 +143,12 @@ func process_pending_events() -> void:
 		_manager.finish_passenger_event(event, source_version, rows)
 	if generation == parse_generation:
 		_busy = false
+
+
+# 第三方 wait 可能在暂停期间到期。只在恢复并重新核对会话后交付结果。
+func wait_for_active_game() -> void:
+	while is_inside_tree() and get_tree().paused:
+		await get_tree().process_frame
 
 
 func can_accept_review() -> bool:

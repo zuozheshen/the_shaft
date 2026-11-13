@@ -14,6 +14,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var manager := main.get_node("游戏运行层/演示流程管理器") as DemoFlowManager
 	manager.movement_duration_seconds = 0.01
 	t.add_child(main)
+	await main.get_node("值守入口").start_duty()
 	await _frames(tree)
 	var interaction := cabin.get_node("交互控制器") as CabinInteractionController3D
 	var router := main.find_child("操作台界面层", true, false) as CabinInterfaceRouter3D

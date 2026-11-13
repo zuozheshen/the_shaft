@@ -20,6 +20,7 @@ func _ready() -> void:
 	get_tree().root.add_child.call_deferred(main)
 	await get_tree().process_frame
 	get_tree().current_scene = main
+	await main.get_node("值守入口").start_duty()
 	manager.start_dispatch(_dispatch.dispatch_id)
 	print("RIGHT LOOKUP PREVIEW READY / 001 档案 / 005 不支持停靠 / F6 更新 001 档案")
 

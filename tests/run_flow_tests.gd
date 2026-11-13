@@ -30,6 +30,7 @@ const MODULES := [
 	["left_console", "LeftConsole", preload("res://tests/ui/left_console_tests.gd"), true, true],
 	["right_console", "RightConsole", preload("res://tests/ui/right_console_tests.gd"), true, true],
 	["gamepad_support", "Gamepad", preload("res://tests/ui/gamepad_support_tests.gd"), true, true],
+	["cabin_entry", "Presentation", preload("res://tests/ui/cabin_entry_tests.gd"), true, false],
 	["verification_terminal", "Presentation", preload("res://tests/ui/verification_terminal_tests.gd"), true, true],
 	["verification_workspace", "Presentation", preload("res://tests/ui/verification_workspace_tests.gd"), true, true],
 ]
@@ -38,6 +39,7 @@ const MODULES := [
 # 旧专项保持各自的模块清单和执行顺序。
 const SPECIALTIES := {
 	"--call-excerpt-only": ["call_excerpt"],
+	"--cabin-entry-only": ["cabin_entry"],
 	"--verification-terminal-only": ["verification_terminal", "verification_workspace", "gamepad_support"],
 	"--left-lookup-only": ["left_console", "gamepad_support"],
 	"--documents-only": ["content_validator", "dispatch_document_state", "dispatch_lifecycle", "document_flow"],

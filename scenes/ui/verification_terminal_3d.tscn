@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://assets/art/models/verification_terminal_w.glb" id="3_housing"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/cabin/verification_panel_raise.wav" id="4_raise"]
 [ext_resource type="AudioStream" path="res://assets/audio/sfx/cabin/verification_panel_retract.wav" id="5_retract"]
+[ext_resource type="PackedScene" path="res://scenes/ui/developer_settings_panel.tscn" id="6_developer"]
 [sub_resource type="StandardMaterial3D" id="ShellMaterial"]
 shading_mode = 0
 albedo_color = Color(0.23, 0.25, 0.24, 1)
@@ -67,6 +68,7 @@ void fragment() {
 shader = SubResource("ScreenGlass")
 
 [node name="核验终端" type="Node3D"]
+process_mode = 3
 script = ExtResource("1_terminal")
 width_fraction = 0.9
 height_fraction = 0.88
@@ -74,6 +76,7 @@ raise_audio = ExtResource("4_raise")
 retract_audio = ExtResource("5_retract")
 
 [node name="开合音效" type="AudioStreamPlayer" parent="."]
+bus = &"SFX"
 
 [node name="Shell" type="Node3D" parent="."]
 visible = false
@@ -159,6 +162,10 @@ theme_override_constants/separation = 4
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+[node name="DeveloperSettingsPanel" parent="WorkspaceLayer/InputShield/Screen/Layout" instance=ExtResource("6_developer")]
+unique_name_in_owner = true
+layout_mode = 2
+
 [node name="Glass" type="ColorRect" parent="WorkspaceLayer/InputShield/Screen"]
 material = SubResource("ScreenGlassMaterial")
 layout_mode = 2

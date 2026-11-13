@@ -3,6 +3,8 @@ extends Node3D
 ## 这里只保存终端表现与本单 UI 会话；业务资料仍通过 #91 的受限端口读取。
 
 signal input_capture_changed(captured: bool)
+signal developer_requested
+signal slide_finished(opened: bool)
 
 # 机壳包络来自 Blender 导出，前缘留少量余量给螺丝头。用于计算画面容纳尺寸。
 const HOUSING_HALF_SIZE := Vector2(0.310, 0.192)
@@ -10,6 +12,7 @@ const HOUSING_FRONT := 0.031
 const HOUSING_BACK := 0.040
 
 const TOGGLE_ACTION: StringName = &"verification_terminal_toggle"
+const DEVELOPER_ACTION: StringName = &"developer_mode"
 const PAD_ACTIONS: Array[StringName] = [
 	&"focus_left", &"focus_right", &"focus_up", &"focus_down",
 	&"interact_confirm", &"interact_cancel",
@@ -32,10 +35,16 @@ const PAD_ACTIONS: Array[StringName] = [
 @onready var screen: PanelContainer = $WorkspaceLayer/InputShield/Screen
 @onready var workspace: VerificationWorkspace = %VerificationWorkspace
 @onready var _slide_audio: AudioStreamPlayer = $开合音效
+@onready var developer_panel: DeveloperSettingsPanel = %DeveloperSettingsPanel
 
 var target_open: bool = false
 var open_progress: float = 0.0
 var _captured: bool = false
+var _entry_blocked: bool = false
+var developer_active: bool = false
+var _developer_input_held: bool = false
+var _developer_transition: bool = false
+var _document_focus: WeakRef
 var _slide: Tween
 var _camera: Camera3D
 var _view: CabinViewController3D
@@ -68,6 +77,8 @@ func _connect_cabin() -> void:
 	input_capture_changed.connect(_view.set_workspace_input_blocked)
 	input_capture_changed.connect(_interaction.set_workspace_input_blocked)
 	input_capture_changed.connect(_left_screen.set_workspace_input_blocked)
+	if is_input_captured():
+		input_capture_changed.emit(true)
 
 func set_workspace_port(port: Dictionary) -> void:
 	_port = port.duplicate()
@@ -80,11 +91,18 @@ func reset_document_session(session: int) -> void:
 	_session_id = session
 	workspace.reset_session(session)
 	_ui_focus = null
-	if _captured and open_progress >= 1.0:
+	if _captured and not developer_active and open_progress >= 1.0:
 		workspace.directory_button.grab_focus()
 
 func is_input_captured() -> bool:
-	return _captured
+	return _captured or _entry_blocked
+
+
+func set_entry_blocked(blocked: bool) -> void:
+	var was_captured := is_input_captured()
+	_entry_blocked = blocked
+	if was_captured != is_input_captured():
+		input_capture_changed.emit(is_input_captured())
 
 ## 这条展示接线只消费已经取得的单份左台资料，不给 W 新的取得权限。
 func open_left_archive_document(session: int, ref: Dictionary) -> void:
@@ -105,16 +123,66 @@ func _open_archive_document(session: int, ref: Dictionary, route: String) -> voi
 	workspace.open_retrieved_document(ref)
 
 
+func is_sliding() -> bool:
+	return is_instance_valid(_slide) and _slide.is_running()
+
+
+func show_developer_page(restore_documents: bool) -> void:
+	developer_active = true
+	_developer_transition = not target_open
+	_pad_needs_neutral = true
+	_nav_direction = 0
+	if restore_documents:
+		var focused := get_viewport().gui_get_focus_owner()
+		if is_instance_valid(focused) and workspace.is_ancestor_of(focused):
+			_document_focus = weakref(focused)
+		workspace.set_developer_suspended(true)
+	workspace.hide()
+	developer_panel.show()
+	developer_panel.refresh_settings()
+	if _developer_transition:
+		set_open(true)
+	else:
+		developer_panel.focus_return()
+
+
+func hide_developer_page(restore_documents: bool) -> void:
+	_pad_needs_neutral = true
+	_nav_direction = 0
+	if restore_documents:
+		_finish_developer_page(true)
+	else:
+		_developer_transition = true
+		set_open(false)
+
+
+func _finish_developer_page(restore_documents: bool) -> void:
+	developer_panel.release_settings_focus()
+	developer_panel.hide()
+	developer_active = false
+	_developer_transition = false
+	workspace.show()
+	if restore_documents:
+		workspace.set_reading_enabled(true)
+		workspace.set_developer_suspended(false)
+		var focused := _document_focus.get_ref() as Control if _document_focus != null else null
+		if _is_screen_focus(focused):
+			focused.grab_focus()
+		else:
+			workspace.directory_button.grab_focus()
+	_document_focus = null
+
+
 func set_open(value: bool) -> void:
 	if target_open == value:
 		return
 	target_open = value
 	# 动画期间继续拦截后台，正文只在完全打开后接收操作。
-	workspace.set_reading_enabled(false)
+	workspace.set_reading_enabled(false, not developer_active)
 	_pad_needs_neutral = true
 	_nav_direction = 0
 	_scroll_direction = 0
-	if value:
+	if value and not developer_active:
 		workspace.refresh()
 	if value and not _captured:
 		_set_capture(true)
@@ -141,7 +209,10 @@ func _finish_slide(opened: bool) -> void:
 	if opened != target_open:
 		return
 	_set_progress(1.0 if opened else 0.0)
-	if opened:
+	if opened and developer_active:
+		_developer_transition = false
+		developer_panel.focus_return()
+	elif opened:
 		workspace.set_reading_enabled(true)
 		var focused := get_viewport().gui_get_focus_owner()
 		if not _is_screen_focus(focused):
@@ -151,7 +222,10 @@ func _finish_slide(opened: bool) -> void:
 			else:
 				workspace.directory_button.grab_focus()
 	else:
+		if developer_active:
+			_finish_developer_page(false)
 		_set_capture(false)
+	slide_finished.emit(opened)
 
 
 func _is_screen_focus(control: Control) -> bool:
@@ -161,8 +235,10 @@ func _is_screen_focus(control: Control) -> bool:
 
 
 func _on_focus_exited() -> void:
+	_developer_input_held = false
 	if _captured:
-		workspace.cancel_pointer_interaction()
+		if not developer_active:
+			workspace.cancel_pointer_interaction()
 		_pad_needs_neutral = true
 		_nav_direction = 0
 		_scroll_direction = 0
@@ -175,17 +251,35 @@ func _set_capture(value: bool) -> void:
 		if focused != null and screen.is_ancestor_of(focused):
 			_ui_focus = weakref(focused)
 			focused.release_focus()
+	var was_captured := is_input_captured()
 	_captured = value
 	_nav_direction = 0
 	_scroll_direction = 0
 	_pad_needs_neutral = value
 	_update_layout()
-	input_capture_changed.emit(value)
+	if was_captured != is_input_captured():
+		input_capture_changed.emit(is_input_captured())
 
 func _input(event: InputEvent) -> void:
+	# 固定入口先于文书和设置页 GUI；按住与释放都不传给下一层。
+	if event.is_action(DEVELOPER_ACTION):
+		get_viewport().set_input_as_handled()
+		if not event.is_pressed():
+			_developer_input_held = false
+		elif event.is_action_pressed(DEVELOPER_ACTION) and not event.is_echo() and not _developer_input_held:
+			_developer_input_held = true
+			if developer_active:
+				if not _developer_transition:
+					developer_panel.request_back()
+			else:
+				developer_requested.emit()
+		return
+	if developer_active:
+		_handle_developer_input(event)
+		return
 	# W 先于 GUI 的默认 ui_up；释放和 echo 也消费，但只在非 echo 按下时切换。
 	if event.is_action(TOGGLE_ACTION):
-		if event.is_action_pressed(TOGGLE_ACTION) and not event.is_echo():
+		if not _entry_blocked and event.is_action_pressed(TOGGLE_ACTION) and not event.is_echo():
 			set_open(not target_open)
 		get_viewport().set_input_as_handled()
 		return
@@ -204,8 +298,7 @@ func _input(event: InputEvent) -> void:
 	if not _captured:
 		return
 	if not target_open or open_progress < 1.0:
-		if target_open and (event.is_action_pressed(&"interact_cancel")
-				or event.is_action_pressed(&"ui_cancel")) and not event.is_echo():
+		if target_open and event.is_action_pressed(&"interact_cancel") and not event.is_echo():
 			set_open(false)
 		get_viewport().set_input_as_handled()
 		return
@@ -220,18 +313,28 @@ func _input(event: InputEvent) -> void:
 				_statement_confirm_held = not workspace.statement_documents.is_empty()
 				workspace.confirm_focus()
 		get_viewport().set_input_as_handled()
-	if event is InputEventKey and event.is_action_pressed(&"ui_cancel") and not event.is_echo() \
-			and not workspace.statement_documents.is_empty():
-		if not workspace.cancel_statement_selection():
-			set_open(false)
-		get_viewport().set_input_as_handled()
-		return
-
 	# 键盘与鼠标先交给聚焦的工作区 GUI；后台事件和轮询已有显式守卫。
 	if event is InputEventKey:
 		var focused := get_viewport().gui_get_focus_owner()
 		if not _is_screen_focus(focused):
 			workspace.directory_button.grab_focus()
+
+func _handle_developer_input(event: InputEvent) -> void:
+	if _developer_transition:
+		get_viewport().set_input_as_handled()
+		return
+	if developer_panel.capture_binding(event):
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action(TOGGLE_ACTION) or event.is_action(&"interact_cancel"):
+		get_viewport().set_input_as_handled()
+		if (event is InputEventKey or not _pad_needs_neutral) and event.is_pressed() and not event.is_echo():
+			developer_panel.request_back()
+		return
+	if event is InputEventJoypadButton or event is InputEventJoypadMotion:
+		if _pad_needs_neutral or not event.is_action(&"interact_confirm"):
+			get_viewport().set_input_as_handled()
+
 
 func _shortcut_input(event: InputEvent) -> void:
 	# GUI 之后再拦截剩余按键；不能在 _input 吞掉 Tab/Enter/Space。
@@ -254,6 +357,9 @@ func _process(delta: float) -> void:
 		Input.get_action_strength(&"focus_down") - Input.get_action_strength(&"focus_up"))
 	var strongest := axis.x if absf(axis.x) > absf(axis.y) else axis.y
 	var direction := int(signf(strongest)) if absf(strongest) >= 0.55 else 0
+	# 设置页区分上下焦点和左右调值；原文书保持现有轴导航。
+	if developer_active and absf(axis.x) > absf(axis.y):
+		direction *= 2
 	if direction == 0:
 		_nav_direction = 0
 	elif direction != _nav_direction:
@@ -268,6 +374,8 @@ func _process(delta: float) -> void:
 	var scroll_axis := Input.get_action_strength(&"context_scroll_down") \
 			- Input.get_action_strength(&"context_scroll_up")
 	var scroll_step := int(signf(scroll_axis)) if absf(scroll_axis) >= 0.55 else 0
+	if developer_active:
+		return
 	if scroll_step == 0:
 		_scroll_direction = 0
 	elif scroll_step != _scroll_direction:
@@ -287,7 +395,10 @@ func _pad_controls_neutral() -> bool:
 	return true
 
 func _move_focus(direction: int) -> void:
-	workspace.move_focus(direction)
+	if developer_active:
+		developer_panel.move_focus(signi(direction), absi(direction) == 2)
+	else:
+		workspace.move_focus(direction)
 
 func get_screen_rect() -> Rect2:
 	if _camera == null:

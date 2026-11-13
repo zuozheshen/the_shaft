@@ -29,24 +29,30 @@ func is_current(adapter: Node, manager: Node) -> bool:
 func _send(kind: StringName, value: String = "") -> void:
 	var adapter := _adapter.get_ref() as Node
 	var manager := _manager.get_ref() as Node
+	if not is_instance_valid(adapter):
+		return
+	await adapter.wait_for_active_game()
 	if is_current(adapter, manager):
 		adapter.forward_scoped_mutation(self, kind, value)
 
 
 func status_hint(value: String) -> void:
-	_send(&"status_hint", value)
+	await _send(&"status_hint", value)
 
 
 func unlock_floor(value: String) -> void:
-	_send(&"unlock_floor", value)
+	await _send(&"unlock_floor", value)
 
 
 func mark_door_greeting_done() -> void:
-	_send(&"door_greeting")
+	await _send(&"door_greeting")
 
 
 func submit_review_supplement(action: String) -> void:
 	var adapter := _adapter.get_ref() as Node
 	var manager := _manager.get_ref() as Node
+	if not is_instance_valid(adapter):
+		return
+	await adapter.wait_for_active_game()
 	if is_current(adapter, manager) and not supplement_failed:
 		supplement_failed = not manager.apply_review_supplement(_session, _event, action)

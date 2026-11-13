@@ -60,7 +60,6 @@ var _left_console_presentation: LeftTerminalScreen3D
 var _destination_interface: DestinationControlInterface
 var _right_console_presentation: RightConsolePresentation3D
 var _interaction_hint_label: Label
-var _default_hint_text: String = ""
 var _hovered_hotspot: InteractionHotspot3D
 var _has_hovered_hotspot: bool = false
 var _warned_action_ids: Dictionary = {}
@@ -93,8 +92,6 @@ func _ready() -> void:
 		"Node"
 	) as RightConsolePresentation3D
 	_interaction_hint_label = _get_required_node(interaction_hint_label_path, "Label") as Label
-	if _interaction_hint_label != null:
-		_default_hint_text = CabinViewController3D.OPERATION_HINT_TEXT
 	if _view_controller == null:
 		push_error("3D 交互控制器的视角节点没有挂载 CabinViewController3D 脚本。")
 	if _console_interface == null:
@@ -137,6 +134,9 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	# 固定设置入口不能被台位恢复时的一帧手柄屏障吞掉。
+	if event.is_action(VerificationTerminal3D.DEVELOPER_ACTION):
+		return
 	if _workspace_input_blocked:
 		return # 交由 W 消费，不抢它的开关或 GUI 输入。
 	if (event is InputEventJoypadButton or event is InputEventJoypadMotion) \
@@ -479,7 +479,7 @@ func _set_hovered_hotspot(hotspot: InteractionHotspot3D) -> void:
 	if _interaction_hint_label != null:
 		_interaction_hint_label.text = "%s　｜　%s" % [
 			hotspot.get_prompt_text(),
-			_default_hint_text,
+			_view_controller.get_operation_hint(),
 		]
 
 
@@ -495,7 +495,7 @@ func _clear_hovered_hotspot() -> void:
 
 func _restore_default_hint() -> void:
 	if _interaction_hint_label != null:
-		_interaction_hint_label.text = _default_hint_text
+		_interaction_hint_label.text = _view_controller.get_operation_hint()
 
 
 func _execute_action(action_id: StringName, from_mouse: bool = false) -> void:

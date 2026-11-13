@@ -18,6 +18,7 @@ var _quote_join: Button
 var _candidate: Dictionary = {}
 var _selecting_quote := false
 var _selection_generation := 0
+var _developer_scroll := -1
 var _review_buttons: Array[Button] = []
 var document_ref: Dictionary = {}
 var receipt: Dictionary = {}
@@ -377,8 +378,8 @@ func _render_statements(doc: Dictionary) -> void:
 	scroll.get_v_scroll_bar().value_changed.connect(func(_value: float) -> void:
 		if _selecting_quote:
 			cancel_statement_selection())
-	resized.connect(func() -> void: cancel_statement_selection())
-	get_window().focus_exited.connect(func() -> void: cancel_statement_selection())
+	resized.connect(_cancel_selection_if_reading)
+	get_window().focus_exited.connect(_cancel_selection_if_reading)
 
 func _quote_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.is_echo() and event.is_action("ui_accept"):
@@ -526,6 +527,26 @@ func _quote_position(offset: int) -> Vector2i:
 			return Vector2i(offset, line)
 		offset -= length + 1
 	return Vector2i.ZERO
+
+func _cancel_selection_if_reading() -> void:
+	if _developer_scroll < 0:
+		cancel_statement_selection()
+
+
+func set_developer_suspended(value: bool) -> void:
+	if value:
+		if _developer_scroll < 0:
+			_developer_scroll = scroll.scroll_vertical
+		cancel_drag()
+		cancel_statement_drag()
+		# 旧的短暂定位计时不应清掉设置前的原文选区。
+		_selection_generation += 1
+	elif _developer_scroll >= 0:
+		await get_tree().process_frame
+		if is_visible_in_tree() and _developer_scroll >= 0:
+			scroll.scroll_vertical = _developer_scroll
+			_developer_scroll = -1
+
 
 func cancel_statement_drag() -> void:
 	if _selecting_quote:

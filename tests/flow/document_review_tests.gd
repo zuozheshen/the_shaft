@@ -7,6 +7,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var previous: Dictionary = ContentRegistry.get("_dispatches_by_id")
 	var main := Fixture.prepare()
 	t.add_child(main)
+	await main.get_node("值守入口").start_duty()
 	await tree.process_frame
 	await tree.process_frame
 	var manager := main.get_node("游戏运行层/演示流程管理器") as DemoFlowManager

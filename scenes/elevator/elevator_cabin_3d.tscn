@@ -897,9 +897,11 @@ player_camera_path = NodePath("../../玩家视角/摄像机旋转轴/玩家摄�
 view_controller_path = NodePath("../..")
 
 [node name="栏目切换音效" type="AudioStreamPlayer" parent="操作台占位/左操作台定位" unique_id=974586873]
+bus = &"SFX"
 stream = ExtResource("left_switch")
 
 [node name="滚轮卡点音效" type="AudioStreamPlayer" parent="操作台占位/左操作台定位" unique_id=1421633154]
+bus = &"SFX"
 stream = SubResource("AudioStreamRandomizer_left_scroll")
 max_polyphony = 8
 
@@ -1919,13 +1921,17 @@ spot_angle_attenuation = 2.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
 [node name="椅子转向音效" type="AudioStreamPlayer" parent="玩家视角" unique_id=1624811869]
+bus = &"SFX"
 stream = ExtResource("chair_turn_1")
 
 [node name="舱内环境音" type="AudioStreamPlayer" parent="玩家视角" unique_id=721005831]
+process_mode = 3
+bus = &"SFX"
 stream = ExtResource("cabin_ambience")
 autoplay = true
 
 [node name="电梯运行音效" type="AudioStreamPlayer" parent="玩家视角"]
+bus = &"SFX"
 volume_db = -60.0
 stream = ExtResource("elevator_running")
 script = ExtResource("elevator_movement_audio")
@@ -1962,6 +1968,10 @@ right_console_presentation_path = NodePath("../右台展示绑定")
 interaction_hint_label_path = NodePath("../调试界面/操作提示文本")
 
 [node name="观察方向" type="Node3D" parent="." unique_id=1741820516]
+
+[node name="仰靠休息姿态" type="Marker3D" parent="观察方向"]
+position = Vector3(0, 1.38, 0.10)
+rotation_degrees = Vector3(65, 0, 0)
 
 [node name="主操作台方向" type="Marker3D" parent="观察方向" unique_id=372422750]
 
@@ -2097,6 +2107,7 @@ door_open_material = SubResource("52_open")
 [node name="乘客对白视口" parent="主台展示绑定" instance=ExtResource("monitor_dialogue")]
 
 [node name="按钮音效" type="AudioStreamPlayer" parent="主台展示绑定" unique_id=1057185484]
+bus = &"SFX"
 stream = SubResource("AudioStreamRandomizer_main_click")
 
 [node name="右台展示绑定" type="Node" parent="." unique_id=1687868255]
@@ -2115,13 +2126,16 @@ input_label_path = NodePath("../操作台占位/右操作台定位/数字显示�
 lever_pivot_path = NodePath("../操作台占位/右操作台定位/下部斜面根/执行拨杆热点/拨杆转轴")
 
 [node name="键盘音效" type="AudioStreamPlayer" parent="右台展示绑定" unique_id=439088608]
+bus = &"SFX"
 stream = SubResource("AudioStreamRandomizer_right_keypad")
 
 [node name="验证音效" type="AudioStreamPlayer" parent="右台展示绑定" unique_id=855761622]
+bus = &"SFX"
 stream = ExtResource("right_verify")
 volume_db = 5.423
 
 [node name="拨杆音效" type="AudioStreamPlayer" parent="右台展示绑定" unique_id=1174751446]
+bus = &"SFX"
 stream = ExtResource("right_lever")
 
 [editable path="操作台占位/主操作台定位/主台交互热点/开门热点/开门视觉/大型按钮"]

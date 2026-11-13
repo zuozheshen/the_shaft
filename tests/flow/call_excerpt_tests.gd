@@ -8,6 +8,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var dispatches: Dictionary = ContentRegistry.get("_dispatches_by_id")
 	var main := Fixture.prepare()
 	tree.root.add_child(main)
+	await main.get_node("值守入口").start_duty()
 	await tree.process_frame
 	await tree.process_frame
 	var manager := main.get_node("游戏运行层/演示流程管理器") as DemoFlowManager
@@ -24,6 +25,15 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var first := manager.get_passenger_events()
 	t.assert_equal("事件陈述 / 换单前真实解析正在等待", "running",
 		first[0].status if first.size() == 1 else "")
+	var terminal := main.find_child("核验终端", true, false) as VerificationTerminal3D
+	main.get_node("值守入口")._request_developer()
+	await tree.create_timer(0.32).timeout
+	var waiting: Dictionary = manager.get_passenger_events()[0]
+	t.assert_true("设置暂停 / 第三方等待到期仍不交付旧陈述",
+		tree.paused and waiting.status == "running" and "OLD EVENT" not in manager.get_system_message_history())
+	terminal.developer_panel.request_back()
+	await terminal.slide_finished
+	t.assert_false("设置暂停 / 收起后恢复业务时钟", tree.paused)
 	manager.start_dispatch(Fixture.SECOND)
 	await tree.create_timer(0.4).timeout
 	var events := manager.get_passenger_events()

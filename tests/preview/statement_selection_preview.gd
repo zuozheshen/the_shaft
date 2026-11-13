@@ -8,6 +8,7 @@ func _ready() -> void:
 	Content.install(ContentRegistry)
 	var main := Fixture.prepare()
 	add_child(main)
+	await main.get_node("值守入口").start_duty()
 	await get_tree().process_frame
 	var terminal := Fixture.open_preview(main)
 	await get_tree().create_timer(terminal.slide_duration + 0.1).timeout

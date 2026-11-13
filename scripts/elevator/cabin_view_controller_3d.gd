@@ -22,9 +22,6 @@ const REQUIRED_GAMEPAD_ACTIONS: Array[StringName] = [
 	&"interact_confirm", &"interact_cancel",
 	&"context_scroll_up", &"context_scroll_down",
 ]
-const OPERATION_HINT_TEXT: String = (
-	"Q/E 或 LB/RB 转向　十字键/左摇杆选择　A 确认　右摇杆滚动　W/View 核验终端"
-)
 const DIRECTION_NAMES: Array[String] = [
 	"主操作台",
 	"左操作台",
@@ -50,6 +47,7 @@ const DIRECTION_ANCHOR_PATHS: Array[NodePath] = [
 var _workspace_input_blocked: bool = false
 var _workspace_turn_rearm: bool = false
 
+var _working_pivot: Transform3D
 var _current_direction: int = FacingDirection.MAIN_CONSOLE
 var _is_turning: bool = false
 var _camera_pivot: Node3D
@@ -77,7 +75,26 @@ func _ready() -> void:
 
 	_validate_input_actions()
 	_set_initial_facing()
+	_working_pivot = _camera_pivot.transform
 	_update_debug_interface()
+
+
+func show_rest_pose() -> void:
+	var anchor: Marker3D = $"观察方向/仰靠休息姿态"
+	_camera_pivot.global_transform = anchor.global_transform
+	$调试界面.hide()
+
+
+func sit_up(duration: float) -> void:
+	var tween := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	var start := _camera_pivot.transform
+	tween.tween_method(func(weight: float) -> void:
+		_camera_pivot.transform = start.interpolate_with(_working_pivot, weight),
+		0.0, 1.0, duration)
+	await tween.finished
+	_camera_pivot.transform = _working_pivot
+	_finish_turn(FacingDirection.MAIN_CONSOLE, _working_pivot.basis.get_euler().y)
+	$调试界面.show()
 
 
 func _input(event: InputEvent) -> void:
@@ -189,8 +206,25 @@ func _set_initial_facing() -> void:
 func _update_debug_interface() -> void:
 	if _current_direction_label != null:
 		_current_direction_label.text = "当前方向：%s" % get_current_direction_name()
+	refresh_operation_hint()
+
+
+func refresh_operation_hint() -> void:
 	if _operation_hint_label != null:
-		_operation_hint_label.text = OPERATION_HINT_TEXT
+		_operation_hint_label.text = get_operation_hint()
+
+
+func get_operation_hint() -> String:
+	return "%s/%s 或 LB/RB 转向　十字键/左摇杆选择　A 确认　右摇杆滚动　%s/View 核验　Esc/Menu 设置" % [
+		_key_label(TURN_LEFT_ACTION), _key_label(TURN_RIGHT_ACTION),
+		_key_label(&"verification_terminal_toggle")]
+
+
+func _key_label(action: StringName) -> String:
+	for event in InputMap.action_get_events(action):
+		if event is InputEventKey:
+			return OS.get_keycode_string(event.physical_keycode)
+	return "—"
 
 
 func _validate_input_actions() -> void:

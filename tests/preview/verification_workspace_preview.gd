@@ -16,6 +16,7 @@ func _ready() -> void:
 	get_tree().root.add_child.call_deferred(main)
 	await get_tree().process_frame
 	get_tree().current_scene = main
+	await main.get_node("值守入口").start_duty()
 	manager.start_dispatch(&"TEST_CASE_001")
 	# 真正登舱成功后才提交乘客原子批次；楼层档案经独立右台完成入口取得。
 	var boarded := manager.request_open_cabin_door()

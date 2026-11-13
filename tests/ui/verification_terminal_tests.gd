@@ -12,6 +12,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	cabin.turn_duration = 0.025
 	manager.movement_duration_seconds = 0.08
 	t.add_child(main)
+	await main.get_node("值守入口").start_duty()
 	await _frames(tree, 8)
 	var terminal := cabin.find_child("核验终端", true, false) as VerificationTerminal3D
 	var interaction := cabin.get_node("交互控制器") as CabinInteractionController3D

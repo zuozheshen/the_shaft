@@ -15,6 +15,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var main := MAIN.instantiate()
 	TestContent.prepare_scene(main)
 	t.add_child(main)
+	await main.get_node("值守入口").start_duty()
 	await _frames(tree)
 	var cabin := main.get_node("三维操作舱") as CabinViewController3D
 	var router := main.find_child("操作台界面层", true, false) as CabinInterfaceRouter3D

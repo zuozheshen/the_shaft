@@ -32,6 +32,7 @@ func _ready() -> void:
 	terminal.left_screen_path = paths[2]
 	add_child.call_deferred(main)
 	await get_tree().process_frame
+	await main.get_node("值守入口").start_duty()
 	manager.start_dispatch(&"TEST_CASE_001")
 	var boarded := manager.request_open_cabin_door()
 	if boarded.succeeded and manager.is_passenger_onboard():
