@@ -3,6 +3,7 @@ extends Node
 ## 只管理玩家进入工作台前的视角与菜单，不拥有派单状态。
 
 const Style := preload("res://scripts/ui/terminal_ui_style.gd")
+const MENU_BEVEL := preload("res://assets/art/ui/rest_button_bevel.svg")
 enum Phase { REST, SITTING_UP, WORK }
 
 @export_range(0.05, 2.0, 0.05) var sit_up_duration := 0.65
@@ -10,6 +11,7 @@ enum Phase { REST, SITTING_UP, WORK }
 @onready var cabin: CabinViewController3D = $"../三维操作舱"
 @onready var terminal: VerificationTerminal3D = cabin.find_child("核验终端", true, false)
 @onready var menu: CanvasLayer = $"../休息菜单"
+@onready var sit_up_audio: AudioStreamPlayer = menu.get_node("起身呼气")
 @onready var actions: VBoxContainer = menu.get_node("InputShield/Actions")
 @onready var start_button: Button = actions.get_node("Start")
 @onready var settings_button: Button = actions.get_node("Settings")
@@ -25,11 +27,7 @@ enum Origin { NONE, REST, STATION, DOCUMENTS }
 
 
 func _ready() -> void:
-	var menu_theme := Style.make_theme(40)
-	var ink := Color(0.048, 0.031, 0.021, 0.94)
-	menu_theme.set_stylebox("normal", "Button", Style.box(ink, Style.EDGE, 2))
-	menu_theme.set_stylebox("focus", "Button", Style.box(Color.TRANSPARENT, Style.AMBER, 3))
-	actions.theme = menu_theme
+	_style_rest_buttons()
 	start_button.pressed.connect(start_duty)
 	settings_button.pressed.connect(_request_developer)
 	terminal.developer_requested.connect(_request_developer)
@@ -51,6 +49,8 @@ func start_duty() -> void:
 	if phase != Phase.REST or not menu.visible:
 		return
 	phase = Phase.SITTING_UP
+	# 呼气和坐起同时开始，重复按键由上面的阶段检查挡住。
+	sit_up_audio.play()
 	start_button.disabled = true
 	settings_button.disabled = true
 	var tween := create_tween()
@@ -61,6 +61,33 @@ func start_duty() -> void:
 	if _developer_queued:
 		_open_queued_developer()
 	terminal.set_entry_blocked(false)
+
+
+func _style_rest_buttons() -> void:
+	var menu_theme := Style.make_theme(38)
+	menu_theme.set_constant("h_separation", "Button", 16)
+	menu_theme.set_stylebox("focus", "Button", Style.box(Color.TRANSPARENT, Style.AMBER, 2))
+	var colors := {
+		"normal": Color("#c1ae90"), "hover": Color("#ffdb9f"),
+		"pressed": Color("#98805f"), "hover_pressed": Color("#b1956e"),
+		"disabled": Color("#675b4a"),
+	}
+	for state: String in colors:
+		var bevel := StyleBoxTexture.new()
+		bevel.texture = MENU_BEVEL
+		bevel.modulate_color = colors[state]
+		bevel.texture_margin_left = 36
+		bevel.texture_margin_right = 44
+		bevel.texture_margin_top = 20
+		bevel.texture_margin_bottom = 20
+		bevel.content_margin_left = 26
+		bevel.content_margin_right = 28
+		bevel.content_margin_top = 12 if state.contains("pressed") else 8
+		bevel.content_margin_bottom = 8 if state.contains("pressed") else 12
+		menu_theme.set_stylebox(state, "Button", bevel)
+	actions.theme = menu_theme
+	for state in ["hover", "pressed", "hover_pressed"]:
+		menu_theme.set_color("font_%s_color" % state, "Button", Style.LIGHT)
 
 
 func _load_settings() -> void:

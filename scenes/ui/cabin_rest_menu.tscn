@@ -1,7 +1,16 @@
 [gd_scene format=3]
 
+[ext_resource type="Texture2D" path="res://assets/art/ui/rest_start_icon.svg" id="1_start"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/rest_settings_icon.svg" id="2_settings"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/cabin/operator_sit_up.wav" id="3_sit_up"]
+
 [node name="休息菜单" type="CanvasLayer"]
 layer = 11
+
+[node name="起身呼气" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_sit_up")
+volume_db = 10.0
+bus = &"SFX"
 
 [node name="InputShield" type="Control" parent="."]
 layout_mode = 3
@@ -12,13 +21,14 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Actions" type="VBoxContainer" parent="InputShield"]
+texture_filter = 1
 layout_mode = 1
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -440.0
-offset_top = -238.0
+offset_left = -458.0
+offset_top = -258.0
 offset_right = -88.0
 offset_bottom = -94.0
 grow_horizontal = 0
@@ -26,11 +36,15 @@ grow_vertical = 0
 theme_override_constants/separation = 14
 
 [node name="Start" type="Button" parent="InputShield/Actions"]
-custom_minimum_size = Vector2(0, 58)
+custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
 text = "开始值守"
+icon = ExtResource("1_start")
+alignment = 0
 
 [node name="Settings" type="Button" parent="InputShield/Actions"]
-custom_minimum_size = Vector2(0, 58)
+custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
 text = "设置"
+icon = ExtResource("2_settings")
+alignment = 0
