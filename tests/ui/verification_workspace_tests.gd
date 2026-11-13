@@ -144,6 +144,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	await frames(tree)
 	var latest_task: DocumentWindow = workspace.windows["preview/task@2"]
 	t.assert_true("工作区 / 有已取得旧版才显示入口", latest_task.history_button.visible)
+	t.assert_false("工作区 / 当前文件隐藏角标", latest_task.version_label.visible)
 	t.assert_false("工作区 / 新窗历史默认折叠", latest_task.history_list.visible)
 	latest_task.scroll.scroll_vertical = 60
 	await frames(tree)
@@ -163,7 +164,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	task = workspace.windows["preview/task@1"]
 	t.assert_equal("工作区 / 文件内重开已关闭v1", 1, task.receipt.document.version)
 	t.assert_equal("工作区 / 关闭后旧版恢复滚动", reading, task.scroll.scroll_vertical)
-	t.assert_true("工作区 / 旧版显示新版提示", task.update_button.visible and task.version_label.text.contains("旧版"))
+	t.assert_true("工作区 / 旧版显示新版提示", task.update_button.visible and task.version_label.visible and task.version_label.text == "旧版")
 	task.update_button.grab_focus()
 	key(viewport, KEY_ENTER)
 	await frames(tree)

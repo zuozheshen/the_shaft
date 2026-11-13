@@ -146,7 +146,8 @@ func show_document(value: Dictionary, latest: int) -> void:
 	var doc: Dictionary = receipt.document
 	document_ref = {"document_id": doc.document_id, "version": doc.version}
 	title_label.text = doc.title
-	version_label.text = "v%d%s" % [doc.version, " · 旧版" if latest > int(doc.version) else ""]
+	version_label.text = "旧版" if latest > int(doc.version) else ""
+	version_label.visible = not version_label.text.is_empty()
 	update_button.visible = latest > int(doc.version)
 	_version_actions.visible = update_button.visible or history_button.visible
 	if update_button.visible and not statement_blocks.is_empty():
