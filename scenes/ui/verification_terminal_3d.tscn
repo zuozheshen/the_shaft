@@ -1,0 +1,165 @@
+[gd_scene load_steps=18 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/verification_terminal_3d.gd" id="1_terminal"]
+[ext_resource type="PackedScene" path="res://scenes/ui/verification_workspace.tscn" id="2_workspace"]
+[ext_resource type="PackedScene" path="res://assets/art/models/verification_terminal_w.glb" id="3_housing"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/cabin/verification_panel_raise.wav" id="4_raise"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/cabin/verification_panel_retract.wav" id="5_retract"]
+[sub_resource type="StandardMaterial3D" id="ShellMaterial"]
+shading_mode = 0
+albedo_color = Color(0.23, 0.25, 0.24, 1)
+[sub_resource type="StandardMaterial3D" id="BezelMaterial"]
+shading_mode = 0
+albedo_color = Color(0.42, 0.44, 0.40, 1)
+[sub_resource type="StandardMaterial3D" id="DarkMaterial"]
+shading_mode = 0
+albedo_color = Color(0.055, 0.065, 0.06, 1)
+[sub_resource type="BoxMesh" id="BodyMesh"]
+material = SubResource("ShellMaterial")
+size = Vector3(2.08, 1.30, 0.32)
+[sub_resource type="BoxMesh" id="HorizontalMesh"]
+material = SubResource("BezelMaterial")
+size = Vector3(2, 0.16, 0.11)
+[sub_resource type="BoxMesh" id="VerticalMesh"]
+material = SubResource("BezelMaterial")
+size = Vector3(0.16, 1.04, 0.11)
+[sub_resource type="BoxMesh" id="ScreenMesh"]
+material = SubResource("DarkMaterial")
+size = Vector3(1.73, 0.95, 0.025)
+[sub_resource type="BoxMesh" id="MountMesh"]
+material = SubResource("ShellMaterial")
+size = Vector3(0.18, 0.72, 0.22)
+[sub_resource type="BoxMesh" id="ScrewMesh"]
+material = SubResource("DarkMaterial")
+size = Vector3(0.035, 0.035, 0.018)
+[sub_resource type="StyleBoxFlat" id="ScreenStyle"]
+bg_color = Color(0.141, 0.106, 0.086, 1)
+content_margin_left = 14.0
+content_margin_top = 12.0
+content_margin_right = 14.0
+content_margin_bottom = 12.0
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0.035, 0.028, 0.022, 1)
+
+[sub_resource type="Shader" id="ScreenGlass"]
+code = "shader_type canvas_item;
+render_mode unshaded;
+
+void fragment() {
+	vec2 edge_distance = min(UV, vec2(1.0) - UV);
+	float inset = 1.0 - smoothstep(0.0, 0.045, min(edge_distance.x, edge_distance.y));
+	float corners = smoothstep(0.30, 0.71, length((UV - 0.5) * vec2(0.9, 1.1)));
+	float scan = 0.018 * (1.0 - step(1.0, mod(FRAGCOORD.y, 3.0)));
+	float reflection = pow(max(1.0 - UV.y - 0.30 * UV.x, 0.0), 10.0) * 0.11;
+	float rim = (1.0 - smoothstep(0.0, 0.003, UV.y)) * 0.13;
+	float shadow = inset * 0.38 + corners * 0.13 + scan;
+	float sheen = reflection + rim;
+	float opacity = shadow + sheen;
+	COLOR = vec4(mix(vec3(0.025, 0.016, 0.01), vec3(0.82, 0.69, 0.51),
+			sheen / max(opacity, 0.001)), opacity);
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ScreenGlassMaterial"]
+shader = SubResource("ScreenGlass")
+
+[node name="核验终端" type="Node3D"]
+script = ExtResource("1_terminal")
+width_fraction = 0.9
+height_fraction = 0.88
+raise_audio = ExtResource("4_raise")
+retract_audio = ExtResource("5_retract")
+
+[node name="开合音效" type="AudioStreamPlayer" parent="."]
+
+[node name="Shell" type="Node3D" parent="."]
+visible = false
+
+[node name="W机壳" parent="Shell" instance=ExtResource("3_housing")]
+
+[node name="ScreenCorners" type="Node3D" parent="Shell"]
+
+[node name="TopLeft" type="Marker3D" parent="Shell/ScreenCorners"]
+position = Vector3(-0.278, 0.156375, 0.020)
+[node name="TopRight" type="Marker3D" parent="Shell/ScreenCorners"]
+position = Vector3(0.278, 0.156375, 0.020)
+[node name="BottomLeft" type="Marker3D" parent="Shell/ScreenCorners"]
+position = Vector3(-0.278, -0.156375, 0.020)
+[node name="BottomRight" type="Marker3D" parent="Shell/ScreenCorners"]
+position = Vector3(0.278, -0.156375, 0.020)
+
+[node name="LegacyGraybox" type="Node3D" parent="Shell"]
+visible = false
+scale = Vector3(0.298, 0.298, 0.298)
+[node name="厚机壳" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
+position = Vector3(0, 0, -0.18)
+mesh = SubResource("BodyMesh")
+cast_shadow = 0
+[node name="上框" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
+position = Vector3(0, 0.55, 0.025)
+mesh = SubResource("HorizontalMesh")
+cast_shadow = 0
+[node name="下框" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
+position = Vector3(0, -0.55, 0.025)
+mesh = SubResource("HorizontalMesh")
+cast_shadow = 0
+[node name="左框" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
+position = Vector3(-0.92, 0, 0.025)
+mesh = SubResource("VerticalMesh")
+cast_shadow = 0
+[node name="右框" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
+position = Vector3(0.92, 0, 0.025)
+mesh = SubResource("VerticalMesh")
+cast_shadow = 0
+[node name="内凹屏口" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
+position = Vector3(0, 0, -0.014)
+mesh = SubResource("ScreenMesh")
+cast_shadow = 0
+[node name="右上安装支座" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
+position = Vector3(1.12, 0.52, -0.18)
+mesh = SubResource("MountMesh")
+cast_shadow = 0
+[node name="左上紧固件" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
+position = Vector3(-0.93, 0.55, 0.09)
+mesh = SubResource("ScrewMesh")
+cast_shadow = 0
+[node name="右上紧固件" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
+position = Vector3(0.93, 0.55, 0.09)
+mesh = SubResource("ScrewMesh")
+cast_shadow = 0
+[node name="左下紧固件" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
+position = Vector3(-0.93, -0.55, 0.09)
+mesh = SubResource("ScrewMesh")
+cast_shadow = 0
+[node name="右下紧固件" type="MeshInstance3D" parent="Shell/LegacyGraybox"]
+position = Vector3(0.93, -0.55, 0.09)
+mesh = SubResource("ScrewMesh")
+cast_shadow = 0
+[node name="WorkspaceLayer" type="CanvasLayer" parent="."]
+layer = 12
+[node name="InputShield" type="Control" parent="WorkspaceLayer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+[node name="Screen" type="PanelContainer" parent="WorkspaceLayer/InputShield"]
+layout_mode = 0
+theme_override_styles/panel = SubResource("ScreenStyle")
+[node name="Layout" type="VBoxContainer" parent="WorkspaceLayer/InputShield/Screen"]
+layout_mode = 2
+theme_override_constants/separation = 4
+[node name="VerificationWorkspace" parent="WorkspaceLayer/InputShield/Screen/Layout" instance=ExtResource("2_workspace")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+[node name="Glass" type="ColorRect" parent="WorkspaceLayer/InputShield/Screen"]
+material = SubResource("ScreenGlassMaterial")
+layout_mode = 2
+mouse_filter = 2

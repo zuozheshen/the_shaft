@@ -11,6 +11,8 @@ const INVALID_UNLOCK_DIALOGUE := (
 
 
 func run(test_runner: Variant) -> void:
+	_test_document_contracts(test_runner)
+	_test_floor_archive_contract(test_runner)
 	_test_null_entries(test_runner)
 	_test_empty_and_duplicate_ids(test_runner)
 	_test_invalid_references(test_runner)
@@ -209,27 +211,10 @@ func _test_dialogue_file_and_titles(test_runner: Variant) -> void:
 
 	var title_bundle := _make_valid_bundle()
 	dispatch = title_bundle.dispatches[0]
-	dispatch.dialogue_path = MISSING_TITLES_DIALOGUE
-	var recommended_relation := _make_relation("200", true)
-	dispatch.floor_relations.append(recommended_relation)
-	title_bundle.floors.append(_make_floor("200"))
+	dispatch.dialogue_events["dispatch_started"] = "missing_title"
 	var title_report := _validate_bundle(title_bundle)
-	test_runner.assert_true(
-		"ContentValidator / 缺 pickup_start",
-		_has_code(title_report, "DIALOGUE_PICKUP_START_MISSING")
-	)
-	test_runner.assert_true(
-		"ContentValidator / 缺 onboard_start",
-		_has_code(title_report, "DIALOGUE_ONBOARD_START_MISSING")
-	)
-	test_runner.assert_true(
-		"ContentValidator / 缺默认 destination",
-		_has_code(title_report, "DIALOGUE_DEFAULT_DESTINATION_MISSING")
-	)
-	test_runner.assert_true(
-		"ContentValidator / 推荐楼层缺 destination",
-		_has_code(title_report, "DIALOGUE_RECOMMENDED_DESTINATION_MISSING")
-	)
+	test_runner.assert_true("ContentValidator / 配置标题必须存在",
+		_has_code(title_report, "DIALOGUE_EVENT_INVALID"))
 
 
 func _test_optional_destination_warning(test_runner: Variant) -> void:
@@ -238,15 +223,9 @@ func _test_optional_destination_warning(test_runner: Variant) -> void:
 	var dispatch: DispatchDefinition = bundle.dispatches[0]
 	dispatch.floor_relations.append(_make_relation("200", false))
 	var report := _validate_bundle(bundle)
-	test_runner.assert_equal(
-		"ContentValidator / 普通可达楼层缺 destination 不产生 Error",
-		0,
-		report.get_error_count()
-	)
-	test_runner.assert_true(
-		"ContentValidator / 普通可达楼层缺 destination 产生 Warning",
-		_has_code(report, "DIALOGUE_REGISTERED_DESTINATION_MISSING")
-	)
+	test_runner.assert_equal("ContentValidator / 楼层无需配置对白", 0, report.get_error_count())
+	test_runner.assert_false("ContentValidator / 未配置对白保持静默",
+		_has_code(report, "DIALOGUE_REGISTERED_DESTINATION_MISSING"))
 
 
 func _test_unlock_contracts(test_runner: Variant) -> void:
@@ -394,3 +373,49 @@ func _has_codes(report: ContentValidationReport, codes: Array) -> bool:
 		if not _has_code(report, String(code)):
 			return false
 	return true
+
+
+func _test_document_contracts(t: Variant) -> void:
+	var fixture = preload("res://tests/fixtures/runtime/test_documents.gd")
+	var report := ContentValidationReport.new()
+	ContentValidator.validate_documents(fixture.definitions(), report)
+	t.assert_false("DocumentValidator / 无剧情资料契约合法", report.has_errors())
+	var document: DocumentDefinition = fixture.document("bad")
+	document.version = 0
+	document.source.origin_ref = ""
+	document.owner_id = &"UNKNOWN"
+	document.fields[0].comparable_value = [1]
+	document.fields.append(document.fields[0])
+	document.fields[0].required_material_type = &"TEST"
+	report = ContentValidationReport.new()
+	ContentValidator.validate_documents([document], report, "test", {"passenger": {}})
+	t.assert_true("DocumentValidator / 拒绝类型、来源、ID、对象和不完整规程", _has_codes(report,
+		["DOCUMENT_ID_VERSION_INVALID", "DOCUMENT_SOURCE_INVALID", "DOCUMENT_OBJECT_MISSING",
+		"DOCUMENT_VALUE_INVALID", "DOCUMENT_FIELD_ID_INVALID", "DOCUMENT_REQUIREMENT_INVALID"]))
+	report = ContentValidationReport.new()
+	ContentValidator.validate_documents([fixture.document("same"), fixture.document("same")], report)
+	t.assert_true("DocumentValidator / 版本重复拒绝", _has_code(report, "DOCUMENT_DUPLICATE"))
+	var bundle: Dictionary = _make_valid_bundle()
+	document = fixture.document("registry/floor/100")
+	document.owner_id = &"PASSENGER"
+	document.fields[0].subject_id = &"PASSENGER"
+	bundle.dispatches[0].documents.append(document)
+	t.assert_true("DocumentValidator / 静态资料不能覆盖身份视图", _has_code(_validate_bundle(bundle), "DOCUMENT_ID_RESERVED"))
+
+func _test_floor_archive_contract(t: Variant) -> void:
+	var archives := preload("res://tests/fixtures/runtime/test_right_lookup_documents.gd")
+	var registered_floor := _make_floor("001")
+	var passenger := _make_passenger("PASSENGER", "测试")
+	var dispatch := _make_dispatch("DISPATCH", "PASSENGER", "001", VALID_DIALOGUE)
+	dispatch.documents = [archives.document(&"001"), archives.document(&"001", 2)]
+	var report := ContentValidator.validate_content([registered_floor], [passenger], [dispatch], [])
+	t.assert_false("ContentValidator / 同一楼层档案的多个版本不是歧义", _has_code(report, "FLOOR_ARCHIVE_AMBIGUOUS"))
+	var alternate: DocumentDefinition = archives.document(&"001")
+	alternate.document_id = &"right/alternate"
+	dispatch.documents.append(alternate)
+	report = ContentValidator.validate_content([registered_floor], [passenger], [dispatch], [])
+	t.assert_true("ContentValidator / 同层多份档案歧义", _has_code(report, "FLOOR_ARCHIVE_AMBIGUOUS"))
+	alternate.owner_type = &"passenger"
+	alternate.owner_id = &"PASSENGER"
+	report = ContentValidator.validate_content([registered_floor], [passenger], [dispatch], [])
+	t.assert_true("ContentValidator / 拒绝非楼层归属的楼层档案", _has_code(report, "FLOOR_ARCHIVE_OWNER_INVALID"))

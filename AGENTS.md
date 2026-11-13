@@ -28,6 +28,19 @@ GitHub Issue 是动态任务的唯一真相源；`PROJECT_STATE.md` 只记录慢
 实际 `project.godot`、场景、脚本和资源是可执行事实。发现冲突时报告，不猜测意图。
 不要为了“保险”扫描整个项目、全部历史文档或所有场景。
 
+## 实施原则（Karpathy 要点）
+
+以下提炼自已安装的 `andrej-karpathy-skills:karpathy-guidelines`，结合本项目风险门执行：
+
+- **先澄清再编码**：说明会影响结果的假设、歧义和取舍；有更简单的方案时提出。
+  关键需求不明时先给可审阅方案；已冻结、已授权的常规实现按现有约束推进，不为琐事反复确认。
+- **简单优先**：只实现当前要求；不为一次性代码搭抽象，不添加未要求的可配置性、未来扩展或不可能情形的防御分支。
+- **精准改动**：沿用现有风格，每处改动都应对应当前请求；不顺手重构、格式化或删除已有无关死代码。
+  清理由本次改动直接造成的未使用导入、变量和函数，其他发现单独报告。
+- **按验收推进**：先把目标写成可验证结果，多步任务用简短的“步骤 → 验证”计划。
+  修 bug 先最小复现，行为重构对照前后结果；验证强度匹配风险，文档和低影响修改不机械加测试。
+  达标后交接；失败遵循既有 Circuit Breaker，不无限迭代。
+
 ## 工程边界
 
 - 使用 Godot 4.7 兼容的 GDScript，不使用 Godot 3.x API；实现保持简单、明确、适合初学者。
@@ -49,8 +62,8 @@ GitHub Issue 是动态任务的唯一真相源；`PROJECT_STATE.md` 只记录慢
 - 保留用户未提交改动，不自动 stash，不为方便而 checkout/reset 覆盖，不在无关 checkout 直接开发。
 - 允许在计划通过风险门后创建仅含当前 Issue 的本地 commit；显式逐文件暂存并审查 staged diff。
 - 不自主 push、merge、force-push、删除远端分支或修改权限；不未经授权 reset/rebase 改写共享历史。
-- REVIEW 仍停在 push/merge 前；整合、删除 worktree 和删除本地分支是独立动作。只有用户授权整合且成功、
-  `main` 已包含目标 commit、目标外部 worktree 归属明确且 clean 后，才安全移除 worktree 和已合并的本地分支；删除远端分支须另行明确授权。
+- REVIEW 仍停在 push/merge 前；整合、删除 worktree、删除本地分支是独立动作，删除远端分支须另行明确授权。
+  整合后的清理必须先读 Issue Runner 的 Post-integration cleanup，逐项核实授权、已合入 main、归属和 clean 状态。
 - 不提交 `.godot/`、导出产物、临时日志、缓存或编辑器备份。
 
 ## 风险门
@@ -75,136 +88,16 @@ GitHub Issue 是动态任务的唯一真相源；`PROJECT_STATE.md` 只记录慢
 - REVIEW 如实区分实现、自动测试、人工验收、commit、push/merge 和外部同步，列出文件、结果与限制。
 - 默认停在 push/merge 前，由用户决定最终整合和发布。
 
-## Godot AI 视觉验证
+## 按需专项流程
 
-- `addons/godot_ai/` 是固定版本的项目开发基础设施；普通 Issue 不删除、替换、降级或顺手更新它，也不提交用户级 Codex 配置、认证 capability、`.godot/`、截图或日志。
-- 3D、UI、Camera、Interaction、布局、字体与可读性等视觉 BUILD 开始前，默认只保留当前 Issue worktree 对应的一个活动 Godot Editor，再按 [`docs/development/godot-ai.md`](docs/development/godot-ai.md) 执行 preflight。Godot AI 报告的 project path 或 live session 身份与 worktree 不一致时立即停止，不等待多实例歧义实际发生。
-- 视觉修改采用“小步修改 → 真实正式场景 → 截图 / runtime Scene Tree / 属性 / 日志 → 对照冻结要求”的循环。纯视觉调整不反复跑全量测试；逻辑变化仍先跑受影响测试，REVIEW 前的统一测试规则不变。
-- REVIEW 分开记录自动逻辑验证、Godot AI 视觉/运行时自检和用户人工体验验收；任何一项不得冒充另一项。
+以下文档只在对应任务触发时读取；触发后必须先读再操作，不在普通代码任务中预读全部专项文档。
 
-## Blender MCP 与 3D 资产工作流
-
-Blender MCP 是项目允许使用的本地 3D 制作工具，但它只负责执行已经冻结的设计，
-不得自行扩大玩法、美术方向或资产范围。
-
-### 设计与执行边界
-
-- 玩法、美术语言、操作台功能、空间比例与最终体验由用户或负责设计审查的 ChatGPT 冻结。
-- Codex 在 Blender 中负责实现、检查、迭代和导出，不自行决定关键设计。
-- 遇到未冻结的造型、布局、功能或风格选择时，先给出可审阅方案，不自行扩展。
-- 正式资产修改默认采用：
-  `检查现状 → 描述计划 → 用户/Issue 批准 → 小步修改 → Blender 自检 → Godot 实机验证`。
-
-### Blender 会话确认
-
-开始任何 Blender BUILD 前先确认：
-
-- Blender MCP 已连接。
-- 当前打开的 `.blend` 文件或未保存场景是否确实属于本次任务。
-- 当前 Scene、目标 Collection 和目标对象与计划一致。
-- 当前场景是否存在未保存的用户修改。
-- 本次任务是否允许保存 `.blend`、导出资产或覆盖已有文件。
-
-发现 Blender 文件、项目 worktree、Issue 或目标对象身份不一致时立即停止，不猜测。
-
-### Blender 风险门
-
-GREEN：
-
-- 在独立 Collection 中创建新的简单对象。
-- 新增按钮、灯、螺丝、边框、小型道具等局部可逆资产。
-- 调整明确指定的新建对象的尺寸、位置、材质参数。
-- 只读检查 Scene、Mesh、Material、Camera、Light 和 Transform。
-
-GREEN 修改仍需先说明具体计划，但计划明确后可以直接执行。
-
-AMBER：
-
-- 修改已有正式 Mesh、Material、UV、Modifier、Origin 或层级。
-- 修改操作台、舱体、门、Camera、Light 或已有导出对象。
-- Apply Transform / Modifier。
-- 保存或覆盖正式 `.blend`。
-- 导出 `.glb/.gltf` 并接入 Godot。
-- 改变 Blender → Godot 的坐标、命名、层级或导出规则。
-
-AMBER 必须先给出：
-
-1. 将修改的已有对象；
-2. 将创建的新对象；
-3. 将保留不动的对象；
-4. 是否保存或导出；
-5. 回滚方式。
-
-获得对应批准后再 BUILD。
-
-RED：
-
-- 大量删除已有对象。
-- 重建整个电梯舱或核心操作台。
-- 批量应用不可逆 Modifier。
-- 改变整个资产坐标系、根层级或导出体系。
-- 覆盖唯一正式源资产。
-- 批量替换 Godot 中已有正式模型。
-
-RED 由人工主导，逐步明确授权，不一次性自动执行。
-
-### 非破坏性修改原则
-
-- 已有正式对象默认保留，优先：
-  `duplicate → modify → compare → replace`
-  而不是：
-  `delete → rebuild`。
-- 新的实验对象优先放入清晰命名的独立 Collection，例如 `AgentGenerated_*`。
-- 未经批准不删除用户已有对象、Collection、Camera、Light、Material 或 Modifier。
-- 未经批准不调用 Save / Save As 覆盖正式 Blender 源文件。
-- 不因为“整理场景”而顺手重命名、合并、Apply 或删除无关内容。
-
-### Blender 自动验证
-
-每次 Blender BUILD 完成后必须重新读取场景并检查至少：
-
-- Object 名称；
-- Collection 归属；
-- Location / Rotation / Scale；
-- Origin；
-- Mesh normals；
-- Material slots；
-- Modifier；
-- 重复对象；
-- 隐藏对象；
-- 导出对象范围。
-
-自动检查通过不等于美术验收。
-比例、轮廓、工业设计语言、材质质感和构图由用户最终判断。
-
-### Blender → Godot
-
-Blender 中看起来正确不等于游戏中正确。
-
-正式 3D 资产必须经过：
-
-`Blender 验证 → 导出 → Godot 导入 → 正式场景 → 实际玩家视角验证`
-
-导出前必须确认：
-
-- 目标 Godot 资产路径；
-- 导出对象范围；
-- 是否需要 Camera / Light；
-- Transform 与 Origin；
-- 材质命名；
-- 是否会覆盖已有资产。
-
-不要因为 Blender 修改完成就直接覆盖 Godot 正式资产。
-
-Godot 中继续遵循现有 Godot AI 视觉验证规则。
-Shader、FOV、摄像机距离、像素化、灯光和运行时交互均属于最终验收的一部分。
-
-### Git 与二进制资产
-
-- 不因为 Blender MCP 可用就自动把 `.blend`、`.glb` 或大型贴图加入 Git。
-- 新增二进制资产目录、Git LFS 或新的资产管理规则属于独立设计决定。
-- 若 Issue 要求提交二进制资产，先确认文件用途、来源、大小和跟踪方式。
-- 不提交 Blender 临时文件、自动备份、缓存和测试导出物。
+- **Godot 视觉或工具链任务**：3D、UI、Camera、Interaction、布局、字体与可读性等视觉 BUILD / REVIEW，
+  以及 Godot AI 配置或升级前，读取 [Godot AI 开发管线](docs/development/godot-ai.md)。
+  视觉修改前完成单 Editor / worktree 身份 preflight；身份不一致立即停止。
+- **Blender 与 3D 资产任务**：使用 Blender MCP，或修改、保存、导出 3D 资产前，
+  读取 [Blender 工作流](docs/development/blender-workflow.md)，按其中的会话确认、风险门与非破坏性规则执行。
+  接入 Godot 时再按该文档读取资产边界约定。
 
 ## 开发日志与外部同步
 

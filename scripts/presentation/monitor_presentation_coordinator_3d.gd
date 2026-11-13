@@ -13,11 +13,13 @@ var _flow_manager: DemoFlowManager
 var _main_interface: ConsoleInterface
 var _destination_interface: DestinationControlInterface
 var _stage_controller: MonitorStageController3D
+var _stage_door: ElevatorDoorVisual3D
 
 var _profile_by_passenger_id: Dictionary = {}
 var _profile_by_floor_id: Dictionary = {}
 var _pending_boarding: bool = false
-var _pending_disembark: bool = false
+var _disembark_action: Dictionary = {}
+var _disembark_started: bool = false
 var _pending_dispatch_sync_after_door_close: bool = false
 var _is_setup_complete: bool = false
 var _last_reported_busy: bool = false
@@ -30,6 +32,7 @@ func setup(
 		stage_controller: MonitorStageController3D
 ) -> void:
 	# 重复 setup 时先断开旧来源，避免同一个业务 effect 被处理多次。
+	_abandon_disembark()
 	_disconnect_sources()
 	if is_instance_valid(_stage_controller):
 		_stage_controller.cancel_passenger_movement()
@@ -38,9 +41,8 @@ func setup(
 	_main_interface = main_interface
 	_destination_interface = destination_interface
 	_stage_controller = stage_controller
-	_pending_boarding = false
-	_pending_disembark = false
-	_pending_dispatch_sync_after_door_close = false
+	_stage_door = stage_controller.get_door_visual() if is_instance_valid(stage_controller) else null
+	_clear_pending_flags()
 	_is_setup_complete = false
 	_build_profile_index()
 	_build_floor_profile_index()
@@ -56,12 +58,13 @@ func setup(
 	_apply_floor_visual(StringName(_flow_manager.get_current_floor()))
 	_apply_active_passenger_profile()
 	_sync_stable_presentation_from_business()
+	_recover_disembark()
 	_refresh_presentation_busy()
 
 
 func is_presentation_busy() -> bool:
 	return _pending_boarding \
-			or _pending_disembark \
+			or not _disembark_action.is_empty() \
 			or (
 				is_instance_valid(_stage_controller)
 				and _stage_controller.is_presentation_busy()
@@ -69,14 +72,15 @@ func is_presentation_busy() -> bool:
 
 
 func _exit_tree() -> void:
+	_abandon_disembark()
 	_disconnect_sources()
-	_pending_boarding = false
-	_pending_disembark = false
-	_pending_dispatch_sync_after_door_close = false
+	_clear_pending_flags()
 	_is_setup_complete = false
 
 
 func _connect_sources() -> void:
+	_flow_manager.disembark_requested.connect(_queue_passenger_disembark)
+	_flow_manager.document_session_changed.connect(_on_document_session_changed)
 	if not _flow_manager.dispatch_started.is_connected(_on_dispatch_started):
 		_flow_manager.dispatch_started.connect(_on_dispatch_started)
 	if not _flow_manager.dispatch_completed.is_connected(_on_dispatch_completed):
@@ -110,7 +114,10 @@ func _connect_sources() -> void:
 	else:
 		push_warning("监控表现协调器缺少 DestinationControlInterface，门与乘客表现仍可工作。")
 
+	if is_instance_valid(_stage_door):
+		_stage_door.tree_exiting.connect(_on_disembark_presentation_exiting)
 	if is_instance_valid(_stage_controller):
+		_stage_controller.tree_exiting.connect(_on_disembark_presentation_exiting)
 		if not _stage_controller.door_presentation_state_changed.is_connected(
 				_on_door_presentation_state_changed
 			):
@@ -135,6 +142,10 @@ func _connect_sources() -> void:
 
 func _disconnect_sources() -> void:
 	if is_instance_valid(_flow_manager):
+		if _flow_manager.disembark_requested.is_connected(_queue_passenger_disembark):
+			_flow_manager.disembark_requested.disconnect(_queue_passenger_disembark)
+		if _flow_manager.document_session_changed.is_connected(_on_document_session_changed):
+			_flow_manager.document_session_changed.disconnect(_on_document_session_changed)
 		if _flow_manager.dispatch_started.is_connected(_on_dispatch_started):
 			_flow_manager.dispatch_started.disconnect(_on_dispatch_started)
 		if _flow_manager.dispatch_completed.is_connected(_on_dispatch_completed):
@@ -164,7 +175,11 @@ func _disconnect_sources() -> void:
 			_on_presentation_effects_requested
 		)
 
+	if is_instance_valid(_stage_door) and _stage_door.tree_exiting.is_connected(_on_disembark_presentation_exiting):
+		_stage_door.tree_exiting.disconnect(_on_disembark_presentation_exiting)
 	if is_instance_valid(_stage_controller):
+		if _stage_controller.tree_exiting.is_connected(_on_disembark_presentation_exiting):
+			_stage_controller.tree_exiting.disconnect(_on_disembark_presentation_exiting)
 		if _stage_controller.door_presentation_state_changed.is_connected(
 				_on_door_presentation_state_changed
 			):
@@ -256,8 +271,6 @@ func _on_presentation_effects_requested(effects: Array[StringName]) -> void:
 		return
 	if FlowCommandResult.PASSENGER_BOARDED in effects:
 		_queue_passenger_boarding()
-	if FlowCommandResult.DROPOFF_FEEDBACK_FINISHED in effects:
-		_queue_passenger_disembark()
 	if FlowCommandResult.MOVEMENT_STARTED in effects:
 		_handle_movement_started()
 
@@ -282,109 +295,95 @@ func _queue_passenger_boarding() -> void:
 	_try_start_pending_passenger_movement()
 
 
-func _queue_passenger_disembark() -> void:
-	_pending_disembark = true
+func _queue_passenger_disembark(action: Dictionary) -> void:
+	if not _is_setup_complete or action.session_id != _flow_manager.get_document_session_id():
+		return
+	_disembark_action = action
+	_refresh_presentation_busy()
+	_try_start_disembark()
+
+
+func _try_start_disembark() -> void:
+	if _disembark_action.is_empty() or _disembark_started:
+		return
+	var door := _stage_controller.get_door_visual() if is_instance_valid(_stage_controller) else null
+	if is_instance_valid(door) and door.is_inside_tree():
+		if door.get_door_state() == ElevatorDoorVisual3D.DoorPresentationState.OPENING:
+			return
+		if door.is_open():
+			_disembark_started = true
+			if _stage_controller.request_passenger_disembark(
+					_on_disembark_resolved.bind(_disembark_action.duplicate())):
+				return
+	_on_disembark_resolved(false, _disembark_action.duplicate())
+
+
+func _on_disembark_resolved(completed: bool, action: Dictionary) -> void:
+	if action != _disembark_action or not is_instance_valid(_flow_manager):
+		return
+	_disembark_action = {}
+	_disembark_started = false
+	if _flow_manager.resolve_disembark(action, completed) and not completed:
+		_recover_disembark()
 	_refresh_presentation_busy()
 
-	if not is_instance_valid(_stage_controller):
-		# 业务已进入等待关门阶段；无表现节点时不能永久保留 pending。
-		_pending_disembark = false
-		_refresh_presentation_busy()
+
+func _recover_disembark() -> void:
+	if not is_instance_valid(_flow_manager) or not _flow_manager.needs_disembark_recovery() \
+			or not is_instance_valid(_stage_controller) or not _stage_controller.is_inside_tree():
 		return
-	var state: int = _stage_controller.get_passenger_presentation_state()
-	if state in [
-		MonitorStageController3D.PassengerPresentationState.DISEMBARKING,
-		MonitorStageController3D.PassengerPresentationState.EXITED,
-	]:
-		_pending_disembark = false
-		_refresh_presentation_busy()
+	var door := _stage_controller.get_door_visual()
+	if not is_instance_valid(door) or not door.is_inside_tree() or door.is_busy():
 		return
-	_try_start_pending_passenger_movement()
+	var session := _flow_manager.get_document_session_id()
+	if _stage_controller.snap_passenger_cabin():
+		_flow_manager.confirm_disembark_recovery(session)
+
+
+func _abandon_disembark() -> void:
+	var action := _disembark_action
+	_disembark_action = {}
+	_disembark_started = false
+	if not action.is_empty() and is_instance_valid(_flow_manager):
+		_flow_manager.resolve_disembark(action, false)
+	if not action.is_empty() and is_instance_valid(_stage_controller):
+		_stage_controller.cancel_passenger_movement()
+
+
+func _on_disembark_presentation_exiting() -> void:
+	_abandon_disembark()
+	_refresh_presentation_busy()
+
+
+func _on_document_session_changed(_session: int) -> void:
+	_abandon_disembark()
+	_refresh_presentation_busy()
 
 
 func _try_start_pending_passenger_movement() -> void:
-	_resolve_conflicting_pending()
-	if not _pending_boarding and not _pending_disembark:
-		_refresh_presentation_busy()
+	if not _pending_boarding:
 		return
 	if not is_instance_valid(_stage_controller):
-		_clear_pending_flags()
+		_pending_boarding = false
 		_refresh_presentation_busy()
 		return
-
-	var door_visual: ElevatorDoorVisual3D = _stage_controller.get_door_visual()
-	if not is_instance_valid(door_visual):
-		_finish_pending_with_stable_snap()
+	var door := _stage_controller.get_door_visual()
+	if is_instance_valid(door) and door.get_door_state() == ElevatorDoorVisual3D.DoorPresentationState.OPENING:
 		return
-
-	match door_visual.get_door_state():
-		ElevatorDoorVisual3D.DoorPresentationState.OPEN:
-			_start_pending_passenger_movement()
-		ElevatorDoorVisual3D.DoorPresentationState.OPENING:
-			# pending 本身计入 busy，覆盖门刚开完到乘客 Tween 启动之间的窗口。
-			return
-		_:
-			# 成功业务命令没有启动开门动画时，直接恢复到对应稳定表现。
-			_finish_pending_with_stable_snap()
+	_pending_boarding = false
+	if not is_instance_valid(door) or not door.is_open():
+		_stage_controller.snap_passenger_cabin()
+	elif not _stage_controller.request_passenger_boarding():
+		push_warning("监控表现协调器未能启动乘客登舱，改用稳定舱内位置。")
+		_stage_controller.snap_passenger_cabin()
+	_refresh_presentation_busy()
 
 
 func _on_door_presentation_opened() -> void:
 	if not _is_setup_complete:
 		return
-	_resolve_conflicting_pending()
-	if _pending_boarding or _pending_disembark:
-		_start_pending_passenger_movement()
-
-
-func _start_pending_passenger_movement() -> void:
-	if _pending_boarding:
-		_pending_boarding = false
-		if not is_instance_valid(_stage_controller) \
-				or not _stage_controller.request_passenger_boarding():
-			push_warning("监控表现协调器未能启动乘客登舱，改用稳定舱内位置。")
-			if is_instance_valid(_stage_controller):
-				_stage_controller.snap_passenger_cabin()
-		_refresh_presentation_busy()
-		return
-
-	if _pending_disembark:
-		_pending_disembark = false
-		if not is_instance_valid(_stage_controller) \
-				or not _stage_controller.request_passenger_disembark():
-			push_warning("监控表现协调器未能启动乘客离舱，改用稳定离场位置。")
-			if is_instance_valid(_stage_controller) \
-					and not _stage_controller.snap_passenger_exited():
-				_stage_controller.snap_passenger_hidden()
-	_refresh_presentation_busy()
-
-
-func _finish_pending_with_stable_snap() -> void:
-	if _pending_boarding:
-		_pending_boarding = false
-		if is_instance_valid(_stage_controller) \
-				and not _stage_controller.snap_passenger_cabin():
-			push_warning("监控表现协调器无法恢复乘客舱内稳定位置。")
-	elif _pending_disembark:
-		_pending_disembark = false
-		if is_instance_valid(_stage_controller) \
-				and not _stage_controller.snap_passenger_exited():
-			_stage_controller.snap_passenger_hidden()
-	_refresh_presentation_busy()
-
-
-func _resolve_conflicting_pending() -> void:
-	if not _pending_boarding or not _pending_disembark:
-		return
-	push_error("监控表现协调器同时收到登舱与离舱 pending，将按业务阶段消除冲突。")
-	var phase: String = _flow_manager.get_case_phase() \
-			if is_instance_valid(_flow_manager) else ""
-	if phase == DispatchPhase.BOARDING_WAIT_DOOR_CLOSE:
-		_pending_disembark = false
-	elif phase == DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE:
-		_pending_boarding = false
-	else:
-		# 异常阶段仍沿用门开启回调规定的登舱优先级，绝不同时启动两条 Tween。
-		_pending_disembark = false
+	_try_start_pending_passenger_movement()
+	_try_start_disembark()
 
 
 func _handle_movement_started() -> void:
@@ -496,7 +495,7 @@ func _sync_stable_presentation_from_business() -> void:
 
 func _clear_pending_flags() -> void:
 	_pending_boarding = false
-	_pending_disembark = false
+	_abandon_disembark()
 	_pending_dispatch_sync_after_door_close = false
 
 
@@ -508,6 +507,11 @@ func _should_defer_dispatch_sync_until_door_closed() -> bool:
 
 
 func _on_door_presentation_state_changed(state: int) -> void:
+	if _is_setup_complete and state in [ElevatorDoorVisual3D.DoorPresentationState.CLOSING,
+			ElevatorDoorVisual3D.DoorPresentationState.CLOSED]:
+		_abandon_disembark()
+		if state == ElevatorDoorVisual3D.DoorPresentationState.CLOSED:
+			_recover_disembark()
 	if not _is_setup_complete \
 			or not _pending_dispatch_sync_after_door_close \
 			or state != ElevatorDoorVisual3D.DoorPresentationState.CLOSED:

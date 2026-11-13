@@ -1,7 +1,7 @@
 extends RefCounted
 
 const TestContent := preload("res://tests/fixtures/runtime/test_content.gd")
-## 使用正式 main_3d 验证手柄语义输入、空间焦点、COMM 仲裁与完整目的地入口。
+## 使用正式 main_3d 验证手柄语义输入、空间焦点、完整目的地入口。
 
 const MAIN := preload("res://scenes/main/main_3d.tscn")
 
@@ -18,7 +18,6 @@ func run(t: Variant, tree: SceneTree) -> void:
 	var interaction := cabin.get_node("交互控制器") as CabinInteractionController3D
 	var router := main.find_child("操作台界面层", true, false) as CabinInterfaceRouter3D
 	var console := router.get_main_interface()
-	var comm := console.comm_view
 
 	interaction._switch_to_gamepad_mode()
 	interaction._establish_default_gamepad_focus()
@@ -30,7 +29,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_equal("手柄 / 越过 threshold 量化为单一方向", Vector2i.RIGHT,
 			interaction._quantize_navigation_direction(Vector2(0.56, 0.2)))
 	_assert_station_reachable(t, interaction, &"main_console", [
-		&"open_microphone", &"open_door", &"close_door",
+		&"open_door", &"close_door", &"excerpt_current_call",
 		&"select_camera_01", &"select_camera_02",
 	])
 	interaction._set_hovered_hotspot(
@@ -47,7 +46,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 	t.assert_true("手柄 / 转向结束可重建当前台焦点",
 			interaction._hovered_hotspot != null)
 
-	var mouse_hotspot := main.find_child("麦克风热点", true, false) as InteractionHotspot3D
+	var mouse_hotspot := _hotspot_for_action(interaction, &"select_camera_01")
 	interaction._set_hovered_hotspot(mouse_hotspot)
 	interaction._input_mode = CabinInteractionController3D.InputMode.MOUSE
 	interaction._switch_to_gamepad_mode()
@@ -56,11 +55,9 @@ func run(t: Variant, tree: SceneTree) -> void:
 	interaction._switch_to_mouse_mode()
 	t.assert_equal("手柄 / 切回鼠标清除手柄焦点", null, interaction._hovered_hotspot)
 
-	await _test_comm_auto_focus(t, tree, interaction, comm)
 	await _test_navigation_repeat(t, tree, interaction)
 	await _test_left_console(t, tree, cabin, interaction, router)
 	await _test_right_console(t, tree, cabin, interaction, router, manager)
-	await _test_comm_priority(t, tree, interaction, comm)
 
 	_release_test_actions()
 	main.queue_free()
@@ -74,7 +71,7 @@ func _test_input_map(t: Variant) -> void:
 	t.assert_true("手柄 / turn_right 绑定右肩键", _has_button(&"turn_right", JOY_BUTTON_RIGHT_SHOULDER))
 	for action in [
 		&"focus_left", &"focus_right", &"focus_up", &"focus_down",
-		&"interact_confirm", &"interact_cancel", &"comm_toggle",
+		&"interact_confirm", &"interact_cancel",
 		&"context_scroll_up", &"context_scroll_down",
 	]:
 		t.assert_true("手柄 / InputMap 动作存在 " + action, InputMap.has_action(action))
@@ -89,10 +86,10 @@ func _test_input_map(t: Variant) -> void:
 			and _has_button(&"focus_right", JOY_BUTTON_DPAD_RIGHT)
 			and _has_button(&"focus_up", JOY_BUTTON_DPAD_UP)
 			and _has_button(&"focus_down", JOY_BUTTON_DPAD_DOWN))
-	t.assert_true("手柄 / A B Y 使用语义动作",
+	t.assert_true("手柄 / A B 使用语义动作",
 			_has_button(&"interact_confirm", JOY_BUTTON_A)
-			and _has_button(&"interact_cancel", JOY_BUTTON_B)
-			and _has_button(&"comm_toggle", JOY_BUTTON_Y))
+			and _has_button(&"interact_cancel", JOY_BUTTON_B))
+	t.assert_false("手柄 / 无通讯专用动作", InputMap.has_action(&"comm_toggle"))
 	t.assert_true("手柄 / 右摇杆 Y 支持上下滚动",
 			_has_axis(&"context_scroll_up", JOY_AXIS_RIGHT_Y, -1.0)
 			and _has_axis(&"context_scroll_down", JOY_AXIS_RIGHT_Y, 1.0))
@@ -104,7 +101,7 @@ func _test_navigation_repeat(
 		interaction: CabinInteractionController3D
 ) -> void:
 	interaction._switch_to_gamepad_mode()
-	var first := interaction._get_gamepad_candidates()[0]
+	var first := _hotspot_for_action(interaction, &"excerpt_current_call")
 	interaction._set_hovered_hotspot(first)
 	Input.action_press(&"focus_right", 0.8)
 	interaction._update_gamepad_navigation(0.0)
@@ -136,9 +133,9 @@ func _test_left_console(
 	for hotspot in interaction._get_gamepad_candidates():
 		actions.append(hotspot.get_action_id())
 	t.assert_false("手柄 / left_scroll 不进入焦点候选", &"left_scroll" in actions)
-	t.assert_equal("手柄 / 左台只有三枚实体栏目键可聚焦", 3, actions.size())
+	t.assert_equal("手柄 / 左台只有三枚实体键可聚焦", 3, actions.size())
 	_assert_station_reachable(t, interaction, &"left_console", [
-		&"left_passenger_record", &"left_transcript", &"left_system_log",
+		&"left_passenger_record", &"left_retrieve_document", &"left_system_log",
 	])
 
 	var terminal := router.get_left_interface()
@@ -213,108 +210,33 @@ func _test_right_console(
 	await _settle_presentation(stage, tree)
 	t.assert_true("手柄 / 主台关门后乘客已进舱",
 			not manager.is_cabin_door_open() and manager.is_passenger_onboard())
-	interaction._set_hovered_hotspot(_hotspot_for_action(interaction, &"open_microphone"))
-	t.assert_true("手柄 / A 操作主台 MIC", interaction._handle_gamepad_confirm())
-	t.assert_true("手柄 / 主台 MIC 接通原通讯", console.mic_enabled)
-	console.request_toggle_microphone()
 	_turn_to(cabin, CabinViewController3D.FacingDirection.RIGHT_CONSOLE)
 	interaction._establish_default_gamepad_focus()
 	destination.clear_destination_input()
 	for action in [
 		&"destination_digit_9", &"destination_digit_0", &"destination_digit_0",
-		&"destination_verify", &"destination_submit",
+		&"destination_verify",
 	]:
 		interaction._set_hovered_hotspot(_hotspot_for_action(interaction, action))
 		t.assert_true("手柄 / A 确认当前焦点 " + action,
 				interaction._handle_gamepad_confirm())
 		await _frames(tree, 2)
+	var terminal := cabin.find_child("核验终端", true, false) as VerificationTerminal3D
+	t.assert_true("手柄 / A 调阅打开 W 并接管输入", terminal.target_open and terminal.is_input_captured())
+	t.assert_false("手柄 / W 接管期间不会启动电梯", manager.is_elevator_moving())
+	terminal.set_open(false)
+	await tree.create_timer(terminal.slide_duration + 0.05).timeout
+	await _frames(tree, 2)
+	interaction._set_hovered_hotspot(_hotspot_for_action(interaction, &"destination_submit"))
+	t.assert_true("手柄 / 收起 W 后 A 可操作拨杆", interaction._handle_gamepad_confirm())
 	if manager.is_elevator_moving():
 		await manager.elevator_movement_completed
-	t.assert_equal("手柄 / 数字→VERIFY→SUBMIT 完成正常行驶", "900",
+	t.assert_equal("手柄 / 查询→调阅→收起 W→拨杆完成行驶", "900",
 			manager.get_current_floor())
 	t.assert_equal("手柄 / 行驶启动后沿用原清空规则", "",
 			str(destination.get_destination_presentation().input))
 
 
-func _test_comm_auto_focus(
-		t: Variant,
-		tree: SceneTree,
-		interaction: CabinInteractionController3D,
-		comm: FloatingCommUI
-) -> void:
-	t.assert_true("手柄 / 自动展开前 COMM 为最小化状态", comm.is_minimized())
-	interaction._switch_to_gamepad_mode()
-	interaction._establish_default_gamepad_focus()
-	t.assert_true("手柄 / 自动展开前 3D 热点有焦点", interaction._hovered_hotspot != null)
-	comm.present(true, "自动展开焦点测试", [
-		{"text": "首项", "is_allowed": true},
-		{"text": "次项", "is_allowed": true},
-	], true, true)
-	await tree.process_frame
-	t.assert_true("手柄 / 新对话自动展开后取得选项上下文",
-			comm.has_controller_choice_context())
-	t.assert_equal("手柄 / 自动展开立即清除 3D 焦点", null,
-			interaction._hovered_hotspot)
-	t.assert_equal("手柄 / 首个 enabled 选项自动显示焦点",
-			comm.choice_container.get_child(0), comm.get_viewport().gui_get_focus_owner())
-	comm.focus_controller_choice(1)
-	await _frames(tree, 3)
-	t.assert_equal("手柄 / 后续帧保留玩家移到的有效选项",
-			comm.choice_container.get_child(1), comm.get_viewport().gui_get_focus_owner())
-	comm.set_minimized(true, false)
-	interaction._establish_default_gamepad_focus()
-	t.assert_true("手柄 / COMM 最小化后恢复 3D 焦点",
-			interaction._hovered_hotspot != null)
-	comm.present(true, "禁用首项焦点测试", [
-		{"text": "禁用首项", "is_allowed": false},
-		{"text": "首个可用项", "is_allowed": true},
-	], true, true)
-	await tree.process_frame
-	t.assert_equal("手柄 / 自动展开跳过 disabled 首项",
-			comm.choice_container.get_child(1), comm.get_viewport().gui_get_focus_owner())
-	comm.set_minimized(true, false)
-	interaction._switch_to_mouse_mode()
-	comm.present(true, "鼠标模式焦点测试", [
-		{"text": "鼠标选项", "is_allowed": true},
-	], true, true)
-	await tree.process_frame
-	t.assert_false("手柄 / 鼠标模式自动展开不抢 controller 焦点",
-			comm.has_controller_choice_focus())
-	comm.present(false, "", [], false, false)
-
-
-func _test_comm_priority(
-		t: Variant,
-		tree: SceneTree,
-		interaction: CabinInteractionController3D,
-		comm: FloatingCommUI
-) -> void:
-	var selected: Array[int] = []
-	comm.choice_selected.connect(func(index: int) -> void: selected.append(index))
-	comm.present(true, "手柄通讯测试", [
-		{"text": "选项一", "is_allowed": true},
-		{"text": "禁用项", "is_allowed": false},
-		{"text": "选项三", "is_allowed": true},
-	], true, true)
-	comm.set_minimized(false)
-	interaction._switch_to_gamepad_mode()
-	interaction._establish_default_gamepad_focus()
-	t.assert_true("手柄 / COMM 展开且有选项时取得优先上下文",
-			comm.has_controller_choice_context())
-	t.assert_equal("手柄 / COMM 优先时不保留背后 3D 焦点", null,
-			interaction._hovered_hotspot)
-	t.assert_true("手柄 / COMM 建立首个 enabled focus", comm.focus_controller_choice(0))
-	t.assert_true("手柄 / COMM 导航跳过 disabled 选项", comm.focus_controller_choice(1))
-	# 真实事件经过 Viewport：Control 同时绑定 ui_accept，必须只由交互控制器消费一次。
-	_push_joypad_button(comm.get_viewport(), JOY_BUTTON_A)
-	t.assert_equal("手柄 / COMM 单次确认且不穿透", [2], selected)
-	t.assert_true("手柄 / B 在展开 COMM 中消费返回", comm.cancel_controller_context())
-	t.assert_true("手柄 / B 最小化 COMM", comm.is_minimized())
-	t.assert_false("手柄 / B 在无上下文时保持无动作", comm.cancel_controller_context())
-	interaction._establish_default_gamepad_focus()
-	t.assert_true("手柄 / COMM 最小化后恢复 3D 焦点",
-			interaction._hovered_hotspot != null)
-	await tree.process_frame
 
 
 func _assert_station_reachable(

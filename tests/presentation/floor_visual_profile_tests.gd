@@ -157,6 +157,7 @@ func _snapshot(stage: MonitorStageController3D) -> Dictionary:
 
 func _test_arrival_and_fallback(r: Variant, tree: SceneTree) -> void:
 	var manager := DemoFlowManager.new()
+	manager.set_travel_busy_query(func() -> bool: return false)
 	manager.initial_floor = "004"
 	manager.initial_shift = SHIFT
 	manager.movement_duration_seconds = 0.01

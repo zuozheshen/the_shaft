@@ -72,6 +72,7 @@ var _passenger_movement_tween: Tween
 var _passenger_presentation_state: PassengerPresentationState = \
 		PassengerPresentationState.HIDDEN
 var _is_passenger_movement_busy: bool = false
+var _disembark_callback: Callable
 var _last_reported_presentation_busy: bool = false
 var _is_floor_stage_ready: bool = false
 var _is_passenger_stage_ready: bool = false
@@ -407,7 +408,7 @@ func request_passenger_boarding() -> bool:
 	return true
 
 
-func request_passenger_disembark() -> bool:
+func request_passenger_disembark(on_resolved: Callable = Callable()) -> bool:
 	if not _is_passenger_stage_ready \
 			or not is_instance_valid(_current_passenger_visual):
 		push_warning("监控摄影棚无法开始离舱：乘客表现尚未准备完成。")
@@ -449,6 +450,7 @@ func request_passenger_disembark() -> bool:
 	_current_passenger_visual.set_idle_enabled(false)
 	_current_passenger_visual.set_passenger_visible(true)
 	_passenger_movement_tween = movement_tween
+	_disembark_callback = on_resolved
 	_set_passenger_presentation_state(PassengerPresentationState.DISEMBARKING)
 	_set_passenger_movement_busy(true)
 	movement_tween.set_trans(Tween.TRANS_SINE)
@@ -471,16 +473,21 @@ func request_passenger_disembark() -> bool:
 		exit_position,
 		disembark_to_exit_duration
 	)
-	movement_tween.tween_callback(_finish_passenger_disembark)
+	# 每条 Tween 持有自己的回执目标，旧 Tween 不读取新动作的身份。
+	movement_tween.tween_callback(_finish_passenger_disembark.bind(weakref(movement_tween), on_resolved))
 	return true
 
 
 func cancel_passenger_movement() -> void:
+	var on_resolved := _disembark_callback
+	_disembark_callback = Callable()
 	if _passenger_movement_tween != null:
 		if _passenger_movement_tween.is_valid():
 			_passenger_movement_tween.kill()
 		_passenger_movement_tween = null
 	_set_passenger_movement_busy(false)
+	if on_resolved.is_valid():
+		on_resolved.call(false)
 
 
 func is_passenger_presentation_busy() -> bool:
@@ -600,16 +607,25 @@ func _finish_passenger_boarding() -> void:
 	passenger_boarded.emit()
 
 
-func _finish_passenger_disembark() -> void:
+func _finish_passenger_disembark(tween_ref: WeakRef, on_resolved: Callable) -> void:
+	if _passenger_movement_tween == null or _passenger_movement_tween != tween_ref.get_ref():
+		return
 	_passenger_movement_tween = null
-	if not _set_passenger_mount_position_from_anchor(_outside_exit_anchor):
-		push_warning("乘客离舱结束时无法精确对齐门外离场点。")
-	if is_instance_valid(_current_passenger_visual):
-		_current_passenger_visual.set_passenger_visible(false)
+	_disembark_callback = Callable()
+	if not is_instance_valid(_current_passenger_visual) \
+			or not is_instance_valid(_door_visual) or not _door_visual.is_open() \
+			or not _set_passenger_mount_position_from_anchor(_outside_exit_anchor):
+		push_warning("监控摄影棚无法确认乘客到达门外离场点。")
+		_set_passenger_movement_busy(false)
+		if on_resolved.is_valid():
+			on_resolved.call(false)
+		return
+	_current_passenger_visual.set_passenger_visible(false)
+	_current_passenger_visual.set_idle_enabled(false)
 	_set_passenger_presentation_state(PassengerPresentationState.EXITED)
-	if is_instance_valid(_current_passenger_visual):
-		_current_passenger_visual.set_idle_enabled(false)
 	_set_passenger_movement_busy(false)
+	if on_resolved.is_valid():
+		on_resolved.call(true)
 	passenger_exited.emit()
 
 

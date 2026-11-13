@@ -8,6 +8,14 @@ extends Resource
 @export var pickup_floor_id: StringName
 @export var default_destination_floor_id: StringName
 @export var dialogue_path: String
+## 成功的业务事件 → 预编写陈述标题。没有配置的事件保持静默。
+@export var dialogue_events: Dictionary[String, String] = {}
+@export var review_rules: Array[DocumentReviewRule] = []
+
+const DIALOGUE_EVENT_KEYS := [
+	"dispatch_started", "arrived_at_pickup", "passenger_boarded",
+	"onboard_secured", "arrived_at_destination", "destination_opened",
+]
 
 ## 当前派单的固定接乘表现。它们随派单变化，但不是运行时状态。
 @export var pickup_data: Dictionary = {}
@@ -15,6 +23,9 @@ extends Resource
 
 ## 派单内嵌楼层关系；它们不需要单独注册到 ContentRegistry。
 @export var floor_relations: Array[DispatchFloorRelation] = []
+
+## 这里只声明可供接入的资料；存在定义不等于玩家已取得，不预设缺件名单。
+@export var documents: Array[DocumentDefinition] = []
 
 
 func get_floor_relation(raw_floor_id: String) -> DispatchFloorRelation:

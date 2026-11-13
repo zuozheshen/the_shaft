@@ -5,7 +5,11 @@ extends RefCounted
 ## 派单完成后的最小运行时结果，后续后果系统可以在此基础上扩展。
 var dispatch_id: StringName
 var passenger_id: StringName
+## 兼容字段：以乘客实际离舱楼层为准。
 var destination_floor_id: StringName
+var requested_floor_id: StringName
+var travel_legs: Array[Dictionary] = []
+var acquired_information: Array[Dictionary] = []
 var completion_order: int
 
 

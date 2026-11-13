@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=15
+type="Resource"
+uid="uid://dsco0xeodj11l"
+path="res://.godot/imported/test_call_excerpt.dialogue-26141b896a78aff00cfc328e059a57de.tres"
+
+[deps]
+
+source_file="res://tests/fixtures/runtime/test_call_excerpt.dialogue"
+dest_files=["res://.godot/imported/test_call_excerpt.dialogue-26141b896a78aff00cfc328e059a57de.tres"]
+
+[params]
+
+defaults=true

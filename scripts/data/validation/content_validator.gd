@@ -188,6 +188,25 @@ static func _validate_dispatches(
 		_validate_pickup_data(dispatch, context, report)
 		_validate_front_phase_texts(dispatch, context, report)
 		_validate_dialogue(dispatch, context, floor_ids, relations, report)
+		var archive_ids: Dictionary = {}
+		for document: DocumentDefinition in dispatch.documents:
+			if document == null:
+				continue
+			if String(document.document_id).begins_with("registry/"):
+				report.add_error(&"DOCUMENT_ID_RESERVED", context, "registry/ 是身份资料适配视图的保留前缀。")
+			if document.source == null or document.source.kind != &"floor_archive":
+				continue
+			if document.owner_type != &"floor":
+				report.add_error(&"FLOOR_ARCHIVE_OWNER_INVALID", context, "楼层档案须属于已登记楼层。")
+			elif archive_ids.get(document.owner_id, document.document_id) != document.document_id:
+				report.add_error(&"FLOOR_ARCHIVE_AMBIGUOUS", context, "同一派单内每层只能配置一份楼层档案。")
+			else:
+				archive_ids[document.owner_id] = document.document_id
+		_validate_review_rules(dispatch, report, context)
+		validate_documents(dispatch.documents, report, context, {
+			"floor": floor_ids, "passenger": passenger_ids,
+			"dispatch": {String(dispatch.dispatch_id): dispatch},
+		})
 
 
 static func _validate_dispatch_references(
@@ -229,7 +248,7 @@ static func _validate_dispatch_references(
 		report
 	)
 
-	if dispatch.dialogue_path.strip_edges().is_empty():
+	if not dispatch.dialogue_events.is_empty() and dispatch.dialogue_path.strip_edges().is_empty():
 		report.add_error(&"DISPATCH_DIALOGUE_PATH_EMPTY", context, "dialogue_path 不能为空。")
 
 
@@ -561,7 +580,7 @@ static func _validate_dialogue(
 			else:
 				unlock_floor_ids.append(unlock_match.get_string(1).strip_edges())
 
-	_validate_dialogue_titles(dispatch, context, floor_ids, relations, titles, report)
+	_validate_dialogue_titles(dispatch, context, titles, report)
 	_validate_dialogue_unlocks(
 		context,
 		floor_ids,
@@ -574,70 +593,19 @@ static func _validate_dialogue(
 static func _validate_dialogue_titles(
 	dispatch: DispatchDefinition,
 	context: String,
-	floor_ids: Dictionary,
-	relations: Dictionary,
 	titles: Dictionary,
 	report: ContentValidationReport
 ) -> void:
-	if not titles.has("pickup_start"):
-		report.add_error(
-			&"DIALOGUE_PICKUP_START_MISSING",
-			context,
-			"Dialogue 缺少 pickup_start 标题。"
-		)
-	if not titles.has("onboard_start"):
-		report.add_error(
-			&"DIALOGUE_ONBOARD_START_MISSING",
-			context,
-			"Dialogue 缺少 onboard_start 标题。"
-		)
-
-	var default_floor_id := _normalized_id(dispatch.default_destination_floor_id)
-	if not default_floor_id.is_empty():
-		var default_title := "destination_%s" % default_floor_id
-		if not titles.has(default_title):
-			report.add_error(
-				&"DIALOGUE_DEFAULT_DESTINATION_MISSING",
-				context,
-				"Dialogue 缺少默认目标标题：%s。" % default_title
-			)
-
-	for floor_id: String in relations:
-		var relation: DispatchFloorRelation = relations[floor_id]
-		if relation.recommendation_eligible:
-			var recommended_title := "destination_%s" % floor_id
-			if not titles.has(recommended_title):
-				report.add_error(
-					&"DIALOGUE_RECOMMENDED_DESTINATION_MISSING",
-					context,
-					"Dialogue 缺少推荐楼层标题：%s。" % recommended_title
-				)
-
-	for floor_id: String in floor_ids:
-		var destination_title := "destination_%s" % floor_id
-		if not titles.has(destination_title):
-			report.add_warning(
-				&"DIALOGUE_REGISTERED_DESTINATION_MISSING",
-				context,
-				"Dialogue 缺少已登记楼层反馈：%s。" % destination_title
-			)
-
-	for title: String in titles:
-		if not title.begins_with("destination_"):
-			continue
-		var title_floor_id := title.trim_prefix("destination_")
-		if not floor_ids.has(title_floor_id):
-			report.add_error(
-				&"DIALOGUE_DESTINATION_FLOOR_MISSING",
-				context,
-				"Dialogue 标题引用不存在楼层：%s。" % title
-			)
-		if not relations.has(title_floor_id):
-			report.add_warning(
-				&"DIALOGUE_DESTINATION_RELATION_MISSING",
-				context,
-				"Dialogue 标题存在，但派单没有对应 relation：%s。" % title
-			)
+	for key: String in dispatch.dialogue_events:
+		var title := dispatch.dialogue_events[key]
+		if key not in DispatchDefinition.DIALOGUE_EVENT_KEYS or not titles.has(title):
+			report.add_error(&"DIALOGUE_EVENT_INVALID", context,
+				"无效的乘客事件或标题：%s → %s。" % [key, title])
+		elif dispatch.dialogue_path.ends_with(".dialogue"):
+			var resource := load(dispatch.dialogue_path) as DialogueResource
+			if not DialogueManagerAdapter.is_event_title(resource, title):
+				report.add_error(&"DIALOGUE_EVENT_INVALID", context,
+					"标题不符合有限顺序陈述契约：%s。" % title)
 
 
 static func _validate_dialogue_unlocks(
@@ -690,3 +658,113 @@ static func _get_active_phases() -> Array[String]:
 static func _normalized_id(value: Variant) -> String:
 	# ID 只清理首尾空格，保留 001 等前导零。
 	return String(value).strip_edges()
+
+
+## 资料校验只检查内容契约，不判断规程是否适用或乘客陈述是否属实。
+static func validate_documents(documents: Array, report: ContentValidationReport,
+		context: String = "documents", objects: Dictionary = {}) -> void:
+	var seen: Dictionary = {}
+	for item: Variant in documents:
+		if not item is DocumentDefinition:
+			report.add_error(&"DOCUMENT_INVALID", context, "资料为空或类型不正确。")
+			continue
+		var document := item as DocumentDefinition
+		var label: String = "%s/document:%s@%d" % [context, document.document_id, document.version]
+		var identity: String = "%s@%d" % [document.document_id, document.version]
+		if seen.has(identity):
+			report.add_error(&"DOCUMENT_DUPLICATE", label, "同一资料版本重复声明。")
+		seen[identity] = true
+		if not _document_id_valid(document.document_id) or document.version <= 0:
+			report.add_error(&"DOCUMENT_ID_VERSION_INVALID", label, "资料 ID 或版本无效。")
+		if not _document_id_valid(document.material_type) or document.title.strip_edges().is_empty():
+			report.add_error(&"DOCUMENT_METADATA_INVALID", label, "材料类型和标题不能为空。")
+		_validate_document_object(document.owner_type, document.owner_id, objects, report, label)
+		_validate_document_source(document.source, report, label)
+		var field_ids: Dictionary = {}
+		for field: DocumentFieldDefinition in document.fields:
+			if field == null:
+				report.add_error(&"DOCUMENT_FIELD_INVALID", label, "字段不能为空。")
+				continue
+			var field_label: String = label + "/field:" + String(field.field_id)
+			if not _document_id_valid(field.field_id) or field_ids.has(field.field_id):
+				report.add_error(&"DOCUMENT_FIELD_ID_INVALID", field_label, "字段 ID 为空或重复。")
+			field_ids[field.field_id] = true
+			_validate_document_object(field.subject_type, field.subject_id, objects, report, field_label)
+			if not _document_id_valid(field.comparison_key):
+				report.add_error(&"DOCUMENT_COMPARISON_KEY_INVALID", field_label, "可比字段键不能为空。")
+			var effective: DocumentSourceDefinition = field.source if field.source != null else document.source
+			if field.source != null:
+				_validate_document_source(field.source, report, field_label)
+				if (document.source != null and field.source.snapshot() != document.source.snapshot()
+						and field.source_note.strip_edges().is_empty()):
+					report.add_error(&"DOCUMENT_FIELD_SOURCE_NOTE_REQUIRED", field_label,
+						"跨出处字段须注明引用或转述关系；覆盖不能改变所属文档的取得身份。")
+			if not _document_value_valid(field):
+				report.add_error(&"DOCUMENT_VALUE_INVALID", field_label, "字段类型、缺值标志或可比值不一致。")
+			var has_requirement: bool = field.requirement_key != &"" or field.required_material_type != &"" or field.applicability_key != &""
+			if has_requirement and (document.source == null or document.source.kind != &"system_reference"
+					or effective == null or effective.kind != &"system_reference" or not field.has_value
+					or not _document_id_valid(field.requirement_key)
+					or not _document_id_valid(field.required_material_type)
+					or not _document_id_valid(field.applicability_key)):
+				report.add_error(&"DOCUMENT_REQUIREMENT_INVALID", field_label, "只有完整的系统规程条款可声明索证要求。")
+
+
+static func _document_id_valid(value: StringName) -> bool:
+	return value != &"" and String(value) == String(value).strip_edges()
+
+
+static func _validate_document_object(kind: StringName, id: StringName, objects: Dictionary,
+		report: ContentValidationReport, context: String) -> void:
+	if kind not in [&"passenger", &"floor", &"dispatch", &"system"] or not _document_id_valid(id):
+		report.add_error(&"DOCUMENT_OBJECT_INVALID", context, "所属/陈述对象无效。")
+	elif kind != &"system" and not objects.is_empty() and not objects.get(String(kind), {}).has(id):
+		report.add_error(&"DOCUMENT_OBJECT_MISSING", context, "引用对象未登记：%s/%s。" % [kind, id])
+
+
+static func _validate_document_source(source: DocumentSourceDefinition,
+		report: ContentValidationReport, context: String) -> void:
+	if source == null or not _document_id_valid(source.source_id) or source.kind not in DocumentSourceDefinition.KINDS:
+		report.add_error(&"DOCUMENT_SOURCE_INVALID", context, "资料来源 ID 或类别无效。")
+	elif source.origin_ref.strip_edges().is_empty() or source.source_version.strip_edges().is_empty():
+		report.add_error(&"DOCUMENT_SOURCE_INVALID", context, "资料须记录原始出处和来源版本。")
+
+
+static func _document_value_valid(field: DocumentFieldDefinition) -> bool:
+	if field.value_type not in ["string", "floor_id", "bool", "int", "float"]:
+		return false
+	if not field.has_value:
+		return field.comparable_value.is_empty()
+	if field.comparable_value.size() != 1:
+		return false
+	var value: Variant = field.comparable_value[0]
+	match field.value_type:
+		"string": return value is String
+		"floor_id": return value is String and not value.is_empty() and value == value.strip_edges()
+		"bool": return value is bool
+		"int": return value is int
+		"float": return value is float and is_finite(value)
+	return false
+
+
+static func _validate_review_rules(dispatch: DispatchDefinition, report: ContentValidationReport, context: String) -> void:
+	if dispatch.review_rules.is_empty():
+		return
+	var ids := {}
+	var resource := load(dispatch.dialogue_path) as DialogueResource if ResourceLoader.exists(dispatch.dialogue_path) else null
+	for rule: DocumentReviewRule in dispatch.review_rules:
+		if not DocumentReviewMatcher.valid(rule) or ids.has(rule.question_id):
+			report.add_error(&"REVIEW_RULE_INVALID", context, "无效或重复的审查规则。")
+			continue
+		ids[rule.question_id] = true
+		if not DialogueManagerAdapter.is_event_title(resource, rule.response_title, true, rule.supplement_action):
+			report.add_error(&"REVIEW_RESPONSE_INVALID", context, "回应标题或授权补件动作无效。")
+		for ref: Dictionary in rule.supplement_refs:
+			var found := false
+			for document: DocumentDefinition in dispatch.documents:
+				if document != null and document.document_id == ref.document_id and document.version == ref.version \
+						and document.source != null and document.source.kind == &"passenger_upload" \
+						and document.owner_type == &"passenger" and document.owner_id == dispatch.passenger_id:
+					found = true
+			if not found:
+				report.add_error(&"REVIEW_SUPPLEMENT_INVALID", context, "补件必须引用本单乘客的明确上传文档。")

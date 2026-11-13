@@ -210,3 +210,150 @@ func get_dispatch_floor_relation(
 	if dispatch == null:
 		return null
 	return dispatch.get_floor_relation(floor_id)
+
+
+## 内容层只解析定义，不授予玩家取得权限。registry/ 前缀保留给现有身份资料视图。
+func get_document_definition(dispatch_id: String, ref: Dictionary) -> DocumentDefinition:
+	if not DispatchDocumentState.valid_ref(ref):
+		return null
+	var dispatch: DispatchDefinition = get_dispatch(dispatch_id)
+	if dispatch == null:
+		return null
+	var found: DocumentDefinition
+	for document: DocumentDefinition in dispatch.documents:
+		if document != null and not String(document.document_id).begins_with("registry/") and String(document.document_id) == String(ref.document_id) and document.version == ref.version:
+			if found != null:
+				return null
+			found = document
+	if found != null:
+		return found
+	if ref.version != 1:
+		return null
+	var id: String = String(ref.document_id)
+	if id.begins_with("registry/passenger/"):
+		var passenger: PassengerDefinition = get_passenger(id.trim_prefix("registry/passenger/"))
+		if passenger == null:
+			return null
+		var document: DocumentDefinition = _identity_document(id, &"passenger", passenger.passenger_id, &"personnel_record")
+		document.title = passenger.display_name
+		document.original_text = passenger.archive_text
+		document.fields = [_identity_field(&"system_name", &"passenger", passenger.passenger_id, passenger.system_name),
+			_identity_field(&"display_name", &"passenger", passenger.passenger_id, passenger.display_name)]
+		return document
+	if id.begins_with("registry/floor/"):
+		return _floor_identity_document(get_floor(id.trim_prefix("registry/floor/")))
+	return null
+
+
+func _floor_identity_document(definition: FloorDefinition) -> DocumentDefinition:
+	if definition == null:
+		return null
+	var id := "registry/floor/%s" % definition.floor_id
+	var document := _identity_document(id, &"floor", definition.floor_id, &"floor_archive")
+	document.title = definition.display_name
+	var field := _identity_field(&"floor_id", &"floor", definition.floor_id, String(definition.floor_id))
+	field.value_type = "floor_id"
+	document.fields = [field, _identity_field(&"display_name", &"floor", definition.floor_id, definition.display_name)]
+	return document
+
+
+## 只读查询。归属和来源匹配时取唯一档案的最新版本。
+func query_floor_archive(floor_id: String, dispatch: DispatchDefinition) -> Dictionary:
+	var definition := get_floor(floor_id)
+	if definition == null:
+		for candidate: FloorDefinition in _ordered_floors:
+			if String(candidate.floor_id).begins_with(floor_id):
+				return {"status": "prefix"}
+		return {"status": "unknown"}
+
+	var archive: DocumentDefinition = null
+	if dispatch != null:
+		for document: DocumentDefinition in dispatch.documents:
+			if document == null or document.source == null or document.source.kind != &"floor_archive" \
+					or document.owner_type != &"floor" or document.owner_id != definition.floor_id:
+				continue
+			if archive != null and archive.document_id != document.document_id:
+				return {"status": "ambiguous"}
+			if archive == null or document.version > archive.version:
+				archive = document
+	if archive == null:
+		archive = _floor_identity_document(definition)
+	elif String(archive.document_id).begins_with("registry/") \
+			or get_document_definition(String(dispatch.dispatch_id),
+				{"document_id": String(archive.document_id), "version": archive.version}) != archive \
+			or validate_document_definitions([archive]).has_errors():
+		return {"status": "invalid"}
+	return {"status": "found", "document": archive.snapshot(),
+		"elevator_accessible": definition.elevator_accessible,
+		"elevator_block_reason": definition.elevator_block_reason}
+
+
+## 左台只查派单绑定的人员，保留定义顺序，并为每份文件取最新版本。
+func get_current_passenger_archive_documents(dispatch: DispatchDefinition) -> Array[DocumentDefinition]:
+	var records: Array[DocumentDefinition] = []
+	if dispatch == null or get_passenger(String(dispatch.passenger_id)) == null:
+		return records
+	var latest: Dictionary = {}
+	for document: DocumentDefinition in dispatch.documents:
+		if document == null or document.source == null or document.owner_type != &"passenger" \
+				or document.owner_id != dispatch.passenger_id \
+				or document.source.kind not in [&"personnel_record", &"duty_record"] \
+				or String(document.document_id).begins_with("registry/"):
+			continue
+		if not latest.has(document.document_id) or document.version > latest[document.document_id].version:
+			latest[document.document_id] = document
+
+	for kind: StringName in [&"personnel_record", &"duty_record"]:
+		if kind == &"duty_record" and records.is_empty():
+			var identity := get_document_definition(String(dispatch.dispatch_id), {
+				"document_id": "registry/passenger/%s" % dispatch.passenger_id, "version": 1})
+			if identity != null:
+				records.append(identity)
+		for document: DocumentDefinition in latest.values():
+			if document.source.kind == kind:
+				records.append(document)
+	return records
+
+
+func get_system_reference_documents(dispatch_id: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var dispatch: DispatchDefinition = get_dispatch(dispatch_id)
+	if dispatch == null:
+		return result
+	for document: DocumentDefinition in dispatch.documents:
+		if document != null and document.source != null and document.source.kind == &"system_reference":
+			result.append({"document_id": String(document.document_id), "version": document.version, "title": document.title})
+	return result
+
+
+func validate_document_definitions(documents: Array) -> ContentValidationReport:
+	var report := ContentValidationReport.new()
+	ContentValidator.validate_documents(documents, report, "registry", {
+		"floor": _floors_by_id, "passenger": _passengers_by_id, "dispatch": _dispatches_by_id})
+	return report
+
+
+func _identity_document(id: String, kind: StringName, owner: StringName, source_kind: StringName) -> DocumentDefinition:
+	var document := DocumentDefinition.new()
+	document.document_id = StringName(id)
+	document.owner_type = kind
+	document.owner_id = owner
+	document.material_type = source_kind
+	document.source = DocumentSourceDefinition.new()
+	document.source.source_id = StringName(id)
+	document.source.kind = source_kind
+	var resource: Resource = get_passenger(String(owner)) if kind == &"passenger" else get_floor(String(owner))
+	document.source.origin_ref = resource.resource_path if not resource.resource_path.is_empty() else "ContentRegistry:" + id
+	document.source.source_version = "legacy-unversioned"
+	return document
+
+
+func _identity_field(id: StringName, kind: StringName, owner: StringName, value: String) -> DocumentFieldDefinition:
+	var field := DocumentFieldDefinition.new()
+	field.field_id = id
+	field.subject_type = kind
+	field.subject_id = owner
+	field.comparison_key = id
+	field.display_value = value
+	field.comparable_value = [value]
+	return field

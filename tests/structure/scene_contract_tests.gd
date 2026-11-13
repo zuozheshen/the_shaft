@@ -55,10 +55,20 @@ func run() -> Array[String]:
 	instance.free()
 
 	instance = packed.instantiate()
-	var ui := instance.find_child("FloatingCommUI", true, false)
-	var button := ui.get_node("%PassengerSpeechLabel")
-	button.unique_name_in_owner = false
-	_expect("lost unique name used by code", _scene_errors(instance).contains("%PassengerSpeechLabel"))
+	var excerpt := instance.find_child("主台展示绑定", true, false)
+	excerpt.set("excerpt_button_visual_path", NodePath("缺失摘录按钮"))
+	_expect("broken excerpt button visual link", _scene_errors(instance).contains("excerpt_button_visual_path"))
+	instance.free()
+
+	instance = packed.instantiate()
+	var right := instance.find_child("右台展示绑定", true, false)
+	var information_viewport := right.get_node(right.get("information_viewport_path")) as SubViewport
+	information_viewport.gui_disable_input = false
+	right.set("feedback_label_path", right.get("input_label_path"))
+	var display_errors := _scene_errors(instance)
+	_expect("right display must not accept GUI input", display_errors.contains("information_viewport_path"))
+	information_viewport.gui_disable_input = true
+	_expect("right feedback belongs to information viewport", _scene_errors(instance).contains("feedback_label_path"))
 	instance.free()
 
 	instance = packed.instantiate()
@@ -68,6 +78,26 @@ func run() -> Array[String]:
 	visual.reparent(stage.get_node("乘客视觉区域"), false)
 	stage.set("initial_passenger_visual_path", stage.get_path_to(visual))
 	_expect("passenger must remain below its movement mount", _scene_errors(instance).contains("different parent"))
+	instance.free()
+
+	instance = packed.instantiate()
+	var terminal := instance.find_child("核验终端", true, false)
+	terminal.get_parent().remove_child(terminal)
+	terminal.free()
+	_expect("missing verification terminal", _scene_errors(instance).contains("核验终端"))
+	instance.free()
+
+	instance = packed.instantiate()
+	terminal = instance.find_child("核验终端", true, false)
+	terminal.set("interaction_controller_path", NodePath("缺失交互"))
+	_expect("broken verification input link", _scene_errors(instance).contains("interaction_controller_path"))
+	instance.free()
+
+	instance = packed.instantiate()
+	terminal = instance.find_child("核验终端", true, false)
+	var workspace := terminal.get_node("%VerificationWorkspace")
+	workspace.unique_name_in_owner = false
+	_expect("missing workspace binding", _scene_errors(instance).contains("VerificationWorkspace"))
 	instance.free()
 
 	# 正常调整机位路径、布局容器或装饰，不应被验证器误判为结构损坏。
@@ -110,10 +140,11 @@ func run() -> Array[String]:
 	comm_container.owner = null
 	comm_container.reparent(wrapper, false)
 	var interaction := instance.find_child("交互控制器", true, false)
-	ui = router.find_child("ConsoleInterface", true, false)
+	var ui := router.find_child("ConsoleInterface", true, false)
 	interaction.set("console_interface_path", interaction.get_path_to(ui))
 	var binding := instance.find_child("主台展示绑定", true, false)
 	binding.set("console_interface_path", binding.get_path_to(ui))
+	terminal = instance.find_child("核验终端", true, false)
 	_expect("router permits layout wrapper with updated references", _scene_errors(instance).is_empty())
 	instance.free()
 

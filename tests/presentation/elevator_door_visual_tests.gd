@@ -525,10 +525,12 @@ func _test_console_door_integration(
 	console.set_monitor_stage_controller(stage)
 	console.request_open_door()
 	animation_player.advance(2.0)
-	if manager.get_case_phase() == DispatchPhase.DROPOFF_FEEDBACK:
+	if not manager.dispatch_lifecycle.is_dropoff_feedback_finished():
 		manager.request_finish_dropoff_feedback()
+	# 此模块只装配门视觉。乘客真实回执由完整时间线模块验证。
+	TestContent.confirm_test_disembark(manager)
 	test_runner.assert_true(
-		"ConsoleInterface / 到站反馈进入等待关门阶段",
+		"ConsoleInterface / 明确离舱回执后进入等待关门阶段",
 		manager.get_case_phase() == DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE
 	)
 	console.request_close_door()
@@ -553,6 +555,7 @@ func _create_manager(
 		tree: SceneTree
 ) -> DemoFlowManager:
 	var manager := DemoFlowManager.new()
+	manager.set_travel_busy_query(func() -> bool: return false)
 	manager.initial_floor = "900"
 	manager.movement_duration_seconds = 0.01
 	manager.initial_shift = DEMO_SHIFT

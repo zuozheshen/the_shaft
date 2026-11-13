@@ -15,6 +15,7 @@ const FlowCommandResultScript := preload(
 @export var stage_controller_path: NodePath
 @export var monitor_subviewport_path: NodePath
 @export var screen_mesh_path: NodePath
+@export var dialogue_overlay_path: NodePath
 @export var cam_01_backlight_path: NodePath
 @export var cam_02_backlight_path: NodePath
 @export var comm_light_path: NodePath
@@ -26,18 +27,17 @@ const FlowCommandResultScript := preload(
 # 按压反馈是可选表现；未配置时保留原有按钮和业务行为。
 @export var cam_01_button_visual_path: NodePath
 @export var cam_02_button_visual_path: NodePath
+@export var excerpt_button_visual_path: NodePath
 @export var door_open_button_visual_path: NodePath
 @export var door_close_button_visual_path: NodePath
-# 四个主台按键共用节点内配置的随机点击音效，旧场景可不配置。
+# 主台按键共用节点内配置的随机点击音效，旧场景可不配置。
 @export var button_audio_player_path: NodePath
-@export var microphone_audio_player_path: NodePath
-@export var microphone_on_sound: AudioStream
-@export var microphone_off_sound: AudioStream
 @export var door_closed_material: StandardMaterial3D
 @export var door_moving_material: StandardMaterial3D
 @export var door_open_material: StandardMaterial3D
 
 var _console: ConsoleInterface
+var _dialogue: MonitorDialoguePresentation3D
 var _stage: MonitorStageController3D
 var _cam_01: Node3D
 var _cam_02: Node3D
@@ -47,11 +47,10 @@ var _fault: Node3D
 var _status: Label
 var _cam_01_button: ConsoleButtonVisualScript
 var _cam_02_button: ConsoleButtonVisualScript
+var _excerpt_button: ConsoleButtonVisualScript
 var _door_open_button: ConsoleButtonVisualScript
 var _door_close_button: ConsoleButtonVisualScript
 var _button_audio_player: AudioStreamPlayer
-var _microphone_audio_player: AudioStreamPlayer
-var _last_mic_enabled: bool = false
 
 
 func _ready() -> void:
@@ -62,7 +61,8 @@ func _bind_presentation() -> void:
 	_console = get_node_or_null(console_interface_path) as ConsoleInterface
 	_stage = get_node_or_null(stage_controller_path) as MonitorStageController3D
 	var viewport := get_node_or_null(monitor_subviewport_path) as SubViewport
-	var screen := get_node_or_null(screen_mesh_path) as MeshInstance3D
+	var screen := get_node_or_null(screen_mesh_path) as ScreenSurface3D
+	_dialogue = get_node_or_null(dialogue_overlay_path) as MonitorDialoguePresentation3D
 	_cam_01 = get_node_or_null(cam_01_backlight_path) as Node3D
 	_cam_02 = get_node_or_null(cam_02_backlight_path) as Node3D
 	_comm = get_node_or_null(comm_light_path) as Node3D
@@ -70,52 +70,42 @@ func _bind_presentation() -> void:
 	_fault = get_node_or_null(fault_light_path) as Node3D
 	_status = get_node_or_null(status_label_path) as Label
 	var status_viewport := get_node_or_null(status_subviewport_path) as SubViewport
-	var status_screen := get_node_or_null(status_mesh_path) as MeshInstance3D
+	var status_screen := get_node_or_null(status_mesh_path) as ScreenSurface3D
 	_cam_01_button = _get_button_visual(cam_01_button_visual_path)
 	_cam_02_button = _get_button_visual(cam_02_button_visual_path)
+	_excerpt_button = _get_button_visual(excerpt_button_visual_path)
 	_door_open_button = _get_button_visual(door_open_button_visual_path)
 	_door_close_button = _get_button_visual(door_close_button_visual_path)
 	if not button_audio_player_path.is_empty():
 		_button_audio_player = get_node_or_null(button_audio_player_path) as AudioStreamPlayer
-	if not microphone_audio_player_path.is_empty():
-		_microphone_audio_player = get_node_or_null(microphone_audio_player_path) as AudioStreamPlayer
 	if _console == null or _stage == null or viewport == null or screen == null \
 			or _cam_01 == null or _cam_02 == null or _comm == null \
 			or _door == null or _fault == null or _status == null \
 			or status_viewport == null or status_screen == null:
 		push_error("主台展示缺少关键导出路径或节点类型错误。")
 		return
-	var status_source_material := status_screen.material_override as StandardMaterial3D
-	if status_source_material == null or not status_viewport.disable_3d \
-			or not status_viewport.is_ancestor_of(_status):
+	if not status_viewport.disable_3d or not status_viewport.is_ancestor_of(_status) \
+			or not status_screen.material_override is StandardMaterial3D:
 		push_error("CASE 展示需要纯 2D 视口、其内部 Label 和独立屏面材质。")
 		return
-	var source_material := screen.material_override as ShaderMaterial
-	if source_material == null or source_material.shader == null or door_closed_material == null \
-			or door_moving_material == null or door_open_material == null:
-		push_error("主台展示缺少 CRT ShaderMaterial 或门灯 StandardMaterial3D。")
+	if door_closed_material == null or door_moving_material == null or door_open_material == null:
+		push_error("主台展示缺少门灯 StandardMaterial3D。")
 		return
-	# 复制原材质只隔离纹理写入，不覆盖用户调整的基础参数和 Mesh。
-	var material := source_material.duplicate() as ShaderMaterial
-	material.set_shader_parameter("feed_texture", viewport.get_texture())
-	screen.material_override = material
-	# CASE 只渲染原派单展示文本；复制材质隔离写入，不改变屏面几何。
-	var status_material := status_source_material.duplicate() as StandardMaterial3D
-	status_material.albedo_texture = status_viewport.get_texture()
-	# 发光也采样同一视口，只增强状态文字，保留深底。
-	status_material.emission_texture = status_viewport.get_texture()
-	status_screen.material_override = status_material
-	# 先记住初始化状态，之后只在真正切换时播放麦克风开关声。
-	_last_mic_enabled = _console.mic_enabled
+	if not screen.material_override is ShaderMaterial or not screen.bind_viewport(viewport, _dialogue):
+		push_error("主台监控需要带 CRT 材质的 Quad 屏面。")
+		return
+	if not status_screen.bind_viewport(status_viewport):
+		push_error("CASE 视口无法绑定到状态屏面。")
+		return
 	_console.camera_selected.connect(_on_camera_selected)
 	# 单独监听实际选择信号，初始化灯态不会播放按压。
 	_console.camera_selected.connect(_on_camera_button_selected)
 	_console.presentation_effects_requested.connect(_on_presentation_effects_requested)
-	_console.mic_enabled_changed.connect(_on_microphone_changed)
+	_console.excerpt_button_pressed.connect(_on_excerpt_button_pressed)
 	_console.case_phase_display_changed.connect(_on_case_text_changed)
 	_stage.door_presentation_state_changed.connect(_on_door_state_changed)
+	_comm.hide()
 	_on_camera_selected(_console.get_current_camera_index())
-	_on_microphone_changed(_console.mic_enabled)
 	_on_case_text_changed(_console.get_case_phase_display_text())
 	set_fault_active(false)
 	var door := _stage.get_door_visual()
@@ -160,21 +150,16 @@ func _on_presentation_effects_requested(effects: Array[StringName]) -> void:
 		_play_button_sound()
 
 
+func _on_excerpt_button_pressed() -> void:
+	if is_instance_valid(_excerpt_button):
+		_excerpt_button.play_press()
+	_play_button_sound()
+
+
 func _play_button_sound() -> void:
 	if is_instance_valid(_button_audio_player):
 		_button_audio_player.play()
 
-
-func _on_microphone_changed(enabled: bool) -> void:
-	_comm.visible = enabled
-	if enabled == _last_mic_enabled:
-		return
-	_last_mic_enabled = enabled
-	if is_instance_valid(_microphone_audio_player):
-		_microphone_audio_player.stop()
-		_microphone_audio_player.stream = microphone_on_sound if enabled else microphone_off_sound
-		if _microphone_audio_player.stream != null:
-			_microphone_audio_player.play()
 
 
 func _on_case_text_changed(text: String) -> void:
@@ -200,3 +185,11 @@ func set_fault_active(active: bool) -> void:
 	# 仅预留真实故障展示入口；当前业务不调用，普通拒绝和 busy 不接入。
 	if is_instance_valid(_fault):
 		_fault.visible = active
+
+
+func bind_dialogue(manager: DemoFlowManager, view: CabinViewController3D,
+		terminal: VerificationTerminal3D) -> void:
+	var screen := get_node_or_null(screen_mesh_path) as MeshInstance3D
+	if _dialogue != null and screen != null and _comm != null:
+		_dialogue.setup(manager, view, terminal, screen, _comm)
+		_console.set_excerpt_source(_dialogue.get_current_event_id)

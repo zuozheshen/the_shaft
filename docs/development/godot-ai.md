@@ -6,6 +6,7 @@ The Shaft 将官方 `hi-godot/godot-ai` v4.1.0 的 canonical addon tree 版本�
 `535d8a7541871af8d991b07fe5031550dd6121a31b844400476b334a70612831`。安装或升级前必须验证
 官方签名 manifest、ZIP 的大小/SHA-256 和解压后的完整文件清单。插件升级必须另开 DEV Issue，
 不在 gameplay Issue 中进行。
+普通 Issue 不删除、替换、降级或顺手更新此固定版本基础设施；用户级配置、认证 capability、缓存、截图和日志不提交。
 
 ## 仓库与本机边界
 

@@ -1,0 +1,11 @@
+~ provide_permit
+do wait(0.14)
+do submit_review_supplement("permit")
+do submit_review_supplement("permit")
+Passenger: 工作许可在这里，刚才漏交了。
+=> END
+
+~ clarify_scope
+do wait(0.14)
+Passenger: 我原先申请的是一楼。当班任务单上只列了二楼，我会按任务单的范围处理。
+=> END

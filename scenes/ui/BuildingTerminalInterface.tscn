@@ -19,7 +19,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.047059, 0.090196, 0.070588, 1)
+color = Color(0.141, 0.106, 0.086, 1)
 
 [node name="TerminalLayout" type="VBoxContainer" parent="." unique_id=521382491]
 layout_mode = 1
@@ -32,19 +32,19 @@ offset_right = -32.0
 offset_bottom = -26.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="TitleLabel" type="Label" parent="TerminalLayout" unique_id=55323921]
 layout_mode = 2
-text = "ARCHIVE TERMINAL"
+text = "系统日志"
 
-[node name="AccessStatusLabel" type="Label" parent="TerminalLayout" unique_id=1436583908]
+[node name="SectionRule" type="HSeparator" parent="TerminalLayout"]
 layout_mode = 2
-text = "SHAFT FACILITIES // OPERATOR ACCESS // LINK ACTIVE"
 
 [node name="ContentScrollContainer" type="ScrollContainer" parent="TerminalLayout"]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
 [node name="TerminalContentPanel" type="PanelContainer" parent="TerminalLayout/ContentScrollContainer" unique_id=1754242529]
 custom_minimum_size = Vector2(0, 1)
@@ -58,12 +58,35 @@ theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 16
 
-[node name="TerminalContentLabel" type="Label" parent="TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin" unique_id=474040416]
+[node name="Reading" type="VBoxContainer" parent="TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="DocumentHeading" type="Label" parent="TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/Reading"]
+visible = false
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="RecordMeta" type="Label" parent="TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/Reading"]
+visible = false
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="LogRows" type="VBoxContainer" parent="TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/Reading"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TerminalContentLabel" type="Label" parent="TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/Reading" unique_id=474040416]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "等待终端数据。"
-autowrap_mode = 2
+text = "暂无系统通信记录。"
+autowrap_mode = 3
+
+[node name="RecordFields" type="VBoxContainer" parent="TerminalLayout/ContentScrollContainer/TerminalContentPanel/TerminalContentMargin/Reading"]
+layout_mode = 2
+theme_override_constants/separation = 5
 
 [node name="TerminalHintLabel" type="Label" parent="TerminalLayout" unique_id=783481114]
 layout_mode = 2
-text = "选择一个终端页签查看建筑记录。"
+autowrap_mode = 3
+visible = false

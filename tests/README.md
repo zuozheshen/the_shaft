@@ -37,6 +37,71 @@ Godot 4.7 在编辑器首次扫描 UID 缓存前可能对 project.godot 当前�
 单独运行一项；输出明确标为 `PARTIAL CHECKS PASS`，不能当成全量通过。
 这仍是同一 shell 入口，不自动修复失败的业务或配置。
 
+## 功能分组与诊断
+
+功能测试支持按组运行。先确保当前 worktree 已导入，再选择 `-Check Existing` 和一个组：
+
+```powershell
+powershell.exe -NoProfile -File .\tests\run_all_tests.ps1 -Check Existing -Group RightConsole
+```
+
+以下是 2026-11-09 在 #91 基线 `8626e24` 上的单次实测。使用 Godot 4.7.2 和 Windows PowerShell 5.1，
+在已导入的验证 worktree 中依次运行九组。耗时采用每条命令的 `TOTAL elapsed_ms`，包含启动、检查和公共收尾，
+会随机器负载和缓存状态变化。
+
+| `-Group` | 模块数 | 通过断言 | 总耗时 | 迭代时优先跑这组的改动 |
+| --- | ---: | ---: | ---: | --- |
+| `Audio` | 1 | 12 | 4.33 秒 | 音频播放实例的停止与释放 |
+| `Content` | 3 | 80 | 4.44 秒 | 内容校验、资源引用、正式空舱基线 |
+| `Runtime` | 6 | 159 | 4.14 秒 | 电梯状态、派单生命周期、值班、UI 历史、命令结果、共享资料状态 |
+| `Flow` | 5 | 351 | 6.41 秒 | 派单阶段、流程 Manager、流程命令、资料流程、通话摘录 |
+| `Presentation` | 6 | 488 | 10.68 秒 | 监控摄影棚、楼层外观、门动画、乘客时序、W 终端与工作区 |
+| `MainConsole` | 1 | 465 | 9.91 秒 | 主台按钮反馈、状态显示、COMM 界面 |
+| `LeftConsole` | 1 | 80 | 5.28 秒 | 左台栏目、滚动、乘客档案查询界面 |
+| `RightConsole` | 1 | 126 | 8.49 秒 | 右台数字查询、档案调阅、执行拨杆 |
+| `Gamepad` | 1 | 94 | 5.72 秒 | 手柄映射、焦点导航、滚动和通讯焦点 |
+
+九组分别运行共计 25 个模块、1,855 次通过断言和约 59.4 秒。每次分组都包含一次公共音频清理断言，
+统一全量只执行一次这项收尾，因此既有功能阶段共 1,847 次通过断言。该基线的统一全量样本约 55.3 秒，
+还包含导入、结构检查、执行器自测和正式入口 smoke。需要验证所有组时，直接运行默认全量命令。
+
+`-Group` 默认为 `All`。非 `All` 的组只允许配合 `-Check Existing`；空值、未知组或冲突参数返回非零。
+`-Check Existing` 不传组时仍执行全部功能模块，并报告局部通过。每个组独立准备所需的测试内容，
+执行后还原内容并等待音频清理。直接调用 flow runner 使用 `-- --group=RightConsole`；原音频、共享资料、W 终端、左台查询及通话摘录专项命令仍可用。专项入口与非兼容的分组参数不能混用。
+
+### 选择分组或全量
+
+- **单组即可**：改动仅限该组的用例、断言或专用测试夹具，且没有修改共享夹具或测试执行逻辑。纯文档、注释、链接及不改变命令行为的说明通常无需运行 Godot 测试。
+- **迭代先跑受影响的组**：修改正式功能时先跑最贴近行为的组，跨边界再加相关组。例如右台按钮反馈先跑 `RightConsole`，同时修改手柄焦点就加 `Gamepad`，涉及验证后能否发车则加 `Flow`。纯视觉小步修改优先按项目视觉流程复查真实场景。
+- **REVIEW 前跑一次全量**：改动涉及正式场景、运行时、公共 API、Input / Camera / Interaction、Manager、数据契约、资源加载或测试执行逻辑时，运行默认统一入口。Issue 另有验收要求时按其执行。失败先缩小到首个失败阶段或最小复现，遵循 Issue Runner 的 Circuit Breaker。
+
+以上规则以 [AGENTS.md 的验证与交接约定](../AGENTS.md#验证与交接) 为准。
+
+### 结果与日志
+
+控制台报告各阶段和整次命令的 `elapsed_ms`。功能测试分别显示选中、完成和未选中的模块数、
+断言通过/失败数、最慢五个模块。完整功能日志保留逐模块开始/结束、耗时、断言计数和夹具记录。
+模块耗时含该模块等待，进程启动、导入、公共夹具和收尾计入所在阶段或总耗时。
+`SCENES CHECKED` 属于独立的结构检查，不能和模块数或断言数相加。
+
+失败显示阶段、退出码、耗时、诊断数、尚未完成的模块（如有）和完整日志路径。
+摘要最多摘录前 10 条诊断及各自前后两行，正文上限 80 行、12,000 字符，长行最多展示 1,000 字符。
+没有匹配诊断时显示日志末尾；截断有提示。错误判定始终使用完整日志，依赖失败后标明后续阶段未执行。
+
+默认全量包含小型执行器自测。单独验证错误判定、摘要和超时时可运行：
+
+```powershell
+powershell.exe -NoProfile -File .\tests\runner_execution_tests.ps1
+```
+
+## 三文件陈述拖选原型
+
+在 Godot 中运行 `res://tests/preview/statement_selection_preview.tscn`。
+维修申请已打开，当班任务单在「已调阅资料」，维修核验规程在「规程 / 样板」。
+在维修申请中拖选「001」后点「加入比对」，槽内会显示「001」和资料出处。
+说明文字和跨行片段也可加入。手柄用方向键选择段落，按 A 高亮，松开再按 A 加入。
+可点槽位旁的「定位原文」回到出处。专项使用 `-Check Existing -Group Presentation`。
+
 ## 音频退出回归
 
 `run_main_smoke.gd`在Autoload注册后读取project.godot当前配置入口并实例化，
@@ -174,3 +239,127 @@ Profile 检查实际七图导入尺寸/像素与 receipt、材质 Scissor 0.5、
 CLI 不替代上方统一入口；截图与用户体验也不由 headless 代验。
 318 正式源与测试 fixture 的色板不同；正式输入使用显式 Source/PaletteFile，禁止以诊断输入误覆盖正式美术。
 完整命令和失败恢复见 [管线文档](../docs/development/aseprite-floor-pipeline.md)。
+
+
+## 共享资料契约定向检查
+
+在已完成导入的 Issue worktree 中执行：
+
+```powershell
+godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --documents-only
+```
+
+沿用同一测试宿主，只运行内容校验、资料状态、派单生命周期和资料流程集成。
+确认 DOCUMENT STATE TESTS COMPLETE、DOCUMENT FLOW TESTS COMPLETE、测试汇总失败0、进程exit0，
+并检查没有 SCRIPT ERROR / ERROR / FAIL；Godot可能在脚本异常后仍返回0，不能单看退出码或断言汇总。
+该定向检查不等于统一入口 ALL CHECKS PASS。
+
+覆盖多文件原子上传/整批回滚、无缺件虚拟字段、左右台取得边界和W端口、来源/版本/取得时间、
+适用性Callable接入口（无正式判断器时不放行）、已提供/不适用/未知规程、索证幂等与补件、
+跨来源质疑、旧版本固定引用、深副本、001前导零、旧会话拒绝及换单/结单/结束清理。
+无剧情test_documents只在测试注入，不注册正式Catalog；适用性fixture不代表正式规则引擎。
+call_excerpt只验证类型/内部取得契约，未接主台按钮或对白；没有W/查询UI或视觉修改。
+
+
+独立审查回归还覆盖：尚未初始提交时禁止索证/质疑，允许首个空文件批次原子记录完成事件；
+失败提交和系统查询不能满足此门。跨出处覆盖须保留source_note，字段source与acquisition分离，
+引用系统记录不等于取得原件。左右台query_id按一次查询事件分配，新查询/刷新使用新ID，回调重试复用原ID/版本；
+重复查询、新版本刷新和延迟回调均验证幂等且不回退资料。
+
+## W 呼出终端定向检查
+
+在已导入的 worktree 中执行：
+
+```powershell
+godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --verification-terminal-only
+```
+
+沿用现有宿主，运行 VerificationTerminalTests、VerificationWorkspaceTests 和既有 GamepadSupportTests。
+核对 VERIFICATION TERMINAL TESTS COMPLETE、VERIFICATION WORKSPACE TESTS COMPLETE、汇总失败0、无 SCRIPT ERROR/ERROR/FAIL 与进程exit0；
+这不是统一入口 ALL CHECKS PASS。覆盖真实 Viewport 的 W/View/A/B 输入、W/ui_up冲突、echo/快速反转、
+转向中打开、事件与轮询阻断、A/B持有到收起后、有效/失效焦点恢复、COMM刷新、左台阅读状态、
+同单UI保留与session清理、行驶持续推进、六种窗口尺寸的机身包络、等比缩放、16:9 屏口及动画中 resize。
+滚动保存以布局稳定后实际可达的位置为准，不把超出ScrollContainer上限的请求值当作保留基准。
+
+正式空舱可使用W或手柄View打开终端，B或收起按钮关闭；参数在核验终端Inspector中调整。
+W 机壳按固定比例整体缩放，CanvasLayer 由实际 16:9 屏口四角投影定位，从画面下方垂直升起或收回。开合过程中接管持续生效，资料操作在完全打开后恢复。
+W 左侧目录有乘客材料、规程与样板、人员记录、楼层档案和陈述摘录。点击目录里的已开版本找回并置顶原窗。「整理窗口」收折目录并排资料。每窗可独立滚动、拖动、单角柄缩放、关闭与恢复。键盘Tab/Shift+Tab与方向导航，Enter/Space确认；正文Up/Down、PageUp/PageDown、
+Home/End滚动。手柄A确认，右摇杆滚动当前资料，B收起；开合和刷新不执行索证/质疑。
+
+工作区测试使用明确的1920×1080窗口和实际溢出的阅读窗，避免headless默认窗口/缩放令正文无需滚动。
+覆盖资料通知、原子收件、目录找回同一版本、键鼠/手柄焦点、文档内旧版重开、固定 FieldRef、鼠标标题拖动/角柄、参考资料同屏与会话撤销。证据托盘两框各自清空，主体定位精确字段或原文。单个有效规程可在任一框提交索证，双字段质疑沿用原规则。交付失败显示「回应未送达」，界面无重试入口。
+
+### 手动资料预览
+
+```powershell
+godot.cmd --path . --scene res://tests/preview/verification_workspace_preview.tscn
+```
+
+预览安装仅进程内的无剧情夹具，直接复用正式main_3d与唯一运行层/W组件。
+在612接乘层执行真实登舱命令后，身份证明和维修任务表从乘客原子上传进入乘客材料；
+楼层档案由预览驱动模拟右台查询完成取得。另有系统规程和样板，未伪装系统乘客档案。
+默认打开三窗；F6提交维修任务表v2，旧窗仍可“查看新版”。
+关闭旧窗后，从乘客材料打开维修任务表最新版，再展开窗内“历史版本”重开v1；
+左右台结果和系统参考也沿同一路径从各自栏目打开最新、在文档内读旧版。
+历史入口仅在已取得旧版确实存在时出现，默认折叠；仅首次取得v2不会显示虚构v1。
+展开历史滚到列表起点，收折恢复先前正文位置。目录找回原窗时只置顶聚焦，其他资料仍可继续阅读。
+「整理窗口」收折目录留出阅读区；“目录”可重新打开。正式默认入口和Catalog仍是空舱。
+F6仅为预览脚本输入，不新增正式 InputMap 或自动剧情。审查与证据托盘的手动预览见后面的 W 审查专项。
+小屏局部补偿字号，四窗可见行数较少，须独立滚动；最终阅读密度与手柄体验待用户验收。
+
+## 左台当前乘客档案定向检查
+
+```powershell
+godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --left-lookup-only
+```
+
+使用正式场景和进程内无剧情夹具，覆盖真实鼠标档案键、手柄调阅键、三份循环切换与独立滚动、
+每份未读、单份取得、旧版/新版本和 session 撤销。核对 `LEFT LOOKUP TESTS COMPLETE`、
+汇总失败 0、退出码 0 且无 `SCRIPT ERROR` / `ERROR` / `FAIL`。
+
+```powershell
+godot.cmd --path . --scene res://tests/preview/left_lookup_preview.tscn
+```
+
+预览中按 Q 转到左台，按「乘客档案」查询 P-017，连续按键切换三份文档。滚轮只滚动当前正文。
+按「调阅」直接打开 W 中这一份。收起 W、切换到另一份再调阅，可保留两窗并自动并排。
+W 的规程/样板和已调阅资料中另有夹具参考及右台来源档案，左台文档须由玩家调阅。
+F6 更新维修任务表，从系统日志重新进入档案可查看新版。F7 切换到无工作记录乘客。
+正式默认入口仍为空舱。实机可读性、铭牌和手柄体验单独验收。
+
+## W 审查专项与实机预览
+
+```powershell
+.\tests\run_all_tests.ps1 -Check Existing -Group Flow
+godot.cmd --path . --scene res://tests/preview/document_review_preview.tscn
+```
+
+在预览中按 W 打开「维修核验规程」，将条款「加入比对」，保留另一项为空，再点「提出质疑」。收件箱可查看工作许可补件，收起 W 后从主监视器读取回应。
+也可依次点击「维修申请」和「当班任务单」目的楼层字段旁的「加入比对」，再点「提出质疑」。收起 W 查看乘客回应。
+Flow 覆盖规则、等价依据、当前已取得版本、交付失败重试、补件去重和换单隔离。
+
+## 主台通话摘录专项与实机预览
+
+```powershell
+godot.cmd --headless --path . --scene res://tests/flow_test_runner.tscn -- --call-excerpt-only
+godot.cmd --path . --scene res://tests/preview/call_excerpt_preview.tscn
+```
+
+专项覆盖 Dialogue Manager 的 wait 期间换单、旧回执、来源与幂等。实机预览中面向主台，等监视器显示陈述末页后按麦克风底座的浅灰方块，再按 W 从「陈述摘录」打开乘客原文。复按只提示已取得，未完整呈现的陈述不可摘录。正式入口保持空舱，按「摘录」显示无派单。
+
+
+## 右台楼层档案预览
+
+```powershell
+godot.cmd --path . --scene res://tests/preview/right_lookup_preview.tscn
+```
+
+转向右台，用实体数字键输入 001，再按「调阅档案」打开 W。F6 更新 001 的来源版本，
+收起 W 后再次按调阅键先刷新摘要，再按一次取得新版。005 为不支持静态停靠的测试层。
+右台定向选择 RightConsole，业务行驶联锁选择 Flow 和 Presentation。正式空舱无需预览夹具。
+
+## 运输改送与离舱回执
+
+Flow 覆盖未调查发车、到站改送、结果快照和旧回执隔离。Presentation 覆盖实际乘客动作、离舱失败、恢复后重试与门控顺序。无表现层的测试显式提交测试回执。
+
+可复用右台楼层档案预览。用右台拨杆到 612 接乘，回主台 OPEN，等乘客登舱后 CLOSE。再用右台去 900，到站后保持门关闭，拨杆改去 742。最终到站后在主台 OPEN，等乘客离舱，再 CLOSE 结单。

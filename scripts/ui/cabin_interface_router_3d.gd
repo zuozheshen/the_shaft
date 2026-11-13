@@ -71,7 +71,7 @@ func is_main_console_visible() -> bool:
 
 
 func _configure_embedded_interfaces() -> void:
-	# 三个业务实例常驻；COMM 位于独立全局容器，转向只隐藏站位面板。
+	# 三个业务实例常驻；转向只更新站位面板和主台朝向。
 	if _main_interface != null:
 		_main_interface.set_embedded_3d_mode(true)
 		_main_interface.show()
@@ -84,7 +84,7 @@ func _configure_embedded_interfaces() -> void:
 
 
 func _on_turn_started(_direction: int, _direction_name: String) -> void:
-	# 站位面板在转身时隐藏；全局通讯窗不参与这个显隐操作。
+	# 站位面板在转身时隐藏。
 	_hide_all_interfaces()
 
 

@@ -1,13 +1,25 @@
 class_name RightConsolePresentation3D
 extends Node
 
+const SUMMARY_ROWS := {
+	"current_function": ^"功能行",
+	"current_area": ^"区域行",
+	"administrative_access_conditions": ^"访问行",
+}
+
 
 # 外形、位置和角度都留在场景；本脚本只把旧右台状态映射到实体显示。
 @export var destination_interface_path: NodePath
+@export var information_screen_path: NodePath
+@export var information_viewport_path: NodePath
+@export var input_screen_path: NodePath
+@export var input_viewport_path: NodePath
 @export var information_label_path: NodePath
+@export var current_floor_label_path: NodePath
+@export var execution_target_label_path: NodePath
+@export var source_label_path: NodePath
 @export var input_label_path: NodePath
 @export var feedback_label_path: NodePath
-@export var verify_attention_visual_path: NodePath
 @export var lever_pivot_path: NodePath
 @export_range(2.0, 35.0, 1.0) var lever_travel_degrees: float = 30.0
 @export_range(0.03, 0.5, 0.01) var lever_forward_duration: float = 0.12
@@ -19,17 +31,20 @@ extends Node
 @onready var _lever_audio_player := get_node_or_null(^"拨杆音效") as AudioStreamPlayer
 
 var _destination: DestinationControlInterface
-var _information_label: Label3D
-var _input_label: Label3D
-var _feedback_label: Label3D
-var _verify_attention_visual: MeshInstance3D
+var _information_label: Label
+var _current_floor_label: Label
+var _execution_target_label: Label
+var _source_label: Label
+var _query_caption: Label
+var _stop_badge: PanelContainer
+var _summary_rows: Dictionary[String, HBoxContainer] = {}
+var _input_label: Label
+var _feedback_label: Label
 var _lever_pivot: Node3D
 var _lever_hotspot: InteractionHotspot3D
 var _lever_rest_rotation: Vector3
 var _lever_tween: Tween
 var _lever_animating: bool = false
-var _verify_attention_tween: Tween
-var _verify_attention_active: bool = false
 
 
 func _ready() -> void:
@@ -38,19 +53,24 @@ func _ready() -> void:
 
 func _bind_presentation() -> void:
 	_destination = get_node_or_null(destination_interface_path) as DestinationControlInterface
-	_information_label = get_node_or_null(information_label_path) as Label3D
-	_input_label = get_node_or_null(input_label_path) as Label3D
-	_feedback_label = get_node_or_null(feedback_label_path) as Label3D
-	_verify_attention_visual = get_node_or_null(
-		verify_attention_visual_path
-	) as MeshInstance3D
+	_information_label = get_node_or_null(information_label_path) as Label
+	_current_floor_label = get_node_or_null(current_floor_label_path) as Label
+	_execution_target_label = get_node_or_null(execution_target_label_path) as Label
+	_source_label = get_node_or_null(source_label_path) as Label
+	_input_label = get_node_or_null(input_label_path) as Label
+	_feedback_label = get_node_or_null(feedback_label_path) as Label
 	_lever_pivot = get_node_or_null(lever_pivot_path) as Node3D
 	if _destination == null or _information_label == null or _input_label == null \
-			or _feedback_label == null or _verify_attention_visual == null \
+			or _feedback_label == null or _current_floor_label == null \
+			or _execution_target_label == null or _source_label == null \
 			or _lever_pivot == null:
 		push_error("右台实体展示缺少关键导出路径或节点类型错误。")
 		return
-	_verify_attention_visual.visible = false
+	var summary := _information_label.get_parent()
+	_query_caption = summary.get_node("查询标题") as Label
+	_stop_badge = summary.get_node("停靠标记") as PanelContainer
+	for key: String in SUMMARY_ROWS:
+		_summary_rows[key] = summary.get_node(SUMMARY_ROWS[key]) as HBoxContainer
 	_lever_rest_rotation = _lever_pivot.rotation
 	_lever_hotspot = _lever_pivot.get_parent() as InteractionHotspot3D
 	if not _destination.destination_presentation_changed.is_connected(
@@ -59,15 +79,18 @@ func _bind_presentation() -> void:
 		_destination.destination_presentation_changed.connect(
 			_on_destination_presentation_changed
 		)
-	if not _destination.destination_travel_result.is_connected(
-			_on_destination_travel_result
-	):
-		_destination.destination_travel_result.connect(
-			_on_destination_travel_result
-		)
 	_on_destination_presentation_changed(
 		_destination.get_destination_presentation()
 	)
+	# 显示接线异常时仍保留实体键、拨杆和业务联锁。
+	var information_screen := get_node_or_null(information_screen_path) as ScreenSurface3D
+	var information_viewport := get_node_or_null(information_viewport_path) as SubViewport
+	var input_screen := get_node_or_null(input_screen_path) as ScreenSurface3D
+	var input_viewport := get_node_or_null(input_viewport_path) as SubViewport
+	if information_screen == null or input_screen == null \
+			or not information_screen.bind_viewport(information_viewport) \
+			or not input_screen.bind_viewport(input_viewport):
+		push_error("右台摘要屏或数字 LCD 无法绑定现有显示视口。")
 
 
 func request_submit() -> void:
@@ -119,10 +142,6 @@ func _play_audio(player: AudioStreamPlayer) -> void:
 		player.play()
 
 
-func is_verify_attention_active() -> bool:
-	return _verify_attention_active
-
-
 func _finish_lever_animation() -> void:
 	if _lever_pivot != null:
 		_lever_pivot.rotation = _lever_rest_rotation
@@ -131,52 +150,43 @@ func _finish_lever_animation() -> void:
 		_lever_hotspot.set_hover_visual_enabled(true)
 
 
-func _on_destination_travel_result(result: FlowCommandResult) -> void:
-	if result.code != &"DESTINATION_NOT_VALIDATED":
-		return
-	_pulse_verify_attention()
-
-
-func _pulse_verify_attention() -> void:
-	if _verify_attention_visual == null:
-		return
-	if _verify_attention_tween != null and _verify_attention_tween.is_valid():
-		_verify_attention_tween.kill()
-	_verify_attention_active = true
-	_verify_attention_visual.visible = true
-	_verify_attention_tween = create_tween()
-	for _pulse_index in 3:
-		_verify_attention_tween.tween_interval(0.12)
-		_verify_attention_tween.tween_callback(
-			_set_verify_attention_visible.bind(false)
-		)
-		_verify_attention_tween.tween_interval(0.08)
-		_verify_attention_tween.tween_callback(
-			_set_verify_attention_visible.bind(true)
-		)
-	_verify_attention_tween.tween_callback(_finish_verify_attention)
-
-
-func _set_verify_attention_visible(is_visible: bool) -> void:
-	if _verify_attention_visual != null:
-		_verify_attention_visual.visible = is_visible
-
-
-func _finish_verify_attention() -> void:
-	_set_verify_attention_visible(false)
-	_verify_attention_active = false
-
-
 func _on_destination_presentation_changed(snapshot: Dictionary) -> void:
 	if _information_label == null or _input_label == null or _feedback_label == null:
 		return
-	_information_label.text = (
-		"当前楼层：%s\n系统推荐：%s\n目标楼层：%s\n地址状态：%s"
-	) % [
-		snapshot.get("current_floor", "---"),
-		snapshot.get("recommended", "—"),
-		snapshot.get("validated_floor", "---"),
-		snapshot.get("address_status", "未验证"),
-	]
-	_input_label.text = str(snapshot.get("input", ""))
-	_feedback_label.text = str(snapshot.get("feedback", ""))
+	_current_floor_label.text = str(snapshot.current_floor)
+	_execution_target_label.text = str(snapshot.execution_target)
+	_input_label.text = str(snapshot.input)
+	_feedback_label.text = str(snapshot.feedback)
+	if _feedback_label.text.is_empty() and snapshot.current_floor != "---":
+		# 现有快照只在实际行驶时提供执行目标。
+		_feedback_label.text = "运行中" if snapshot.execution_target != "---" else "已停靠"
+	var found: bool = snapshot.query_status == "found"
+	_query_caption.visible = found
+	_stop_badge.visible = found
+	_information_label.position.x = 86.0 if found else 26.0
+	_information_label.add_theme_font_size_override("font_size", 34 if found else 27)
+	_source_label.text = ""
+	for key: String in _summary_rows:
+		var row := _summary_rows[key]
+		var value: String = snapshot[key]
+		row.visible = found and value not in ["", "—", "未知", "未登记", "未记录"]
+		(row.get_node("值") as Label).text = value.replace("\r", " ").replace("\n", " ")
+	match String(snapshot.query_status):
+		"found":
+			_information_label.text = snapshot.query_floor
+			(_stop_badge.get_node("值") as Label).text = snapshot.elevator_stop
+			var origin := str(snapshot.source).strip_edges()
+			var version: String = snapshot.source_version
+			if not version.is_empty():
+				origin += " v" + version
+			var updated: String = snapshot.updated_at
+			_source_label.text = " · ".join(PackedStringArray([origin, updated])) \
+					if not origin.is_empty() and not updated.is_empty() else origin + updated
+		"prefix":
+			_information_label.text = "输入中"
+		"unknown":
+			_information_label.text = "未知地址"
+		"ambiguous", "invalid":
+			_information_label.text = "档案配置需核对"
+		_:
+			_information_label.text = "未查询"

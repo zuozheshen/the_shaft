@@ -13,6 +13,7 @@ func start_dispatch(
 		return false
 
 	# 每条派单都创建新状态，上一轮的验证、目标和反馈标记不会被复用。
+	clear()
 	_active_dispatch = ActiveDispatchState.create_from_definition(dispatch)
 	_active_dispatch.current_phase = initial_phase \
 			if DispatchPhase.is_valid(initial_phase) \
@@ -21,6 +22,8 @@ func start_dispatch(
 
 
 func clear() -> void:
+	if _active_dispatch != null:
+		_active_dispatch.document_state.close()
 	_active_dispatch = null
 
 
@@ -160,8 +163,23 @@ func finish_dropoff_feedback() -> bool:
 			or _active_dispatch.dropoff_feedback_finished:
 		return false
 	_active_dispatch.dropoff_feedback_finished = true
+	return true
+
+
+func confirm_passenger_exited(floor_id: String) -> bool:
+	if not try_set_phase(DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE):
+		return false
 	_active_dispatch.passenger_inside = false
-	return try_set_phase(DispatchPhase.DROPOFF_WAIT_DOOR_CLOSE)
+	_active_dispatch.exited_floor_id = StringName(floor_id)
+	return true
+
+
+func restore_passenger_after_failed_exit() -> bool:
+	if not try_set_phase(DispatchPhase.ARRIVED_AT_DESTINATION):
+		return false
+	_active_dispatch.arrival_triggered = false
+	_active_dispatch.dropoff_feedback_finished = false
+	return true
 
 
 func is_dropoff_feedback_finished() -> bool:
