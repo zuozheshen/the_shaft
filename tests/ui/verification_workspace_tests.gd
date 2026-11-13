@@ -339,12 +339,12 @@ func _test_statement_selection(t: Variant, tree: SceneTree) -> void:
 		terminal.developer_active and tree.paused and not selection.is_empty())
 	esc.pressed = false
 	terminal.get_viewport().push_input(esc)
+	await tree.create_timer(0.22).timeout
 	esc.pressed = true
 	terminal.get_viewport().push_input(esc)
 	esc.pressed = false
 	terminal.get_viewport().push_input(esc)
-	await tree.process_frame
-	await tree.process_frame
+	await tree.create_timer(0.22).timeout
 	t.assert_true("开发者页 / Esc 回到同一文书、选区与焦点",
 		not terminal.developer_active and terminal.target_open and not tree.paused
 		and text.has_focus() and text.get_selected_text() == selection)

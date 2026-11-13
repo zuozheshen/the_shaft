@@ -166,6 +166,13 @@ size_flags_vertical = 3
 unique_name_in_owner = true
 layout_mode = 2
 
+[node name="PageBlackout" type="ColorRect" parent="WorkspaceLayer/InputShield/Screen"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
 [node name="Glass" type="ColorRect" parent="WorkspaceLayer/InputShield/Screen"]
 material = SubResource("ScreenGlassMaterial")
 layout_mode = 2

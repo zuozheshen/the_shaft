@@ -1,0 +1,45 @@
+[gd_scene format=3]
+
+[ext_resource type="Shader" path="res://assets/art/shaders/cabin_ceiling_steel.gdshader" id="1_steel"]
+[ext_resource type="Shader" path="res://assets/art/shaders/cabin_ceiling_fittings.gdshader" id="2_fittings"]
+[ext_resource type="Texture2D" path="res://assets/art/textures/elevator_cabin_assembly_v2/shaft_ceiling_ink.png" id="3_ink"]
+
+[sub_resource type="ShaderMaterial" id="Steel"]
+shader = ExtResource("1_steel")
+shader_parameter/logo_ink = ExtResource("3_ink")
+
+[sub_resource type="QuadMesh" id="Ceiling"]
+material = SubResource("Steel")
+size = Vector2(3.38, 3.38)
+
+[sub_resource type="ShaderMaterial" id="Lamp"]
+shader = ExtResource("2_fittings")
+shader_parameter/lamp = true
+
+[sub_resource type="QuadMesh" id="LampPlane"]
+material = SubResource("Lamp")
+size = Vector2(1.02, 0.28)
+
+[sub_resource type="ShaderMaterial" id="Vent"]
+shader = ExtResource("2_fittings")
+
+[sub_resource type="QuadMesh" id="VentPlane"]
+material = SubResource("Vent")
+size = Vector2(0.55, 0.55)
+
+[node name="舱顶钢板" type="MeshInstance3D"]
+position = Vector3(0, 2.498, 0)
+rotation = Vector3(1.570796327, 0, 0)
+cast_shadow = 0
+mesh = SubResource("Ceiling")
+
+[node name="顶灯灯罩" type="MeshInstance3D" parent="."]
+position = Vector3(0.58, -0.49, 0.004)
+rotation = Vector3(0, 0, 1.570796327)
+cast_shadow = 0
+mesh = SubResource("LampPlane")
+
+[node name="通风格栅" type="MeshInstance3D" parent="."]
+position = Vector3(-0.56, -0.54, 0.003)
+cast_shadow = 0
+mesh = SubResource("VentPlane")

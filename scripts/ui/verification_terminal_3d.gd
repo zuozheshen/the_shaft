@@ -36,6 +36,7 @@ const PAD_ACTIONS: Array[StringName] = [
 @onready var workspace: VerificationWorkspace = %VerificationWorkspace
 @onready var _slide_audio: AudioStreamPlayer = $开合音效
 @onready var developer_panel: DeveloperSettingsPanel = %DeveloperSettingsPanel
+@onready var _page_blackout: ColorRect = %PageBlackout
 
 var target_open: bool = false
 var open_progress: float = 0.0
@@ -129,7 +130,7 @@ func is_sliding() -> bool:
 
 func show_developer_page(restore_documents: bool) -> void:
 	developer_active = true
-	_developer_transition = not target_open
+	_developer_transition = true
 	_pad_needs_neutral = true
 	_nav_direction = 0
 	if restore_documents:
@@ -137,34 +138,63 @@ func show_developer_page(restore_documents: bool) -> void:
 		if is_instance_valid(focused) and workspace.is_ancestor_of(focused):
 			_document_focus = weakref(focused)
 		workspace.set_developer_suspended(true)
+		await _fade_screen(true)
+	_show_settings_controls()
+	if restore_documents:
+		await _fade_screen(false)
+		_developer_transition = false
+		developer_panel.focus_return()
+	else:
+		set_open(true)
+
+
+func _show_settings_controls() -> void:
 	workspace.hide()
 	developer_panel.show()
 	developer_panel.refresh_settings()
-	if _developer_transition:
-		set_open(true)
-	else:
-		developer_panel.focus_return()
 
 
 func hide_developer_page(restore_documents: bool) -> void:
+	if _developer_transition:
+		return
+	_developer_transition = true
 	_pad_needs_neutral = true
 	_nav_direction = 0
 	if restore_documents:
-		_finish_developer_page(true)
+		await _fade_screen(true)
+		_restore_document_controls()
+		await _fade_screen(false)
+		_finish_developer_page()
 	else:
-		_developer_transition = true
 		set_open(false)
 
 
-func _finish_developer_page(restore_documents: bool) -> void:
+func _fade_screen(to_black: bool) -> void:
+	# 黑场只盖住 W 屏口。换页在完全黑下去时发生。
+	_page_blackout.show()
+	var fade := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	fade.tween_property(_page_blackout, ^"color:a", 1.0 if to_black else 0.0, 0.08)
+	await fade.finished
+	if not to_black:
+		_page_blackout.hide()
+
+
+func _restore_document_controls() -> void:
+	developer_panel.release_settings_focus()
+	developer_panel.hide()
+	workspace.show()
+	workspace.set_reading_enabled(true)
+	workspace.set_developer_suspended(false)
+
+
+func _finish_developer_page() -> void:
+	var restore_documents := target_open
 	developer_panel.release_settings_focus()
 	developer_panel.hide()
 	developer_active = false
 	_developer_transition = false
 	workspace.show()
 	if restore_documents:
-		workspace.set_reading_enabled(true)
-		workspace.set_developer_suspended(false)
 		var focused := _document_focus.get_ref() as Control if _document_focus != null else null
 		if _is_screen_focus(focused):
 			focused.grab_focus()
@@ -223,7 +253,7 @@ func _finish_slide(opened: bool) -> void:
 				workspace.directory_button.grab_focus()
 	else:
 		if developer_active:
-			_finish_developer_page(false)
+			_finish_developer_page()
 		_set_capture(false)
 	slide_finished.emit(opened)
 
@@ -345,6 +375,8 @@ func refresh_documents(session: int) -> void:
 	workspace.refresh(session)
 
 func _process(delta: float) -> void:
+	if _developer_transition:
+		return
 	if not _captured or not target_open or open_progress < 1.0:
 		return
 	if _pad_needs_neutral:

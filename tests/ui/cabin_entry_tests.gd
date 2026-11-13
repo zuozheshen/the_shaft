@@ -54,8 +54,13 @@ func run(t: Variant, tree: SceneTree) -> void:
 	terminal.set_open(true)
 	await tree.create_timer(0.2).timeout
 	_press(viewport, true)
-	t.assert_true("文书 / Menu 在原 W 内切换", terminal.developer_active and not terminal.workspace.visible)
+	t.assert_true("文书 / 黑场开始时保留原页并暂停", terminal.workspace.visible and tree.paused)
 	_press(viewport, true)
+	await tree.create_timer(0.22).timeout
+	t.assert_true("文书 / 黑场期间的 Menu 不跳过切换",
+		terminal.developer_active and not terminal.workspace.visible and tree.paused)
+	_press(viewport, true)
+	await tree.create_timer(0.22).timeout
 	t.assert_true("文书 / Menu 返回原 W",
 		terminal.target_open and terminal.workspace.visible and not terminal.developer_active)
 	t.assert_false("改键 / Esc 保留系统入口", Settings.valid_key(KEY_ESCAPE))

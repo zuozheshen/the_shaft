@@ -27,7 +27,9 @@ func run(t: Variant, tree: SceneTree) -> void:
 		first[0].status if first.size() == 1 else "")
 	var terminal := main.find_child("核验终端", true, false) as VerificationTerminal3D
 	main.get_node("值守入口")._request_developer()
-	await tree.create_timer(0.32).timeout
+	# 等真实举起完成，再确认第三方等待已跨过暂停窗口。
+	await terminal.slide_finished
+	await tree.create_timer(0.28).timeout
 	var waiting: Dictionary = manager.get_passenger_events()[0]
 	t.assert_true("设置暂停 / 第三方等待到期仍不交付旧陈述",
 		tree.paused and waiting.status == "running" and "OLD EVENT" not in manager.get_system_message_history())
@@ -42,7 +44,7 @@ func run(t: Variant, tree: SceneTree) -> void:
 		var event: Dictionary = events[0]
 		t.assert_true("事件陈述 / 新会话与原文来源分离",
 			event.session != old_session and event.status == "resolved" and event.rows.size() == 2)
-		if event.rows.size() == 2:
+		if event.get("rows", []).size() == 2:
 			t.assert_equal("事件陈述 / 保留预编写原文", "我只记得可能是 002。", event.rows[0].text)
 			t.assert_equal("事件陈述 / 只有乘客发言", "Passenger", event.rows[0].speaker)
 	t.assert_false("事件陈述 / 旧 mutation 不污染新派单",

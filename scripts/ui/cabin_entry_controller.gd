@@ -19,12 +19,17 @@ var _pad_direction := 0
 var _developer_origin := Origin.NONE
 var _developer_queued := false
 var _paused_before := false
+var _returning_from_developer := false
 
 enum Origin { NONE, REST, STATION, DOCUMENTS }
 
 
 func _ready() -> void:
-	actions.theme = Style.make_theme(34)
+	var menu_theme := Style.make_theme(40)
+	var ink := Color(0.048, 0.031, 0.021, 0.94)
+	menu_theme.set_stylebox("normal", "Button", Style.box(ink, Style.EDGE, 2))
+	menu_theme.set_stylebox("focus", "Button", Style.box(Color.TRANSPARENT, Style.AMBER, 3))
+	actions.theme = menu_theme
 	start_button.pressed.connect(start_duty)
 	settings_button.pressed.connect(_request_developer)
 	terminal.developer_requested.connect(_request_developer)
@@ -87,10 +92,11 @@ func _request_developer() -> void:
 
 
 func _return_from_developer() -> void:
-	if _developer_origin == Origin.NONE:
+	if _developer_origin == Origin.NONE or _returning_from_developer:
 		return
+	_returning_from_developer = true
 	var documents := _developer_origin == Origin.DOCUMENTS
-	terminal.hide_developer_page(documents)
+	await terminal.hide_developer_page(documents)
 	if documents:
 		_finish_developer_return()
 
@@ -111,6 +117,7 @@ func _open_queued_developer() -> void:
 func _finish_developer_return() -> void:
 	var rest := _developer_origin == Origin.REST
 	_developer_origin = Origin.NONE
+	_returning_from_developer = false
 	get_tree().paused = _paused_before
 	if rest:
 		menu.show()

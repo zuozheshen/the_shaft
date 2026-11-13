@@ -30,6 +30,7 @@ autowrap_mode = 3
 
 [node name="Footer" type="HBoxContainer" parent="."]
 layout_mode = 2
+theme_override_constants/separation = 14
 alignment = 2
 
 [node name="Back" type="Button" parent="Footer"]

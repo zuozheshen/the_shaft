@@ -31,18 +31,35 @@ var _mode: OptionButton
 var _size: OptionButton
 var _sizes: Array[Vector2i]
 var _binding_release := KEY_NONE
+var _section_rows: VBoxContainer
 
 
 func _ready() -> void:
 	theme = Style.make_theme(32)
+	theme.set_type_variation("WOption", "OptionButton")
+	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
+		theme.set_stylebox(state, "WOption", theme.get_stylebox(state, "Button"))
+	for role in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_disabled_color"]:
+		theme.set_color(role, "WOption", theme.get_color(role, "Button"))
+	theme.set_stylebox("panel", "PopupMenu", Style.box(Style.DESK))
+	theme.set_stylebox("hover", "PopupMenu", Style.box(Style.HOVER))
+	theme.set_color("font_color", "PopupMenu", Style.AMBER)
+	theme.set_color("font_hover_color", "PopupMenu", Style.INK)
+	theme.set_stylebox("slider", "HSlider", Style.box(Style.DESK, Style.EDGE, 1, 6, 5))
+	theme.set_stylebox("grabber_area", "HSlider", Style.box(Style.PICKED, Style.EDGE, 1, 6, 5))
+	theme.set_stylebox("grabber_area_highlight", "HSlider", Style.box(Style.ACTIVE, Style.AMBER, 1, 6, 5))
 	for button in [primary, cancel, back, quit]:
-		button.custom_minimum_size = Vector2(128, 48)
+		button.custom_minimum_size = Vector2(154, 48)
+	quit.add_theme_stylebox_override("normal", Style.box(Color("#422725"), Color("#a36349")))
+	_section("声音")
 	for index in Settings.BUSES.size():
 		var slider := HSlider.new()
 		slider.max_value = 100.0
 		slider.custom_minimum_size = Vector2(120, 40)
 		slider.step = 1.0
 		var value := Label.new()
+		value.custom_minimum_size.x = 92
+		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		_row(["主音量", "音效"][index]).add_child(slider)
 		slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		slider.get_parent().add_child(value)
@@ -65,19 +82,21 @@ func _ready() -> void:
 		slider.set_value_no_signal(100)
 		value.text = "100%"
 	_label("音乐：当前未配置")
-	_mode = OptionButton.new()
+	_section("显示")
+	_mode = _option()
 	_mode.add_item("窗口化")
 	_mode.add_item("无边框全屏")
 	_row("窗口模式").add_child(_mode)
-	_size = OptionButton.new()
+	_size = _option()
 	_row("窗口大小").add_child(_size)
 	_mode.item_selected.connect(func(index: int) -> void: _size.disabled = index == 1)
 	var apply := Button.new()
 	apply.text = "应用显示"
 	apply.pressed.connect(_preview_display)
 	_row("").add_child(apply)
-	_label("Esc / Menu：设置与返回")
-	_label("左键操作；十字键 / 左摇杆导航，A 确认，B 返回；右摇杆滚动文书")
+	_section("操作")
+	_label("Esc / Menu：设置与返回　　十字键 / 左摇杆：导航")
+	_label("鼠标左键 / A：确认　　B：返回　　右摇杆：滚动文书")
 	for index in Settings.ACTIONS.size():
 		var binding := Button.new()
 		binding.custom_minimum_size = Vector2(128, 40)
@@ -265,12 +284,34 @@ func _save() -> void:
 		status.text = "无法保存设置。"
 
 
+func _section(caption: String) -> void:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", Style.box(Style.SURFACE, Style.EDGE, 1, 18, 9))
+	rows.add_child(panel)
+	_section_rows = VBoxContainer.new()
+	_section_rows.add_theme_constant_override("separation", 4)
+	panel.add_child(_section_rows)
+	var heading := Label.new()
+	heading.text = caption
+	heading.add_theme_color_override("font_color", Style.LIGHT)
+	_section_rows.add_child(heading)
+	_section_rows.add_child(HSeparator.new())
+
+
+func _option() -> OptionButton:
+	var option := OptionButton.new()
+	option.theme_type_variation = &"WOption"
+	option.custom_minimum_size = Vector2(270, 44)
+	return option
+
+
 func _row(caption: String) -> HBoxContainer:
 	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
 	var label := Label.new()
 	label.text = caption
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	rows.add_child(row)
+	_section_rows.add_child(row)
 	row.add_child(label)
 	return row
 
@@ -278,5 +319,7 @@ func _row(caption: String) -> HBoxContainer:
 func _label(value: String) -> void:
 	var label := Label.new()
 	label.text = value
+	label.add_theme_color_override("font_color", Style.MUTED)
+	label.add_theme_font_size_override("font_size", 27)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	rows.add_child(label)
+	_section_rows.add_child(label)
