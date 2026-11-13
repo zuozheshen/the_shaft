@@ -1229,7 +1229,7 @@ func finish_passenger_event(snapshot: Dictionary, source_version: String, rows: 
 	var state := _current_document_state(snapshot.session)
 	if state == null:
 		return
-	var event: Dictionary = state.passenger_events.get(snapshot.key, {})
+	var event := _find_passenger_event(state, snapshot.source_event_id)
 	if event.get("source_event_id") != snapshot.source_event_id or event.get("status") != "running":
 		return
 	if event.get("attempt", 0) != snapshot.get("attempt", 0):

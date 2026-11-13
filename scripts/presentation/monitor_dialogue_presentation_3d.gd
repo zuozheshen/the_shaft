@@ -5,6 +5,7 @@ extends SubViewport
 const LINES_PER_PAGE := 3
 const MIN_PAGE_SECONDS := 4.0
 const FINAL_PAGE_SECONDS := 6.0
+const REVIEW_HANDOFF_SECONDS := 1.5
 const SECONDS_PER_CHARACTER := 0.12
 
 @onready var _bubble: Panel = $Bubble
@@ -58,10 +59,12 @@ func _refresh() -> void:
 	for event: Dictionary in _manager.get_passenger_events():
 		if event.status in ["pending", "running", "resolved"]:
 			unread = true
-		if next.is_empty() and event.status == "resolved":
+		if event.status == "resolved" and (next.is_empty() or event.key == "destination_opened"):
 			next = event
 	_lamp.visible = unread
-	if _event.is_empty() or _page_complete:
+	# 开门后离舱已开始，先呈现该层回应。其他事件仍留在队列里。
+	var dropoff_ready: bool = next.get("key") == "destination_opened"
+	if dropoff_ready or _event.is_empty() or _page_complete:
 		if not next.is_empty() and next.source_event_id != _event.get("source_event_id"):
 			_show_event(next)
 
@@ -125,6 +128,13 @@ func _after_draw() -> void:
 			_final_page_drawn = true
 			_confirm_final_draw.call_deferred(_event.session, _event.source_event_id, _page)
 		duration = maxf(duration, FINAL_PAGE_SECONDS)
+		# 下一条质疑已就绪时，末页绘制后可更快交接，仍允许摘录原文。
+		if _event.has("question_id") and _elapsed >= REVIEW_HANDOFF_SECONDS:
+			for event: Dictionary in _manager.get_passenger_events():
+				if event.status == "resolved" and event.has("question_id") \
+						and event.source_event_id != _event.source_event_id:
+					duration = REVIEW_HANDOFF_SECONDS
+					break
 	if _elapsed < duration:
 		return
 	# 状态通知与换页在渲染回调之后执行，避免旧回执影响下一页。

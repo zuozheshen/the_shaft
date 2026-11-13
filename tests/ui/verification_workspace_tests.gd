@@ -441,6 +441,7 @@ func _test_review_cards(t: Variant, tree: SceneTree) -> void:
 	workspace._challenge.grab_focus()
 	key(viewport, KEY_ENTER)
 	t.assert_equal("证据框 / 仅右槽从正式界面提交原索证", 1, manager.get_material_requests(session).size())
+	t.assert_equal("证据框 / 索证成功清空", [{}, {}], workspace._slots)
 
 	# 模拟这一笔确已提交的交付发生技术失败。3A 只展示失败，不复投。
 	var failed := manager.take_pending_passenger_event()
@@ -458,11 +459,17 @@ func _test_review_cards(t: Variant, tree: SceneTree) -> void:
 	workspace._challenge.grab_focus()
 	key(viewport, KEY_ENTER)
 	t.assert_equal("证据框 / 无匹配规则不创建交付", 1, manager.get_review_deliveries(session).size())
+	t.assert_equal("证据框 / 失败保留两条依据", [application, Review.ref("access", "destination")], workspace._slots)
 	workspace._clear_review_field(1)
 	workspace._add_review_field(task)
 	workspace._challenge.grab_focus()
 	key(viewport, KEY_ENTER)
 	t.assert_equal("证据框 / 双字段从正式界面提交质疑", 1, manager.get_contradiction_challenges(session).size())
+	t.assert_equal("证据框 / 质疑成功清空两个槽", [{}, {}], workspace._slots)
+	t.assert_true("证据框 / 清空后关闭提交并保留结果反馈",
+		workspace._challenge.disabled and not workspace._review_feedback.text.is_empty())
+	workspace._add_review_field(application)
+	workspace._add_review_field(task)
 	manager.accept_left_lookup_result(session, &"review-fixture-left-v2", [Review.ref("task", "", 2)])
 	workspace.open_document(Review.ref("task", "", 2))
 	workspace.close_window("review/task@1")

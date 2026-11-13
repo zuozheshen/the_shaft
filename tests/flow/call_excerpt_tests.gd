@@ -70,6 +70,14 @@ func run(t: Variant, tree: SceneTree) -> void:
 		t.assert_equal("摘录 / 同一源事件幂等", &"UNCHANGED", manager.acquire_main_call_excerpt(session, id).code)
 		t.assert_equal("摘录 / 复按不增加取得事件", event_count, manager.get_document_events(session).size())
 		t.assert_equal("摘录 / 未知事件不可取得", &"NO_EXCERPT", manager.acquire_main_call_excerpt(session, "unknown").code)
+	manager.get_active_dispatch().dialogue_events["destination_opened"] = "statement"
+	manager._record_passenger_event(session, "destination_opened", 2)
+	await tree.process_frame
+	await tree.process_frame
+	var dropoff: Dictionary = manager.get_passenger_events().back()
+	t.assert_true("事件陈述 / 带行程编号的开门回应成功写回",
+		dropoff.key == "destination_opened" and dropoff.status == "resolved"
+		and dropoff.get("rows", []).size() == 2 and String(dropoff.source_event_id).ends_with(":2"))
 	manager.finish_shift()
 	t.assert_true("事件陈述 / 值班结束清除缓存", manager.get_passenger_events().is_empty())
 	main.queue_free()

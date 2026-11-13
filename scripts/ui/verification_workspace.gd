@@ -732,6 +732,8 @@ func _operation_id() -> StringName:
 func _show_review_result(expected_session: int, result: FlowCommandResult) -> void:
 	if expected_session != session_id:
 		return
+	if result.succeeded:
+		_slots = [{}, {}]
 	_review_feedback.text = result.message
 	refresh_review()
 
