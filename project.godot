@@ -17,7 +17,7 @@ config/icon="res://icon.svg"
 
 [audio]
 
-buses/default_bus_layout="res://default_bus_layout.tres"
+buses/default_bus_layout="uid://cdcp66vjh5afp"
 
 [autoload]
 
@@ -46,9 +46,10 @@ developer_mode={
 
 verification_terminal_toggle={
 "deadzone": 0.5,
-"events": [Object(InputEventKey,"device":-1,"physical_keycode":87), Object(InputEventJoypadButton,"device":-1,"button_index":4)]
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":87,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+, Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"button_index":4,"pressure":0.0,"pressed":false,"script":null)
+]
 }
-
 turn_left={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":81,"key_label":0,"unicode":113,"location":0,"echo":false,"script":null)
@@ -108,7 +109,7 @@ context_scroll_down={
 
 [internationalization]
 
-locale/translations_pot_files=PackedStringArray("res://tests/fixtures/runtime/test_passenger.dialogue")
+locale/translations_pot_files=PackedStringArray("res://tests/fixtures/runtime/test_passenger.dialogue", "res://tests/fixtures/runtime/test_call_excerpt.dialogue", "res://tests/fixtures/runtime/test_document_review.dialogue")
 
 [physics]
 

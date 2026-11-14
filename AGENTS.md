@@ -13,9 +13,8 @@
 
 开始任务默认只读取：
 
-- 当前 GitHub Issue 正文及有效修订、审批。
-- 本文件。
-- 当前 repo/worktree 的 `git status`、branch、HEAD 和必要历史。
+- 本文件与用户的当前任务描述；明确关联 Issue 时才读取该 Issue 正文、有效修订与审批。
+- 当前 repo/worktree 的 `git status`、branch、HEAD；仅在需要确认基线、依赖或冲突时读取有限历史。
 
 按任务需要再读取：
 
@@ -27,6 +26,16 @@
 GitHub Issue 是动态任务的唯一真相源；`PROJECT_STATE.md` 只记录慢变化事实；
 实际 `project.godot`、场景、脚本和资源是可执行事实。发现冲突时报告，不猜测意图。
 不要为了“保险”扫描整个项目、全部历史文档或所有场景。
+
+## 增量检索与上下文控制
+
+项目增长不等于必须读取更多内容；始终按当前任务的依赖与验收范围选择上下文：
+
+- **先定位，再读取**：用文件名、符号和有限搜索（如 `rg --files`、`rg -n`）定位入口及直接引用，再读取相关文件的必要片段；不默认遍历目录树或整库文件。
+- **按证据扩大范围**：只有引用链、错误、测试或兼容性检查需要时才扩大搜索；不为“保险”读取无关系统、历史或文档。
+- **排除噪声**：搜索默认避开 `.git/`、`.godot/`、导出/构建、缓存、临时日志和无关二进制文件；需要检查资源时以路径、元数据及直接依赖为主。
+- **最小化工具输出**：优先 `git diff --stat`、指定文件 diff、有限搜索命中和日志尾部；信息不足才扩大，不重复读取未变化的大文件。
+- **保留跨会话事实**：短期状态以 Issue 为准，稳定入口与架构按既有流程维护在 `PROJECT_STATE.md`；不将长对话或终端输出复制进仓库。不得为省 token 跳过必要的安全检查与测试。
 
 ## 实施原则（Karpathy 要点）
 
@@ -55,16 +64,13 @@ GitHub Issue 是动态任务的唯一真相源；`PROJECT_STATE.md` 只记录慢
 玩法、美术、叙事、体验和范围由用户或负责设计审查的 ChatGPT 冻结。
 实现中遇到未冻结的关键设计选择时停在可审阅方案，不自行扩展规格。
 
-## Git 安全
+## Git 安全与人工交接
 
-- BUILD 使用当前 Issue 的独立分支和仓库外 worktree；默认分支名为 `dev/<issue-number>-<short-name>`。
-- 创建 worktree 前核实 base commit、依赖历史、目标路径和现有工作区；无法安全隔离时停止报告。
-- 保留用户未提交改动，不自动 stash，不为方便而 checkout/reset 覆盖，不在无关 checkout 直接开发。
-- 允许在计划通过风险门后创建仅含当前 Issue 的本地 commit；显式逐文件暂存并审查 staged diff。
-- 不自主 push、merge、force-push、删除远端分支或修改权限；不未经授权 reset/rebase 改写共享历史。
-- REVIEW 仍停在 push/merge 前；整合、删除 worktree、删除本地分支是独立动作，删除远端分支须另行明确授权。
-  整合后的清理必须先读 Issue Runner 的 Post-integration cleanup，逐项核实授权、已合入 main、归属和 clean 状态。
-- 不提交 `.godot/`、导出产物、临时日志、缓存或编辑器备份。
+- BUILD 仍按 Issue Runner 使用当前 Issue 的独立分支和仓库外 worktree，默认 `dev/<issue-number>-<short-name>`；经风险门和路径核实后可创建开发用分支/worktree，但不自动清理。
+- 创建前核实 base commit、依赖、路径与工作区状态；保留用户未提交改动，不在无关 checkout 开发，也不自动 stash、reset 或覆盖文件。
+- **用户手动负责 Git 暂存、提交、推送、合并及清理**。Codex 不执行 `git add/commit/push/merge/rebase/reset/stash/clean`、force-push、分支或 worktree 删除、远端权限修改；允许 `status/diff/log/branch --show-current` 等范围受控的只读检查。
+- REVIEW 汇报 branch/worktree、改动和测试、风险、待办及建议 commit message 后停止；用户自行检查 diff、提交、推送、合并、清理。Issue Runner 若仍要求自动 commit 或清理，以本节人工边界为准，并提示同步更新流程文档。
+- 不应提交 `.godot/`、导出产物、临时日志、缓存、编辑器备份或密钥；不得将 Token、Secret、Cookie 或登录信息写入仓库。最终暂存和排除由用户核实。
 
 ## 风险门
 
@@ -77,16 +83,28 @@ GitHub Issue 是动态任务的唯一真相源；`PROJECT_STATE.md` 只记录慢
 风险按实际影响判断，不按扩展名机械分类。批准必须对应计划版本、范围和约束；
 已有有效批准不重复请求，范围或基线实质变化时重新过门。具体阶段路由由 Issue Runner 负责。
 
+## 工具调用、等待与运行方式
+
+- **避免短间隔轮询**：工具允许时，对 Code Mode `wait(cell_id)` 或耗时命令优先使用较长等待（如 `yield_time_ms=30000`），不连续使用 1 秒轮询；不要传不受支持的参数。
+- 连续 3 次等待仍无新进展，先排查卡住、用户交互或等待方式；不盲目重复、重启或为节省 token 杀掉正常进程。
+- 自动测试应能自然退出并输出简明结果。Godot Editor/游戏的视觉、音频和交互验收由用户手动运行并反馈，不让 Codex 持续轮询 GUI 直到退出。
+- 合并相关检查，避免重复读取不变的日志和项目文件；不得为了减少调用而掩盖失败或跳过必要验证。这些是行为规则，不是底层轮询的强制限速。
+
 ## 验证与交接
 
-- 先运行受影响测试或最小复现；测试必须匹配实际改动。
-- 正式 scene、runtime、public API、Input/Camera/Interaction、Manager、数据契约、资源加载或测试执行逻辑变化，
-  在 REVIEW 前运行一次 [统一测试入口](tests/README.md)；Issue 可另行要求。
-- 纯文档、注释、链接和不改变命令行为的说明默认不运行 Godot 全量测试。
-- Circuit Breaker 的唯一详细规则在 Issue Runner；触发时停止变体尝试并报告，不循环重跑全量测试。
+- **开发过程只做局部测试**：每次改动根据直接影响范围运行最小复现、对应单测、相关场景/脚本检查或必要的局部集成测试；即使涉及 scene、runtime、public API、Input/Camera/Interaction、Manager、数据契约或资源加载，也不因此提前运行全项目统一测试。
+- **统一测试只在 Issue 收尾执行一次**：当前 Issue 的实现和局部验证完成、准备进入最终 REVIEW / 人工交接时，按 [`tests/README.md`](tests/README.md) 运行一次统一测试入口；不要在 BUILD 中每次修改后、每轮尝试后或仅因进入中间检查点而重复运行。
+- **失败后精准复测**：局部或统一测试失败时先定位原因；修复后优先重跑受影响的失败测试和直接关联项。若最终统一测试后发生会影响测试结果的代码、场景或资源修改，则在准备交接时重新完成统一测试，以保证最终版本得到验证；不要为了维持“一次”而交付未经验证的变更。
+- **按需免测**：纯文档、注释、链接及不改变执行行为的说明，默认只检查改动内容；若整个 Issue 都不涉及可执行行为，收尾时可省略 Godot 统一测试并注明原因。
+- 测试输出仅保留关键结果和错误摘要，避免反复读取完整日志；Circuit Breaker 的唯一详细规则在 Issue Runner，触发后停止变体尝试并报告，不循环重跑全量测试。
 - Headless 通过不等于画面、焦点、字体、音频、手感或节奏验收；用户保留最终 Godot 体验验收。
-- REVIEW 如实区分实现、自动测试、人工验收、commit、push/merge 和外部同步，列出文件、结果与限制。
-- 默认停在 push/merge 前，由用户决定最终整合和发布。
+- REVIEW 如实区分实现、局部测试、Issue 收尾统一测试、人工验收，以及**尚由用户手动完成**的 commit、push/merge 和清理；列出文件、结果与限制，不把未执行的工作写成已完成。
+- 默认在必要验证完成后交接，不触发额外 Git 写入；用户决定最终整合和发布。若 Issue Runner 仍要求中途统一测试，以本节“只在 Issue 收尾”的规则为准，并提示同步更新流程文档。
+
+## 长会话与任务切换
+
+- 完成一个 Issue / 独立任务后，下一任务优先开启新会话，通过本文件、对应 Issue、必要的 `PROJECT_STATE.md` 和当前代码重建精简上下文，而不是继承大段工具输出。
+- 上下文过大或重复检索时，交接摘要只列目标、审批、branch/worktree、关键文件、已改内容、测试结果及待办；以仓库和 Issue 为事实源。复杂连续调试不必机械拆会话。
 
 ## 按需专项流程
 
@@ -98,11 +116,3 @@ GitHub Issue 是动态任务的唯一真相源；`PROJECT_STATE.md` 只记录慢
 - **Blender 与 3D 资产任务**：使用 Blender MCP，或修改、保存、导出 3D 资产前，
   读取 [Blender 工作流](docs/development/blender-workflow.md)，按其中的会话确认、风险门与非破坏性规则执行。
   接入 Godot 时再按该文档读取资产边界约定。
-
-## 开发日志与外部同步
-
-开发日志和飞书操作遵循
-[`the-shaft-devlog` skill](.agents/skills/the-shaft-devlog/SKILL.md) 与
-[`docs/devlog/README.md`](docs/devlog/README.md)。
-“整理开发日志”只生成本地草稿；只有用户明确说“同步开发日志”才允许写入已授权的飞书目标。
-不得把 Token、Secret、Cookie 或登录信息写入仓库、日志或同步状态。
